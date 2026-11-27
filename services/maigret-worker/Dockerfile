@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 # Copy the application code
 COPY app /app/app
 
-# Render injects PORT (default 10000 on their free tier, configurable per service)
+# PORT defaults to 8000; override with --env PORT=... if needed
 ENV PORT=8000
 EXPOSE 8000
 

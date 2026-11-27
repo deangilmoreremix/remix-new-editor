@@ -49,6 +49,18 @@ export interface PreviewLayer {
   endFrame?: number
   /** 0..1 layer opacity. */
   opacity: number
+  /**
+   * Rotation in degrees, clockwise, about the center of the drawn box, normalized to (-180, 180]. Absent = not rotated.
+   * Only text, CTA and image layers rotate (see `userRotatable` in mediaRoles).
+   */
+  rotation?: number
+  /**
+   * Values the layer takes at chosen moments (move, size, fade, tilt). Changes to the layer's own values, not
+   * absolutes, so a layout change still applies. Optional so saved projects restore unchanged.
+   */
+  keyframes?: import('./keyframes').LayerKeyframe[]
+  /** Brightness, contrast, saturation, blur, glow and shadow for this layer. Optional so saved projects restore unchanged. */
+  effects?: import('./effects').LayerEffects
   /** Text content for text-bearing layers. */
   text?: string
   /** Accent/text color (hex). Falls back to brandColors.text. */
@@ -171,6 +183,14 @@ export interface PersonalizationPreviewSettings {
   /** Customer-selected audio track, or null when none is chosen. */
   audio: PreviewAudioSelection | null
   /**
+   * The audio mix: tracks (music, voiceover) with volume, fades, start and trim, plus the video's own sound.
+   * Optional so projects saved before the mix existed restore unchanged; `audio` above keeps working as one track.
+   */
+  audioTracks?: import('./audioMix').AudioTrack[]
+  videoVolume?: number
+  videoMuted?: boolean
+  audioSolo?: string
+  /**
    * Id of the Remotion design currently applied to the preview, or null.
    *
    * Optional so projects saved before the design registry existed still
@@ -188,6 +208,32 @@ export interface PersonalizationPreviewSettings {
    * editor, preview and export — style the same image the same way.
    */
   imageHints?: Record<string, ImageHints>
+  /** A color and film look for the footage (not the brand overlays). Optional so saved projects restore unchanged. */
+  look?: import('./effects').LookSettings
+  /** Timed captions over the video, with the spoken word highlighted. Optional so saved projects restore unchanged. */
+  captions?: import('./captions').CaptionSettings
+  /** Named looks for text layers and captions, saved with the project. Optional so saved projects restore unchanged. */
+  textStyles?: import('./textStyles').SavedTextStyle[]
+  /**
+   * Presenter background removal. Optional so projects saved before it existed restore unchanged.
+   * Settings only: the measured masks live in memory (preview/cutout/maskStore.ts), never in the project.
+   */
+  cutout?: import('./cutout/cutoutSettings').CutoutSettings
+  /**
+   * Ids of the full-frame scenes that open and close the video, or null.
+   * Optional so older projects restore; the normalizer falls back to nulls.
+   */
+  remotionSceneIds?: { intro: string | null; outro: string | null }
+}
+
+/** Where a design sits: on top of the video, or as an opening/closing scene. */
+export type DesignSlot = 'overlay' | 'intro' | 'outro'
+
+/** Layer id each design slot uses. */
+export const DESIGN_SLOT_LAYER_IDS: Record<DesignSlot, string> = {
+  overlay: 'design',
+  intro: 'design-intro',
+  outro: 'design-outro',
 }
 
 /** Everything the composition needs to render one frame-accurate scene. */
@@ -204,12 +250,19 @@ export interface PreviewInputProps {
     cta: string
     phone: string
     website: string
+    /** Optional extra end-card line (email / @handle) built from found contact details. */
+    contactExtra?: string
     logoUrl: string | null
     productUrl: string | null
     serviceUrl: string | null
   }
   /** Durable audio track to mix into the composition, or null. */
   audioUrl: string | null
+  /**
+   * Measured luminance grids of the source footage (from the Layout Quality sampler), when known.
+   * Lets text scrims scale with how bright the footage is behind the text. Absent = default strength.
+   */
+  lumaSamples?: import('./placement/types').LumaSample[]
 }
 
 export const DEFAULT_PREVIEW_FPS = 30

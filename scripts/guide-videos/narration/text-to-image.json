@@ -1,0 +1,14 @@
+{
+  "slug": "text-to-image",
+  "name": "Text to Image",
+  "intro": "Welcome to Text to Image in SmartVideo. This page is a friendly menu for picking an image model or an example prompt before you head into Image Studio.",
+  "features": {
+    "start-creating-free": "The Start Creating Free button sits right under the banner. It opens Image Studio, so you can jump straight to the generator whenever you're ready.",
+    "why-choose-our-text-to-image-cards": "These highlight cards sum up what Image Studio offers, including multiple ratios and high resolution. They're just for information, so you can skim them quickly.",
+    "available-models": "Available Models is a grid of featured image models. Click a card and Image Studio opens with that model selected, so you skip searching the picker.",
+    "example-prompts": "Example Prompts give you five proven starting points. Click Try this on one and Image Studio opens with the prompt filled in, ready for you to edit.",
+    "gtm-boost": "GTM Boost helps you turn a rough marketing idea into a sharp prompt. Pick an angle, audience and goal, then apply it to send the prompt to Image Studio.",
+    "get-started-free": "Down in the Ready to Create box, Get Started Free does the same job as the top button. Use it once you've browsed and found your starting point."
+  },
+  "outro": "That's the tour of Text to Image. Pick a model or a prompt, and you're one click from Image Studio."
+}

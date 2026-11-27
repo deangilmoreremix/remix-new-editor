@@ -29,8 +29,9 @@
 import {
   POINTER_DESIGNS, POINTER_THEMES, POINTER_CATEGORIES, POINTER_MOTIONS, TARGET_MOTIONS, HINT_STYLES, HINT_POSITIONS, pointerSvg, isTargetDesign,
 } from './pointerDesigns.js';
-import { leadFieldTokens } from './leadClient.js';
-import { FIELD_LAYOUTS } from './addonOverlay.js';
+import { leadFieldTokens, ESP_PROVIDERS, espName, espListLabel } from './leadClient.js';
+import { FIELD_LAYOUTS, AFTER_SUBMIT_ACTIONS, buildOptinForm, backdropStyle } from './addonOverlay.js';
+import { OPTIN_DESIGNS, OPTIN_DESIGN_CATEGORIES, DESIGN_LAYOUTS, BADGE_ICONS, BUTTON_ICONS, DESIGN_BASE, COLOR_SCHEMES, applyOptinDesign, recolorOptin, schemeSwatch } from './optinDesigns.js';
 
 export const LIST_BUILDER_KINDS = {
   'list-builder': 'List Builder',
@@ -43,16 +44,28 @@ export const OPTIN_KINDS = {
 };
 
 // Upstream ARRAY_ELEMENTS_RETARGET
+/** When a Lead Generator appears in a published video (the List Builder is always a wall at the start). */
+export const LEAD_TRIGGERS = [
+  ['time', 'At its place on the timeline'],
+  ['end', 'At the end of the video'],
+  ['pause', 'When the viewer pauses the video'],
+  ['exit', 'When the viewer is about to leave (desktop)'],
+];
+
 export const FORM_FIELD_TYPES = [
   ['singleline', 'Singleline'],
   ['multiline', 'Multiline'],
   ['email', 'Email'],
+  ['phone', 'Phone'],
+  ['url', 'Website (URL)'],
   ['number', 'Number'],
   ['date', 'Date'],
+  ['select', 'Dropdown'],
+  ['checkbox', 'Checkbox'],
 ];
 
-/** The Lead Generator clip also offered a Phone field. */
-export const LEAD_FIELD_TYPES = [...FORM_FIELD_TYPES, ['phone', 'Phone']];
+/** The Lead Generator offers the same field types (Phone used to be Lead-Generator-only). */
+export const LEAD_FIELD_TYPES = FORM_FIELD_TYPES;
 
 // Upstream ARRAY_TRANSITIONS (full list).
 export const FORM_TRANSITIONS = [
@@ -80,7 +93,7 @@ export const FORM_TRANSITIONS = [
 ];
 
 // Upstream form fonts list (subset of the Google Fonts it offered).
-export const FORM_FONTS = ['Raleway', 'Anton', 'Bevan', 'Roboto', 'Open Sans', 'Montserrat', 'Lato', 'Oswald', 'Poppins', 'Playfair Display']
+export const FORM_FONTS = ['Raleway', 'Anton', 'Bevan', 'Roboto', 'Open Sans', 'Montserrat', 'Lato', 'Oswald', 'Poppins', 'Playfair Display', 'Inter', 'Cinzel', 'Share Tech Mono', 'Rajdhani']
   .map((f) => [f, f]);
 
 /** Upstream token: label upper-cased (used as the submitted field name). */
@@ -159,6 +172,9 @@ export function defaultOptin(kind = 'list-builder') {
     btnText: 'Play',
     skipText: 'Skip',
     successMessage: 'Thanks!',
+    afterSubmitAction: 'continue',
+    afterSubmitUrl: '',
+    afterSubmitButtonText: '',
     // text styling
     captionColor: '', // '' = the form font colour
     captionBold: true,
@@ -182,12 +198,65 @@ export function defaultOptin(kind = 'list-builder') {
     webhook3: '',
     emailEnabled: false,
     emailAddress: '',
+    emailAddress2: '',
+    emailAddress3: '',
     fbPixelId: '',
+    gaMeasurementId: '',
+    tiktokPixelId: '',
+    gtmId: '',
+    espProvider: '',
+    espListId: '',
+    blockDisposableEmails: false,
+    autoReplyEnabled: false,
+    autoReplySubject: 'Thanks for signing up',
+    autoReplyBody: 'Hi {{first_name}}, thanks for signing up! Here is your video: {{video_link}}',
+    autoReplyReplyTo: '',
+    requireConsent: false,
+    consentText: 'I agree to receive emails and updates.',
+    trigger: 'time',
+    abTest: false,
+    variantBCaption: '',
+    variantBBtnText: '',
+    multiStep: false,
+    stepSize: 1,
+    nextText: 'Next',
     transition: 'popcorn-none',
     ...POINTER_DEFAULTS,
     pointerEnabled: !lead, // upstream only showed the arrow on the List Builder
     // List Builder only: skip the form for viewers who already filled it in.
     askEveryVisit: false,
+    // Design presets (./optinDesigns.js): '' = the classic look above. Everything below is editable.
+    designPreset: '',
+    designLayout: 'center',
+    backgroundColor2: '',
+    bgAngle: 135,
+    cardRadius: 0,
+    cardBorderColor: '',
+    cardBorderWidth: 0,
+    cardGlow: '',
+    cardBlur: 0,
+    inputOpacity: 100,
+    inputIcons: false,
+    inputChevron: false,
+    buttonBackground2: '',
+    eyebrow: '',
+    subtitle: '',
+    sideQuote: '',
+    sideAuthor: '',
+    sideStats: '',
+    sideRating: '',
+    brandName: '',
+    brandIcon: true,
+    badgeIcon: 'none',
+    btnIcon: 'none',
+    stepLabels: '',
+    stepQuestions: '',
+    choiceStyle: 'dropdown',
+    panelTitle: '',
+    panelHint: '',
+    designAccent: '',
+    decorEnabled: true,
+    colorScheme: '',
   };
 }
 
@@ -254,17 +323,85 @@ const TEXT_FIELDS = (personalizer) => [
   { key: 'btnText', label: 'Play button text', type: 'text' },
   { key: 'skipText', label: 'Skip button text', type: 'text', showIf: (o) => o.enableSkipButton },
   { key: 'successMessage', label: 'Message after the form is sent', type: 'text' },
+  { key: 'afterSubmitAction', label: 'After the form is sent', type: 'select', options: AFTER_SUBMIT_ACTIONS },
+  { key: 'afterSubmitUrl', label: 'Thank-you button / redirect link (https://…)', type: 'url', showIf: (o) => o.afterSubmitAction === 'button' || o.afterSubmitAction === 'redirect' },
+  { key: 'afterSubmitButtonText', label: 'Thank-you button text', type: 'text', showIf: (o) => o.afterSubmitAction === 'button' },
+  { key: 'abTest', label: 'A/B test: also show a second version of the caption and button (published videos)', type: 'toggle' },
+  { key: 'variantBCaption', label: 'Version B caption (empty = same as A)', type: 'textarea', rows: 2, showIf: (o) => o.abTest },
+  { key: 'variantBBtnText', label: 'Version B button text (empty = same as A)', type: 'text', showIf: (o) => o.abTest },
+  { key: 'nextText', label: 'Next button text', type: 'text', showIf: (o) => o.multiStep },
+  { key: 'consentText', label: 'Consent checkbox wording', type: 'text', showIf: (o) => o.requireConsent },
   { key: 'privacyDisclaimer', label: 'Privacy text', type: 'textarea', showIf: () => !personalizer },
   { key: 'privacyPolicyCaption', label: 'Privacy policy link text', type: 'text' },
   { key: 'privacyPolicyLink', label: 'Privacy policy link (URL)', type: 'url' },
+  { key: 'panelTitle', label: 'Heading over the boxes (e.g. "Your Details")', type: 'text' },
+  { key: 'panelHint', label: 'Hint under that heading', type: 'text' },
+  { key: 'stepLabels', label: 'Step names, comma separated (e.g. Details, Confirm, Watch) — needs "Split the boxes into steps"', type: 'text' },
+  { key: 'stepQuestions', label: 'Chat layout: one question per line, one per box (empty = "What\'s your …?")', type: 'textarea', rows: 3, showIf: (o) => o.designLayout === 'chat' },
+  { key: 'eyebrow', label: 'Small label above the caption (design extra, optional)', type: 'text' },
+  { key: 'subtitle', label: 'Sub-title under the caption (design extra, optional)', type: 'textarea', rows: 2 },
+  { key: 'sideQuote', label: 'Testimonial quote (Social proof design)', type: 'textarea', rows: 2, showIf: (o) => o.designLayout === 'split' },
+  { key: 'sideAuthor', label: 'Testimonial author', type: 'text', showIf: (o) => o.designLayout === 'split' },
+  { key: 'sideRating', label: 'Star rating line (e.g. 4.9/5 (2,847 reviews))', type: 'text', showIf: (o) => o.designLayout === 'split' },
+  { key: 'sideStats', label: 'Stats, separated by ; ("50,000+ Creators; 5M+ Videos")', type: 'text', showIf: (o) => o.designLayout === 'split' },
   { key: 'popupHeaderText', label: 'Pointer bubble: title', type: 'text', showIf: (o) => o.pointerEnabled },
   { key: 'popupFillOutText', label: 'Pointer bubble: "Fill out your" line', type: 'text', showIf: (o) => o.pointerEnabled },
   { key: 'popupClickText', label: 'Pointer bubble: "Click" line', type: 'text', showIf: (o) => o.pointerEnabled },
   { key: 'popupDescriptionText', label: 'Pointer bubble: description', type: 'text', showIf: (o) => o.pointerEnabled },
 ];
 
+// Picker tile: a real, scaled-down render of the design with its own wording and three boxes (cached: it never changes).
+const thumbCache = new Map();
+export function liveDesignThumb(design, schemeId = '') {
+  if (typeof document === 'undefined') return '';
+  const cacheKey = `${design.id}|${schemeId}`;
+  if (thumbCache.has(cacheKey)) return thumbCache.get(cacheKey);
+  const base = defaultOptin('list-builder');
+  const cfg = { ...base, ...applyOptinDesign(base, design, schemeId), enabled: true, pointerEnabled: false, privacyDisclaimer: '' };
+  const form = buildOptinForm(cfg);
+  form.querySelectorAll('[data-step]').forEach((n) => { if (n.dataset.step !== '0') n.hidden = true; }); // first step of a stepped design
+  const wrap = document.createElement('div');
+  wrap.className = 'addon-overlay addon-overlay--optin';
+  wrap.style.background = backdropStyle(cfg, { preview: true });
+  wrap.appendChild(form);
+  const stage = document.createElement('div');
+  stage.className = 'addon-overlay-layer optin-mini';
+  stage.setAttribute('inert', '');
+  stage.setAttribute('aria-hidden', 'true');
+  stage.style.setProperty('--ovl-w', '640px');
+  stage.appendChild(wrap);
+  const html = `<span class="optin-mini-frame">${stage.outerHTML}</span>`;
+  thumbCache.set(cacheKey, html);
+  return html;
+}
+
+// 30 one-click designs, then every look option they set (all stay editable).
+const DESIGN_FIELDS = [
+  { key: 'designPreset', label: 'Design (one click sets colours, card, layout and steps — then tweak anything)', type: 'designPicker', designs: OPTIN_DESIGNS, categories: OPTIN_DESIGN_CATEGORIES, thumb: liveDesignThumb, livePreview: true, applyDesign: applyOptinDesign },
+  { key: 'brandName', label: 'Brand name next to the logo mark (empty = none)', type: 'text' },
+  { key: 'brandIcon', label: 'Show the logo mark beside the brand name', type: 'toggle', showIf: (o) => !!o.brandName },
+  { key: 'badgeIcon', label: 'Badge icon above the title', type: 'select', options: BADGE_ICONS },
+  { key: 'btnIcon', label: 'Icon on the Play button', type: 'select', options: BUTTON_ICONS },
+  { key: 'choiceStyle', label: 'Dropdown fields look like', type: 'select', options: [['dropdown', 'A dropdown'], ['list', 'A list of choices (quiz)']] },
+  { key: 'designAccent', label: 'Decoration color (lines, frames, glow accents; empty = the design\'s own)', type: 'color' },
+  { key: 'decorEnabled', label: 'Show the design\'s decoration (glow, grid, frames, stripes)', type: 'toggle' },
+  { key: 'colorScheme', label: 'Color scheme (one click recolors the whole design; every color can still be changed below)', type: 'colorSchemes', schemes: COLOR_SCHEMES, applyScheme: recolorOptin, swatch: schemeSwatch },
+  { key: 'designLayout', label: 'Layout', type: 'select', options: DESIGN_LAYOUTS },
+  { key: 'backgroundColor2', label: 'Background gradient: second color (empty = solid)', type: 'color' },
+  { key: 'bgAngle', label: 'Background gradient angle', type: 'range', min: 0, max: 360, showIf: (o) => !!o.backgroundColor2 },
+  { key: 'cardRadius', label: 'Card corner radius (200 = oval)', type: 'range', min: 0, max: 200 },
+  { key: 'cardBorderWidth', label: 'Card border width', type: 'range', min: 0, max: 8 },
+  { key: 'cardBorderColor', label: 'Card border color', type: 'color', showIf: (o) => Number(o.cardBorderWidth) > 0 },
+  { key: 'cardGlow', label: 'Card glow color (empty = none)', type: 'color' },
+  { key: 'cardBlur', label: 'Frosted-glass blur behind the card', type: 'range', min: 0, max: 40 },
+  { key: 'inputOpacity', label: 'Input background opacity', type: 'range', min: 0, max: 100 },
+  { key: 'inputIcons', label: 'Show icons in the boxes', type: 'toggle' },
+  { key: 'inputChevron', label: 'Show a dropdown arrow at the end of the boxes', type: 'toggle' },
+  { key: 'buttonBackground2', label: 'Play Button gradient: second color (empty = solid)', type: 'color' },
+];
+
 const LAYOUT_FIELDS = [
-  { key: 'fieldLayout', label: 'Box layout', type: 'select', options: FIELD_LAYOUTS },
+  { key: 'fieldLayout', label: 'Box layout (uses fewer columns when a smaller video would cut off the labels)', type: 'select', options: FIELD_LAYOUTS },
   { key: 'fieldWidth', label: 'Boxes width (% of the form)', type: 'range', min: 30, max: 100 },
   { key: 'fieldGap', label: 'Space between boxes', type: 'range', min: 0, max: 20 },
   { key: 'fieldAlign', label: 'Align boxes', type: 'select', options: [['center', 'Center'], ['left', 'Left']] },
@@ -294,8 +431,13 @@ export function listBuilderFields(config) {
   const lead = config?.kind === 'lead-generator';
   const fields = [
     ...TEXT_FIELDS(personalizer).map((f) => ({ ...f, tab: 'Text' })),
+    ...DESIGN_FIELDS.map((f) => ({ ...f, tab: 'Design' })),
     ...STYLE_FIELDS.map((f) => ({ ...f, tab: 'Styles' })),
     { key: 'elements', label: lead ? 'Form boxes (1–5)' : 'Form boxes (1–5, required)', type: 'fieldList', min: 1, max: 5, placeholders: true, fieldTypes: lead ? LEAD_FIELD_TYPES : FORM_FIELD_TYPES, tab: 'Fields' },
+    { key: 'trigger', label: 'When it appears (published video)', type: 'select', options: LEAD_TRIGGERS, tab: 'Fields', showIf: (o) => o.kind === 'lead-generator' },
+    { key: 'multiStep', label: 'Split the boxes into steps (Next / Back, progress dots)', type: 'toggle', tab: 'Fields' },
+    { key: 'stepSize', label: 'Boxes per step', type: 'select', options: [[1, '1'], [2, '2'], [3, '3']], tab: 'Fields', showIf: (o) => o.multiStep },
+    { key: 'requireConsent', label: 'Add a consent checkbox viewers must tick (wording on the Text tab)', type: 'toggle', tab: 'Fields' },
     ...LAYOUT_FIELDS.map((f) => ({ ...f, tab: 'Fields' })),
     ...POINTER_FIELDS.map((f) => ({ ...f, tab: 'Pointer', ...(f.optionsFor ? { options: f.optionsFor(config || {}) } : {}) })),
   ];
@@ -303,12 +445,28 @@ export function listBuilderFields(config) {
   if (!personalizer) {
     fields.push(
       { key: 'webhookEnabled', label: 'Webhook Call', type: 'toggle', tab: 'Integrations' },
-      { key: 'webhook', label: 'Webhook Address', type: 'url', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
+      { key: 'webhook', label: 'Webhook Address (a Slack, Discord or Microsoft Teams webhook URL sends a readable alert)', type: 'url', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
       { key: 'webhook2', label: 'Webhook Address 2', type: 'url', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
       { key: 'webhook3', label: 'Webhook Address 3', type: 'url', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
+      { key: '_webhookTest', label: 'Test Webhook', type: 'action', action: 'testWebhooks', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
+      { key: '_webhookLog', label: 'Recent webhook deliveries', type: 'action', action: 'webhookLog', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
+      { key: '_webhookSecret', label: 'Show webhook signing secret', type: 'action', action: 'signingSecret', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
       { key: 'emailEnabled', label: 'Email Notification', type: 'toggle', tab: 'Integrations' },
-      { key: 'emailAddress', label: 'Notification Address', type: 'text', tab: 'Integrations', showIf: (o) => o.emailEnabled },
+      { key: 'emailAddress', label: 'Notification Address (person 1)', type: 'text', tab: 'Integrations', showIf: (o) => o.emailEnabled },
+      { key: 'emailAddress2', label: 'Notification Address (person 2, optional)', type: 'text', tab: 'Integrations', showIf: (o) => o.emailEnabled },
+      { key: 'emailAddress3', label: 'Notification Address (person 3, optional)', type: 'text', tab: 'Integrations', showIf: (o) => o.emailEnabled },
       { key: 'fbPixelId', label: 'Facebook Pixel ID', type: 'text', tab: 'Integrations' },
+      { key: 'gaMeasurementId', label: 'Google Analytics 4 Measurement ID (G-XXXXXXXXXX)', type: 'text', tab: 'Integrations' },
+      { key: 'tiktokPixelId', label: 'TikTok Pixel ID', type: 'text', tab: 'Integrations' },
+      { key: 'gtmId', label: 'Google Tag Manager ID (GTM-XXXXXXX)', type: 'text', tab: 'Integrations' },
+      { key: 'autoReplyEnabled', label: 'Email each lead a thank-you with the video link (published videos; needs email set up)', type: 'toggle', tab: 'Integrations' },
+      { key: 'autoReplySubject', label: 'Thank-you email subject', type: 'text', tab: 'Integrations', showIf: (o) => o.autoReplyEnabled },
+      { key: 'autoReplyReplyTo', label: 'Replies go to (your email address)', type: 'text', tab: 'Integrations', showIf: (o) => o.autoReplyEnabled },
+      { key: 'autoReplyBody', label: 'Thank-you email text ({{first_name}} and {{video_link}} are filled in; plain text, one email per address per day)', type: 'textarea', rows: 4, tab: 'Integrations', showIf: (o) => o.autoReplyEnabled },
+      { key: 'blockDisposableEmails', label: 'Block throwaway email addresses (published videos)', type: 'toggle', tab: 'Integrations' },
+      { key: 'espProvider', label: 'Add leads to an email list (published videos)', type: 'select', options: ESP_PROVIDERS, tab: 'Integrations' },
+      { key: 'espListId', label: espListLabel(config?.espProvider), type: 'text', tab: 'Integrations', showIf: (o) => !!o.espProvider },
+      { key: '_espConnect', label: `Connect ${espName(config?.espProvider) || 'account'}`, type: 'action', action: 'connectEsp', tab: 'Integrations', showIf: (o) => !!o.espProvider },
     );
   }
   return fields;
@@ -329,7 +487,10 @@ export function listBuilderWebhookConfig(config) {
  * own field set and colours), keeping the enabled flag.
  */
 export function switchListBuilderKind(config, kind) {
-  return { ...defaultListBuilder(kind), enabled: !!config?.enabled };
+  const next = { ...defaultListBuilder(kind), enabled: !!config?.enabled };
+  // A picked design is the form's look, not the kind's wording: it stays (the kind's own caption, boxes and privacy text still switch).
+  if (config?.designPreset) Object.keys(DESIGN_BASE).forEach((k) => { if (k in config) next[k] = config[k]; });
+  return next;
 }
 
 // ------------------------------------------------- Lead Generator clip adapter
@@ -341,6 +502,10 @@ const CLIP_KEYS = {
   privacyDisclaimer: 'privacyText',
   privacyPolicyCaption: 'privacyPolicyCaption',
   privacyPolicyLink: 'privacyPolicyLink',
+  successMessage: 'successMessage',
+  afterSubmitAction: 'afterSubmitAction',
+  afterSubmitUrl: 'afterSubmitUrl',
+  afterSubmitButtonText: 'afterSubmitButtonText',
   brandLogoSrc: 'brandLogoUrl',
   enableSkipButton: 'skipButtonEnabled',
   webhookEnabled: 'webhookEnabled',
@@ -349,7 +514,20 @@ const CLIP_KEYS = {
   webhook3: 'webhookUrl3',
   emailEnabled: 'emailNotificationEnabled',
   emailAddress: 'notificationEmail',
+  emailAddress2: 'notificationEmail2',
+  emailAddress3: 'notificationEmail3',
   fbPixelId: 'fbPixelId',
+  gaMeasurementId: 'gaMeasurementId',
+  tiktokPixelId: 'tiktokPixelId',
+  gtmId: 'gtmId',
+  espProvider: 'espProvider',
+  espListId: 'espListId',
+  blockDisposableEmails: 'blockDisposableEmails',
+  autoReplyEnabled: 'autoReplyEnabled',
+  autoReplySubject: 'autoReplySubject',
+  autoReplyBody: 'autoReplyBody',
+  autoReplyReplyTo: 'autoReplyReplyTo',
+  trigger: 'trigger',
 };
 
 // opt-in option → clip.style key.
@@ -388,7 +566,8 @@ export function leadFormToOptin(clip) {
     if (clip?.[key] !== undefined) out[opt] = clip[key];
   }
   for (const [opt, key] of Object.entries(STYLE_KEYS)) {
-    if (style[key] !== undefined && style[key] !== '') out[opt] = style[key];
+    // an empty background is meaningful for designs that let the video show through
+    if (style[key] !== undefined && (style[key] !== '' || opt === 'backgroundColor')) out[opt] = style[key];
   }
   out.transition = toOptinTransition(out.transition);
   // A legacy clip saved a 'none' bottom border as ''/undefined: keep the default look.
@@ -401,6 +580,7 @@ export function leadFormToOptin(clip) {
     token: tokens[i],
     required: !!f.required,
     placeholder: f.placeholder || '',
+    ...(f.options ? { options: f.options } : {}),
   }));
   Object.assign(out, clip?.design || {});
   out.kind = 'lead-generator';
@@ -417,7 +597,7 @@ export function applyOptinToLeadForm(clip, next) {
   clip.design = clip.design || {};
   for (const [key, value] of Object.entries(next)) {
     if (OWN_KEYS.has(key)) continue;
-    if (CLIP_KEYS[key]) clip[CLIP_KEYS[key]] = value;
+    if (CLIP_KEYS[key]) { clip[CLIP_KEYS[key]] = value; delete clip.design[key]; } // an older design.<key> would win on read
     else if (STYLE_KEYS[key]) clip.style[STYLE_KEYS[key]] = value;
     else clip.design[key] = value;
   }
@@ -426,7 +606,7 @@ export function applyOptinToLeadForm(clip, next) {
     let id = (typeof e.id === 'string' && e.id) ? e.id : slug(e.label);
     if (used.has(id)) id = `${id}_${i + 1}`;
     used.add(id);
-    return { id, type: e.type === 'singleline' ? 'text' : e.type, label: e.label, required: !!e.required, ...(e.placeholder ? { placeholder: e.placeholder } : {}) };
+    return { id, type: e.type === 'singleline' ? 'text' : e.type, label: e.label, required: !!e.required, ...(e.placeholder ? { placeholder: e.placeholder } : {}), ...(e.options ? { options: e.options } : {}) };
   });
   if (!clip.fields.length) clip.fields = [{ id: 'email', type: 'email', label: 'Email' }];
   return clip;

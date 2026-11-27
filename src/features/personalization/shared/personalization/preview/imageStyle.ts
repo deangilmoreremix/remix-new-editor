@@ -126,8 +126,15 @@ export interface ImageHints {
   hasTransparency?: boolean
   /** The asset was explicitly identified as a portrait/headshot. */
   isHeadshot?: boolean
+  /** The visible pixels are mostly very light (a white / pale logo): it vanishes on a white tile. */
+  lightLogo?: boolean
   /** The explicit role of this image (from the customer's assignment or the discovery category). */
   role?: ImageRole
+  /**
+   * A derived copy of a TRANSPARENT logo with its empty padding cropped away (a PNG data URL). The original file is
+   * never changed; the preview, the gallery and the export all read this same URL, so they stay identical.
+   */
+  trimmedUrl?: string
 }
 
 export const ROUNDED_RECT_DEFAULT: ImageStyle = Object.freeze({

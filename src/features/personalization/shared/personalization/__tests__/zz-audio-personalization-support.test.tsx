@@ -32,7 +32,7 @@ import {
 
 // ── Provider dependency mocks (same set as DemoPersonalizeProvider.test.tsx) ──
 
-vi.mock('@ohb/packages/studio/src/muapi', () => ({
+vi.mock('studio/src/muapi', () => ({
   uploadFile: vi.fn(),
 }))
 
@@ -501,5 +501,15 @@ describe('TASK 4 — provider wires the upload through the durable asset path', 
     expect(ctx.previewSettings.audio?.url.startsWith('blob:')).toBe(true)
     expect(ctx.assets.audio).toHaveLength(1)
     void ctxHandle
+  })
+})
+
+describe('audio mix persistence', () => {
+  it('does not save a track that is still a local blob: URL, but keeps uploaded ones', async () => {
+    const { stripSessionScopedUrls } = await import('../supabaseProjectPersistence')
+    const out = stripSessionScopedUrls({
+      previewSettings: { audioTracks: [{ id: 'a', url: 'blob:abc', name: 'a', kind: 'music', volume: 1, fadeIn: 0, fadeOut: 0, start: 0, trimStart: 0, muted: false }, { id: 'b', url: 'https://cdn/x.mp3', name: 'b', kind: 'music', volume: 1, fadeIn: 0, fadeOut: 0, start: 0, trimStart: 0, muted: false }] },
+    } as never)
+    expect((out.previewSettings as { audioTracks: { id: string }[] }).audioTracks.map((t) => t.id)).toEqual(['b'])
   })
 })

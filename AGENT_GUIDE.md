@@ -725,3 +725,14 @@ The `.agents/skills/` directory is large. When you're not coming in through a to
 - Do not present a single unavailable tool in isolation. Always show the full capability picture: "X of Y providers configured for this capability."
 - Do not skip the Provider Menu at preflight. The user must see what they have AND what they could unlock.
 - Do not change provider, model, or render path without telling the user first and getting approval when the change is material.
+
+## SmartWarmupAI studio (vendored upstream dashboard)
+
+The SmartWarmupAI studio embeds the open-source Warmbly dashboard, rebranded at build time. Rules for working on it:
+
+- **Never edit vendored upstream files** (`apps/warmbly-web/**`, `apps/smartwarmupai-help/content/**`, `apps/smartwarmupai-help/upstream/**`). The only allowed differences are listed in `apps/warmbly-web/UPSTREAM.md`. Run `npm run verify:upstream -- <path to an upstream clone at the commit in apps/smartwarmupai-brand/brand.json>` after any change there.
+- **Branding lives in one place:** `apps/smartwarmupai-brand/brand.json`. Product name, logo mark and icons are applied at build time by `rebrand-plugin.mjs`, `apps/smartwarmupai-help/build.mjs` and `agent-docs.mjs`. Never rewrite lowercase technical identifiers (`warmbly` commands, `WARMBLY_*`, API paths, storage keys): a real backend depends on them.
+- **Build:** `npm run build:smartwarmupai` (dashboard to `public/smartwarmupai-app`, Help site to `public/smartwarmupai-help`). Tests: `npm run test:smartwarmupai-help` and `cd apps/warmbly-web && pnpm exec vitest run src/lib/demo`.
+- **Demo data:** with no backend the dashboard answers from `apps/warmbly-web/src/lib/demo/fixtures.json`. Add a recorded response there when a view reports "no recorded demo data"; to use a real backend build without `VITE_DEMO` and set `WARMBLY_API_URL`.
+- **Backend:** `apps/warmbly-server` is the vendored upstream backend and services (Go control plane, tracking, realtime, forms, portal, admin), byte-identical to upstream and never edited, with one owner-approved exception: the Clerk single-sign-on exchange (`POST /v1/auth/clerk`) that gives SmartWarmupAI one login with the SmartVideo session. Its files are listed in `apps/warmbly-server/UPSTREAM.md` and in `apps/smartwarmupai-brand/verify-upstream.mjs`; add nothing else to the backend. Build with `npm run server:build`; run and connect instructions are in `apps/warmbly-server/UPSTREAM.md`. The same dashboard build switches from demo data to this backend through a deploy-time `config.js` (`DEMO: "0"`, `API_URL`), with no rebuild.
+- Upstream's own agent rules and skills are kept, rebranded, in `apps/smartwarmupai-help/agent/` and published in the Help site under "Developers & agents".

@@ -1,19 +1,20 @@
 export { registerAddon, getAddon, isAddonType, listAddons, createAddonClip, clipTimeRange, addonOptions } from './registry.js';
-export { INTERACTIVE_ADDONS, PROJECT_FORMS, PAUSE, LOOP, SKIP, LEAD_FORM, CTA_BUTTON } from './interactiveAddons.js';
+export { INTERACTIVE_ADDONS, PROJECT_FORMS, PAUSE, LOOP, SKIP, HOTSPOT, LEAD_FORM, CTA_BUTTON } from './interactiveAddons.js';
 export { AddonRuntime } from './runtime.js';
 export { renderAddonEditor, getPath, setPath } from './addonEditor.js';
-export { ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, showOptinOverlay, backdropStyle, buildOptinForm, buildArrowHint, startPointer, formBackground } from './addonOverlay.js';
+export { ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, showOptinOverlay, showThanks, safeWebUrl, AFTER_SUBMIT_ACTIONS, backdropStyle, buildOptinForm, buildArrowHint, startPointer, formBackground } from './addonOverlay.js';
 export {
-  defaultOptin, defaultListBuilder, normalizeListBuilder, listBuilderFields, leadFormToOptin, applyOptinToLeadForm, LEAD_FIELD_TYPES, OPTIN_KINDS, POINTER_DEFAULTS, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile, LIST_BUILDER_KINDS, FORM_FIELD_TYPES, FORM_TRANSITIONS, fieldToken,
+  defaultOptin, defaultListBuilder, normalizeListBuilder, listBuilderFields, leadFormToOptin, applyOptinToLeadForm, LEAD_FIELD_TYPES, OPTIN_KINDS, POINTER_DEFAULTS, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile, LIST_BUILDER_KINDS, FORM_FIELD_TYPES, LEAD_TRIGGERS, FORM_TRANSITIONS, fieldToken,
 } from './listBuilder.js';
 export {
-  submitLead, fetchLeads, fetchLeadRows, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, isValidWebhookUrl, sanitizeLeadData, leadFieldTokens,
+  submitLead, leadNotifyEmails, MAX_NOTIFY_EMAILS, fetchLeads, fetchLeadRows, postWebhooksDirect, testWebhooks, runWebhookTest, webhookTestMessage, fetchDeliveries, deliveriesSummary, fetchSigningSecret, ESP_PROVIDERS, espName, espListLabel, fetchIntegrations, saveIntegration, removeIntegration, integrationStatusText, leadsToCsv, mergeLeads, webhookUrlsFor, isValidWebhookUrl, sanitizeLeadData, leadFieldTokens,
 } from './leadClient.js';
 export { OVERLAY_ADDONS, SMART_TEXT, TEXT_MASK, PERSONALIZED_IMAGE, IMAGE, STICKER, WRAPPER, LOWER_THIRD, OVERLAY_TRANSITION, VIDEO_TRANSITION, applyPositionPreset } from './overlayAddons.js';
+export { STUDIO_DESIGN, FIELD_TOKEN, ROLE_TOKEN, DEFAULT_DESIGN_COLORS, slotsForDesign, defaultStudioDesignOptions, resolveStudioDesignOptions, studioDesignFields, switchDesignOptions, geometryFromPlacement } from './studioDesignAddon.js';
 export { buildLowerThirdLottie, lowerThirdFrame, LOWER_THIRD_TEMPLATES, LOWER_THIRD_DEFAULTS } from './lowerThirds.js';
 export {
   buildOverlayElement, finishOverlayElement, destroyOverlayElement, setOverlayPlaying, playInAnimation, playOutAndRemove,
-  activeOverlays, syncOverlayTime, resolveOverlayText, sanitizeWrapperStyles, safeHref, safeImageUrl, OVERLAY_TAG,
+  activeOverlays, isEditorOverlay, syncOverlayTime, resolveOverlayText, sanitizeWrapperStyles, safeHref, safeImageUrl, OVERLAY_TAG,
 } from './overlayRender.js';
 export { attachDragResize, dragGeometry, clampGeometry } from './dragResize.js';
 export { OVERLAY_FONTS, BLEND_MODES, OVERLAY_ANIMATIONS, STICKER_LIBRARY, ANIMATED_EMOJI, VIDEO_TRANSITIONS } from './overlayData.js';
@@ -30,3 +31,5 @@ export { BLEND_CATEGORIES, BLEND_ITEMS, blendItemToAddon, getBlendItem, blendThu
 export { END_SCREENS, CONNECT_FORMS, TEMPLATE_LIBRARIES, getTemplate, templateToPreset, templateStart, templatePreviewProject, unknownTemplateTypes } from './templateLibrary.js';
 export { openTemplateWindow } from './templateWindow.js';
 export { POINTER_DESIGNS, POINTER_THEMES, POINTER_CATEGORIES, POINTER_MOTIONS, TARGET_MOTIONS, HINT_STYLES, HINT_POSITIONS, pointerSvg, getPointerDesign, isTargetDesign } from './pointerDesigns.js';
+export { OPTIN_DESIGNS, OPTIN_DESIGN_CATEGORIES, DESIGN_BASE, DESIGN_LAYOUTS, BADGE_ICONS, BUTTON_ICONS, applyOptinDesign, starterFields, getOptinDesign, safeDesignId, COLOR_SCHEMES, recolorOptin, schemeSwatch, contrastRatio } from './optinDesigns.js';
+export { pickVariant, applyVariant, hasVariantB, variantFor } from './abTest.js';

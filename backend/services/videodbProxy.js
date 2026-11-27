@@ -1,5 +1,5 @@
 /**
- * VideoDB Proxy — Render backend endpoint
+ * VideoDB Proxy — Beam backend endpoint
  *
  * The browser stores each user's VideoDB key locally (via apiKeyManager).
  * To run VideoDB on the backend (Render.com) instead of calling api.videodb.io

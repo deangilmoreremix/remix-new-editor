@@ -71,6 +71,7 @@ export function ContentLibraryPage() {
     const btn = document.createElement('button');
     btn.className = 'px-4 py-2 rounded-full text-xs font-bold transition-all';
     safeSetText(btn, f === 'pdfs' ? 'PDFs' : f.charAt(0).toUpperCase() + f.slice(1));
+    btn.dataset.helpText = { all: 'Show every item in your library.', saved: 'Show only items you saved.', images: 'Show only images.', videos: 'Show only videos.', audio: 'Show only audio.', pdfs: 'Show only PDF files.' }[f];
     btn.onclick = () => { activeFilter = f; updateFilters(); renderGrid(); };
     filterBtns[f] = btn;
     controls.appendChild(btn);
@@ -108,16 +109,21 @@ export function ContentLibraryPage() {
   // Upload picker setup
   const uploadPicker = createUploadPicker({
     anchorContainer: controls,
-    onSelect: async ({ url, urls }) => {
+    onSelect: async ({ url, urls, assets }) => {
       const urlsToSave = urls || (url ? [url] : []);
+      // The picker knows each file's media type; pass it on so an upload whose
+      // storage URL has no usable extension (e.g. ".bin") is still saved as audio.
+      const typeByUrl = new Map((assets || []).map((a) => [a.url, a.type]));
       for (const uploadedUrl of urlsToSave) {
-        await saveContentLibraryEntry(uploadedUrl);
+        const t = typeByUrl.get(uploadedUrl);
+        await saveContentLibraryEntry(uploadedUrl, ['audio', 'video', 'image'].includes(t) ? { type: t } : {});
       }
       await refreshContent();
     },
     onClear: () => {},
     maxImages: 10,
     acceptVideo: true,
+    acceptAudio: true,
   });
 
   // Wire the upload picker trigger into the visible controls

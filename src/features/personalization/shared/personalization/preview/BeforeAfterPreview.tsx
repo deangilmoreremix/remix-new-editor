@@ -132,6 +132,10 @@ export function buildBeforeInputProps(inputProps: PreviewInputProps, beforeVideo
       ...inputProps.settings,
       layers: inputProps.settings.layers.map((layer) => ({ ...layer, visible: false })),
       showEndCard: false,
+      // "Before" is the footage as it was: no colour look, no background removal, no burned-in captions.
+      look: undefined,
+      cutout: undefined,
+      captions: undefined,
     },
   }
   // Guard: the comparison is only honest when both panes show one source —
@@ -203,8 +207,8 @@ export function BeforeAfterPreview(props: BeforeAfterPreviewProps): React.JSX.El
     padding: '6px 12px',
     borderRadius: 999,
     border: `1px solid ${active ? '#d9ff00' : 'rgba(161,161,170, 0.35)'}`,
-    background: active ? 'rgba(217,255,0, 0.15)' : 'rgba(10,10,10, 0.8)',
-    color: active ? '#f7ffd6' : '#d4d4d8',
+    background: 'transparent',
+    color: active ? '#d9ff00' : '#d4d4d8',
     fontSize: 13,
     fontWeight: 600,
     cursor: 'pointer',

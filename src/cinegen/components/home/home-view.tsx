@@ -1,7 +1,9 @@
+import { goTo } from '../../../lib/routeUrl.js'
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ProjectCard } from './project-card';
 import type { ProjectMeta } from '../../electron.d';
 import { createAvailableProject, deleteAvailableProject, listAvailableProjects } from '@cinegen/lib/cloud/projects';
+import { PublishedOverview } from '@cinegen/components/overview/published-overview'; // [remix]
 
 interface HomeViewProps {
   onOpenProject: (id: string, useSqlite: boolean) => void;
@@ -13,6 +15,13 @@ export function HomeView({ onOpenProject }: HomeViewProps) {
   const [showCreate, setShowCreate] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
+  const [view, setView] = useState<'projects' | 'videos'>('projects'); // [remix] 'videos' = published videos overview
+  useEffect(() => { // [remix] the header bell opens the overview on the project with unread alerts
+    const open = () => setView('videos');
+    try { if (sessionStorage.getItem('remix_open_projects')) setView('videos'); } catch { /* ignore */ } // the overview clears the flag once it has shown the alerts
+    window.addEventListener('remix:open-projects', open);
+    return () => window.removeEventListener('remix:open-projects', open);
+  }, []);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const loadProjects = useCallback(async () => {
@@ -83,7 +92,7 @@ export function HomeView({ onOpenProject }: HomeViewProps) {
             <div className="pm-titlebar__dots">
               <button
                 className="pm-titlebar__dot pm-titlebar__dot--close"
-                onClick={() => { window.location.hash = '#/home'; }} /* [remix] leaves the editor */
+                onClick={() => { goTo('home'); }} /* [remix] leaves the editor */
                 title="Close"
               />
               <div className="pm-titlebar__dot pm-titlebar__dot--min" />
@@ -101,12 +110,17 @@ export function HomeView({ onOpenProject }: HomeViewProps) {
         {/* ── Toolbar ── */}
         <div className="pm-toolbar">
           <span className="pm-toolbar__label">Projects</span>
+          {/* [remix] switch between your CineGen projects and the overview of videos you published */}
+          <div className="pm-toolbar__actions" role="tablist" aria-label="Projects view">
+            <button type="button" role="tab" aria-selected={view === 'projects'} className={`pm-toolbar__btn${view === 'projects' ? ' pm-toolbar__btn--active' : ''}`} onClick={() => setView('projects')} data-testid="home-view-projects" style={{ width: 'auto', padding: '0 10px' }}>All projects</button>
+            <button type="button" role="tab" aria-selected={view === 'videos'} className={`pm-toolbar__btn${view === 'videos' ? ' pm-toolbar__btn--active' : ''}`} onClick={() => setView('videos')} data-testid="home-view-videos" style={{ width: 'auto', padding: '0 10px' }}>Published &amp; analytics</button>
+          </div>
           <div className="pm-toolbar__spacer" />
           <div className="pm-toolbar__actions">
             <button
               className="pm-toolbar__btn"
               title="New project"
-              onClick={() => { setShowCreate(true); setSelected(null); }}
+              onClick={() => { setView('projects'); setShowCreate(true); setSelected(null); }}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -129,7 +143,8 @@ export function HomeView({ onOpenProject }: HomeViewProps) {
 
         {/* ── Grid ── */}
         <div className="pm-grid-wrap">
-          {showCreate && (
+          {view === 'videos' && <PublishedOverview onOpenProject={(id) => onOpenProject(id, true)} />}
+          {view === 'projects' && showCreate && (
             <div className="pm-create-inline">
               <div className="pm-create-inline__thumb">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.3">
@@ -149,7 +164,7 @@ export function HomeView({ onOpenProject }: HomeViewProps) {
             </div>
           )}
 
-          <div className="pm-grid">
+          <div className="pm-grid" style={view === 'projects' ? undefined : { display: 'none' }}>
             {projects.map((p) => (
               <ProjectCard
                 key={p.id}
@@ -162,7 +177,7 @@ export function HomeView({ onOpenProject }: HomeViewProps) {
             ))}
           </div>
 
-          {!loading && projects.length === 0 && !showCreate && (
+          {view === 'projects' && !loading && projects.length === 0 && !showCreate && (
             <div className="pm-empty">No projects — click New Project to begin</div>
           )}
         </div>
@@ -187,7 +202,7 @@ export function HomeView({ onOpenProject }: HomeViewProps) {
               <>
                 <button
                   className="pm-bottombar__btn"
-                  onClick={() => setShowCreate(true)}
+                  onClick={() => { setView('projects'); setShowCreate(true); }}
                 >
                   New Project
                 </button>

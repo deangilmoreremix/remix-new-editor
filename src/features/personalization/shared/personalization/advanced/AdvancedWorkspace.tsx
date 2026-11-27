@@ -95,6 +95,8 @@ export function AdvancedStepBar({
             type="button"
             role="tab"
             id={`pz-tab-${tab.id}`}
+            data-help-name={tab.label}
+            data-help-text={tab.hint}
             aria-selected={isActive}
             aria-controls={`pz-tabpanel-${tab.id}`}
             data-testid={`pz-tab-${tab.id}`}
@@ -107,7 +109,7 @@ export function AdvancedStepBar({
               padding: '8px 12px',
               borderRadius: 12,
               border: `1px solid ${isActive ? C.cyanBorder : C.border}`,
-              background: isActive ? C.cyanSoft : 'transparent',
+              background: isActive ? 'transparent' : 'transparent',
               cursor: 'pointer',
               textAlign: 'left',
               minWidth: 0,
@@ -184,7 +186,7 @@ export function AdvancedSectionPills({
               padding: '0 12px',
               borderRadius: 999,
               border: `1px solid ${isActive ? C.cyanBorder : C.border}`,
-              background: isActive ? C.cyanSoft : 'transparent',
+              background: isActive ? 'transparent' : 'transparent',
               color: isActive ? C.cyan : C.text,
               fontSize: 11,
               fontWeight: 800,
@@ -295,7 +297,7 @@ export function AdvancedTabFooter({
       {next && (
         <button
           type="button"
-          style={{ ...linkStyle, border: `1px solid ${C.cyanBorder}`, background: C.cyanSoft, color: C.cyan }}
+          style={{ ...linkStyle, border: `1px solid ${C.cyanBorder}`, background: 'transparent', color: C.cyan }}
           onClick={() => onGo(next.tab, next.section)}
         >
           Next: {next.label} →

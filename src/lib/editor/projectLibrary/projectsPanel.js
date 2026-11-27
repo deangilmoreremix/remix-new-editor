@@ -7,6 +7,8 @@
  *   getClient(): Promise<supabase client>
  *   getPublished(ids): Promise<{[projectId]: {id, published, slug?}}>
  *   getStats(ids):     Promise<{[projectId]: stats}|null>   (null/absent => unavailable)
+ *   getRetention?(videoId): Promise<{positionPercent, retentionPercent}[]>   (optional override for the card's heatmap strip;
+ *                      by default the panel asks `video_retention_curve` through getClient())
  *   getCurrentProjectId(): string|null
  *   onOpen(row), onCreate(), onPreview(row), onExport(row),
  *   onShare(row), onToast(msg, type)
@@ -15,6 +17,8 @@
 import {
   listProjects, loadProject, renameProject, duplicateProject, deleteProject, toCard, filterCards,
 } from './projectStore.js';
+import { heatBuckets, heatBarHeight } from './analytics/heatBuckets.js';
+import { loadRetentionCurves } from './analytics/retentionLoader.js';
 
 export const DETAIL_TABS = Object.freeze([
   ['overview', 'Overview'],
@@ -39,6 +43,46 @@ export const fmtDate = (iso) => {
 const metric = (v, suffix = '') => (v == null ? '<span class="prj-na" title="Not collected yet">—</span>' : `${v}${suffix}`);
 const RENDER_LABEL = { not_rendered: 'Not rendered', rendering: 'Rendering', complete: 'Rendered', failed: 'Render failed' };
 
+// Cards fetch at most this many retention curves at a time (one request per published video).
+const HEAT_CONCURRENCY = 4;
+
+/** The heatmap strip for one card: bars from the video's retention curve. */
+export function heatStripHtml(points) {
+  const buckets = heatBuckets(points, 34);
+  if (!buckets.length) return '';
+  const first = Math.round(Number(points[0]?.retentionPercent) || 0);
+  const last = Math.round(Number(points[points.length - 1]?.retentionPercent) || 0);
+  return `<span class="prj-heat-cap">Where viewers stay</span>`
+    + `<div class="prj-heat" role="img" aria-label="Audience retention across the video: starts at ${first}%, ends at ${last}%">`
+    + buckets.map((v) => `<span style="height:${heatBarHeight(v)}%"></span>`).join('')
+    + '</div>';
+}
+
+const HEAT_NOTES = {
+  unpublished: 'Publish and share this video to see where viewers stay.',
+  unwatched: 'No viewer data yet. Share your video to see where viewers stay.',
+  unavailable: 'Viewer data is not available right now.',
+};
+
+/**
+ * The same area with no bars yet: a muted strip plus an honest note (never made-up numbers).
+ * @param {'loading'|'unpublished'|'unwatched'|'unavailable'} state
+ */
+export function heatPlaceholderHtml(state) {
+  const note = HEAT_NOTES[state];
+  return `<span class="prj-heat-cap">Where viewers stay</span>`
+    + `<div class="prj-heat prj-heat-empty" role="img" aria-label="${esc(note || 'Loading viewer data')}">`
+    + Array.from({ length: 34 }, () => '<span></span>').join('')
+    + '</div>'
+    + (note ? `<span class="prj-heat-note">${esc(note)}</span>` : '');
+}
+
+/** A completed (rendered) video always shows the heatmap area; so does any video that already has viewer data. */
+export const wantsHeat = (c) => c.renderStatus === 'complete' || (c.published && !!c.publishedId && (c.plays || 0) > 0);
+/** A curve can only exist for a published video that has been played. */
+export const canHaveHeat = (c) => c.published && !!c.publishedId && (c.plays || 0) > 0;
+
+
 export function renderProjectsPanel(host, deps) {
   const ui = { view: 'grid', search: '', published: 'all', render: 'all', followUp: false, sort: 'updated', selected: null, tab: 'overview' };
   let cards = [];
@@ -49,6 +93,9 @@ export function renderProjectsPanel(host, deps) {
   let unread = null;
   let portfolio = null; // owner-wide numbers (unique viewers de-duplicated across videos); null => derived from the cards
   let tabCleanup = null; // set by tabs that mount something (e.g. React) and need tearing down
+  const heat = {};    // published video id -> retention points (fills in after the cards are drawn)
+  const heatMiss = {}; // published video id -> true once its curve came back empty or failed
+  let heatRun = 0;    // bumps on every refresh so a slow response from an older run is ignored
 
   host.classList.add('prj-root');
   host.innerHTML = `
@@ -87,7 +134,13 @@ export function renderProjectsPanel(host, deps) {
     loading = true; error = null; draw();
     try {
       const client = await deps.getClient();
-      const list = await listProjects(client, { limit: 200 });
+      let all = [];
+      for (let offset = 0; offset < 1000; offset += 200) {            // a row filter needs the whole list, not just the newest page
+        const page = await listProjects(client, { limit: 200, offset });
+        all = all.concat(page);
+        if (page.length < 200 || !deps.filterRows) break;
+      }
+      const list = deps.filterRows ? deps.filterRows(all) : all; // e.g. the new editor only lists its own projects
       const ids = list.map((r) => r.id);
       const [pub, stats] = await Promise.all([
         deps.getPublished ? deps.getPublished(ids).catch(() => ({})) : {},
@@ -102,6 +155,66 @@ export function renderProjectsPanel(host, deps) {
     }
     loading = false;
     if (alive) draw();
+    if (alive && !error) loadHeat();
+  }
+
+  /** Fetch each published video's retention curve (a few at a time) and paint its card's strip as it arrives. */
+  async function loadHeat() {
+    const run = ++heatRun;
+    // Only videos that have been played can have a curve; everything else keeps its card unchanged.
+    const ids = [...new Set(cards.filter(canHaveHeat).map((c) => c.publishedId))];
+    // Keep the strips already shown while they reload; drop the ones that no longer apply.
+    Object.keys(heat).forEach((k) => { if (!ids.includes(k)) delete heat[k]; });
+    Object.keys(heatMiss).forEach((k) => delete heatMiss[k]);
+    if (!ids.length) return;
+    const stale = () => !alive || run !== heatRun;
+    const got = (videoId, points) => {
+      if (stale()) return;
+      if (Array.isArray(points) && points.length) { heat[videoId] = points; delete heatMiss[videoId]; } else { heatMiss[videoId] = true; }
+      paintHeat(videoId);
+    };
+
+    if (deps.getRetention) {
+      // A host-supplied fetcher answers for one video at a time (a few in parallel).
+      let next = 0;
+      const worker = async () => {
+        while (!stale() && next < ids.length) {
+          const videoId = ids[next++];
+          let points = null;
+          try { points = await deps.getRetention(videoId); } catch { points = null; } // a failed request just leaves the strip out
+          got(videoId, points);
+        }
+      };
+      await Promise.all(Array.from({ length: Math.min(HEAT_CONCURRENCY, ids.length) }, worker));
+      return;
+    }
+
+    // Default: one request for every video (falls back to one per video inside the loader).
+    let curves = {};
+    try {
+      const client = await deps.getClient();
+      curves = await loadRetentionCurves(client, ids, { period: '30d', concurrency: HEAT_CONCURRENCY, isCancelled: stale, onCurve: (id, points) => got(id, points) });
+    } catch { curves = {}; }
+    if (stale()) return;
+    // Anything that came back without a curve is marked, so its card says so instead of loading forever.
+    ids.filter((id) => !curves[id] && !heat[id]).forEach((id) => got(id, null));
+  }
+
+  /** What a card's heatmap area shows right now. */
+  function heatInner(c) {
+    // Cached bars are only shown while the card still qualifies (e.g. plays did not drop to zero).
+    if (canHaveHeat(c) && heat[c.publishedId]) return heatStripHtml(heat[c.publishedId]);
+    if (!c.published) return heatPlaceholderHtml('unpublished');
+    if (!canHaveHeat(c)) return heatPlaceholderHtml('unwatched');
+    return heatPlaceholderHtml(heatMiss[c.publishedId] ? 'unavailable' : 'loading');
+  }
+
+  function paintHeat(videoId) {
+    const card = cards.find((x) => x.publishedId === videoId);
+    if (!card) return;
+    host.querySelectorAll('[data-heat]').forEach((slot) => {
+      if (slot.dataset.heat === videoId) slot.innerHTML = heatInner(card);
+    });
   }
 
   function summaryHtml() {
@@ -152,6 +265,7 @@ export function renderProjectsPanel(host, deps) {
             ${c.parentProjectId ? '<span class="prj-chip">Follow-up video</span>' : ''}
           </div>
           <div class="prj-line"><span>${c.plays == null ? '<span class="prj-na" title="Not collected yet">—</span>' : Number(c.plays).toLocaleString('en-US')} plays</span><span>${c.completionPct == null ? '<span class="prj-na" title="Not enough data">—</span>' : `${c.completionPct}%`} complete</span></div>
+          ${wantsHeat(c) ? `<div class="prj-heat-slot"${c.publishedId ? ` data-heat="${esc(c.publishedId)}"` : ''}>${heatInner(c)}</div>` : ''}
           <div class="prj-sub">${fmtDuration(c.durationS)} · ${esc(c.aspectRatio || '—')} · Edited ${fmtDate(c.updatedAt)}</div>
         </div>
         <div class="prj-actions">

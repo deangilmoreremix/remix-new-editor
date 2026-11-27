@@ -50,6 +50,7 @@ import {
   type RemotionDesignCategory,
   type RemotionDesignTemplate,
 } from '../templates'
+import { designDescription } from '../templates/designDescription'
 import { buildPreviewInput } from './buildPreviewInput'
 import { C, badgeStyle, hintStyle, inputStyle, panelStyle, primaryButtonStyle, tileStyle } from './tokens'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
@@ -104,7 +105,7 @@ function categoryLabel(key: PersonalizationCategoryKey): string {
 }
 
 /** One card in the gallery. */
-type GalleryItem =
+export type GalleryItem =
   | { kind: 'layout'; id: PreviewLayoutId; name: string; description: string; category: 'layouts' }
   | {
       kind: 'design'
@@ -115,8 +116,8 @@ type GalleryItem =
       design: RemotionDesignTemplate
     }
 
-function buildItems(designs: RemotionDesignTemplate[]): GalleryItem[] {
-  const layouts: GalleryItem[] = PREVIEW_LAYOUTS.map((layout) => ({
+function buildItems(designs: RemotionDesignTemplate[], designsOnly = false): GalleryItem[] {
+  const layouts: GalleryItem[] = designsOnly ? [] : PREVIEW_LAYOUTS.map((layout) => ({
     kind: 'layout' as const,
     id: layout.id,
     name: layout.name,
@@ -127,7 +128,7 @@ function buildItems(designs: RemotionDesignTemplate[]): GalleryItem[] {
     kind: 'design' as const,
     id: design.id,
     name: design.name,
-    description: design.description,
+    description: designDescription(design),
     category: CATEGORIES.some((c) => c.key === design.category) ? design.category : 'other',
     design,
   }))
@@ -135,7 +136,7 @@ function buildItems(designs: RemotionDesignTemplate[]): GalleryItem[] {
 }
 
 /** Brand context for previews; sample copy keeps empty cards readable. */
-function previewBrandContext(baseInput: PreviewInputProps): ApplyLayoutContext {
+export function previewBrandContext(baseInput: PreviewInputProps): ApplyLayoutContext {
   const { brand } = baseInput
   return {
     businessName: brand.businessName || 'Your Business',
@@ -152,7 +153,7 @@ function previewBrandContext(baseInput: PreviewInputProps): ApplyLayoutContext {
 }
 
 /** The frame a paused card rests on: after the template has animated in. */
-function restFrameFor(item: GalleryItem, durationInFrames: number, fps: number): number {
+export function restFrameFor(item: GalleryItem, durationInFrames: number, fps: number): number {
   let frame = Math.round(fps * 1.5)
   if (item.kind === 'design') {
     const end = item.design.placement?.endFrame
@@ -202,12 +203,18 @@ export interface PersonalizationTemplateBrowserProps {
   onSelect?: (layoutId: PreviewLayoutId) => void
   /** When a Remotion design is selected. Defaults to the provider's `setRemotionDesign`. */
   onSelectDesign?: (designId: string) => void
+  /** Hide the built-in layouts: only the animated designs (add-ons) are listed. */
+  designsOnly?: boolean
+  /** Print the "design not available / not allowed" message above the cards. Off when the caller prints it once itself. */
+  showError?: boolean
 }
 
 /** Categorized gallery of every layout and Remotion design template. */
 export function PersonalizationTemplateBrowser({
   onSelect,
   onSelectDesign,
+  designsOnly = false,
+  showError = true,
 }: PersonalizationTemplateBrowserProps): React.JSX.Element {
   const ctx = useDemoPersonalize()
   const {
@@ -249,7 +256,7 @@ export function PersonalizationTemplateBrowser({
     [onSelect, onSelectDesign, setPreviewLayout, setRemotionDesign],
   )
 
-  const items = useMemo(() => buildItems(remotionDesignTemplates), [remotionDesignTemplates])
+  const items = useMemo(() => buildItems(remotionDesignTemplates, designsOnly), [remotionDesignTemplates, designsOnly])
 
   const counts = useMemo(() => {
     const map = new Map<PersonalizationCategoryKey, number>()
@@ -295,7 +302,7 @@ export function PersonalizationTemplateBrowser({
               color: C.text,
             }}
           >
-            Video templates
+            {designsOnly ? 'Animated designs' : 'Video templates'}
           </h3>
           <span style={badgeStyle('muted')}>{totalCount} templates</span>
           <span style={badgeStyle('cyan')}>{counts.size} categories</span>
@@ -360,7 +367,7 @@ export function PersonalizationTemplateBrowser({
 
       {/* ── Grid ────────────────────────────────────────────────────────── */}
       <div style={panelStyle}>
-        {remotionDesignError ? (
+        {showError && remotionDesignError ? (
           <p style={{ ...hintStyle, color: C.danger, marginTop: 0 }}>{remotionDesignError}</p>
         ) : null}
         {visible.length === 0 ? (
@@ -394,7 +401,7 @@ export function PersonalizationTemplateBrowser({
                     padding: '0 16px',
                     borderRadius: 999,
                     border: `1px solid ${C.cyanBorder}`,
-                    background: C.cyanSoft,
+                    background: 'transparent',
                     color: C.cyan,
                     fontSize: 11,
                     fontWeight: 800,
@@ -440,7 +447,7 @@ function CategoryTab({
         padding: '0 12px',
         borderRadius: 999,
         border: `1px solid ${active ? C.cyanBorder : C.border}`,
-        background: active ? C.cyanSoft : 'transparent',
+        background: active ? 'transparent' : 'transparent',
         color: active ? C.cyan : C.muted,
         fontSize: 11,
         fontWeight: 700,
@@ -610,7 +617,7 @@ function TemplateCard({
  * holds dozens of decoders), and it only plays while the card is selected or
  * hovered.
  */
-function TemplateLivePreview({
+export function TemplateLivePreview({
   item,
   inputProps,
   playing,

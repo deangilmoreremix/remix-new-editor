@@ -52,6 +52,8 @@ export interface MediaRoleContract {
   userMovable: boolean
   /** The customer may resize the layer. */
   userResizable: boolean
+  /** The customer may rotate the layer (text, CTA and picture roles; never full-frame scenes, effects or designs). */
+  userRotatable: boolean
   /** The placement engine may reposition it (never when locked or hand-placed). */
   autoPlaceable: boolean
   /** The role is designed to cover footage, so covering the subject is not a defect. */
@@ -62,56 +64,56 @@ export const MEDIA_ROLE_CONTRACTS: Readonly<Record<OverlayMediaRole, MediaRoleCo
   'background-video': {
     role: 'background-video', label: 'Background video',
     objectFit: 'cover', preserveAspectRatio: true, boxShape: 'frame', clip: 'frame',
-    clampToSafeArea: false, stackOrder: 0, userMovable: false, userResizable: false,
+    clampToSafeArea: false, stackOrder: 0, userMovable: false, userResizable: false, userRotatable: false,
     autoPlaceable: false, mayCoverSubject: true,
   },
   decorative: {
     role: 'decorative', label: 'Effect / decoration',
     objectFit: 'none', preserveAspectRatio: true, boxShape: 'design', clip: 'frame',
     // Effects use the whole frame and may move through it on purpose.
-    clampToSafeArea: false, stackOrder: 20, userMovable: false, userResizable: false,
+    clampToSafeArea: false, stackOrder: 20, userMovable: false, userResizable: false, userRotatable: false,
     autoPlaceable: false, mayCoverSubject: true,
   },
   'full-frame-replacement': {
     role: 'full-frame-replacement', label: 'Full-frame scene',
     objectFit: 'cover', preserveAspectRatio: true, boxShape: 'frame', clip: 'frame',
-    clampToSafeArea: false, stackOrder: 10, userMovable: false, userResizable: false,
+    clampToSafeArea: false, stackOrder: 10, userMovable: false, userResizable: false, userRotatable: false,
     autoPlaceable: false, mayCoverSubject: true,
   },
   'picture-in-picture': {
     role: 'picture-in-picture', label: 'Picture-in-picture',
     objectFit: 'cover', preserveAspectRatio: true, boxShape: 'design', clip: 'box',
-    clampToSafeArea: false, stackOrder: 30, userMovable: true, userResizable: true,
+    clampToSafeArea: false, stackOrder: 30, userMovable: true, userResizable: true, userRotatable: false,
     autoPlaceable: false, mayCoverSubject: true,
   },
   'product-image': {
     role: 'product-image', label: 'Product image',
     objectFit: 'contain', preserveAspectRatio: true, boxShape: 'square', clip: 'box',
-    clampToSafeArea: true, stackOrder: 40, userMovable: true, userResizable: true,
+    clampToSafeArea: true, stackOrder: 40, userMovable: true, userResizable: true, userRotatable: true,
     autoPlaceable: true, mayCoverSubject: false,
   },
   'service-image': {
     role: 'service-image', label: 'Service image',
     objectFit: 'contain', preserveAspectRatio: true, boxShape: 'square', clip: 'box',
-    clampToSafeArea: true, stackOrder: 40, userMovable: true, userResizable: true,
+    clampToSafeArea: true, stackOrder: 40, userMovable: true, userResizable: true, userRotatable: true,
     autoPlaceable: true, mayCoverSubject: false,
   },
   logo: {
     role: 'logo', label: 'Logo',
     objectFit: 'contain', preserveAspectRatio: true, boxShape: 'square', clip: 'box',
-    clampToSafeArea: true, stackOrder: 50, userMovable: true, userResizable: true,
+    clampToSafeArea: true, stackOrder: 50, userMovable: true, userResizable: true, userRotatable: true,
     autoPlaceable: true, mayCoverSubject: false,
   },
   text: {
     role: 'text', label: 'Text',
     objectFit: 'none', preserveAspectRatio: true, boxShape: 'text', clip: 'none',
-    clampToSafeArea: true, stackOrder: 60, userMovable: true, userResizable: true,
+    clampToSafeArea: true, stackOrder: 60, userMovable: true, userResizable: true, userRotatable: true,
     autoPlaceable: true, mayCoverSubject: false,
   },
   caption: {
     role: 'caption', label: 'Caption',
     objectFit: 'none', preserveAspectRatio: true, boxShape: 'text', clip: 'none',
-    clampToSafeArea: true, stackOrder: 65, userMovable: true, userResizable: true,
+    clampToSafeArea: true, stackOrder: 65, userMovable: true, userResizable: true, userRotatable: true,
     autoPlaceable: true, mayCoverSubject: false,
   },
 })

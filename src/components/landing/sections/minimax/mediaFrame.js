@@ -202,6 +202,7 @@ function ensureVideo(frame, state) {
  * @param {string}  [options.ariaLabel]  accessible label; omit for decorative
  * @param {boolean} [options.priority]   hero media: eager poster, metadata preload
  * @param {string}  [options.objectFit]  'cover' (default) or 'contain'
+ * @param {Function} [options.onUnavailable] called when the poster 404s (media missing)
  * @returns {HTMLElement} frame element with a `cleanup()` method
  */
 export function createMediaFrame(demo, options = {}) {
@@ -212,6 +213,7 @@ export function createMediaFrame(demo, options = {}) {
     ariaLabel = null,
     priority = false,
     objectFit = 'cover',
+    onUnavailable = null,
   } = options;
 
   const reducedMotion = prefersReducedMotion();
@@ -236,6 +238,7 @@ export function createMediaFrame(demo, options = {}) {
     // No poster on disk: show a branded gradient rather than an empty black box.
     poster.remove();
     frame.dataset.mmxPosterFailed = 'true';
+    if (typeof onUnavailable === 'function') onUnavailable(frame);
     const fallback = document.createElement('div');
     fallback.className =
       'absolute inset-0 bg-gradient-to-br from-[#0b1220] via-[#05070b] to-[#0a0f18] flex items-center justify-center';

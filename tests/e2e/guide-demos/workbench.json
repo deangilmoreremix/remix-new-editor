@@ -1,0 +1,70 @@
+{
+ "add-your-generations": {
+  "setup": "(()=>{const O=location.origin;localStorage.setItem('video_history',JSON.stringify([{id:'gd1',url:O+'/media/awesome-seedance/videos/vicky.mp4',type:'video',studio:'video',prompt:'Chef plating a dessert in a warm kitchen',timestamp:Date.now()},{id:'gd2',url:O+'/media/awesome-seedance/videos/john1.mp4',type:'video',studio:'video',prompt:'Starry night swirl, slow push-in',timestamp:Date.now()-1000},{id:'gd3',url:O+'/media/outreach-sample/hi-there.mp3',type:'audio',studio:'audio',prompt:'Friendly hi there voice-over',timestamp:Date.now()-2000}]));})()",
+  "selector": "button:has-text('Add your generations')",
+  "click": true,
+  "then": [
+   {
+    "selector": "button[title^='Chef plating']",
+    "hold": 1200
+   },
+   {
+    "selector": "button[title^='Friendly hi']",
+    "hold": 1200
+   },
+   {
+    "selector": "button:has-text('to timeline')",
+    "hold": 1500
+   }
+  ]
+ },
+ "library-media-motion-sound-themes": {
+  "selector": "button:text-is('Motion')",
+  "click": true,
+  "then": [
+   {
+    "selector": "iframe >> internal:control=enter-frame >> button:text-is('Sound')",
+    "hold": 1500
+   },
+   {
+    "selector": "iframe >> internal:control=enter-frame >> button:text-is('Themes')",
+    "hold": 1500
+   }
+  ]
+ },
+ "upload-from-computer": {
+  "selector": "text=Upload from computer",
+  "click": true,
+  "upload": true,
+  "file": "video"
+ },
+ "timeline": {
+  "click": true,
+  "then": [
+   {
+    "selector": "iframe >> internal:control=enter-frame >> div.clip:has-text('hit-counter')",
+    "hold": 1500
+   }
+  ]
+ },
+ "properties-inspector": {
+  "selector": "div.clip:has-text('Title card')",
+  "click": true
+ },
+ "edit-with-ai-chat": {
+  "click": true,
+  "then": [
+   {
+    "selector": "iframe >> internal:control=enter-frame >> textarea",
+    "type": "Trim the first clip to 3 seconds and add a title card that says Summer Sale",
+    "hold": 1500
+   }
+  ]
+ },
+ "export-video": {
+  "click": false
+ },
+ "project-tools": {
+  "click": false
+ }
+}

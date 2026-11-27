@@ -1,0 +1,475 @@
+{
+  "id": "outreach",
+  "name": "Video Outreach",
+  "route": "#/outreach",
+  "description": "A standalone studio for personalized video outreach: record one video, greet each contact by name in your own cloned voice (or a stock voice), write the landing page and booking button, add contacts by CSV, generate every contact's personal link, and see who watched and clicked.",
+  "shortDescription": "Record once, greet every contact by name in your own voice, and add a booking button.",
+  "fullDescription": "Video Outreach (#/outreach, under Agents in the side menu) runs a whole outreach campaign in six steps, without opening any editor. Record opens the recorder (Screen, Camera, Both or Audio) or takes an uploaded video. Voice clones your own voice from the recording or a separate sample, after you tick 'This is my own voice', or uses a stock voice; you write the greeting (for example 'Hi {{firstname}}!'), choose a fallback (there or friend) and click Generate greeting. Customize sets the landing page header, message, company fallback and a booking button with an https link, with a live preview. Contacts takes a CSV (with a column-matching table and a downloadable template) or contacts added one at a time. Generate voices the greeting for each contact on your MuAPI key, publishes the campaign as one video page, and lists every contact's personal link with Copy link, Download .csv of links and Open landing page. Campaigns lists your outreach campaigns with videos, watched and button clicks, and per-contact views, plays and clicks. Each personal link opens the public video page (/watch/<id>) with that contact's greeting, the header and message filled with their details, and your booking button. Landing page: like Sendspark, the page belongs to the dynamic video. On the Page step click 'Choose landing page' to pick one of your 33 landing pages (live pictures of each) or the plain video page, then 'Edit page' to change its words, pictures and sections in the visual editor with your recording playing in it, and 'Save page'. Each prospect's link opens that page with their own personal video in it; write {{firstname}} or {{company}} in the page's text to personalize it. After Generate, any change (Edit page, or choosing another page) updates the campaign's page at once, so every prospect's link shows it without generating again. Nothing is saved in Video Pages, and campaign pages are not listed there. The calendar option only applies to the plain video page. Video Outreach needs SmartVideo full access: anyone can open it and look around (a banner says it is a preview), and recording, uploading, generating greetings and campaigns, AI writing and making your first video open the upgrade screen with the plans; buying there carries on with what you clicked. The first time you open Video Outreach, a five-step SmartVideo welcome asks what you want to do first (Record personal videos or Dynamic videos), who else on your team might use SmartVideo, how many videos you expect to send per month, where you work (company, website, job title) and how you heard about SmartVideo. Back and Skip move between questions (where you work cannot be skipped), leaving half-way picks up at the same question, and your answers are saved to your account so it never shows again. Your company, job title and website fill in here. Then 'Your first video' makes a personalized video for you as the first prospect: check your first name, company and website, click 'Make my video' (about 2 minutes, one short speech request on your MuAPI key), watch it being made (your website, your name in the voice, the video, your landing page), then watch it or open it on your landing page. 'Make one for my prospects' opens Create Dynamic Videos; 'Do this later' skips it. Create Dynamic Video (on the Dynamic Videos page) asks for a campaign name and a kind: Multiple variables (the greeting says several details, like name and company), AI greeting ('Hi Name' in your voice) or Same audio (everyone hears your recording as it is, no AI voice; the AI intro step is skipped). Get started then shows how to record for that kind (language, fallback words for variables or a pause for the greeting, 10 seconds to 2 minutes), with Record (Camera, Screen, Camera and screen, or Upload a video), 'Test with our sample video' (the SmartVideo sample presenter) and 'Go Back' to change the name or kind. The Record step is a video editor: on the left Camera, Screen and Both, Upload or select a video you made, Template (Apply template picks the landing page; Edit page changes it), and Customize (Header, Message, Call-to-action, Calendar embed and Transcript switches); the video on the right; and tools along the top: the Thumbnail designer, in Sendspark's three tabs - Thumbnail (text overlay of about 5 words with First name, Company and Job title, the fallbacks such as 'there', and the logo overlay: each prospect's logo, one logo found by website or uploaded, or none), Edit Preview (Animated GIF or Still image, Select preview, what is behind your camera bubble) and Edit Styles (text and banner colours, play button, duration badge); GIFs are 600 by 338, 3 seconds, loop forever and stay under about 1.5 MB, and each GIF also gets an Outlook still (its first frame) because Outlook on Windows does not animate GIFs; each prospect's row has Download GIF and the mail-merge .csv has GIF URL and Outlook still URL columns (the picture in your emails: Animated GIF or Still image, the moment from your video, what is behind your camera bubble - as in the video, just your video, or an image you upload - the words with First name, Company and Job title chips, the play button and each prospect's logo, a live preview for any prospect, Download this picture, and Make or Remake thumbnails once the campaign is generated; the Email card's Design thumbnail opens it too), CC (captions and transcript), the language, the script and teleprompter, trim and cut, copy a prospect link, preview the page, Share video (on to the next step) and Close. The studio opens on Videos, your library of dynamic videos (like Sendspark): '+ New dynamic video' starts one (your voice, details and booking button carry over), each generated video is a card with its thumbnail, prospects, watched and clicks, Open brings it back with its links, and 'New prospects, same video' reuses the recording for a new list. The steps are Record, AI intro (voice and greeting), Page, Prospects and Generate & share. Variable chips (First name, Company, Job title, Last name) insert {{firstname}} and the others into the greeting, header and message. While generating, each prospect shows Waiting, Generating or Ready. Each prospect's row has Copy link, Copy email, Gmail (opens a ready Gmail draft), LinkedIn (copies a short message with their link and opens their profile from the LinkedIn URL column, or LinkedIn messages), Copy GIF, Embed, MP4 and Email. Page design (Page step) picks the plain video page or one of your Video Pages designs; one Generate click then voices every intro, publishes the campaign, publishes the prospect pages on that design and makes every prospect's thumbnail. Website backgrounds and errors: on the Prospects step, 'Check websites' captures every prospect's website now (free) and shows each prospect's status: Website ready, 'URL returned an error. Please use a different URL.', or No website. Error handling (on Prospects and in the Background card) chooses what happens to those prospects: 'Generate video using fallback data' (their video shows your Fallback URL) or 'Don't generate: show an error so I can update it' (Generate stops before anything is voiced or paid for and names them, so you can fix their website or remove them). In the prospect table, an orange Fallback tag marks prospects whose video uses the fallback website. LinkedIn profiles are never connected to or captured; use the Profile card background instead. Social pages as backgrounds: the Website column (shown as 'Website or social page'; CSV columns named Social, Social URL, YouTube, TikTok, Facebook or Instagram match it) also takes a prospect's social profile link, and their own profile page is captured (free, by SmartVideo's own browser) instead of the network's home page. YouTube channels (youtube.com/@name or /channel/...) and TikTok profiles (tiktok.com/@name) work. Facebook, Instagram and X show visitors a login page or block them, so those prospects get 'Page is content restricted. Please try a different page.' and the Error handling choice applies (fallback website, or stop and fix). LinkedIn links are not captured ('LinkedIn pages can't be captured. Use the Profile card background instead.'). A social page gives no logo for thumbnails. Capture with my browser (Prospects step, Website background): for pages that need you signed in (Facebook, Instagram, X), click 'Capture with my browser', which opens a tab named 'SmartVideo capture tab'; go back, click 'Start capturing', choose that tab in Chrome's share window and click Share. Each prospect's page loads in that tab, in your own signed-in browser, and a picture is kept (about 6 seconds a page; keep the tab open; Stop capturing keeps what was captured). SmartVideo never sees your password; the top bar of each page, where your own name and photo show, is cut off. Chrome and Edge on a computer only; LinkedIn is never captured. Each prospect shows a small picture of their background so a wrong one is easy to spot. Upload screenshot (on each prospect) uses your own picture of their page instead of a capture, also for prospects without a link; 'Use their link instead' removes it.",
+  "bestFor": "Sales people, founders and agencies who send personalized video to prospects and want each person to hear their own name in the sender's voice.",
+  "whenToUse": [
+    "You want to record one video and send a personalized version to many contacts.",
+    "You want each contact to hear 'Hi <their name>' in your own voice.",
+    "You want a landing page with a booking button under the video.",
+    "You want a guided setup before working in the Timeline Editor."
+  ],
+  "whenToUseAnother": [
+    "Use Lead Finder (#/leadfinder) to find businesses to contact first.",
+    "Use Personalizer (#/personalizer) for personalized pages not built around a recorded video.",
+    "Use Avatar (#/avatar) if you want an AI presenter instead of recording yourself.",
+    "Use Video (#/video) to generate a video with AI instead of recording one."
+  ],
+  "keyFeatures": [
+    "Record step with Screen, Camera, Both (face bubble over the screen) and Audio modes, or Upload a video",
+    "Full Recorder button: the browser Remotion Recorder (multiple cameras, captions, scenes, B-roll, end card); Use this video makes its export the campaign video",
+    "Voice cloning from your recording or a separate 10 to 60 second voice sample, only after ticking 'This is my own voice'",
+    "Stock voice option instead of cloning",
+    "Greeting with {{firstname}} or {{company}}, up to 70 characters, with a first-name fallback (there or friend)",
+    "Landing page header, message, company fallback and https booking button with live preview",
+    "Contacts from a CSV (column matching, template download, repeated emails skipped) or added one at a time, up to 500",
+    "Generate campaign: one voiced greeting per contact, a published video page and a personal link per contact, with Stop",
+    "Copy link, Download .csv of links and Open landing page",
+    "Campaigns table with videos, watched and button clicks, and per-contact views, plays and clicks",
+    "Show the calendar: Calendly, Cal.com, Google Calendar appointment, HubSpot, SavvyCal or TidyCal booking pages embedded under the video",
+    "Add from Lead Finder: pick saved leads with an email as contacts",
+    "Email card: thumbnail text, subject and message with {{firstname}}, {{company}} and {{link}}; Make thumbnails; Copy email (with the thumbnail) and Email per contact; mail-merge .csv",
+    "MP4 per contact: download that contact's finished video as a file",
+    "Lip-sync the greeting (optional, paid): your mouth says each contact's name",
+    "Thumbnails: animated GIF (3 seconds, choose where it starts) or still image; play button show/hide, style, colour and opacity; each prospect's company logo; text with {{firstname}}, {{company}}, {{jobtitle}}; Copy GIF and Embed per contact; Opened/Watched/Clicked per contact",
+    "Camera effects in the recorder: background blur, virtual backgrounds (Office, Studio, Gradient or your own image), touch-up and mirror, recorded into the video",
+    "Script card with an AI writer (Script, Email and Page tabs, language picker) and a teleprompter in the recorder",
+    "Edit in the Record step: trim the start and end, cut sections out, add a clip before or after",
+    "Captions and transcript made in your browser, with translations into other languages",
+    "Recorder tools: draw on the screen (pen, arrow, box), camera Spotlight, Restart and Delete",
+    "Landing page: publish the campaign onto any of your Video Pages designs; each contact's link opens their personalized page with their personal video",
+    "Backgrounds behind your camera bubble: each contact's website (with a moving pointer), an image (theirs or yours), or a map of their address",
+    "Output language: the greeting spoken in another language, and one-click translation of greeting, page and email",
+    "Greeting variables: {{firstname}}, {{company}}, {{jobtitle}}",
+    "Videos library: + New dynamic video, Open, New prospects same video",
+    "Variable chips for {{firstname}}, {{company}}, {{jobtitle}} and {{lastname}}",
+    "Per-prospect Waiting / Generating / Ready while generating",
+    "Gmail and LinkedIn share buttons per prospect",
+    "Sendspark-style landing page on any Video Pages design, with Your details",
+    "Editor tools (scissors icon on the Record step): Cut, Look, Background, Audio, Captions, Text & graphics, B-roll, Chapters and Export, previewed live and rendered in your browser with Apply edits",
+    "Lip-sync the greeting: your mouth says each prospect's name (one paid MuAPI lip-sync request per different greeting, about $0.05 each; ones already made are reused for free)",
+    "Live alerts: the bell and the campaign's Alerts card update the moment a prospect watches or clicks",
+    "Talk live: prospects can video-call you from their page while you're available",
+    "Add from my contacts: pick prospects from your phone's contacts (Android Chrome)",
+    "One tab edits a campaign at a time; another tab follows along read-only",
+    "Full-screen recorder: camera and microphone pickers, live mic level meter, 3-2-1 countdown, review with trim, Retake / Download / Use this take",
+    "Recorder audio settings: noise suppression, echo cancellation, automatic volume, computer sound in screen recordings, and Test my microphone"
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Record",
+      "explanation": "Click Record to open the recorder; it defaults to Both (screen with a round camera bubble) and you can switch to Screen, Camera or Audio. After you stop, the take plays large; drag the Trim handles to cut the start or end, then click Use this take (or Retake, or Download) and the video is uploaded to your storage. Or click Upload a video. The Your recording card shows the length and whether it has sound. Or click Full Recorder (captions, scenes, B-roll) to open the Recorder studio, export there, and click Use this video.",
+      "whyToUse": "Every campaign starts from one video.",
+      "inputRequired": "Camera, screen and microphone permission, or a video file.",
+      "restrictions": "Uploading needs you to be signed in. Leave a two-second pause at the start: the personalized greeting plays there."
+    },
+    {
+      "feature": "Clone your voice",
+      "explanation": "On the Voice step choose My cloned voice, tick 'This is my own voice', then click Clone from my recording or Record a voice sample. The studio takes up to 60 seconds of speech from the recording, prepares it as a WAV sample and clones it with MiniMax through MuAPI. When it finishes it shows 'Cloned voice ready'.",
+      "whyToUse": "Contacts hear the greeting in your own voice.",
+      "inputRequired": "At least 10 seconds of your speech, your MuAPI key in Settings > API keys, and the consent tick.",
+      "restrictions": "Only clone your own voice. Clone from my recording works only for a recording made or uploaded during this visit and with sound. Cloning uses your MuAPI credit."
+    },
+    {
+      "feature": "Greeting and fallback",
+      "explanation": "Type the greeting with tokens, for example 'Hi {{firstname}}!'. Pick what to say when a first name is missing (there or friend), then click Generate greeting. The fallback line ('Hi there!') is generated and saved so contacts without details still hear a greeting. Type a name and click Preview to hear one example.",
+      "whyToUse": "Every contact hears a greeting, even with missing details.",
+      "inputRequired": "A cloned or stock voice.",
+      "restrictions": "Up to 70 characters. Each Generate or Preview is one paid speech request on your MuAPI key."
+    },
+    {
+      "feature": "Customize the landing page",
+      "explanation": "Set the Header and Message with {{firstname}} and {{company}}, what to say if the company is missing, and the Call-to-action button label and Booking link. The preview on the right shows how it reads for a sample contact, Mike at Acme.",
+      "whyToUse": "Turns views into booked meetings.",
+      "inputRequired": "A header; a label and an https booking link if the button is on.",
+      "restrictions": "The booking link must start with https://."
+    },
+    {
+      "feature": "Contacts",
+      "explanation": "Click Upload a .csv, match your columns (First name, Last name, Email, Company, Website) and click Import, or fill the Or add one fields and click Add contact. Download template gives a ready CSV. The list on the right shows everyone with Remove and Remove all.",
+      "whyToUse": "Each contact gets their own personal link.",
+      "inputRequired": "At least a first name or an email per contact.",
+      "restrictions": "Up to 500 contacts. Rows without a name or email are skipped, and repeated emails are added once."
+    },
+    {
+      "feature": "Generate campaign",
+      "explanation": "Shows how many contacts there are, how many are greeted by name, the voice and the booking button, then Generate campaign voices each contact's greeting, publishes the video page and lists every personal link. Contacts without a first name get the fallback greeting. Stop cancels before anything is published. Regenerate and republish updates the same campaign.",
+      "whyToUse": "Gets every contact a link that greets them by name.",
+      "inputRequired": "Steps 1 to 4 complete, sign in, and your MuAPI key.",
+      "restrictions": "Each greeting is a paid speech request on your MuAPI key (repeated names are voiced once); you are asked to confirm first."
+    },
+    {
+      "feature": "Personal links",
+      "explanation": "Each link opens the public video page with the contact's greeting, the header and message filled with their details, and your booking button. Use Copy link, or Download .csv of links to paste into your email tool.",
+      "whyToUse": "Send in emails or messages.",
+      "inputRequired": "A generated campaign.",
+      "restrictions": "Contact details travel in the link itself, so anyone with a link can read the name and company in it."
+    },
+    {
+      "feature": "Campaigns",
+      "explanation": "Lists your outreach campaigns with the date, number of videos (contacts), how many contacts watched, and booking button clicks. Click a campaign name to see each contact's views, plays and clicks and to open its video page. Refresh reloads. It sits under the Videos cards; + New dynamic video and New prospects, same video replace the old + New campaign button.",
+      "whyToUse": "See who watched and who clicked.",
+      "inputRequired": "Sign in.",
+      "restrictions": "Shows up to 50 recent campaigns. Contact names show for the campaign in this browser; others show contact ids."
+    },
+    {
+      "feature": "Show the calendar",
+      "explanation": "In Customize, tick 'Show the calendar under the video'. The landing page shows your booking page itself under the button, so contacts book without leaving.",
+      "whyToUse": "Fewer clicks to a booked meeting.",
+      "inputRequired": "A Calendly, Cal.com, Google Calendar appointment, HubSpot, SavvyCal or TidyCal https link.",
+      "restrictions": "Other booking sites only get the button."
+    },
+    {
+      "feature": "Add from Lead Finder",
+      "explanation": "In Contacts, click Add from Lead Finder, tick the saved leads and click Add. Each becomes a contact with the business email, name (as company) and website.",
+      "whyToUse": "Send videos to prospects you found in Lead Finder.",
+      "inputRequired": "Leads saved in Lead Finder; signed in.",
+      "restrictions": "Leads without an email can't be added; they have no first name, so they hear the fallback greeting."
+    },
+    {
+      "feature": "Email and thumbnails",
+      "explanation": "After generating, the Email card sets the thumbnail and the email. Thumbnail: Animated GIF (3 seconds from the point you pick with Select preview) or Still image (pick the frame); the play button (Show, Solid/Outline/Glass, colour, opacity); Logo shows each prospect's company logo found on their website. Make thumbnails creates one per prospect (contacts who would get the same picture share one). Each personal link then has Copy GIF (the clickable thumbnail for pasting into an email), Embed (HTML for email tools), Copy email (the whole email with the thumbnail), Email (your mail app) and a status: Not opened, Opened, Watched or Clicked.",
+      "whyToUse": "Video emails get more clicks with a personalized thumbnail.",
+      "inputRequired": "A generated campaign.",
+      "restrictions": "The app doesn't send email itself: paste into Gmail or Outlook, or use a mail-merge tool. Logos need the prospect's website; contacts without one get no logo."
+    },
+    {
+      "feature": "MP4 per contact",
+      "explanation": "In Personal links, MP4 renders that contact's video (their greeting and website background) in your browser and downloads it.",
+      "whyToUse": "Attach the video or post it somewhere links don't work.",
+      "inputRequired": "A generated campaign.",
+      "restrictions": "Rendering takes about as long as the video; MP4 in Chrome and Edge, WebM elsewhere."
+    },
+    {
+      "feature": "Lip-sync the greeting",
+      "explanation": "In Generate, tick Lip-sync the greeting before generating. The first seconds of your recording are lip-synced to each contact's greeting, so your mouth says their name.",
+      "whyToUse": "A more natural personal greeting.",
+      "inputRequired": "A personalized greeting and a recording that starts with you facing the camera.",
+      "restrictions": "Paid: one MuAPI lip-sync video request per distinct greeting, on top of the voice, about a minute each. If one fails, that contact still hears their greeting without lip-sync."
+    },
+    {
+      "feature": "Camera effects",
+      "explanation": "In the recorder's Camera or Both mode, click Effects. Background: None, Blur (with Blur amount), Office, Studio, Gradient or Upload image. Touch-up softens your skin; Mirror flips the camera. The preview shows the effect and it is recorded into the video, so AI intros made from it keep it.",
+      "whyToUse": "Hide a messy room or look more polished.",
+      "inputRequired": "A camera.",
+      "restrictions": "Runs on your device; slower computers may lower the frame rate. The person cut-out is automatic and can miss fine edges."
+    },
+    {
+      "feature": "Script and teleprompter",
+      "explanation": "In Record, the Script card holds what you'll say. Write with AI drafts it from who it's for and what you want to say, in the language you pick; the Email and Page tabs draft the email (Generate step) and the landing page text (Customize). In the recorder, Teleprompter shows the script over the preview, highlights the current line and scrolls while you record (Speed and Font size; Practice to try it first). It is never recorded. Tick Follow my voice to have it scroll to where you are as you speak instead of at a set speed (speech is recognised on your device with the Moonshine model, downloaded once, about 50 MB).",
+      "whyToUse": "Keep eye contact and say it right the first time.",
+      "inputRequired": "A script, typed or written with AI.",
+      "restrictions": "Write with AI is one small text request on your MuAPI key. The script has no {{tokens}}: the same recording goes to everyone and only the greeting at [pause] is personalized."
+    },
+    {
+      "feature": "Edit the video",
+      "explanation": "Under your recording, Edit sets Start at and End at, cuts sections out (from and to seconds, Cut this part out, Undo), and Combine adds a clip before (an intro) or after (a demo). Apply edits makes the new video in your browser and replaces the recording.",
+      "whyToUse": "Remove mistakes and pauses, or join an intro to a demo.",
+      "inputRequired": "A recording.",
+      "restrictions": "Needs Chrome or Edge. Applying edits makes a new video, so the voice sample is taken from it again."
+    },
+    {
+      "feature": "Captions and transcript",
+      "explanation": "Make captions transcribes your recording in your browser (Whisper, downloaded once). Click any line to fix it. Add translation creates captions in another language, also in your browser. The transcript shows under the video on each contact's page.",
+      "whyToUse": "Viewers can read along, search and translate.",
+      "inputRequired": "A recording with speech.",
+      "restrictions": "The speech model is about 80 MB and the translation model is larger; both download once."
+    },
+    {
+      "feature": "Draw, spotlight, restart",
+      "explanation": "While recording Screen or Both, the preview shows your screen: draw with Pen, Arrow or Box in a colour; marks fade after a few seconds and are recorded. In Both, Spotlight makes your camera big in the middle until you click it again. Delete throws the take away; Restart throws it away and starts again.",
+      "whyToUse": "Point things out and keep attention on you.",
+      "inputRequired": "Screen or Both mode.",
+      "restrictions": "Draw on the preview in the recorder, not on the shared screen itself."
+    },
+    {
+      "feature": "Landing page design",
+      "explanation": "The landing page belongs to the dynamic video, as in Sendspark. Choose landing page picks one of your 33 designs (or the plain video page); Edit page opens the visual editor with your recording in the video, and Save page keeps your changes with this video. Each prospect's link opens the page with their own personal video. On Generate & share the Landing page card has the same buttons: any change updates every prospect's link at once. Nothing is saved in Video Pages.",
+      "whyToUse": "Use your branded landing page designs for outreach.",
+      "inputRequired": "A generated campaign.",
+      "restrictions": "Designs built from blocks keep their own words; change them in Video Pages. Video events from the personal player are counted on the campaign."
+    },
+    {
+      "feature": "Image and map backgrounds",
+      "explanation": "In Customize → Video background, An image puts each contact's own picture (the Background image column, an https link) behind your camera bubble, or your uploaded image for everyone else. A map of their address uses the Address column: maps are made when you generate (addresses are looked up on OpenStreetMap). Each contact's website shows with a pointer moving over it (turn it off with the checkbox).",
+      "whyToUse": "Make each video feel made for that contact.",
+      "inputRequired": "Address or Background image columns, and a fallback image.",
+      "restrictions": "Addresses are sent to OpenStreetMap to find them. Contacts whose address can't be found get the fallback image."
+    },
+    {
+      "feature": "Output language",
+      "explanation": "In Voice, Output language sets the language the greeting is spoken in (your cloned or stock voice). Translate greeting, page and email rewrites those texts into it, keeping {{tokens}}.",
+      "whyToUse": "Reach prospects in their language.",
+      "inputRequired": "A greeting.",
+      "restrictions": "Translate is one small text request on your MuAPI key; check the result. The main recording stays in the language you recorded it in."
+    },
+    {
+      "feature": "Editor tools",
+      "explanation": "On the Record step click the scissors icon. Cut: trim, cut sections, add a clip before or after, Remove silences (keeps the greeting pause at the start) and transitions. Look: shape (Same as recording, 16:9, 1:1, 9:16), rotate, flip, zoom, brightness, contrast, saturation, warmth, vignette. Background: blur, a picture or a solid colour behind you (MediaPipe, frame by frame). Audio: waveform, volume, Make it louder (FFmpeg loudness), background music. Captions: burned-in captions in 5 styles plus .srt and .vtt downloads. Text & graphics: text, name and title, logo or picture (optionally with its background removed by BG0, in your browser), animated stickers. B-roll: a clip, a picture, or each prospect's own website, full screen or in a corner. Chapters: made from your captions and shown under the video. Export: file size. The video area plays your edits live; Apply edits renders them from your original recording into a new video; new text, logos and stickers are placed where they cover nothing else, and a card warns you if something overlaps.",
+      "whyToUse": "Polish one recording before it becomes hundreds of personal videos, with free tools that run in your browser."
+    },
+    {
+      "feature": "Personal text and their website",
+      "explanation": "A text with {{firstname}} or {{company}}, and B-roll set to Their website, are not burned into the video: they are added to every prospect's video when you generate, so each prospect sees their own name, company and website.",
+      "whyToUse": "Personalize what is on screen, not just what is said."
+    },
+    {
+      "feature": "Lip-sync the greeting",
+      "explanation": "On Generate & share, tick Lip-sync the greeting. The first seconds of your video are cut out once and each prospect's greeting is lip-synced onto them, so your mouth says their name. Leave a pause at the start at least as long as the longest greeting: you are warned before paying if your first words would be covered. Failed prospects still hear their greeting, with the reason shown.",
+      "whyToUse": "The greeting looks natural instead of your mouth not moving."
+    },
+    {
+      "feature": "Live alerts",
+      "explanation": "When a prospect starts watching, gets to 75% or clicks your button, the bell at the top updates at once and pulses, and on Generate & share the Alerts card shows it (for example “Mike Ross is watching your video · just now”) and adds it to Recent activity. If the live connection drops, the bell still refreshes every few minutes.",
+      "whyToUse": "Follow up while they are still on your page."
+    },
+    {
+      "feature": "Talk live",
+      "explanation": "Turn on “Let prospects call me live” in the Page step (or the editor's Talk live switch), then generate. Click “Live calls off” at the top of Video Outreach to make it “Available for live calls”. While that tab is open, the prospect's page shows “Talk live with <your first name> now”. When they click, you get “Mike Ross wants to talk live” with Accept and Decline; on Accept you are in a video call (Mute, Camera off, Hang up). If you don't answer in 30 seconds, decline, or the call can't connect, their page points them to your booking button.",
+      "whyToUse": "Turn a warm viewer into a conversation on the spot."
+    },
+    {
+      "feature": "Add from my contacts",
+      "explanation": "In Prospects on an Android phone in Chrome, Add from my contacts opens the phone's contact picker. Only the people you pick are added; anyone without an email address is skipped and counted.",
+      "whyToUse": "Add people you already know without a CSV."
+    },
+    {
+      "feature": "Open in another tab",
+      "explanation": "If Video Outreach is open in two tabs, only one edits the campaign. The other shows “This campaign is open in another tab”, follows its changes and is read-only. Click Edit here instead to edit there; closing the editing tab hands editing back.",
+      "whyToUse": "Two tabs can't overwrite each other's work."
+    },
+    {
+      "feature": "Recorder layout and recording",
+      "explanation": "The recorder opens full screen. Pick Screen, Camera, Screen + Camera or Audio at the top. The bottom bar has your camera and microphone, a live level meter and the round record button. Recording starts after a 3-2-1 countdown (click to start at once, Esc to cancel; change it to Off or 5 seconds in Settings). While recording, Space pauses and resumes and Esc stops. In Screen and Screen + Camera, 'Choose what to share' shows your screen in the preview before you record. After you stop, the take plays large with Trim handles; Retake records again, Download saves it, Use this take keeps it (trimmed if you moved the handles).",
+      "whyToUse": "You see yourself clearly, know your mic works before you start, and only keep the part you want."
+    },
+    {
+      "feature": "Recorder audio settings",
+      "explanation": "Click Settings in the recorder. Microphone picks the mic, with a level meter: 'No sound' means the mic isn't picking you up; 'Too loud' means your voice is distorting, so move back or lower the mic volume. Noise suppression removes steady background noise, Echo cancellation stops speaker sound coming back into the mic, and Automatic volume evens out loud and quiet speech (turn it off if your volume pumps up and down). In Screen and Screen + Camera, Include computer sound records the tab's or screen's sound mixed with your voice; tick 'Share tab audio' or 'Share system audio' in Chrome's share window. Test my microphone records 4 seconds and plays it back so you can hear how you'll sound. Settings are remembered.",
+      "whyToUse": "Clean, even sound without needing an audio editor."
+    }
+  ],
+  "howToUse": "1. Open Video Outreach at #/outreach. 2. Record (or upload) your video with a two-second pause at the start. 3. Clone your voice (tick 'This is my own voice') or pick a stock voice, write the greeting and click Generate greeting. 4. Write the header, message and booking button. 5. Upload a CSV of contacts or add them one by one. 6. Click Generate campaign and confirm. 7. Copy each personal link or download the CSV of links and send them. 8. Open Campaigns to see who watched and clicked.",
+  "howToSteps": [
+    "On Videos, click + New dynamic video.",
+    "Record: record or upload your video.",
+    "AI intro: clone your voice or choose a stock voice, and write the greeting with the variable chips.",
+    "Page: write the header and message, your details and the booking button.",
+    "Prospects: add a CSV (LinkedIn URL column optional), Lead Finder leads, or one at a time.",
+    "Generate & share: generate, then send each prospect their link by email, Gmail or LinkedIn.",
+    "Back on Videos, open any dynamic video again and see who watched and clicked."
+  ],
+  "gettingStarted": [
+    "Add your MuAPI key in Settings > API keys first: cloning and speech use it.",
+    "Sign in so recordings and audio can be stored.",
+    "Speak naturally for at least 10 seconds in your recording so it can be used to clone your voice."
+  ],
+  "inputs": [
+    "Recording or video file",
+    "Voice sample",
+    "Greeting",
+    "First-name fallback",
+    "Header",
+    "Message",
+    "Company fallback",
+    "Button label",
+    "Booking link"
+  ],
+  "requiredInputs": [
+    "Recording or video file",
+    "Greeting",
+    "Header"
+  ],
+  "optionalInputs": [
+    "Voice sample",
+    "Message",
+    "Company fallback",
+    "Button label",
+    "Booking link"
+  ],
+  "inputDetails": [
+    {
+      "name": "Greeting",
+      "description": "The line spoken at the start, e.g. Hi {{firstname}}!",
+      "required": true,
+      "whenToUse": "Every campaign.",
+      "restrictions": "Up to 70 characters."
+    },
+    {
+      "name": "Booking link",
+      "description": "Your Cal.com, Calendly or other booking page.",
+      "required": false,
+      "whenToUse": "When the call-to-action button is on.",
+      "restrictions": "Must be an https:// address."
+    },
+    {
+      "name": "Voice sample",
+      "description": "Your own speech used to clone your voice.",
+      "required": false,
+      "whenToUse": "When you choose My cloned voice.",
+      "restrictions": "10 to 60 seconds; must be your own voice."
+    }
+  ],
+  "generationModes": [
+    "My cloned voice",
+    "Stock voice"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "My cloned voice",
+      "explanation": "The greeting is spoken in a clone of your own voice (MiniMax through MuAPI)."
+    },
+    {
+      "mode": "Stock voice",
+      "explanation": "The greeting uses one of the built-in MiniMax voices; no cloning or consent step."
+    }
+  ],
+  "modelCapabilities": "Voice cloning and speech use MiniMax (speech-2.6-hd) through MuAPI on your own key.",
+  "outputs": [
+    "A published video page per campaign",
+    "A voiced greeting per contact",
+    "A personal link per contact, and a CSV of links",
+    "Views, plays and clicks per contact"
+  ],
+  "limitations": [
+    "Voice cloning and per-contact greetings need your own MuAPI key and use its credit.",
+    "Contact details travel inside each personal link.",
+    "The in-progress draft is stored in this browser.",
+    "Up to 500 contacts per campaign.",
+    "The Videos library of generated campaigns is kept in this browser (the last 30).",
+    "Talk live works only while you have Video Outreach open with Available for live calls on; without a relay server, some strict company networks can't connect (the page then offers your booking button).",
+    "Add from my contacts is only available in Chrome on Android."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Paid voice requests",
+      "impact": "Each named contact's greeting costs one speech request.",
+      "workaround": "Repeated names are voiced once; a greeting without {{firstname}} needs no per-contact requests."
+    },
+    {
+      "limitation": "Browser-only draft",
+      "impact": "Switching browsers loses the unfinished draft.",
+      "workaround": "Generate the campaign; published campaigns show in Campaigns on any device when signed in."
+    }
+  ],
+  "troubleshooting": [
+    "Clone from my recording is greyed out: record or upload in step 1 during this visit, or use Record a voice sample.",
+    "'The voice sample needs at least 10 seconds of speech': record a longer sample.",
+    "'Sign in to publish your campaign': sign in, then click Generate campaign again.",
+    "A message about the MuAPI key: add your key in Settings > API keys.",
+    "Import is greyed out: match at least a first name or an email column."
+  ],
+  "troubleshootingSteps": [
+    "Check the message at the bottom of the step.",
+    "Add your MuAPI key in Settings.",
+    "Sign in and try again."
+  ],
+  "commonProblems": [
+    "No sound in the recording",
+    "Missing MuAPI key",
+    "Booking link without https://"
+  ],
+  "exampleWorkflows": [
+    "Find prospects in Lead Finder, export them as CSV, record one video in Video Outreach, import the CSV, generate the campaign and send each personal link."
+  ],
+  "useCases": [
+    "Cold outreach",
+    "Follow-ups after a demo",
+    "Event follow-up"
+  ],
+  "faqs": [
+    {
+      "question": "Can I clone someone else's voice?",
+      "answer": "No. You must tick 'This is my own voice'; only clone your own."
+    },
+    {
+      "question": "What does a contact without a name hear?",
+      "answer": "The fallback greeting, for example 'Hi there!'."
+    },
+    {
+      "question": "Do the editor tools cost anything?",
+      "answer": "No. Silence removal, colour, background blur, captions (Whisper), picture background removal (BG0), stickers, B-roll and FFmpeg all run in your browser. Only the AI voice and lip-sync use your MuAPI key."
+    },
+    {
+      "question": "Can I change my edits after applying them?",
+      "answer": "Yes. Edits are always made from your original recording, so you can change, move or remove any text, caption or graphic and click Apply edits again: the new video replaces the old one (nothing is burned in twice). The background change is done first, before text and graphics, so they stay sharp, and it is reused when you only change other things."
+    },
+    {
+      "question": "Why does my second tab say the campaign is open in another tab?",
+      "answer": "Only one tab edits a campaign at a time, so two tabs can't overwrite each other. Click Edit here instead to edit in this tab; the other tab becomes read-only. Closing the editing tab gives editing back to the other one."
+    },
+    {
+      "question": "How does Talk live work, and what does the prospect need?",
+      "answer": "Turn on “Let prospects call me live” in the Page step and generate, then switch on Available for live calls at the top of Video Outreach and keep that tab open. Prospects on your pages see Talk live and their browser asks for their camera and mic. The call goes directly between the two browsers. On some strict company networks it can't connect; then their page shows your booking button instead. Calls aren't recorded."
+    },
+    {
+      "question": "Do I need to refresh to see who is watching?",
+      "answer": "No. The bell and the Alerts card on Generate & share update the moment a prospect watches or clicks."
+    },
+    {
+      "question": "The recorder says my camera or microphone is blocked. What do I do?",
+      "answer": "Click the camera or lock icon at the left of your browser's address bar, set Camera and Microphone to Allow, then try again. The message clears by itself once access is allowed. If it says no camera was found, plug one in or choose Screen or Audio only; if it's busy in another app, close Zoom, Teams or FaceTime."
+    },
+    {
+      "question": "My recording sounds bad (echo, noise or too quiet). What can I change?",
+      "answer": "In the recorder click Settings. Keep Noise suppression and Echo cancellation on unless you wear headphones; turn Automatic volume off if your volume rises and falls. Pick the right microphone and watch the level meter while you talk: it should move into the middle, without 'Too loud'. Click Test my microphone to hear 4 seconds back before you record."
+    },
+    {
+      "question": "Can I record the sound playing on my computer?",
+      "answer": "Yes, in Screen or Screen + Camera: turn on Settings → Include computer sound, then in Chrome's share window tick 'Share tab audio' (for a tab) or 'Share system audio' (for the whole screen, Windows and ChromeOS). It is mixed with your microphone."
+    }
+  ],
+  "glossary": [
+    {
+      "term": "Fallback",
+      "definition": "What is said or shown when a contact's detail is missing."
+    }
+  ],
+  "tips": [
+    "Leave a two-second pause at the start of your recording.",
+    "Keep the greeting short.",
+    "The screen stays awake while you record or read the teleprompter, so long takes don't dim.",
+    "The browser's Back and Forward buttons move between Video Outreach steps."
+  ],
+  "bestPractices": [
+    "Use your real voice sample in a quiet room.",
+    "Test the booking link before sharing."
+  ],
+  "relatedStudios": [
+    "leadfinder",
+    "personalizer",
+    "avatar",
+    "recorder",
+    "video-pages"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "leadfinder",
+      "relationship": "Finds the contacts to send to",
+      "whenToMove": "Before recording, to build your list."
+    }
+  ],
+  "notConfirmed": [
+    "Exact MuAPI pricing and sample-length limits for voice cloning."
+  ],
+  "sourceFiles": [
+    "src/components/OutreachStudio.js",
+    "src/lib/outreach/draft.js",
+    "src/lib/outreach/voiceSample.js",
+    "src/pages/WatchPage.jsx",
+    "src/lib/editor/publish/publishClient.js",
+    "netlify/functions/agent-audio.js",
+    "src/lib/outreach/liveCall.js",
+    "src/lib/liveAlerts.js",
+    "src/lib/outreach/tabGuard.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Written from the studio, draft, watch page and publish sources; steps rendered in a local dev build. A real voice clone and publish were not run.",
+    "verifiedAt": "2026-11-15",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

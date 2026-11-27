@@ -1,3 +1,7 @@
+const PRODUCT_SHOT = { app_id: 'product-shot-studio', app_name: 'Product Shot Studio', pageId: 'commercial' };
+const PHOTO_STUDIO = { app_id: 'photo-studio', app_name: 'Photo Studio', pageId: 'photo-studio' };
+const CHANGE_DRESS = { app_id: 'edit-change-dress', app_name: 'Edit Studio (Change Dress)', pageId: 'edit', params: { tool: 'change-dress' } };
+
 const APPS_DATA = {
   '01-ai-video-ads-ugc': {
     'how-ugc-works': { status: 'existing', repo_link: 'https://github.com/Anil-matcha/awesome-generative-ai-apps/tree/main/video_generation/Open-AI-UGC' },
@@ -41,24 +45,27 @@ const APPS_DATA = {
     '06-ai-audio-and-music::04-music-sfx-generation': { status: 'needed', repo_link: null },
     '06-ai-audio-and-music::05-singing-vocal-synthesis': { status: 'needed', repo_link: null },
   },
+  // Tracks 07-08 open a real studio from the lesson. `pageId` is a router page id and
+  // `params` become the URL query (Edit Studio reads ?tool=<slug>). Do not point these at
+  // the 'studios/*' stub pages: they are "coming soon" placeholders with no router entry.
   '07-ai-product-photography': {
     track_id: '07-ai-product-photography',
     track_name: 'AI Product Photography & E-commerce',
     app_mapping: {
-      '07-ai-product-photography::01-product-photography': { app_id: 'ai-product-photography-studio', app_name: 'AI Product Studio', path: '/studios/product-photo-studio' },
-      '07-ai-product-photography::02-conversion-case-studies': { app_id: 'ai-product-photography-studio', app_name: 'AI Product Studio', path: '/studios/product-photo-studio' },
-      '07-ai-product-photography::03-productized-service': { app_id: 'ai-product-photography-studio', app_name: 'AI Product Studio', path: '/studios/product-photo-studio' },
-      '07-ai-product-photography::04-batch-workflows': { app_id: 'ai-product-photography-studio', app_name: 'AI Product Studio', path: '/studios/product-photo-studio' },
+      '07-ai-product-photography::01-product-photography': PRODUCT_SHOT,
+      '07-ai-product-photography::02-conversion-case-studies': PRODUCT_SHOT,
+      '07-ai-product-photography::03-productized-service': PRODUCT_SHOT,
+      '07-ai-product-photography::04-batch-workflows': PHOTO_STUDIO,
     },
   },
   '08-ai-fashion-and-virtual-tryon': {
     track_id: '08-ai-fashion-and-virtual-tryon',
     track_name: 'AI Fashion & Virtual Try-On',
     app_mapping: {
-      '08-ai-fashion-and-virtual-tryon::01-garment-tryon': { app_id: 'ai-fashion-studio', app_name: 'AI Fashion Studio', path: '/studios/fashion-studio' },
-      '08-ai-fashion-and-virtual-tryon::02-studio-lookbooks': { app_id: 'ai-fashion-studio', app_name: 'AI Fashion Studio', path: '/studios/fashion-studio' },
-      '08-ai-fashion-and-virtual-tryon::03-sizing-layout-consistency': { app_id: 'ai-fashion-studio', app_name: 'AI Fashion Studio', path: '/studios/fashion-studio' },
-      '08-ai-fashion-and-virtual-tryon::04-conversion-cases': { app_id: 'ai-fashion-studio', app_name: 'AI Fashion Studio', path: '/studios/fashion-studio' },
+      '08-ai-fashion-and-virtual-tryon::01-garment-tryon': CHANGE_DRESS,
+      '08-ai-fashion-and-virtual-tryon::02-studio-lookbooks': CHANGE_DRESS,
+      '08-ai-fashion-and-virtual-tryon::03-sizing-layout-consistency': CHANGE_DRESS,
+      '08-ai-fashion-and-virtual-tryon::04-conversion-cases': CHANGE_DRESS,
     },
   },
 };
@@ -79,7 +86,7 @@ export function getAppForLesson(trackSlug, lessonId) {
   // New format (tracks 07-08): lessonId is in app_mapping
   if (apps.app_mapping && apps.app_mapping[lessonId]) {
     const mapping = apps.app_mapping[lessonId];
-    return { format: 'studio', ...mapping, path: mapping.path, pageId: mapping.path.replace(/^\//, '') };
+    return { format: 'studio', ...mapping };
   }
 
   return null;

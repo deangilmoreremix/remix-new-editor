@@ -130,9 +130,29 @@ function demoFilterOptions(
  * here requires no action. The demo library, previously saved videos and a
  * browser-local upload are optional ways to change it. No paid call is made.
  */
+/** Logo label shown on a demo card: reviewed clips are either clean or carry a mark; local clips not labeled yet say so. */
+function brandingLabel(branding: 'none' | 'logo' | 'unreviewed' | undefined): string {
+  return branding === 'none' ? 'No logo' : branding === 'logo' ? 'Has logo' : 'Not reviewed'
+}
+
+function brandingTitle(branding: 'none' | 'logo' | 'unreviewed' | undefined, marks?: string): string {
+  if (marks) return marks
+  if (branding === 'none') return 'Reviewed: no visible logo, watermark or credit'
+  if (branding === 'logo') return 'Has a visible logo, watermark or credit'
+  return 'Not reviewed yet: may show a logo, watermark or credit'
+}
+
+function brandingBackground(branding: 'none' | 'logo' | 'unreviewed' | undefined): string {
+  return branding === 'none' ? 'rgba(16,120,70,.88)' : branding === 'logo' ? 'rgba(150,95,10,.92)' : 'rgba(82,82,91,.92)'
+}
+
 export function StepChooseVideo(): React.JSX.Element {
   const ctx = useDemoPersonalize()
   const { source, previewVideo, setPreviewVideo, previewSettings, updatePreviewComposition, sharedMediaEntries = [] } = ctx
+  // Older or partial contexts (and tests) may not provide it.
+  const fitPreviewToVideo =
+    (ctx as { fitPreviewToVideo?: (url: string, fallback?: { durationSec?: number; aspectRatio?: string }) => void })
+      .fitPreviewToVideo
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadNote, setUploadNote] = useState(false)
   const [hoveredDemoKey, setHoveredDemoKey] = useState<string | null>(null)
@@ -148,6 +168,8 @@ export function StepChooseVideo(): React.JSX.Element {
   const [demoStyleId, setDemoStyleId] = useState('all')
   const [demoAspect, setDemoAspect] = useState('all')
   const [demoSubcategoryId, setDemoSubcategoryId] = useState('all')
+  // Logo label: every demo is reviewed as `none` (no visible logo / watermark / credit) or `logo`.
+  const [demoBranding, setDemoBranding] = useState('all')
   // The visible window is keyed by the filter set: changing any filter starts
   // a fresh window without a stale "Show more" count.
   const [demoWindow, setDemoWindow] = useState({ key: '', count: DEMO_GALLERY_INITIAL })
@@ -170,14 +192,19 @@ export function StepChooseVideo(): React.JSX.Element {
       title: source.title || 'Your video',
       kind: 'source',
     })
-  }, [source?.sourceMedia, source?.poster, source?.title, previewVideo?.url, setPreviewVideo])
+    fitPreviewToVideo?.(url, { durationSec: source.duration, aspectRatio: source.aspectRatio })
+  }, [source?.sourceMedia, source?.poster, source?.title, previewVideo?.url, setPreviewVideo, fitPreviewToVideo])
 
   const savedVideos = sharedMediaEntries
     .map((entry) => ({ entry, url: savedVideoUrl(entry) }))
     .filter((item): item is { entry: SharedMediaEntry; url: string } => Boolean(item.url))
     .slice(0, 8)
 
-  const pick = (video: PreviewVideoRef) => setPreviewVideo(video)
+  // Every pick sets the preview to that video's own length and shape.
+  const pick = (video: PreviewVideoRef, fallback?: { durationSec?: number; aspectRatio?: string }) => {
+    setPreviewVideo(video)
+    fitPreviewToVideo?.(video.url, fallback)
+  }
 
   const pickDemo = (demo: DemoLibraryEntry) => {
     // A demo without a playable videoSrc must not be selected and must never
@@ -188,9 +215,14 @@ export function StepChooseVideo(): React.JSX.Element {
     // `demoId` is the registry's source-qualified id ("<collection>:<slug>").
     // The source catalogs reuse numeric ids across libraries, so a bare
     // number would point at a different video in another collection.
-    pick({ url: demo.videoSrc, poster: demo.posterSrc || null, title: demo.title, kind: 'demo', demoId: demo.id })
     const videoDemo = DEMO_VIDEO_BY_ENTRY_ID.get(demo.id) ?? toVideoDemo(demo)
-    updatePreviewComposition({ durationInFrames: demoDurationInFrames(videoDemo, fps) })
+    const video: PreviewVideoRef = { url: demo.videoSrc, poster: demo.posterSrc || null, title: demo.title, kind: 'demo', demoId: demo.id }
+    if (fitPreviewToVideo) {
+      pick(video, { durationSec: videoDemo.duration, aspectRatio: videoDemo.aspectRatio ?? demo.aspectRatio })
+    } else {
+      setPreviewVideo(video)
+      updatePreviewComposition({ durationInFrames: demoDurationInFrames(videoDemo, fps) })
+    }
   }
 
   const handleUpload = (file: File | undefined) => {
@@ -221,20 +253,23 @@ export function StepChooseVideo(): React.JSX.Element {
       category: isCategoryActiveForDemo(demoCategoryId, item.demo),
       subcategory:
         demoSubcategoryId === 'all' || isCategoryActiveForDemo(demoSubcategoryId, item.demo),
+      branding: demoBranding === 'all' || item.entry.branding === demoBranding,
     }))
 
     // Every dimension except the category: the per-tab counts describe how
     // many of the CURRENTLY FILTERED demos each category would hold.
-    const facetSet = rows.filter((row) => row.query && row.source && row.style && row.aspect)
+    const facetSet = rows.filter((row) => row.query && row.source && row.style && row.aspect && row.branding)
     // The final list: every dimension applied.
     const filtered = facetSet.filter((row) => row.category && row.subcategory)
 
     // Each option list ignores the dimension it describes, so a value the
     // customer already picked never disappears from its own list.
-    const sourceCandidates = rows.filter((row) => row.query && row.style && row.aspect && row.category)
-    const styleCandidates = rows.filter((row) => row.query && row.source && row.aspect && row.category)
-    const aspectCandidates = rows.filter((row) => row.query && row.source && row.style && row.category)
-    const subcategoryCandidates = rows.filter((row) => row.query && row.category)
+    const sourceCandidates = rows.filter((row) => row.query && row.style && row.aspect && row.category && row.branding)
+    const styleCandidates = rows.filter((row) => row.query && row.source && row.aspect && row.category && row.branding)
+    const aspectCandidates = rows.filter((row) => row.query && row.source && row.style && row.category && row.branding)
+    const subcategoryCandidates = rows.filter((row) => row.query && row.category && row.branding)
+    // The logo filter ignores itself, like every other option list.
+    const brandingCandidates = rows.filter((row) => row.query && row.source && row.style && row.aspect && row.category && row.subcategory)
 
     // Source collection — derived from the registry, never hardcoded.
     const sourceCounts = new Map<string, number>()
@@ -270,6 +305,15 @@ export function StepChooseVideo(): React.JSX.Element {
     const aspectOptions: DemoOption[] = [...aspectCounts.entries()]
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .map(([value, count]) => ({ value, label: `${value} (${count})` }))
+
+    // Logo label — counts for the current filter set.
+    const brandingCounts = { none: 0, logo: 0, unreviewed: 0 }
+    for (const row of brandingCandidates) brandingCounts[row.item.entry.branding] += 1
+    const brandingOptions: DemoOption[] = [
+      { value: 'none', label: `No logo (${brandingCounts.none})` },
+      { value: 'logo', label: `Has logo (${brandingCounts.logo})` },
+      { value: 'unreviewed', label: `Not reviewed (${brandingCounts.unreviewed})` },
+    ]
 
     // Sub-category — only meaningful inside one business niche, and only when
     // the demos in that niche actually carry sub-niches. Without a real
@@ -314,12 +358,13 @@ export function StepChooseVideo(): React.JSX.Element {
         getDemoCategory(demoStyleId)?.label,
       ),
       aspectOptions: demoFilterOptions(aspectOptions, demoAspect, 'All aspect ratios'),
+      brandingOptions: demoFilterOptions(brandingOptions, demoBranding, 'All clips'),
       subcategoryOptions,
     }
-  }, [demoQuery, demoSourceId, demoStyleId, demoAspect, demoCategoryId, demoSubcategoryId])
+  }, [demoQuery, demoSourceId, demoStyleId, demoAspect, demoCategoryId, demoSubcategoryId, demoBranding])
 
   // The visible window restarts whenever the filter set changes.
-  const demoFilterKey = `${demoCategoryId}|${demoQuery}|${demoSourceId}|${demoStyleId}|${demoAspect}|${demoSubcategoryId}`
+  const demoFilterKey = `${demoCategoryId}|${demoQuery}|${demoSourceId}|${demoStyleId}|${demoAspect}|${demoSubcategoryId}|${demoBranding}`
   const demoVisibleLimit = demoWindow.key === demoFilterKey ? demoWindow.count : DEMO_GALLERY_INITIAL
   const demoVisible = demoGallery.filtered.slice(0, demoVisibleLimit)
   const demoRemaining = demoGallery.filtered.length - demoVisible.length
@@ -330,7 +375,8 @@ export function StepChooseVideo(): React.JSX.Element {
     demoSourceId !== 'all' ||
     demoStyleId !== 'all' ||
     demoAspect !== 'all' ||
-    demoSubcategoryId !== 'all'
+    demoSubcategoryId !== 'all' ||
+    demoBranding !== 'all'
 
   const resetDemoFilters = () => {
     setDemoCategoryId(ALL_DEMOS_CATEGORY_ID)
@@ -339,6 +385,7 @@ export function StepChooseVideo(): React.JSX.Element {
     setDemoStyleId('all')
     setDemoAspect('all')
     setDemoSubcategoryId('all')
+    setDemoBranding('all')
   }
 
   return (
@@ -492,6 +539,12 @@ export function StepChooseVideo(): React.JSX.Element {
                 value={demoAspect}
                 options={demoGallery.aspectOptions}
                 onChange={setDemoAspect}
+              />
+              <DemoFilterSelect
+                label="Logo"
+                value={demoBranding}
+                options={demoGallery.brandingOptions}
+                onChange={setDemoBranding}
               />
               {/* The sub-category control only exists when the active
                   category actually carries sub-categories. */}
@@ -669,9 +722,27 @@ export function StepChooseVideo(): React.JSX.Element {
                               <Check size={10} /> Selected
                             </span>
                           )}
+                          {active && (
+                            <span data-branding={demo.branding} role="img" aria-label={brandingLabel(demo.branding)} style={{ ...badgeStyle(demo.branding === 'none' ? 'green' : 'muted'), position: 'absolute', top: 34, right: 6 }}>
+                              {brandingLabel(demo.branding)}
+                            </span>
+                          )}
                           {/* The "VIDEO" chip sits bottom-left, where the native
                               control bar's play button lives — it is hidden on the
                               selected card so the two never overlap. */}
+                          {/* Logo label: reviewed footage is either clean or carries a visible mark. */}
+                          {!active && (
+                            <span
+                              data-testid={`demo-branding-${demo.legacyId}-${demo.slug}`}
+                              data-branding={demo.branding}
+                              role="img"
+                              aria-label={brandingLabel(demo.branding)}
+                              title={brandingTitle(demo.branding, demo.marks)}
+                              style={{ position: 'absolute', top: 6, right: 6, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: '#fff', background: brandingBackground(demo.branding), padding: '2px 6px', borderRadius: 4 }}
+                            >
+                              {brandingLabel(demo.branding)}
+                            </span>
+                          )}
                           {!active && (
                             <span style={{ position: 'absolute', bottom: 6, left: 6, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: '#fff', background: 'rgba(0,0,0,.55)', padding: '2px 6px', borderRadius: 4 }}>VIDEO</span>
                           )}

@@ -5,7 +5,7 @@ export const LIBRARY_DND = 'application/x-library-item';
 export type LibraryKind = 'mg' | 'hf' | 'overlay' | 'template' | 'sound' | 'fx' | 'lut' | 'transition';
 export interface LibraryDrag { kind: LibraryKind; id: string }
 /** Where a drop landed. `time` is in seconds on the timeline; `row` is an overlay-row index; clip / track ids come from the element under the pointer. */
-export interface LibraryDropCtx { time: number; row?: number; clipId?: string; trackId?: string; trackKind?: 'video' | 'audio' }
+export interface LibraryDropCtx { time?: number; phone?: string; row?: number; clipId?: string; trackId?: string; trackKind?: 'video' | 'audio' }
 
 export const encodeLibraryDrag = (d: LibraryDrag): string => JSON.stringify(d);
 

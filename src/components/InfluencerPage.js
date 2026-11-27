@@ -47,7 +47,7 @@ export function InfluencerPage() {
     </div>
 
     <!-- Features -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-lg font-black text-white mb-1">Influencer-Ready Content</h2>
       <p class="text-sm text-muted mb-4">Create viral content for all platforms</p>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -62,7 +62,7 @@ export function InfluencerPage() {
     </div>
 
     <!-- Style Presets -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-lg font-black text-white mb-1">Style Presets</h2>
       <p class="text-sm text-muted mb-4">Choose from 20+ professional styles</p>
       <div class="flex flex-wrap gap-2">
@@ -73,7 +73,7 @@ export function InfluencerPage() {
     </div>
 
     <!-- Format Support -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-lg font-black text-white mb-1">Format Support</h2>
       <p class="text-sm text-muted mb-4">Optimized for all platforms</p>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -86,7 +86,7 @@ export function InfluencerPage() {
     </div>
 
     <!-- CTA -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center mb-6">
       <h2 class="text-xl md:text-2xl font-black text-white mb-2">Go Viral</h2>
       <p class="text-sm text-muted mb-6">Create influencer content that stops the scroll</p>
       <button class="cta-btn btn-primary-modern">
@@ -98,7 +98,10 @@ export function InfluencerPage() {
   container.appendChild(contentWrapper);
 
   container.querySelector('.start-btn').onclick = () => navigate('influencer');
+
+  container.querySelector('.start-btn').dataset.helpText = 'Open AI Influencer.';
   container.querySelector('.cta-btn').onclick = () => navigate('influencer');
+  container.querySelector('.cta-btn').dataset.helpText = 'Open AI Influencer.';
 
   return container;
 }

@@ -336,13 +336,24 @@ export const takeHyperframesErrors = () => errors.splice(0).slice(0, 20);
 export const FATAL_KINDS = new Set(['refused', 'fetch', 'script', 'mount', 'timeline', 'blocked-script', 'blocked-url', 'integrity']);
 const errorListeners = new Set();
 /** Subscribe to adapter problems as they happen: fn({ kind, name, message, fatal }). Returns the unsubscribe function. */
-export const onHyperframesError = (fn) => { errorListeners.add(fn); return () => errorListeners.delete(fn); };
+/** The last few reports, so a listener that subscribes a moment AFTER a block reported (the host subscribes in a passive effect, the block reports in a layout effect) still sees them. */
+const recentReports = [];
+const REPLAY_MS = 1500;
+export const onHyperframesError = (fn) => {
+  errorListeners.add(fn);
+  const now = Date.now();
+  for (const r of recentReports) if (now - r.at < REPLAY_MS) { try { fn(r.e); } catch { /* listener errors never break rendering */ } }
+  return () => errorListeners.delete(fn);
+};
 const report = (kind, name, err) => {
   const message = err?.message || String(err);
   const msg = `${kind} ${name}: ${message}`;
   if (!errors.includes(msg)) console.warn(`[hyperframes] ${msg}`);
   // always notify (no de-duplication): the export frame is reused, so a repeat failure must still fail the next export
-  errorListeners.forEach((fn) => { try { fn({ kind, name, message, fatal: FATAL_KINDS.has(kind) }); } catch { /* listener errors never break rendering */ } });
+  const e = { kind, name, message, fatal: FATAL_KINDS.has(kind) };
+  recentReports.push({ at: Date.now(), e });
+  while (recentReports.length && Date.now() - recentReports[0].at >= REPLAY_MS) recentReports.shift();
+  errorListeners.forEach((fn) => { try { fn(e); } catch { /* listener errors never break rendering */ } });
   errors.push(msg); if (errors.length > 50) errors.splice(0, errors.length - 50);
 };
 
@@ -375,6 +386,8 @@ export function createScope(host) {
   const winOverrides = {
     document: docProxy,
     Image: function (w, h) { const i = new Image(w, h); i.crossOrigin = 'anonymous'; return i; },
+    // a block script may load its own files by a relative URL (e.g. three.js GLTFLoader: "models/x.glb"): resolve it against the block's folder, not the sandbox page
+    fetch: (input, init) => window.fetch(typeof input === 'string' ? rebaseUrl(input, store.__base || HF_BASE) : input, init),
     // `hf-seek` is HyperFrames' protocol for content that is not a GSAP timeline (WebGPU/WebGL shader backgrounds, three.js): the listener renders the given time. Kept per instance, never on the shared window.
     addEventListener: (t, cb, o) => { if (t === 'load') return fire(cb); if (t === 'hf-seek') { (store.__hfSeek ||= []).push(cb); return undefined; } window.addEventListener(t, cb, o); cleanups.push(() => window.removeEventListener(t, cb, o)); },
     removeEventListener: (t, cb, o) => window.removeEventListener(t, cb, o),
@@ -441,6 +454,8 @@ const usableGsap = (g) => (g && typeof g.timeline === 'function' && typeof g.set
 const describeGsap = (g) => (g === undefined ? 'undefined' : g === null ? 'null' : `${typeof g} with keys [${Object.keys(g).slice(0, 8).join(', ')}]`);
 try { gsap.registerPlugin(TextPlugin); } catch { /* blocks that tween `text` then report their own error */ } // some blocks (typed-text effects) tween `text`, which needs this plugin
 export const resolveGsap = () => usableGsap(gsap) || usableGsap(gsap?.gsap) || usableGsap(globalThis.gsap);
+/** True when a usable gsap exists (a checkout whose node_modules predates the `gsap` dependency gets an EMPTY stand-in from the dev server's stub plugin). */
+export const gsapAvailable = () => resolveGsap() !== null;
 
 const BLOCK_ID = /^[a-z0-9][a-z0-9-]{0,80}$/;
 const sha256Hex = async (buf) => { const d = await crypto.subtle.digest('SHA-256', buf); return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join(''); };
@@ -526,7 +541,7 @@ export function BlockClip({ name, width, height, overrides, expectedSha256, proj
         rebaseElementUrls(el, base);
         const root = el.querySelector('[data-composition-id]');
         const id = root?.getAttribute('data-composition-id');
-        const scope = createScope(el); state.current.scope = scope;
+        const scope = createScope(el); scope.store.__base = base; state.current.scope = scope;
         const gsapLib = resolveGsap();
         if (!gsapLib) { report('mount', name, `bundled gsap is unusable (import resolved to ${describeGsap(gsap)}; no .timeline function) and no window.gsap fallback exists`); return; }
         scope.store.gsap = gsapLib;

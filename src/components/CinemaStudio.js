@@ -35,9 +35,9 @@ import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { getCharacterReference, saveCharacterReference } from '../lib/characterConsistency.js';
+import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -51,7 +51,7 @@ const CAMERA_MOVEMENTS = {
   'Handheld': 'subtle handheld camera movement',
   'Pan': 'slow horizontal pan',
   'Tilt': 'vertical tilt movement',
-  'Dolly Zom': 'Hitchcock dolly zoom (vertigo effect)',
+  'Dolly Zoom': 'Hitchcock dolly zoom (vertigo effect)',
 };
 
 // Film looks promised by the intro copy ("Choose … film look to set the
@@ -129,7 +129,13 @@ export function CinemaStudio() {
             currentSettings.prompt = tpl.basePrompt;
           } else if (tpl.slug) {
             loadTemplatePrompt(templateParam)
-              .then((prompt) => { if (prompt) currentSettings.prompt = prompt; })
+              .then((prompt) => {
+                if (!prompt) return;
+                currentSettings.prompt = prompt;
+                // The textarea is built before this async load resolves.
+                const ta = document.querySelector('textarea[aria-label="Cinema prompt"]');
+                if (ta && !ta.value) ta.value = prompt;
+              })
               .catch(() => {});
           }
         }
@@ -184,6 +190,7 @@ export function CinemaStudio() {
     cineBuilderWrapper.style.animationDelay = '0.15s';
 
     const cineBuilderToggle = document.createElement('button');
+    cineBuilderToggle.dataset.help = 'builder';
     cineBuilderToggle.className = 'w-full flex items-center justify-between bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-2xl px-5 py-3.5 text-left hover:bg-white/[0.04] transition-all';
     cineBuilderToggle.innerHTML = `
         <div class="flex items-center gap-3">
@@ -264,7 +271,7 @@ export function CinemaStudio() {
 
     const overlayContent = document.createElement('div');
     // Reduced padding for mobile (p-4) and added max-height/overflow handling
-    overlayContent.className = 'w-full max-w-5xl bg-[#111] border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-y-auto';
+    overlayContent.className = 'w-full max-w-5xl bg-card-bg border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-y-auto';
     overlayBackdrop.appendChild(overlayContent);
 
     // Header for Overlay
@@ -319,7 +326,7 @@ export function CinemaStudio() {
     promptBarWrapper.style.animationDelay = '0.2s';
 
     const promptBar = document.createElement('div');
-    promptBar.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 shadow-3xl relative';
+    promptBar.className = 'w-full bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 shadow-3xl relative';
 
     // --- INPUT AREA (Prompt + Upload) ---
     const inputArea = document.createElement('div');
@@ -395,7 +402,7 @@ export function CinemaStudio() {
       },
     });
 
-    // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
+    // Enhancement tools overflow menu (GTM Boost, Recipes, Prompts)
     const enhanceMenu = document.createElement('div');
     enhanceMenu.className = 'overflow-menu shrink-0';
     enhanceMenu.innerHTML = `
@@ -629,6 +636,7 @@ export function CinemaStudio() {
 
     // Model picker — same catalog-driven dropdown used by Video Studio.
     const modelBtn = document.createElement('button');
+    modelBtn.dataset.help = 'model';
     modelBtn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap';
     const updateModelBtn = () => {
         const m = (currentSettings.referenceUrl ? i2vModels : t2vModels).find(x => x.id === currentSettings.model)
@@ -741,6 +749,7 @@ export function CinemaStudio() {
 
     // Aspect Ratio
     const arBtn = document.createElement('button');
+    arBtn.dataset.help = 'aspect ratio';
     arBtn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap';
     const updateArBtn = () => {
         arBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="10" rx="2" ry="2"/></svg> ${currentSettings.aspect_ratio}`;
@@ -757,6 +766,7 @@ export function CinemaStudio() {
 
     // Resolution
     const resBtn = document.createElement('button');
+    resBtn.dataset.help = 'resolution';
     resBtn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap';
     const updateResBtn = (val) => {
         resBtn.dataset.value = val || '2K';
@@ -773,7 +783,7 @@ export function CinemaStudio() {
     let outputMode = 'video';
     try { if (localStorage.getItem('cinema_output_mode') === 'image') outputMode = 'image'; } catch { /* ignore */ }
     const modeSeg = createSegmented(
-        [{ value: 'video', label: 'Video' }, { value: 'image', label: 'Image' }],
+        [{ value: 'video', label: 'Video', help: 'video mode' }, { value: 'image', label: 'Image', help: 'image mode' }],
         outputMode,
         (value) => {
             outputMode = value;
@@ -834,6 +844,7 @@ export function CinemaStudio() {
         }),
         getProject: () => ({}),
         getPreview: () => customThumbnailUrl || currentSettings.referenceUrl || '',
+        getResult: () => currentResultUrl || '',
         onApply: ({ personalization }) => {
           activePersonalizationContext = personalization || null;
           if (!activePersonalizationContext) return;
@@ -875,6 +886,7 @@ export function CinemaStudio() {
     const summaryCard = document.createElement('button');
     // Removed 'hidden' class, added 'flex' and refined width constraints for mobile
     summaryCard.className = 'flex flex-col items-start justify-center px-4 py-2 bg-white/[0.04] rounded-xl border border-white/5 hover:border-white/20 transition-colors text-left flex-1 min-w-[100px] md:min-w-[140px] max-w-[240px] h-[56px] relative group overflow-hidden';
+    summaryCard.dataset.help = 'quick camera builder';
     summaryCard.setAttribute('data-tooltip', 'Open camera settings');
 
     // Dot indicator
@@ -1289,10 +1301,12 @@ export function CinemaStudio() {
 
     const publishBtn = document.createElement('button');
     publishBtn.type = 'button';
-    publishBtn.className = 'bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all hover:shadow-glow';
+    publishBtn.className = 'bg-gradient-to-r from-(--publish-from) to-(--publish-to) text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all hover:shadow-glow';
     publishBtn.textContent = 'Publish to Social';
 
     canvasControls.appendChild(publishBtn);
+    const landingBtn = createLandingPageButton({ like: downloadBtn });
+    canvasControls.appendChild(landingBtn);
 
     canvas.appendChild(canvasControls);
 
@@ -1381,7 +1395,8 @@ export function CinemaStudio() {
             currentSettings.lens = entry.settings.lens;
             currentSettings.focal = entry.settings.focal;
             currentSettings.aperture = entry.settings.aperture;
-            currentSettings.movement = entry.settings.movement || 'Static';
+            // Saved projects from before the label was fixed ('Dolly Zom') keep their camera move.
+            currentSettings.movement = (entry.settings.movement === 'Dolly Zom' ? 'Dolly Zoom' : entry.settings.movement) || 'Static';
             currentSettings.look = entry.settings.look || 'Natural';
             currentSettings.aspect_ratio = entry.settings.aspect_ratio;
 
@@ -1432,11 +1447,13 @@ export function CinemaStudio() {
 
         // Show Canvas
         canvas.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
+            container.classList.add('studio-result-showing'); // hides the example gallery under the result
         canvas.classList.add('opacity-100', 'translate-y-0', 'scale-100');
         canvasControls.classList.remove('opacity-0');
         canvasControls.classList.add('opacity-100');
 
         publishBtn.onclick = () => { const mediaUrl = currentResultUrl; if (mediaUrl) { const isVid = /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(mediaUrl); openSocialPublish({ mediaUrl, mediaType: isVid ? 'video' : 'image' }); } };
+        landingBtn.onclick = () => { const url = currentResultUrl; if (url) void openLandingPageFor({ url, type: /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(url) ? 'video' : 'image', studio: 'cinema' }); };
         if (/\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(url)) {
           const captionBtn = document.createElement('button');
           captionBtn.type = 'button';
@@ -1461,6 +1478,7 @@ export function CinemaStudio() {
     const resetToPrompt = () => {
         // Hide Canvas
         canvas.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
+        container.classList.remove('studio-result-showing');
         canvas.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
 
         // Show Input UI

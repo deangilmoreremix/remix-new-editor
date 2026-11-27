@@ -42,6 +42,16 @@ export interface FxDef {
   pipeline?: (uniforms: Record<string, UniformValue>) => FxPass[];
   /** .cube 3D LUT URL(/luts/<file>);frag should be universal lut.frag(u_lut+u_intensity) */
   cube?: string;
+  /** [remix] Fix C: uniforms computed from the (sampled) overrides, e.g. a curves LUT, a homography or a flattened mask path. Merged after the slider uniforms. */
+  derive?: (overrides: Record<string, UniformValue>) => Record<string, UniformValue>;
+  /** [remix] Fix C: array-valued props that are not sliders (key -> default), stored in Clip.fx[].props and edited by a dedicated inspector / preview editor. */
+  data?: Record<string, number[]>;
+  /** [remix] Fix C: which special editor the inspector (and preview) offers for this effect. */
+  editor?: 'curves' | 'mask' | 'cornerpin';
+  /** [remix] Fix C: slider props the inspector does not list because the editor replaces them (they still work, e.g. in old projects). */
+  hiddenProps?: string[];
+  /** [remix] Fix C: colour swatches over HSV slider triples (hue 0..360, sat / val 0..1): picking writes the three numbers, so they stay keyframeable. */
+  colorPicks?: Array<{ label: string; h: string; s: string; v: string }>;
 }
 
 /** Serializable subset of FxDef (without pipeline function field): persisted with TimelineState.fxDefs,
@@ -84,7 +94,7 @@ export function fxPasses(
 ): FxPass[] {
   const out: FxPass[] = [];
   for (const { def, overrides } of effects) {
-    const uniforms: Record<string, UniformValue> = { ...fxUniforms(def, overrides), u_time: time };
+    const uniforms: Record<string, UniformValue> = { ...fxUniforms(def, overrides), ...(def.derive ? def.derive(overrides ?? {}) : {}), u_time: time };
     let lut3d;
     if (def.cube) {
       // Semantics: LUT not ready (loading/failed) = transparent transmission. If intensity is pressed to 0, runtime will give
@@ -100,6 +110,7 @@ export function fxPasses(
       out.push({
         ...pass,
         inputFrom: pass.inputFrom == null ? undefined : pass.inputFrom + offset,
+        slot: pass.slot == null ? undefined : pass.slot + offset, // [remix] Fix G
         samplers: pass.samplers
           ? Object.fromEntries(Object.entries(pass.samplers).map(([name, index]) => [name, index + offset]))
           : undefined,

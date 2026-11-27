@@ -20,7 +20,7 @@
  *     → { ok, status: 'pending' | 'done' | 'failed', url? }
  */
 import { createHash } from 'node:crypto';
-import { muapiPost, extractRealUrl } from './cinegenProviders.js';
+import { muapiPost, muapiResult, extractRealUrl } from './cinegenProviders.js';
 import { buildRequest, openaiSpeech } from './agent-audio.js';
 
 export const MAX_LINE = 70; // personalized line limit (upstream: 70 characters)
@@ -109,7 +109,7 @@ export async function handle(body, { ip = 'unknown', fetchImpl = fetch } = {}) {
     if (!/^[A-Za-z0-9_-]{4,128}$/.test(id)) return fail(400, 'bad_request', 'Invalid requestId');
     if (!process.env.MUAPI_API_KEY) return fail(503, 'not_configured', 'Voice service is not configured');
     try {
-      const data = await muapiPost(`/predictions/${encodeURIComponent(id)}/result`, {});
+      const data = await muapiResult(id);
       const status = String(data.status || '').toLowerCase();
       if (['completed', 'succeeded', 'success'].includes(status)) {
         const url = extractRealUrl(data);
@@ -142,7 +142,9 @@ export async function handle(body, { ip = 'unknown', fetchImpl = fetch } = {}) {
   if (!line || line.length > MAX_RESOLVED) return fail(422, 'use_fallback', 'Missing personalization values');
 
   const provider = tts.provider === 'openai' ? 'openai' : 'minimax';
-  const req = buildRequest({ kind: 'tts', provider, text: line, voice: tts.voice, speed: tts.speed, pitch: tts.pitch, instructions: tts.instructions });
+  // A cloned voice lives in the account that cloned it. With the platform key it may be unavailable,
+  // in which case MuAPI fails and the player keeps the pre-rendered fallback line.
+  const req = buildRequest({ kind: 'tts', provider, text: line, voice: tts.voice, speed: tts.speed, pitch: tts.pitch, instructions: tts.instructions, ...(provider === 'minimax' && tts.cloneVoiceId ? { cloneVoiceId: tts.cloneVoiceId } : {}), ...(provider === 'minimax' && tts.languageBoost ? { languageBoost: tts.languageBoost } : {}) });
   if (req.error) return fail(422, 'use_fallback', req.error);
   const cacheKey = createHash('sha256').update(JSON.stringify([provider, req.payload])).digest('hex');
   if (cache.has(cacheKey)) return json(200, { ok: true, status: 'done', url: cache.get(cacheKey), cached: true });

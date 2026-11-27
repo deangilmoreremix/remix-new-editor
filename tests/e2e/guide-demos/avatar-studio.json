@@ -1,0 +1,47 @@
+{
+  "model-selector": {
+    "selector": "xpath=//button[contains(normalize-space(.),'LTX LipSync')]",
+    "click": true,
+    "then": [
+      {
+        "text": "FLUX 3 Avatar",
+        "hold": 2500
+      }
+    ]
+  },
+  "source-video-image-upload": {
+    "selector": "xpath=//button[@aria-label=\"Reference media\" or @title=\"Reference media\"]",
+    "click": true,
+    "then": [
+      {
+        "upload": true,
+        "file": "image",
+        "hold": 3000,
+        "selector": "xpath=(//*[normalize-space(text())='Pick a file'] | //button[contains(.,'Upload new') or contains(.,'Upload files')])[1]"
+      }
+    ]
+  },
+  "audio-for-lip-sync": {
+    "selector": "xpath=//button[normalize-space(.)='Upload audio']",
+    "click": true,
+    "upload": true,
+    "file": "audio",
+    "hold": 3000
+  },
+  "prompt-optional": {
+    "selector": "xpath=//label[normalize-space(.)='Prompt (optional)']/following::textarea[1]",
+    "click": true,
+    "type": "She smiles warmly and speaks to the camera with gentle head movement",
+    "hold": 1500
+  },
+  "native-audio-toggle": {
+    "selector": "xpath=//label[normalize-space(.)='Native Audio']/following::*[self::button or self::input][1]",
+    "click": true,
+    "hold": 2000
+  },
+  "advanced-options": {
+    "selector": "#avatar-advanced-btn",
+    "click": true,
+    "hold": 2500
+  }
+}

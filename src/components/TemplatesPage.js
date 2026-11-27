@@ -1,9 +1,17 @@
 import { allTemplates, getAllCategories } from '../lib/templates.js';
+import { FAVORITE_STAR_CLASS, paintFavoriteStar, cssEscape, getFavoriteTemplateIds, getRecentTemplateIds, isFavoriteTemplate, toggleFavoriteTemplate } from '../lib/templateUx.js';
 import { NICHE_LABELS_MAP } from '../lib/nicheTemplatesIndex.js';
-import { navigate } from '../lib/router.js';
+import { navigate, getQueryParam } from '../lib/router.js';
+import { syncFavorites } from '../lib/templateCloud.js';
+import { nicheLabel as nicheName } from '../lib/templateCategories.js';
 import { getTemplateThumbnail, createThumbnailImg, createStudioHeader } from '../lib/thumbnails.js';
+import { CURATED_PROMPTS } from '../data/curatedPrompts.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
+
+const FAVORITES_FILTER = '★ Favorites';
+const RECENT_FILTER = '🕒 Recent';
+const PROMPTS_FILTER = '✨ Prompts';
 
 export function TemplatesPage() {
   const container = document.createElement('div');
@@ -24,11 +32,13 @@ export function TemplatesPage() {
   const searchInput = document.createElement('input');
   searchInput.type = 'text';
   searchInput.placeholder = 'Search templates...';
+  searchInput.setAttribute('aria-label', 'Search templates');
   searchInput.className = 'w-full max-w-md bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors';
   controlsRow.appendChild(searchInput);
 
   const filterRow = document.createElement('div');
   filterRow.className = 'flex gap-2 overflow-x-auto no-scrollbar';
+  filterRow.dataset.help = 'category filter';
 
   // Get all categories and niches for filtering
   const categories = (() => {
@@ -40,9 +50,11 @@ export function TemplatesPage() {
     }
   })();
   const niches = Object.values(NICHE_LABELS_MAP || {});
-  const allFilters = ['All', 'Standard', ...categories.filter(c => !niches.includes(c)), '--- Niches ---', ...niches];
+  const allFilters = ['All', FAVORITES_FILTER, RECENT_FILTER, PROMPTS_FILTER, 'Standard', ...categories.filter(c => !niches.includes(c)), '--- Niches ---', ...niches];
   
-  let activeFilter = null;
+  // Opened from an Explore category card: #/templates with ?category=<chip name>.
+  const requested = getQueryParam('category');
+  let activeFilter = requested && requested !== 'All' && allFilters.includes(requested) ? requested : null;
 
   allFilters.forEach(filter => {
     if (filter === '--- Niches ---') {
@@ -53,7 +65,7 @@ export function TemplatesPage() {
       return;
     }
     
-    const isActive = filter === 'All';
+    const isActive = filter === (activeFilter ?? 'All');
     const btn = createFilterChip(filter, isActive);
     btn.onclick = () => {
       activeFilter = filter === 'All' ? null : filter;
@@ -72,6 +84,34 @@ export function TemplatesPage() {
   const sectionsContainer = document.createElement('div');
   inner.appendChild(sectionsContainer);
 
+  const emptyState = document.createElement('div');
+  emptyState.className = 'hidden py-16 text-center text-sm text-muted';
+  emptyState.setAttribute('role', 'status');
+  inner.appendChild(emptyState);
+
+  let searchTimer = null;
+  function applySearch() {
+    const q = searchInput.value.trim().toLowerCase();
+    let visible = 0;
+    container.querySelectorAll('[data-searchable]').forEach(el => {
+      const match = el.dataset.searchable.toLowerCase().includes(q);
+      el.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    const none = q !== '' && visible === 0;
+    emptyState.classList.toggle('hidden', !none);
+    if (none) {
+      emptyState.textContent = '';
+      emptyState.append(`No templates match "${searchInput.value.trim()}". `);
+      const clear = document.createElement('button');
+      clear.type = 'button';
+      clear.textContent = 'Clear search';
+      clear.className = 'underline text-primary';
+      clear.onclick = () => { searchInput.value = ''; applySearch(); searchInput.focus(); };
+      emptyState.appendChild(clear);
+    }
+  }
+
   function updateFilters() {
     filterRow.querySelectorAll('button').forEach(btn => {
       const isActive = (activeFilter === null && btn.dataset.filter === 'all') ||
@@ -86,7 +126,14 @@ export function TemplatesPage() {
     });
   }
 
+  // Draws the sections for the active chip, then re-applies the search box so
+  // the cards and the "no matches" message always agree with the query.
   function renderCategories() {
+    renderSections();
+    applySearch();
+  }
+
+  function renderSections() {
     sectionsContainer.innerHTML = '';
 
     const safeTemplates = (Array.isArray(allTemplates) ? allTemplates : []).filter(Boolean);
@@ -101,11 +148,34 @@ export function TemplatesPage() {
     // Group niche templates by their niche
     const nicheGroups = {};
     nicheTemplates.forEach(t => {
-      if (!nicheGroups[t.niche]) {
-        nicheGroups[t.niche] = [];
+      const label = nicheName(t.niche);
+      if (!nicheGroups[label]) {
+        nicheGroups[label] = [];
       }
-      nicheGroups[t.niche].push(t);
+      nicheGroups[label].push(t);
     });
+
+    if (activeFilter === PROMPTS_FILTER) {
+      sectionsContainer.appendChild(createPromptsSection());
+      return;
+    }
+
+    if (activeFilter === FAVORITES_FILTER || activeFilter === RECENT_FILTER) {
+      const ids = activeFilter === FAVORITES_FILTER ? getFavoriteTemplateIds() : getRecentTemplateIds();
+      const byId = new Map(safeTemplates.map(t => [t.id, t]));
+      const picked = ids.map(id => byId.get(id)).filter(Boolean);
+      if (picked.length > 0) {
+        sectionsContainer.appendChild(createTemplateSection(activeFilter, picked, false));
+      } else {
+        const empty = document.createElement('div');
+        empty.className = 'text-center text-sm text-muted py-12';
+        empty.textContent = activeFilter === FAVORITES_FILTER
+          ? 'No favorites yet. Tap the ☆ on a template to save it here.'
+          : 'Nothing here yet. Templates you open will show up here.';
+        sectionsContainer.appendChild(empty);
+      }
+      return;
+    }
 
     if (activeFilter === null) {
       const standardCategories = [...new Set(standardTemplates.map(t => t?.category).filter(Boolean))];
@@ -141,7 +211,7 @@ export function TemplatesPage() {
         }
       });
     } else if (niches.includes(activeFilter)) {
-      const nicheTemplatesFiltered = nicheTemplates.filter(t => t.niche === activeFilter);
+      const nicheTemplatesFiltered = nicheTemplates.filter(t => nicheName(t.niche) === activeFilter);
       if (nicheTemplatesFiltered.length > 0) {
         const section = createTemplateSection(activeFilter, nicheTemplatesFiltered, true);
         sectionsContainer.appendChild(section);
@@ -155,15 +225,34 @@ export function TemplatesPage() {
     }
   }
 
+  // Un-starring inside the Favorites view redraws it (fresh count and the
+  // "No favorites yet" message), keeping the current search.
+  container.addEventListener('template-favorite-changed', (e) => {
+    if (activeFilter !== FAVORITES_FILTER) return;
+    const visibleHearts = () => Array.from(sectionsContainer.querySelectorAll('[data-favorite]'))
+      .filter((h) => h.closest('[data-searchable]')?.style.display !== 'none');
+    // The event is dispatched on the card; also accept the star itself, so the position is found either way.
+    const heart = e.target.closest?.('[data-favorite]') || e.target.querySelector?.('[data-favorite]') || null;
+    const index = visibleHearts().indexOf(heart);
+    renderCategories();
+    // The redraw removes the focused star; keep keyboard users in the list.
+    const remaining = visibleHearts();
+    const next = remaining[Math.min(Math.max(index, 0), remaining.length - 1)];
+    (next || filterRow.querySelector(`[data-filter="${FAVORITES_FILTER}"]`))?.focus();
+  });
+
   renderCategories();
   container.appendChild(inner);
+  if (activeFilter) setTimeout(() => filterRow.querySelector(`[data-filter="${cssEscape(activeFilter)}"]`)?.scrollIntoView?.({ block: 'nearest', inline: 'center' }), 0);
 
+  // Favorites saved to the account on another device show up here too.
+  const favoritesBefore = JSON.stringify(getFavoriteTemplateIds());
+  syncFavorites().then((ids) => { if (JSON.stringify(ids) !== favoritesBefore) renderCategories(); });
+
+  // Debounced: filtering hundreds of cards on every keystroke is wasteful.
   searchInput.oninput = () => {
-    const q = searchInput.value.toLowerCase();
-    container.querySelectorAll('[data-searchable]').forEach(el => {
-      const text = el.dataset.searchable.toLowerCase();
-      el.style.display = text.includes(q) ? '' : 'none';
-    });
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(applySearch, 150);
   };
 
   return container;
@@ -200,9 +289,9 @@ function createTemplateSection(category, catTemplates, isNiche) {
     card.className = `backdrop-blur-xl border rounded-xl cursor-pointer transition-all group overflow-hidden ${
       isNiche 
         ? 'bg-[#0a1628]/80 border-cyan-500/20 hover:bg-cyan-900/20 hover:border-cyan-400/40' 
-        : 'bg-[#111]/90 border-white/10 hover:bg-white/[0.06] hover:border-white/10'
+        : 'bg-card-bg/90 border-white/10 hover:bg-white/[0.06] hover:border-white/10'
     }`;
-    card.dataset.searchable = `${t.name} ${t.description || ''} ${category} ${t.outputType} ${t.niche || ''}`;
+    card.dataset.searchable = `${t.name} ${t.description || ''} ${category} ${t.outputType} ${nicheName(t.niche)}`;
     card.setAttribute('role', 'button');
     card.setAttribute('tabindex', '0');
 
@@ -270,6 +359,30 @@ function createTemplateSection(category, catTemplates, isNiche) {
     `;
     card.appendChild(content);
 
+    card.classList.add('relative');
+    const heart = document.createElement('button');
+    heart.type = 'button';
+    heart.dataset.favorite = t.id;
+    heart.className = FAVORITE_STAR_CLASS;
+    heart.setAttribute('data-keep-fill', ''); // outline-buttons.css would otherwise make the dark disc transparent
+    const paintHeart = () => {
+      const on = isFavoriteTemplate(t.id);
+      heart.textContent = on ? '★' : '☆';
+      heart.setAttribute('aria-pressed', String(on));
+      heart.setAttribute('aria-label', on ? `Remove ${t.name} from favorites` : `Add ${t.name} to favorites`);
+      paintFavoriteStar(heart, on);
+    };
+    paintHeart();
+    heart.onclick = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      toggleFavoriteTemplate(t.id);
+      paintHeart();
+      card.dispatchEvent(new CustomEvent('template-favorite-changed', { bubbles: true }));
+    };
+    heart.onkeydown = (e) => e.stopPropagation();
+    card.appendChild(heart);
+
     const onClick = () => navigate(`template/${t.id}`);
     card.onclick = onClick;
     card.onkeydown = (e) => {
@@ -281,6 +394,37 @@ function createTemplateSection(category, catTemplates, isNiche) {
     grid.appendChild(card);
   });
 
+  section.appendChild(grid);
+  return section;
+}
+
+// Curated prompts (formerly the Explore page): "Try this prompt" opens Image Studio prefilled.
+function createPromptsSection() {
+  const section = document.createElement('div');
+  section.className = 'mb-10 animate-fade-in-up';
+  section.innerHTML = `<h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">Prompt Library <span class="text-xs font-medium text-muted">${CURATED_PROMPTS.length}</span></h2>`;
+  const grid = document.createElement('div');
+  grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3';
+  CURATED_PROMPTS.forEach((p) => {
+    const card = document.createElement('div');
+    card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 hover:bg-white/[0.06] transition-all';
+    card.dataset.searchable = `${p.prompt} ${p.category} ${p.model}`;
+    const meta = document.createElement('div');
+    meta.className = 'text-xs text-muted mb-2';
+    meta.textContent = `${p.category} / ${p.model}`;
+    const text = document.createElement('div');
+    text.className = 'text-sm text-white leading-relaxed mb-3';
+    text.textContent = p.prompt;
+    const btn = document.createElement('button');
+    btn.className = 'text-xs font-bold text-primary hover:underline';
+    btn.textContent = 'Try this prompt';
+    btn.onclick = () => {
+      try { localStorage.setItem('prefill_prompt', p.prompt); } catch { /* storage blocked */ }
+      navigate('image');
+    };
+    card.append(meta, text, btn);
+    grid.appendChild(card);
+  });
   section.appendChild(grid);
   return section;
 }

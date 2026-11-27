@@ -1,0 +1,14 @@
+{
+  "slug": "templates",
+  "name": "Templates",
+  "intro": "Templates is a library of ready-made image and video templates. Pick one, add your media, and generate, so you get a polished look without writing a long prompt.",
+  "features": {
+    "template-categories-standard": "The standard templates are grouped into categories like Social Media, Style Transfer, Entertainment and Commercial. Use the filter chips to jump to the look or format you want.",
+    "industry-niche-templates": "Industry templates are video templates made for local businesses, such as restaurants, salons, gyms and real estate. They're ready-made storytelling for service brands.",
+    "template-studio-model-and-media-sources": "Inside the Template Studio, the model picker shows the route it will take. For video templates, Media Sources lets you add a reference image or a source video.",
+    "ai-enhancer": "The AI Enhancer toggle is on by default. It expands a short description into a richer prompt in the background, and you can switch it off for a rawer prompt.",
+    "advanced-controls": "The Advanced button opens extra fields like niche, audience, subject, setting, visual style and call to action. Use them to steer the story and tone.",
+    "output-tabs": "The right panel has four tabs: Enhanced Prompt, Scene Beats, Voiceover and Negative Prompt. They let you see and tweak exactly what the AI will receive."
+  },
+  "outro": "That's Templates. Find a style that fits, add your own media, and let the template do the heavy lifting."
+}

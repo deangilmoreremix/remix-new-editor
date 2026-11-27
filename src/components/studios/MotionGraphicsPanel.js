@@ -77,7 +77,7 @@ export function MotionGraphicsPanel() {
   });
 
   // Generate | Edit
-  const modeToggle = createSegmented([{ value: 'generate', label: 'Generate' }, { value: 'edit', label: 'Edit' }], 'generate', (v) => {
+  const modeToggle = createSegmented([{ value: 'generate', label: 'Generate', help: 'motion graphics generate' }, { value: 'edit', label: 'Edit', help: 'motion graphics edit' }], 'generate', (v) => {
     if (v === 'edit') {
       const first = editSources()[0];
       if (!first) { modeToggle.setValue('generate'); showToast('Generate a motion graphic first, then you can edit it.', 'info'); return; }
@@ -130,7 +130,7 @@ export function MotionGraphicsPanel() {
   composer.panel.insertBefore(banner, composer.textarea);
 
   const loader = document.createElement('div');
-  loader.className = 'hidden w-full max-w-4xl rounded-2xl border border-white/10 bg-[#111]/80 py-12 flex-col items-center justify-center gap-4';
+  loader.className = 'hidden w-full max-w-4xl rounded-2xl border border-white/10 bg-card-bg/80 py-12 flex-col items-center justify-center gap-4';
   loader.innerHTML = `
     <div class="relative w-20 h-20 flex items-center justify-center">
       <div class="absolute inset-0 rounded-full border-2 border-violet-500/30 animate-ping"></div>

@@ -18,7 +18,7 @@ function setup() {
   document.body.appendChild(host);
   const root = createRoot(host);
   act(() => {
-    root.render(<OverlayLane overlays={overlays} pxPerSecond={50} scrollLeft={0} labelWidth={150} sequenceDuration={20} onAdd={() => {}} onUpdate={() => {}} onRemove={onRemove} />);
+    root.render(<OverlayLane overlays={overlays} pxPerSecond={50} scrollLeft={0} labelWidth={150} sequenceDuration={20} onOpenAdd={() => {}} onUpdate={() => {}} onRemove={onRemove} />);
   });
   return { host, onRemove, cleanup: () => { act(() => root.unmount()); host.remove(); } };
 }

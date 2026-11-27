@@ -42,7 +42,10 @@ const inFlight = new Set();
 /**
  * Tracks one generation so it can be resumed if the page reloads mid-poll.
  * Pass `onRequestId` into the muapi generate params; call `finish()` once
- * the call settles (success, error or cancel).
+ * the call settles (success, error or cancel). `finish({ keep: true })` only
+ * releases the in-flight marker and keeps the saved record: use it when the
+ * browser stopped waiting (cancel, navigation) but the provider job may still
+ * complete, so it can be resumed later.
  */
 export function createPendingJobTracker(studioType, historyMeta = {}, { maxAttempts = 300, interval = 2000 } = {}) {
     let requestId = null;
@@ -52,11 +55,11 @@ export function createPendingJobTracker(studioType, historyMeta = {}, { maxAttem
             inFlight.add(rid);
             savePendingJob({ requestId: rid, studioType, historyMeta, maxAttempts, interval, submittedAt: Date.now() });
         },
-        finish() {
+        finish({ keep = false } = {}) {
             if (typeof window !== 'undefined') window.dispatchEvent(new Event('muapi:job-finished'));
             if (!requestId) return;
             inFlight.delete(requestId);
-            removePendingJob(requestId);
+            if (!keep) removePendingJob(requestId);
         },
     };
 }
@@ -82,7 +85,7 @@ export function resumePendingJobs(studioType, { poll, onResult, now = Date.now()
     let banner = null;
     if (typeof document !== 'undefined') {
         banner = document.createElement('div');
-        banner.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[200] bg-[#111] border border-white/10 text-white text-sm px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3';
+        banner.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[200] bg-card-bg border border-white/10 text-white text-sm px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3';
         banner.innerHTML = '<span class="animate-spin text-primary">◌</span> <span class="banner-text"></span>';
         document.body.appendChild(banner);
     }

@@ -1,0 +1,19 @@
+capabilities {"worker":"function","offscreen":"function","vd":"function"}
+worker run {"ms":939,"maxGap":14,"workers":1,"cuts":["0.000","2.000","4.400","6.000"],"nProgress":168}
+PASS a Web Worker was created for the scan
+PASS worker: 4 scenes (3 cuts)
+PASS worker: cuts within 0.1 s of 2.0 / 4.4 / 6.0: 2.000, 4.400, 6.000
+PASS worker: every scene has a JPEG thumbnail
+PASS worker: progress is reported and non-decreasing up to ~1
+PASS worker: all three phases reported (scan, refine, thumbs)
+main-thread run {"ms":1003,"maxGap":14,"workers":0,"cuts":["0.000","2.000","4.400","6.000"]}
+PASS main thread stays responsive during the worker scan: longest timer gap 14 ms (main-thread scan: 14 ms)
+PASS useWorker:false stays on the main thread
+PASS worker and main-thread results agree within 0.05 s (0.000,2.000,4.400,6.000 vs 0.000,2.000,4.400,6.000)
+PASS main thread (existing path) cuts still 2.0 / 4.4 / 6.0
+cancel {"r":"AbortError","r2":"AbortError","workers":1,"terminated":true,"after":1}
+PASS worker scan is cancellable (AbortError) and the worker is terminated
+PASS an already-aborted signal rejects without starting another worker
+fallback on bad source: This media could not be opened for scene detection.
+PASS a bad source rejects (worker error then main-thread fallback error)
+done

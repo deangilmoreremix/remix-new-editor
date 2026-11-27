@@ -166,8 +166,12 @@ export async function responsesSmartEditStream(
   let finalResponse: any = null
 
   const readWithTimeout = async (): Promise<{ value?: Uint8Array; done: boolean }> => {
+    // One timer per read, always cleared: an uncleared timer used to reject
+    // 90 s later for EVERY chunk read, even after a successful edit, filling
+    // the console with unhandled errors.
+    let timer: ReturnType<typeof setTimeout> | undefined
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('SmartVideo GO Smart Edit streaming timed out after 90 seconds')), 90000)
+      timer = setTimeout(() => reject(new Error('SmartVideo GO Smart Edit streaming timed out after 90 seconds')), 90000)
     })
     try {
       return await Promise.race([reader.read(), timeoutPromise])
@@ -178,6 +182,8 @@ export async function responsesSmartEditStream(
         // ignore cancel errors
       }
       throw err
+    } finally {
+      if (timer !== undefined) clearTimeout(timer)
     }
   }
 

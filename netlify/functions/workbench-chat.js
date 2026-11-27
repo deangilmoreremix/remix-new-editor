@@ -18,9 +18,10 @@
  */
 
 import { userOpenAIKey } from './_shared/byok.js';
+import { OPENAI_TEXT_MODEL } from './_shared/openaiModels.js';
 
 const TIMEOUT_MS = 60_000;
-const MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6-sol';
+const MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || OPENAI_TEXT_MODEL;
 const MAX_BODY_CHARS = 200_000;
 const MAX_MESSAGE_CHARS = 4_000;
 const MAX_HISTORY = 12;

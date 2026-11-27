@@ -85,6 +85,9 @@ import { MINIMAX_H3_DEMOS } from './minimaxH3Demos'
 import { SEEDANCE_25_DEMOS } from './seedance25Demos'
 import { SEEDANCE_1_DEMOS } from './seedance1Demos'
 import { PROMPTFEED_DEMOS } from './promptFeedDemos'
+// The Template videos library (also shown in the timeline editor): hosted, reviewed and labeled No logo / Has logo.
+// @ts-expect-error plain JS data module
+import { templateVideos as TEMPLATE_LIBRARY } from '../../../data/templateVideoLibrary.js'
 
 // ---------------------------------------------------------------------------
 // Collections
@@ -96,6 +99,7 @@ export const DEMO_COLLECTION_IDS = [
   'promptfeed',
   'seedance-1',
   'seedance-25',
+  'template-library',
 ] as const
 
 export type DemoCollectionId = (typeof DEMO_COLLECTION_IDS)[number]
@@ -393,6 +397,13 @@ export type DemoLibraryEntry = {
   modelName?: string
   /** Probed facts for the real file behind `videoSrc`. */
   media: DemoMediaFacts
+  /**
+   * Logo label: `none` = reviewed, no visible logo / watermark / credit; `logo` = has one (the template library's per-clip verdicts);
+   * `unreviewed` = a local clip that has not been labeled yet (the PromptFeed and Seedance 1 catalogs).
+   */
+  branding: 'none' | 'logo' | 'unreviewed'
+  /** What the visible mark is, when `branding` is `logo`. */
+  marks?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -479,36 +490,93 @@ const SOURCE_LIBRARIES: ReadonlyArray<{
     sourceUrl: 'https://github.com/BeatAPI/awesome-seedance-2-5-prompts',
     demos: SEEDANCE_25_DEMOS,
   },
+  {
+    id: 'template-library',
+    label: 'Template library',
+    sourceUrl: 'https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/demo-template-videos/catalog.json',
+    // Built from TEMPLATE_LIBRARY in buildRegistry(), not from a VideoDemo catalog.
+    demos: [],
+  },
 ]
+
+type TemplateRow = {
+  id: string
+  slug: string
+  title: string
+  sourceTitle: string
+  category: string
+  subcategory: string
+  duration: number | null
+  aspectRatio: string
+  videoSrc: string
+  posterSrc: string | null
+  tags: string[]
+  source: string
+  branding: 'none' | 'logo'
+  marks?: string
+}
+
+const TEMPLATE_ROWS = TEMPLATE_LIBRARY as unknown as TemplateRow[]
+const TEMPLATE_BY_ID = new Map(TEMPLATE_ROWS.map((row) => [row.id, row]))
+
+/** Template-library set that carries the same clips (same slugs) as a legacy catalog collection. */
+const LEGACY_TO_TEMPLATE_SET: Partial<Record<DemoCollectionId, string>> = { 'minimax-h3': 'mmxLegacy', 'seedance-25': 'sd25' }
+
+/** Hosted media (the demo-template-videos bucket) and repo files are the only video sources a demo may use. */
+const PLAYABLE_SRC = /^(https:\/\/bzxohkrxcwodllketcpz\.supabase\.co\/storage\/v1\/object\/public\/demo-template-videos\/|\/media\/)/
+
+/** Picture size for a clip whose file was measured by the template-library build (long side 1280). */
+function factsFromRow(row: TemplateRow): DemoMediaFacts {
+  const [w, h] = row.aspectRatio.split(':').map(Number)
+  const ratio = w > 0 && h > 0 ? w / h : 16 / 9
+  return {
+    width: ratio >= 1 ? 1280 : Math.round(1280 * ratio),
+    height: ratio >= 1 ? Math.round(1280 / ratio) : 1280,
+    durationSeconds: row.duration ?? 10,
+  }
+}
+
+const TEMPLATE_CATEGORY: Record<string, DemoCategory> = {
+  Action: 'Action',
+  Animation: 'Animation',
+  Cinema: 'Cinema',
+  Commercial: 'Commercial',
+  Fashion: 'Fashion',
+  Social: 'Social',
+  VFX: 'Animation',
+}
 
 function buildRegistry(): DemoLibraryEntry[] {
   const entries: DemoLibraryEntry[] = []
   const seenIds = new Set<string>()
+  const usedTemplateIds = new Set<string>()
 
+  // 1. The original catalogs. A catalog demo is shown only when the template library carries the same clip (same slug): the library
+  //    holds the verified, playable (hosted) media and the logo label. Demos whose video files were never shipped are hidden.
   for (const library of SOURCE_LIBRARIES) {
+    const templateSet = LEGACY_TO_TEMPLATE_SET[library.id]
+    if (!templateSet) continue
     for (const demo of library.demos) {
-      // A demo is only registered when its file was probed and verified.
-      const media = DEMO_MEDIA_FACTS[demo.videoSrc]
-      if (!media) continue
-      // Never register a demo without playable local media.
-      if (!demo.videoSrc || demo.videoSrc.startsWith('blob:') || demo.videoSrc.startsWith('http')) continue
-      if (!demo.posterSrc) continue
+      const row = TEMPLATE_BY_ID.get(`${templateSet}:${demo.slug}`)
+      if (!row || !PLAYABLE_SRC.test(row.videoSrc)) continue
+      const posterSrc = row.posterSrc ?? demo.posterSrc
+      if (!posterSrc) continue
 
       const id = `${library.id}:${demo.slug}`
       if (seenIds.has(id)) continue
       seenIds.add(id)
+      usedTemplateIds.add(row.id)
 
-      const durationSeconds = positiveNumber(demo.duration) ?? media.durationSeconds
-
+      const media = DEMO_MEDIA_FACTS[demo.videoSrc] ?? factsFromRow(row)
       entries.push({
         id,
-        title: demo.title,
+        title: row.title,
         collectionId: library.id,
         collectionName: library.label,
-        videoSrc: demo.videoSrc,
-        posterSrc: demo.posterSrc,
-        aspectRatio: demo.aspectRatio || deriveAspectRatio(media),
-        durationSeconds,
+        videoSrc: row.videoSrc,
+        posterSrc,
+        aspectRatio: row.aspectRatio || demo.aspectRatio || deriveAspectRatio(media),
+        durationSeconds: row.duration ?? positiveNumber(demo.duration) ?? media.durationSeconds,
         category: demo.category,
         style: styleHint(demo),
         slug: demo.slug,
@@ -527,9 +595,90 @@ function buildRegistry(): DemoLibraryEntry[] {
         model: demo.model,
         modelName: demo.modelName,
         media,
+        branding: row.branding,
+        ...(row.marks ? { marks: row.marks } : {}),
       })
     }
   }
+
+  // 1b. PromptFeed and Seedance 1 are not in the template library, but their video files ship in this repo and play, so they stay
+  //     in step 2 as local clips. They have no logo verdict yet, so they are marked `unreviewed` (shown as "Not reviewed").
+  for (const library of SOURCE_LIBRARIES) {
+    if (library.id !== 'promptfeed' && library.id !== 'seedance-1') continue
+    for (const demo of library.demos) {
+      const media = DEMO_MEDIA_FACTS[demo.videoSrc]
+      if (!media || !demo.videoSrc.startsWith('/media/') || !demo.posterSrc) continue
+      const id = `${library.id}:${demo.slug}`
+      if (seenIds.has(id)) continue
+      seenIds.add(id)
+      entries.push({
+        id,
+        title: demo.title,
+        collectionId: library.id,
+        collectionName: library.label,
+        videoSrc: demo.videoSrc,
+        posterSrc: demo.posterSrc,
+        aspectRatio: demo.aspectRatio || deriveAspectRatio(media),
+        durationSeconds: positiveNumber(demo.duration) ?? media.durationSeconds,
+        category: demo.category,
+        style: styleHint(demo),
+        slug: demo.slug,
+        sourceRepo: demo.sourceRepo,
+        studioTab: demo.studioTab,
+        prompt: demo.prompt,
+        tags: demo.tags ?? [],
+        rawCategory: demo.rawCategory,
+        useCase: demo.useCase,
+        legacyId: demo.id,
+        durationLabel: demo.durationLabel,
+        featured: demo.featured,
+        hero: demo.hero,
+        interactive: demo.interactive,
+        sourceUrl: demo.sourceUrl,
+        model: demo.model,
+        modelName: demo.modelName,
+        media,
+        branding: 'unreviewed',
+      })
+    }
+  }
+
+  // 2. Every other clip of the template library (clean ones first, as the library orders them).
+  const templateCollection = SOURCE_LIBRARIES.find((library) => library.id === 'template-library')!
+  TEMPLATE_ROWS.forEach((row, index) => {
+    if (usedTemplateIds.has(row.id) || !PLAYABLE_SRC.test(row.videoSrc) || !row.posterSrc) return
+    const slug = row.id.replace(':', '-')
+    const id = `${templateCollection.id}:${slug}`
+    if (seenIds.has(id)) return
+    seenIds.add(id)
+    const media = factsFromRow(row)
+    const style = row.subcategory
+    entries.push({
+      id,
+      title: row.title,
+      collectionId: templateCollection.id,
+      collectionName: templateCollection.label,
+      videoSrc: row.videoSrc,
+      posterSrc: row.posterSrc,
+      aspectRatio: row.aspectRatio || deriveAspectRatio(media),
+      durationSeconds: row.duration ?? media.durationSeconds,
+      category: TEMPLATE_CATEGORY[row.category] ?? 'Cinema',
+      style,
+      slug,
+      sourceRepo: templateCollection.id,
+      studioTab: 'video',
+      prompt: `${row.title}. ${row.category} - ${row.subcategory}. ${row.sourceTitle}`,
+      tags: [row.category.toLowerCase(), row.subcategory.toLowerCase(), ...row.tags],
+      rawCategory: row.category,
+      useCase: row.subcategory,
+      legacyId: 1000 + index,
+      durationLabel: row.duration ? `${Math.round(row.duration)}s` : undefined,
+      sourceUrl: templateCollection.sourceUrl,
+      media,
+      branding: row.branding,
+      ...(row.marks ? { marks: row.marks } : {}),
+    })
+  })
 
   return entries
 }
@@ -600,6 +749,7 @@ export function toVideoDemo(entry: DemoLibraryEntry): VideoDemo {
     sourceRepo: entry.sourceRepo,
     model: entry.model,
     modelName: entry.modelName,
+    branding: entry.branding,
   }
 }
 

@@ -47,7 +47,7 @@ export function CommercialPage() {
     </div>
 
     <!-- Features -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-xl font-black text-white mb-1">Professional Results</h2>
       <p class="text-sm text-muted mb-6">Create commercial content that converts</p>
       <div class="grid md:grid-cols-2 gap-4">
@@ -62,7 +62,7 @@ export function CommercialPage() {
     </div>
 
     <!-- Scene Presets -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-xl font-black text-white mb-1">Scene Presets</h2>
       <p class="text-sm text-muted mb-6">Professional backgrounds for any product</p>
       <div class="flex flex-wrap gap-3">
@@ -73,7 +73,7 @@ export function CommercialPage() {
     </div>
 
     <!-- Export Formats -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-xl font-black text-white mb-1">Export Formats</h2>
       <p class="text-sm text-muted mb-6">Optimized for all advertising platforms</p>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -86,7 +86,7 @@ export function CommercialPage() {
     </div>
 
     <!-- CTA Section -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center">
       <h2 class="text-2xl font-black text-white mb-2">Create Commercials</h2>
       <p class="text-white/60 text-sm mb-6">Professional product photography at scale</p>
       <button class="cta-btn btn-primary-modern">
@@ -98,7 +98,10 @@ export function CommercialPage() {
   container.appendChild(contentWrapper);
 
   container.querySelector('.start-btn').onclick = () => navigate('commercial');
+
+  container.querySelector('.start-btn').dataset.helpText = 'Open Product Shot Studio.';
   container.querySelector('.cta-btn').onclick = () => navigate('commercial');
+  container.querySelector('.cta-btn').dataset.helpText = 'Open Product Shot Studio.';
 
   return container;
 }

@@ -15,6 +15,9 @@ const ICONS = {
   character: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
   influencer: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6v12a3 3 0 103 3V6a3 3 0 10-3 3z"/></svg>',
   landing: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+  'smart-video-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg>',
+  'smart-video-scheduler': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+  'muapi-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg>',
   storyboard: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="6" height="8" rx="1"/><rect x="9" y="3" width="6" height="8" rx="1"/><rect x="16" y="3" width="6" height="8" rx="1"/><rect x="2" y="13" width="6" height="8" rx="1"/><rect x="9" y="13" width="6" height="8" rx="1"/><rect x="16" y="13" width="6" height="8" rx="1"/></svg>',
   effects: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
   edit: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
@@ -40,15 +43,20 @@ const ICONS = {
   viral: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
    personalizer: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>',
    leadfinder: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  recorder: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg>',
+  outreach: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H5.17L4 17.17V4z"/><polygon points="10 7.5 15 10 10 12.5 10 7.5"/></svg>',
    'find-my-brand': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.4 2.3 7.2L12 16.4 5.7 20.8 8 13.6 2 9.2h7.6z"/></svg>',
   'content-library': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>',
   'studios/product-photo-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
   'studios/fashion-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  smartwarmupai: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>',
   workbench: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="13" rx="2"/><line x1="2" y1="20" x2="22" y2="20"/><line x1="7" y1="18" x2="7" y2="22"/><line x1="15" y1="18" x2="15" y2="22"/><path d="M10 7.5l4 2.5-4 2.5z" fill="currentColor"/></svg>',
    openthorn: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
    'video-agent': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
    'motion-director': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 6l3-4M12 6l3-4M18 6l3-4"/><path d="M10 13.5l4 2.5-4 2.5z" fill="currentColor"/></svg>',
    'video-agent-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
+   zackd: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="m2 7 3-5h4l-3 5M10 7l3-5h4l-3 5"/></svg>',
+   'zackd-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="m2 7 3-5h4l-3 5M10 7l3-5h4l-3 5"/></svg>',
    brand: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
    'brand-dna': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
    campaign: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 2.7 2.5 6 2.5s6-1.5 6-2.5v-5"/></svg>',
@@ -57,6 +65,7 @@ const ICONS = {
    'photo-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
    'brand-photo-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
    'website-builder': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="2" y1="7" x2="22" y2="7"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  'media-hub': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>',
    animate: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>',
  };
 
@@ -67,11 +76,15 @@ const FALLBACK_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="non
 // Retired from the menus: Training, Chat, Assist, Stock Media, Community
 // (their routes redirect, see RETIRED_ROUTES in router.js).
 export const STUDIO_ROUTES = {
+  // 'category' here is the public guide category (/studios pages group by it), not the side-menu group:
+  // the menu's grouping lives in NAV_GROUPS below.
   apps: { label: 'Apps', category: 'Home' },
   explore: { label: 'Explore', category: 'Home' },
   templates: { label: 'Templates', category: 'Home' },
   image: { label: 'Image Studio', category: 'Image' },
   edit: { label: 'Edit Studio', category: 'Image' },
+  'muapi-studio': { label: 'SmartVid Studio', category: 'Image' },
+  'smart-video-studio': { label: 'Smart Video Studio', category: 'Generate' },
   upscale: { label: 'Upscale Suite', category: 'Image' },
   character: { label: 'Character Studio', category: 'Image' },
   commercial: { label: 'Product Shot Studio', category: 'Image' },
@@ -84,22 +97,29 @@ export const STUDIO_ROUTES = {
   effects: { label: 'Effects Studio', category: 'Video' },
   'ai-vfx': { label: 'AI VFX Studio', category: 'Video' },
   animate: { label: 'Animate Studio', category: 'Video' },
+  'media-hub': { label: 'SmartVidDownloader', category: 'Video' },
   lipsync: { label: 'Lip Sync Studio', category: 'Video' },
   videotools: { label: 'Video Tools', category: 'Video' },
   avatar: { label: 'Avatar Studio', category: 'Video' },
   audio: { label: 'Audio Studio', category: 'Video' },
-  'video-agent': { label: 'Video Agent', category: 'Agents' },
+  'video-agent': { label: 'Animation Agent', category: 'Agents' },
+  zackd: { label: 'Zack D Studio', category: 'Agents' },
   'motion-director': { label: 'Motion Director', category: 'Agents' },
   director: { label: 'Director', category: 'Agents' },
   timeline: { label: 'Timeline Editor', category: 'Agents' },
   workbench: { label: 'Workbench', category: 'Agents' },
+  smartwarmupai: { label: 'SmartWarmupAI', category: 'Agents' },
   viral: { label: 'Smart Video Viral', category: 'Agents' },
   personalizer: { label: 'Personalizer', category: 'Agents' },
+  // Features of other apps, not menu entries: reached from Video Outreach / Library (see NAV_ALIASES).
   leadfinder: { label: 'Lead Finder', category: 'Agents' },
+  outreach: { label: 'Video Outreach', category: 'Agents' },
+  recorder: { label: 'Recorder', category: 'Agents' },
+  // Find My Brand is a modal; the route remains for links.
   'find-my-brand': { label: 'Find My Brand', category: 'Agents' },
   'website-builder': { label: 'Website Builder', category: 'Agents' },
   render: { label: 'Video Render', category: 'Agents' },
-  academy: { label: 'Smart Video Academy', category: 'Agents' },
+  academy: { label: 'Smart Video Academy', category: 'Home' },
   library: { label: 'Library', category: 'My Work' },
   'content-library': { label: 'Content', category: 'My Work' },
   'text-to-image': { label: 'Text to Image', category: 'Generate' },
@@ -157,39 +177,55 @@ export function getGroupedStudioRoutes() {
 // studio pages no longer carry their own menus.
 export const NAV_GROUPS = [
   { title: '', items: [
-    { id: 'apps', label: 'Apps' },
     { id: 'explore', label: 'Explore' },
-    { id: 'templates', label: 'Templates' },
+    { id: 'apps', label: 'Apps' },
+    { id: 'smart-video-studio', label: 'Smart Video Studio' },
+    { id: 'academy', label: 'Academy' },
   ] },
   { title: 'Image', items: [
     { id: 'image', label: 'Image' },
     { id: 'edit', label: 'Edit' },
     { id: 'upscale', label: 'Upscale' },
-    { id: 'character', label: 'Character' },
     { id: 'commercial', label: 'Product Shot' },
     { id: 'brand', label: 'Brand' },
   ] },
   { title: 'Video', items: [
     { id: 'video', label: 'Video' },
     { id: 'cinema', label: 'Cinema' },
+    { id: 'templates', label: 'Templates' },
     { id: 'cinema-template', label: 'Cinema Templates' },
     { id: 'storyboard', label: 'Storyboard' },
+    { id: 'animate', label: 'Animate' },
     { id: 'effects', label: 'Effects' },
     { id: 'ai-vfx', label: 'AI VFX' },
-    { id: 'animate', label: 'Animate' },
-    { id: 'lipsync', label: 'Lip Sync' },
     { id: 'videotools', label: 'Video Tools' },
-    { id: 'avatar', label: 'Avatar' },
-    { id: 'audio', label: 'Audio' },
   ] },
-  { title: 'Agents', items: [
-    { id: 'video-agent', label: 'Video Agent' },
+  { title: 'Audio & Avatars', items: [
+    { id: 'audio', label: 'Audio' },
+    { id: 'lipsync', label: 'Lip Sync' },
+    { id: 'avatar', label: 'Avatar' },
+    { id: 'character', label: 'Character' },
+    { id: 'influencer', label: 'AI Influencer' },
+    { id: 'zackd', label: 'Zack D' },
+  ] },
+  { title: 'AI Agents', items: [
+    { id: 'video-agent', label: 'Animation Agent' },
+    { id: 'motion-director', label: 'Motion Director' },
     { id: 'director', label: 'Director' },
+  ] },
+  { title: 'Editors', items: [
     { id: 'timeline', label: 'Timeline' },
     { id: 'workbench', label: 'Workbench' },
-    { id: 'viral', label: 'Viral' },
+  ] },
+  { title: 'Marketing & Outreach', items: [
     { id: 'personalizer', label: 'Personalizer' },
+    { id: 'outreach', label: 'Video Outreach' },
+    { id: 'smartwarmupai', label: 'SmartWarmupAI' },
     { id: 'website-builder', label: 'Website' },
+  ] },
+  { title: 'Utilities', items: [
+    { id: 'viral', label: 'Viral' },
+    { id: 'media-hub', label: 'SmartVidDownloader' },
   ] },
   { title: 'My Work', items: [
     { id: 'library', label: 'Library' },
@@ -199,8 +235,17 @@ export const NAV_GROUPS = [
 
 // Routes that are part of a menu entry without being one themselves.
 const NAV_ALIASES = {
+  smartviddownloader: 'media-hub',
+  'muapi-studio': 'smart-video-studio',
+  leadfinder: 'outreach',
+  recorder: 'outreach',
+  'find-my-brand': 'outreach',
+  'smart-video-scheduler': 'library',
+  brightbean: 'library',
+  render: 'library',
   cinegen: 'workbench',
   'video-agent-studio': 'video-agent',
+  'zackd-studio': 'zackd',
   'brand-dna': 'brand',
   campaign: 'brand',
   'campaign-page': 'brand',
@@ -220,6 +265,8 @@ export function getNavItemForRoute(route) {
   if (!route) return null;
   const page = String(route).replace(/^#?\/?/, '').split('?')[0];
   if (page.startsWith('template/')) return 'templates';
+  if (page === 'academy' || page.startsWith('academy/')) return 'academy';
+  if (page.startsWith('smartwarmupai/')) return 'smartwarmupai';
   const id = NAV_ALIASES[page] || page;
   return NAV_GROUPS.some((g) => g.items.some((it) => it.id === id)) ? id : null;
 }

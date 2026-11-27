@@ -6,6 +6,12 @@
  * every x/y pair describes the CENTER of a layer box.
  */
 
+import { normalizeCaptions } from './captions'
+import { normalizeTextStyles } from './textStyles'
+import { normalizeAudioTracks, normalizeVideoVolume } from './audioMix'
+import { normalizeKeyframes } from './keyframes'
+import { normalizeLayerEffects, normalizeLook } from './effects'
+import { normalizeCutout } from './cutout/cutoutSettings'
 import { contractFor, roleForLayer } from './mediaRoles'
 import { IMAGE_ROLES, normalizeImageStyle, type ImageHints, type ImageRole } from './imageStyle'
 import type {
@@ -20,7 +26,8 @@ import type {
   PreviewLayoutId,
   PreviewPositionId,
 } from './types'
-import { DEFAULT_PREVIEW_BRAND_COLORS, DEFAULT_PREVIEW_FPS } from './types'
+import { DEFAULT_PREVIEW_BRAND_COLORS, DEFAULT_PREVIEW_FPS, DESIGN_SLOT_LAYER_IDS } from './types'
+import type { DesignSlot } from './types'
 import { getRemotionDesignTemplate } from '../templates/registry'
 import type {
   RemotionDesignMediaRole,
@@ -30,6 +37,7 @@ import type {
 // deterministic typeface. `templates/typography` imports nothing from
 // `preview/`, so this import cannot form a cycle.
 import { DESIGN_FONT_STACK } from '../templates/typography'
+import { normalizeAngle } from './rotation'
 
 const LAYER_KINDS: PreviewLayerKind[] = [
   'logo',
@@ -361,6 +369,9 @@ export function clampLayer(layer: PreviewLayer): PreviewLayer {
   } else {
     delete clamped.endFrame
   }
+  const rotation = normalizeAngle(layer.rotation)
+  if (rotation !== 0) clamped.rotation = rotation
+  else delete clamped.rotation
   return clamped
 }
 
@@ -384,7 +395,7 @@ export function createDefaultPreviewSettings(
   const { width, height } = getCompositionDimensions('16:9')
   const base: PersonalizationPreviewSettings = {
     layout: 'business-introduction',
-    layers: LAYER_IDS_BY_LAYOUT['business-introduction'].map((kind) => createLayer(kind)),
+    layers: createLayoutLayers('business-introduction', '16:9'),
     brandColors: { ...DEFAULT_PREVIEW_BRAND_COLORS },
     aspectRatio: '16:9',
     fps: DEFAULT_PREVIEW_FPS,
@@ -440,7 +451,7 @@ type LayerGeometry = Pick<PreviewLayer, 'x' | 'y' | 'scale'>
  * not listed here keep `LAYER_DEFAULTS`.
  */
 const IMAGE_LAYOUT_GEOMETRY: Record<
-  'product-showcase' | 'service-promotion',
+  'business-introduction' | 'product-showcase' | 'service-promotion',
   Record<PreviewAspectRatio, Partial<Record<PreviewLayerKind, LayerGeometry>>>
 > = (() => {
   const landscape = (image: PreviewLayerKind) => ({
@@ -463,7 +474,22 @@ const IMAGE_LAYOUT_GEOMETRY: Record<
     '4:5': stacked(image, 0.2, 0.34, 0.64, 0.42),
     '1:1': stacked(image, 0.18, 0.31, 0.66, 0.4),
   })
+  // Business Introduction sits as a lower-third (name over headline, bottom-left) so the
+  // subject of the footage stays clear. Only the two text layers move; the logo keeps its
+  // corner. Text is left-aligned against the safe-area margin (see `textAlignFor`).
+  const lowerThird = (name: number, head: number) => ({
+    businessName: { x: 0.08, y: name, scale: 0.055 },
+    headline: { x: 0.08, y: head, scale: 0.045 },
+  })
   return {
+    'business-introduction': {
+      // One position for every shape: it sits in the bottom third and clear of the 9:16
+      // social-UI strip, and "untouched" detection stays stable across aspect changes.
+      '16:9': lowerThird(0.68, 0.76),
+      '9:16': lowerThird(0.68, 0.76),
+      '4:5': lowerThird(0.68, 0.76),
+      '1:1': lowerThird(0.68, 0.76),
+    },
     'product-showcase': build('productImage'),
     'service-promotion': build('serviceImage'),
   }
@@ -475,8 +501,21 @@ export function layoutLayerGeometry(
   kind: PreviewLayerKind,
   aspect: PreviewAspectRatio | undefined,
 ): LayerGeometry | undefined {
-  if (layoutId !== 'product-showcase' && layoutId !== 'service-promotion') return undefined
+  if (layoutId !== 'business-introduction' && layoutId !== 'product-showcase' && layoutId !== 'service-promotion') return undefined
   return IMAGE_LAYOUT_GEOMETRY[layoutId][aspect ?? '16:9']?.[kind]
+}
+
+/**
+ * The layers a layout starts with, each at the layout's own default geometry
+ * (not the generic one), so a brand-new project and `applyLayoutPreset` agree on
+ * what "untouched" means.
+ */
+export function createLayoutLayers(
+  layoutId: PreviewLayoutId,
+  aspect: PreviewAspectRatio | undefined,
+): PreviewLayer[] {
+  const kinds = LAYER_IDS_BY_LAYOUT[layoutId] ?? LAYER_IDS_BY_LAYOUT['business-introduction']
+  return kinds.map((kind) => createLayer(kind, { ...layoutLayerGeometry(layoutId, kind, aspect) }))
 }
 
 /** A layer's untouched geometry: the layout's own default, else the generic one. */
@@ -583,15 +622,36 @@ export function applyLayoutPreset(
     }
     return createSeededLayer(kind, ctx, layoutId, settings.aspectRatio)
   })
+  // Applied designs and scenes stack ON TOP of the layout: switching the
+  // layout keeps them (and the customer's edits to them) after the layout.
+  const designLayers = findDesignLayers(settings)
+  const overlay = designLayers.find((layer) => designSlotOf(layer) === 'overlay')
   return {
     ...settings,
     layout: layoutId,
-    layers,
+    layers: [...layers, ...designLayers.map((layer) => clampLayer({ ...layer }))],
     brandColors: { ...settings.brandColors },
-    // A layout replaces the layer list, so an applied design is no longer
-    // rendered and must not stay selected.
-    remotionDesignId: null,
+    remotionDesignId: overlay ? (settings.remotionDesignId ?? overlay.designId ?? null) : null,
   }
+}
+
+/** Every applied design layer (overlay and scenes), in layer order. */
+function findDesignLayers(settings: PersonalizationPreviewSettings): PreviewLayer[] {
+  return (Array.isArray(settings.layers) ? settings.layers : []).filter(
+    (layer) => layer && layer.kind === 'design',
+  )
+}
+
+/** Which slot a design layer occupies, from its id. */
+export function designSlotOf(layer: Pick<PreviewLayer, 'id'>): DesignSlot {
+  if (layer.id === DESIGN_SLOT_LAYER_IDS.intro) return 'intro'
+  if (layer.id === DESIGN_SLOT_LAYER_IDS.outro) return 'outro'
+  return 'overlay'
+}
+
+/** True for the full-frame opening and closing scene layers. */
+export function isSceneLayer(layer: Pick<PreviewLayer, 'id' | 'kind'>): boolean {
+  return layer.kind === 'design' && designSlotOf(layer) !== 'overlay'
 }
 
 /**
@@ -636,15 +696,26 @@ export function resetLayoutToDefaults(
     if (Object.keys(carry).length === 0) return seeded
     return { ...seeded, ...carry }
   })
-  return {
+  const reset: PersonalizationPreviewSettings = {
     ...settings,
     layout: layoutId,
     layers,
     brandColors: { ...settings.brandColors },
-    // Restoring a layout also drops an applied design: the design layer is
-    // not part of any layout.
     remotionDesignId: null,
   }
+  // Applied designs stay applied: each goes back to its own default placement
+  // and timing while keeping the text the customer typed into it.
+  let restored = reset
+  for (const designLayer of findDesignLayers(settings)) {
+    if (!designLayer.designId || !getRemotionDesignTemplate(designLayer.designId)) continue
+    restored = applyDesignTemplate(
+      { ...restored, layers: [...restored.layers, designLayer] },
+      designLayer.designId,
+      ctx,
+      designSlotOf(designLayer),
+    )
+  }
+  return restored
 }
 
 /** The layout a fresh preview starts from. */
@@ -672,8 +743,9 @@ function pickPrimaryMediaBinding(design: RemotionDesignTemplate) {
 /**
  * Applies a registered Remotion design to the preview settings.
  *
- * The design replaces the layer list with a single `design` layer that carries
- * the design's own placement, its primary text slot and its primary media
+ * On-screen design: the layout's layers are REPLACED by one `design` layer (`addDesignTemplate` adds without replacing).
+ * An opening/closing scene (`slot`) is added on top and replaces only its own slot. The layer carries the
+ * design's own placement, its primary text slot and its primary media
  * binding. Brand colours, aspect ratio, fps, duration, the selected layout and
  * the audio track are all preserved, and the applied design is remembered in
  * `remotionDesignId` so it survives a reload.
@@ -687,12 +759,17 @@ export function applyDesignTemplate(
   prev: PersonalizationPreviewSettings,
   designId: string,
   ctx?: ApplyLayoutContext,
+  slot: DesignSlot = 'overlay',
 ): PersonalizationPreviewSettings {
   const design = getRemotionDesignTemplate(designId)
   if (!design) return prev
+  const layerId = DESIGN_SLOT_LAYER_IDS[slot]
 
-  const existing = (Array.isArray(prev.layers) ? prev.layers : []).find(
-    (layer) => layer && layer.kind === 'design' && layer.designId === design.id,
+  // The on-screen design is found by its design id (any design layer showing it); a scene by its slot's layer id.
+  const existing = (Array.isArray(prev.layers) ? prev.layers : []).find((layer) =>
+    slot === 'overlay'
+      ? layer && layer.kind === 'design' && !isSceneLayer(layer) && layer.designId === design.id
+      : layer && layer.id === layerId && layer.designId === design.id,
   )
 
   const primarySlot = pickPrimaryTextSlot(design)
@@ -729,14 +806,156 @@ export function applyDesignTemplate(
   if (imageUrl !== undefined) overrides.imageUrl = imageUrl
   if (textSlotOverrides) overrides.textSlotOverrides = textSlotOverrides
 
-  const layer = createLayer('design', overrides)
-
-  return {
-    ...prev,
-    layers: [layer],
-    brandColors: { ...prev.brandColors },
-    remotionDesignId: design.id,
+  if (slot !== 'overlay') {
+    // A scene owns the whole frame for its own time window.
+    Object.assign(
+      overrides,
+      design.role === 'scene'
+        ? { x: 0.5, y: 0.5, scale: 1, opacity: 1, animation: 'fade' }
+        : // Any other design keeps its own placement on the brand backdrop.
+          { opacity: 1 },
+      sceneWindow(design, prev),
+    )
   }
+
+  const layer = createLayer('design', { ...overrides, id: layerId })
+
+  // On-screen design = REPLACE: the layout's layers give way to the one design layer (the opening and closing scenes
+  // are separate slots and stay). A scene stacks on top of everything else, replacing only its own slot's previous
+  // scene. Scenes are drawn last, so they cover the video and any overlay while they play.
+  const existingLayers = Array.isArray(prev.layers) ? prev.layers : []
+  const others = slot === 'overlay'
+    ? existingLayers.filter((entry) => entry && isSceneLayer(entry))
+    : existingLayers.filter((entry) => entry && entry.id !== layerId)
+  const layers = [...(slot === 'overlay' ? [layer] : []), ...others, ...(slot === 'overlay' ? [] : [layer])].sort((a, b) => sceneOrder(a) - sceneOrder(b))
+
+  const next: PersonalizationPreviewSettings = { ...prev, layers, brandColors: { ...prev.brandColors } }
+  if (slot === 'overlay') {
+    next.remotionDesignId = design.id
+  } else {
+    next.remotionSceneIds = { ...sceneIdsOf(prev), [slot]: design.id }
+    // A closing scene replaces the branded end card: both own the last seconds.
+    if (slot === 'outro') next.showEndCard = false
+  }
+  return next
+}
+
+/** Layout and overlay layers first, then the opening and closing scenes. */
+function sceneOrder(layer: PreviewLayer): number {
+  return isSceneLayer(layer) ? 1 : 0
+}
+
+function sceneIdsOf(settings: PersonalizationPreviewSettings): { intro: string | null; outro: string | null } {
+  return { intro: settings.remotionSceneIds?.intro ?? null, outro: settings.remotionSceneIds?.outro ?? null }
+}
+
+/** Default scene length: three seconds. */
+const DEFAULT_SCENE_SECONDS = 3
+
+/**
+ * How long an opening or closing scene plays. Scenes play BEFORE and AFTER the
+ * video (they add to the total length), so a scene layer stores only its own
+ * length: `startFrame: 0, endFrame: length - 1`. Where it sits on the timeline
+ * comes from its slot (see `sceneLengths` / `totalDurationInFrames`).
+ */
+export function sceneWindow(
+  design: RemotionDesignTemplate,
+  settings: Pick<PersonalizationPreviewSettings, 'fps'>,
+): { startFrame: number; endFrame: number } {
+  const fps = settings.fps > 0 ? settings.fps : DEFAULT_PREVIEW_FPS
+  const length = design.sceneDurationInFrames
+    ? Math.round((design.sceneDurationInFrames / 30) * fps)
+    : Math.round(DEFAULT_SCENE_SECONDS * fps)
+  return { startFrame: 0, endFrame: Math.max(1, length) - 1 }
+}
+
+/** Frame length of a scene layer (older projects saved absolute windows). */
+function sceneLayerLength(layer: PreviewLayer): number {
+  const end = typeof layer.endFrame === 'number' ? layer.endFrame : layer.startFrame
+  return Math.max(1, Math.round(end - layer.startFrame + 1))
+}
+
+/** Lengths of the visible opening and closing scenes, in frames (0 when none). */
+export function sceneLengths(
+  settings: Pick<PersonalizationPreviewSettings, 'layers'>,
+): { intro: number; outro: number } {
+  const out = { intro: 0, outro: 0 }
+  for (const layer of Array.isArray(settings.layers) ? settings.layers : []) {
+    if (!layer || !layer.visible || !isSceneLayer(layer)) continue
+    out[designSlotOf(layer) as 'intro' | 'outro'] = sceneLayerLength(layer)
+  }
+  return out
+}
+
+/** Opening scene + the video itself + closing scene, in frames. */
+export function totalDurationInFrames(
+  settings: Pick<PersonalizationPreviewSettings, 'layers' | 'durationInFrames'>,
+): number {
+  const { intro, outro } = sceneLengths(settings)
+  return intro + Math.max(1, Math.round(settings.durationInFrames || 1)) + outro
+}
+
+/**
+ * Re-times the opening and closing scenes after the frame rate changes (their
+ * authored length is in seconds). A new video length moves nothing: scenes
+ * play before and after the video whatever its length. Pure.
+ */
+export function retimeScenes(settings: PersonalizationPreviewSettings): PersonalizationPreviewSettings {
+  let changed = false
+  const layers = settings.layers.map((layer) => {
+    if (!isSceneLayer(layer) || !layer.designId) return layer
+    const design = getRemotionDesignTemplate(layer.designId)
+    if (!design) return layer
+    const window = sceneWindow(design, settings)
+    if (window.startFrame === layer.startFrame && window.endFrame === layer.endFrame) return layer
+    changed = true
+    return { ...layer, ...window }
+  })
+  return changed ? { ...settings, layers } : settings
+}
+
+/** Supported aspect ratio closest to a video's own width and height. */
+export function closestAspectRatio(width: number, height: number): PreviewAspectRatio | null {
+  if (!(width > 0) || !(height > 0)) return null
+  const ratio = width / height
+  let best: PreviewAspectRatio = '16:9'
+  let bestDiff = Infinity
+  for (const aspect of ASPECT_RATIOS) {
+    const { width: w, height: h } = getCompositionDimensions(aspect)
+    const diff = Math.abs(Math.log(ratio / (w / h)))
+    if (diff < bestDiff) {
+      best = aspect
+      bestDiff = diff
+    }
+  }
+  return best
+}
+
+/**
+ * Clears one design slot (the on-screen design, the opening scene or the closing scene), or all of them, and keeps the
+ * layout layers untouched. (`removeDesignLayer` below takes ONE design layer off by id.)
+ *
+ * Pure: `prev` is never mutated and a new settings object is returned.
+ */
+export function removeDesignSlot(
+  prev: PersonalizationPreviewSettings,
+  slot: DesignSlot | 'all' = 'overlay',
+): PersonalizationPreviewSettings {
+  const drop = (layer: PreviewLayer) =>
+    layer.kind === 'design' && (slot === 'all' || designSlotOf(layer) === slot)
+  const next: PersonalizationPreviewSettings = {
+    ...prev,
+    layers: (Array.isArray(prev.layers) ? prev.layers : []).filter((layer) => layer && !drop(layer)),
+    brandColors: { ...prev.brandColors },
+  }
+  if (slot === 'overlay' || slot === 'all') next.remotionDesignId = null
+  if (slot !== 'overlay') {
+    const ids = sceneIdsOf(prev)
+    next.remotionSceneIds = slot === 'all' ? { intro: null, outro: null } : { ...ids, [slot]: null }
+    // Removing the closing scene brings the branded end card back.
+    if (slot === 'outro' && ids.outro) next.showEndCard = true
+  }
+  return next
 }
 
 /**
@@ -756,8 +975,11 @@ export function addDesignTemplate(
   if (!design) return prev
   const layers = Array.isArray(prev.layers) ? prev.layers : []
   if (layers.some((l) => l && l.kind === 'design' && l.designId === design.id)) return prev
-  const built = applyDesignTemplate({ ...prev, layers: [] }, design.id, ctx).layers[0]
-  if (!built) return prev
+  const first = applyDesignTemplate({ ...prev, layers: [] }, design.id, ctx).layers[0]
+  if (!first) return prev
+  // Every design layer is created with the id 'design'; a second one needs its own id, or removing, editing or
+  // selecting one would act on both.
+  const built = layers.some((l) => l && l.id === first.id) ? { ...first, id: `design-${design.id}` } : first
   return { ...prev, layers: [...layers, built], remotionDesignId: prev.remotionDesignId ?? design.id }
 }
 
@@ -779,7 +1001,7 @@ export function resetPreviewDesign(
   ctx?: ApplyLayoutContext,
 ): PersonalizationPreviewSettings {
   return resetLayoutToDefaults(
-    { ...prev, remotionDesignId: null },
+    removeDesignSlot(prev, 'all'),
     DEFAULT_PREVIEW_LAYOUT_ID,
     ctx,
   )
@@ -821,6 +1043,14 @@ function clampTopToSafeArea(topPx: number, heightPx: number, frameHeight: number
   if (max < margin) return Math.round((frameHeight - heightPx) / 2)
   return Math.min(max, Math.max(margin, topPx))
 }
+
+/**
+ * Average glyph width as a fraction of the font size, used to estimate how
+ * wide a text box must be. Shared with the editor's wrap estimate. Measured
+ * against the bundled bold face: 0.55 was too narrow, so short two-word names
+ * like "SmartVideo GO" wrapped onto a second line and ran into the next layer.
+ */
+export const TEXT_CHAR_WIDTH_RATIO = 0.55
 
 /**
  * Converts normalized center coordinates plus scale into pixels.
@@ -867,7 +1097,7 @@ export function toBox(
   // shows the brand's name/headline/etc.; sizing from `layer.text` alone made
   // those boxes ~4 characters wide and wrapped long names mid-word.
   const drawn = resolvedText ?? layer.text ?? ''
-  const chars = Math.max(4, (drawn.length || 8) * 0.55)
+  const chars = Math.max(4, (drawn.length || 8) * TEXT_CHAR_WIDTH_RATIO)
   const widthPx = Math.round(Math.min(width * 0.9, fontSizePx * chars))
   const rawLeft = Math.round(x * width - widthPx / 2)
   const leftPx = contractFor(roleForLayer(layer)).clampToSafeArea
@@ -919,6 +1149,12 @@ function normalizeLayer(raw: unknown): PreviewLayer | null {
   const textSlotOverrides = normalizeTextSlotOverrides(raw.textSlotOverrides)
   if (textSlotOverrides) normalized.textSlotOverrides = textSlotOverrides
   if (raw.locked === true) normalized.locked = true
+  const rotation = normalizeAngle(raw.rotation)
+  if (rotation !== 0) normalized.rotation = rotation
+  const keyframes = normalizeKeyframes(raw.keyframes)
+  if (keyframes) normalized.keyframes = keyframes
+  const effects = normalizeLayerEffects(raw.effects)
+  if (effects) normalized.effects = effects
   const imageStyle = normalizeImageStyle(raw.imageStyle)
   if (imageStyle) normalized.imageStyle = imageStyle
   if (typeof raw.imageRole === 'string' && (IMAGE_ROLES as readonly string[]).includes(raw.imageRole)) normalized.imageRole = raw.imageRole as ImageRole
@@ -940,10 +1176,12 @@ export function normalizeImageHints(raw: unknown): Record<string, ImageHints> | 
     if (!url || url.startsWith('blob:') || !isRecord(h)) continue
     const hint: ImageHints = {}
     if (typeof h.aspect === 'number' && Number.isFinite(h.aspect) && h.aspect > 0) hint.aspect = h.aspect
-    for (const k of ['transparentCorners', 'alreadyFramed', 'hasTransparency', 'isHeadshot'] as const) {
+    for (const k of ['transparentCorners', 'alreadyFramed', 'hasTransparency', 'isHeadshot', 'lightLogo'] as const) {
       if (h[k] === true) hint[k] = true
     }
     if (['product', 'service', 'portrait', 'property', 'portfolio', 'logo', 'general'].includes(h.role as string)) hint.role = h.role as ImageHints['role']
+    // A derived, padding-trimmed logo copy: only a bounded PNG data URL is accepted (never a remote or script URL).
+    if (typeof h.trimmedUrl === 'string' && /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(h.trimmedUrl) && h.trimmedUrl.length <= 200_000) hint.trimmedUrl = h.trimmedUrl
     if (Object.keys(hint).length) out[url] = hint
   }
   return Object.keys(out).length ? out : undefined
@@ -1098,18 +1336,37 @@ export function normalizePreviewSettings(raw: unknown): PersonalizationPreviewSe
        out.layers =
          layers.length > 0
            ? layers
-           : LAYER_IDS_BY_LAYOUT[out.layout].map((kind) => createLayer(kind))
+           : createLayoutLayers(out.layout, out.aspectRatio)
    }
 
    out.audio = normalizePreviewAudio(raw.audio) ?? null
+  const audioTracks = normalizeAudioTracks(raw.audioTracks)
+  if (audioTracks) out.audioTracks = audioTracks
+  const videoVolume = normalizeVideoVolume(raw.videoVolume)
+  if (videoVolume !== undefined) out.videoVolume = videoVolume
+  if (raw.videoMuted === true) out.videoMuted = true
+  if (typeof raw.audioSolo === 'string' && raw.audioSolo) out.audioSolo = raw.audioSolo
 
    // The applied Remotion design. Absent in projects saved before the design
    // registry existed, so it falls back to null instead of throwing.
    out.remotionDesignId = nonEmptyString(raw.remotionDesignId) ?? null
   const zones = normalizeProtectedZones(raw.protectedZones)
   if (zones) out.protectedZones = zones
+  const look = normalizeLook(raw.look)
+  if (look) out.look = look
+  const captions = normalizeCaptions(raw.captions)
+  if (captions) out.captions = captions
+  const textStyles = normalizeTextStyles(raw.textStyles)
+  if (textStyles) out.textStyles = textStyles
+  const cutout = normalizeCutout(raw.cutout)
+  if (cutout) out.cutout = cutout
   const hints = normalizeImageHints(raw.imageHints)
   if (hints) out.imageHints = hints
+  const rawScenes = isRecord(raw.remotionSceneIds) ? raw.remotionSceneIds : {}
+  out.remotionSceneIds = {
+    intro: nonEmptyString(rawScenes.intro) ?? null,
+    outro: nonEmptyString(rawScenes.outro) ?? null,
+  }
 
    return out
   } catch {

@@ -3,11 +3,18 @@
  *
  * Everything here comes from owner-only Supabase RPCs / tables (row-level
  * security on the Clerk `sub`) through the signed-in client. There is no demo
- * data path: when nothing has been collected the result says so (zeros for known
+ * data path here: when nothing has been collected the result says so (zeros for known
  * zeros, null -> "—" for values that are undefined or unsupported).
+ *
+ * The DEMO videos of the Analytics tab (./demo/) do not change that: they run these same
+ * functions with a different `client` (a stand-in that answers from made-up viewers) and
+ * are only ever given demo video ids. The real client never sees them.
  */
 import { projectSections, ctaLabels, projectDuration } from '../../publish/sections.js';
 import { canonicalUrl } from '../../publish/publishClient.js';
+import { buildMarkers } from './markers.js';
+import { audienceRows, revisionRows, revisionDeltas } from './audienceData.js';
+import { buildInsights } from './insights.js';
 
 export const PERIODS = Object.freeze(['today', '7d', '30d', '90d', 'custom']);
 const DAY_MS = 86_400_000;
@@ -66,7 +73,7 @@ export function retentionPoints(rows) {
 export function conversionRows(rows, labels = {}) {
   return (rows || []).map((r) => {
     const label = r.label || labels[String(r.clip_id)] || TYPE_LABEL[r.type] || 'Interaction';
-    return { label: r.type === 'lead_submit' ? `Lead: ${label}` : r.type === 'call_click' ? `Call: ${label}` : label, clicks: Number(r.sessions) || 0, uniqueSessions: Number(r.sessions) || 0 };
+    return { label: r.type === 'lead_submit' ? `Lead: ${label}` : r.type === 'call_click' ? `Call: ${label}` : r.type === 'overlay_click' && (r.label || labels[String(r.clip_id)]) ? `Hotspot: ${r.label || labels[String(r.clip_id)]}` : label, clicks: Number(r.sessions) || 0, uniqueSessions: Number(r.sessions) || 0 };
   });
 }
 
@@ -86,6 +93,9 @@ const rpc = async (client, name, args) => {
   if (error) throw new Error(error.message || `${name} failed`);
   return data;
 };
+
+/** Optional reads (new RPCs): a database without the migration, or any failure, just leaves the card out. */
+const optionalRpc = (client, name, args) => rpc(client, name, args).catch(() => null);
 
 /** The published video (current revision) that belongs to a project, or null. */
 export async function getProjectVideo(client, projectId, videoId = null) {
@@ -114,7 +124,7 @@ export async function loadAnalytics(client, { projectRow, period = '30d', custom
   const labels = ctaLabels(video.project);
   const toExclusive = isoDay(new Date(Date.parse(`${to}T00:00:00Z`) + DAY_MS));
 
-  const [summary, series, retention, cta, engagement, notes] = await Promise.all([
+  const [summary, series, retention, cta, engagement, notes, audienceRaw, versionsRaw] = await Promise.all([
     rpc(client, 'video_analytics_summary', { p_video_id: video.id, p_from: from, p_to: to }),
     rpc(client, 'video_analytics_timeseries', { p_video_id: video.id, p_from: from, p_to: to }),
     rpc(client, 'video_retention_curve', { p_video_id: video.id, p_from: from, p_to: to }),
@@ -123,6 +133,8 @@ export async function loadAnalytics(client, { projectRow, period = '30d', custom
     client.from('owner_notifications').select('id, type, title, summary, suggestion, read_at, created_at')
       .eq('video_id', video.id).gte('created_at', `${from}T00:00:00Z`).lt('created_at', `${toExclusive}T00:00:00Z`)
       .order('created_at', { ascending: false }).limit(8).then((r) => { if (r.error) throw new Error(r.error.message); return r.data || []; }),
+    optionalRpc(client, 'owner_video_audience_breakdown', { p_video_id: video.id, p_from: from, p_to: to }),
+    optionalRpc(client, 'owner_video_revision_comparison', { p_video_id: video.id, p_from: from, p_to: to }),
   ]);
 
   const s = summary || {};
@@ -131,6 +143,10 @@ export async function loadAnalytics(client, { projectRow, period = '30d', custom
   const engagementById = new Map((engagement || []).map((e) => [e.section_id, e.engagement_percent == null ? null : Number(e.engagement_percent)]));
   const short = (series || []).length <= 7;
   const dur = projectDuration(video.project);
+  const retentionCurve = retentionPoints(retention);
+  const markers = buildMarkers(video.project);
+  const audience = audienceRaw ? audienceRows(audienceRaw) : null;
+  const versions = revisionDeltas(revisionRows(versionsRaw));
   const data = {
     projectId: projectRow.id,
     projectName: projectRow.name || video.title,
@@ -148,7 +164,11 @@ export async function loadAnalytics(client, { projectRow, period = '30d', custom
       leads: Number(s.leads) || 0,
     },
     playsOverTime: (series || []).map((r) => ({ day: dayLabel(r.day, short), plays: Number(r.plays) || 0 })),
-    retention: retentionPoints(retention),
+    retention: retentionCurve,
+    markers,
+    audience: audience && audience.total > 0 ? audience : null,
+    versions,
+    insights: buildInsights({ retention: retentionCurve, durationMs: Math.round(dur * 1000), markers, audience, versions }),
     sections: sections.map((x) => ({ id: x.id, title: x.title, startMs: Math.round(x.start * 1000), endMs: Math.round(x.end * 1000), engagementPercent: engagementById.get(x.id) ?? null })),
     conversions: conversionRows(cta, labels),
     opportunities: opportunityRows(notes),

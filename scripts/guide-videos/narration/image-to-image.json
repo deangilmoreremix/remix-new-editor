@@ -1,0 +1,14 @@
+{
+  "slug": "image-to-image",
+  "name": "Image to Image",
+  "intro": "Image to Image in SmartVideo is an overview page where you can explore image editing models and example edits before opening the editor.",
+  "features": {
+    "powerful-image-editing-cards": "Four information cards summarize what is possible, from smart transformations and style transfer to professional tools like background removal.",
+    "available-models": "The models grid shows featured editing models, so you can see which tools exist before you choose.",
+    "example-transformations": "Example cards show ready made ideas with a model badge. Click Try this to get wording you can reuse in your own edit.",
+    "gtm-boost": "The GTM Boost button opens a window where you describe your idea, pick an angle, audience and goal, and get a ready to use prompt.",
+    "start-editing": "Start Editing opens Edit Studio, where you upload your image and begin your edit.",
+    "get-started-free": "Get Started Free is the fastest way to the photo editing tools and opens Edit Studio."
+  },
+  "outro": "Browse the ideas, grab a prompt, and head into Edit Studio to turn your photo into something new."
+}

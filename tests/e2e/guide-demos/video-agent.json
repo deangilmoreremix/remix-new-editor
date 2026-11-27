@@ -1,0 +1,26 @@
+{
+  "describe-your-animation": {
+    "selector": "textarea[placeholder^='Describe your animation']",
+    "click": true,
+    "type": "A 6 second animated bar chart of monthly sales growing, dark background with neon green bars"
+  },
+  "model-picker": {
+    "selector": "button:has-text('GPT-5.2')",
+    "click": true,
+    "then": [{ "selector": "iframe >> internal:control=enter-frame >> text=GPT-5.2 (High Reasoning)", "hold": 1800 }]
+  },
+  "attach-reference-images": {
+    "selector": "button[aria-label='Attach images'], button[title='Attach images']",
+    "click": true,
+    "upload": true,
+    "file": "image",
+    "then": [{ "selector": "iframe >> internal:control=enter-frame >> textarea[placeholder^='Describe your animation']", "type": "Animate this photo with a slow zoom and a title that fades in", "hold": 1500 }]
+  },
+  "follow-up-chat-tune-your-animation": {
+    "click": true,
+    "type": "Make the title bigger and slow the animation down"
+  },
+  "use-current-frame-as-image": { "click": true },
+  "settings-duration-and-fps": { "click": true },
+  "render-and-download": { "click": false }
+}

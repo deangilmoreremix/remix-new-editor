@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-23T18:23:45.940Z",
+  "generated": "2026-11-19T15:57:50.567Z",
   "results": [
     {
       "id": "audio",
@@ -49,6 +49,174 @@
       "path": "/Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor/public/thumbnails/studios/render.webp",
       "size": 3245936,
       "imageUrl": "https://cdn.muapi.ai/outputs/generated/25a93bb749e548dd8cc1d702ab80c00a.png"
+    },
+    {
+      "id": "recorder",
+      "success": true,
+      "path": "public/thumbnails/studios/recorder.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/6ae9684f-bb53-40d2-9805-3e5a98cc093e_d18cc069.png"
+    },
+    {
+      "id": "cinema-template",
+      "success": true,
+      "path": "public/thumbnails/studios/cinema-template.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/29aff262-0906-45db-83cd-f7acf0cb0487_2bf0631a.png"
+    },
+    {
+      "id": "zackd",
+      "success": true,
+      "path": "public/thumbnails/studios/zackd.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/ef399137-b031-4960-a33c-c24a02378140_c64b2875.png"
+    },
+    {
+      "id": "director",
+      "success": true,
+      "path": "public/thumbnails/studios/director.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/3462b23b-6c6f-4375-b8c0-992f50adc336_06721491.png"
+    },
+    {
+      "id": "timeline",
+      "success": true,
+      "path": "public/thumbnails/studios/timeline.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/7804ddf6-399a-4ad3-ba82-1dbfab6d8bc1_820da89f.png"
+    },
+    {
+      "id": "workbench",
+      "success": true,
+      "path": "public/thumbnails/studios/workbench.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/8b951ce3-e6c1-41c1-b311-757f4b1102e7_5adf5886.png"
+    },
+    {
+      "id": "website-builder",
+      "success": true,
+      "path": "public/thumbnails/studios/website-builder.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/9af47db4-a0bc-40ad-a184-2b58eac01cbd_37d78f5b.png"
+    },
+    {
+      "id": "leadfinder",
+      "success": true,
+      "path": "public/thumbnails/studios/leadfinder.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/f44b839d-8293-40ae-b6c3-85c70e035bdb_cdd8bb52.png"
+    },
+    {
+      "id": "find-my-brand",
+      "success": true,
+      "path": "public/thumbnails/studios/find-my-brand.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/7183260b-dfea-468f-adbf-fd1df25eb6da_d5ded6a6.png"
+    },
+    {
+      "id": "animate",
+      "success": true,
+      "path": "public/thumbnails/studios/animate.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/82e252c8-a2f3-4360-99cb-7735b3845760_12876b6b.png"
+    },
+    {
+      "id": "viral",
+      "success": true,
+      "path": "public/thumbnails/studios/viral.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/5e139153-76c8-4c9b-8a9f-7aa9ac611419_0f438cb4.png"
+    },
+    {
+      "id": "personalizer",
+      "success": true,
+      "path": "public/thumbnails/studios/personalizer.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/3d927476-09cd-401b-a46d-e81523832a73_95fc10b5.png"
+    },
+    {
+      "id": "video-agent",
+      "success": true,
+      "path": "public/thumbnails/studios/video-agent.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/616296dc-9d94-4c44-bdca-3e41ed7db256_39fa3f57.png"
+    },
+    {
+      "id": "ai-vfx",
+      "success": true,
+      "path": "public/thumbnails/studios/ai-vfx.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/0e7206df-77d2-435f-9fe6-6f94b4595c24_b695e8d4.png"
+    },
+    {
+      "id": "influencer",
+      "success": true,
+      "path": "public/thumbnails/studios/influencer.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/ad023230-e8ee-4a2a-a47b-4ad542db08f9_7dcd184d.png"
+    },
+    {
+      "id": "commercial",
+      "success": true,
+      "path": "public/thumbnails/studios/commercial.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/8803501b-e3f9-4281-b182-b04a96400f94_1205938d.png"
+    },
+    {
+      "id": "content-library",
+      "success": true,
+      "path": "public/thumbnails/studios/content-library.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/ef27d720-06c5-4f90-8583-87f8e028b9e1_0dba3709.png"
+    },
+    {
+      "id": "templates",
+      "success": true,
+      "path": "public/thumbnails/studios/templates.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/3ae33380-e1ac-4e4a-8e6a-34a2240b5b43_b5cd9b24.png"
+    },
+    {
+      "id": "academy",
+      "success": true,
+      "path": "public/thumbnails/studios/academy.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/68f0c624-5641-4afb-906a-77fd9983c4e7_60f74098.png"
+    },
+    {
+      "id": "outreach",
+      "success": true,
+      "path": "public/thumbnails/studios/outreach.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/aba2ff56-62a5-4ce2-bda9-b9f2ea0a39a5_922f1ef2.png"
+    },
+    {
+      "id": "brand",
+      "success": true,
+      "path": "public/thumbnails/studios/brand.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/659c04f1-d4bf-4bd0-bc2a-8c976f721b30_9d283552.png"
+    },
+    {
+      "id": "library",
+      "success": true,
+      "path": "public/thumbnails/studios/library.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/7e4969f4-d31f-4378-b9ec-666717ee8fbe_c115b579.png"
+    },
+    {
+      "id": "video-pages",
+      "success": true,
+      "path": "public/thumbnails/studios/video-pages.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/b6333b46-726b-43ef-80ff-96e3661df515_e937bbaa.png"
+    },
+    {
+      "id": "motion-director",
+      "success": true,
+      "path": "public/thumbnails/studios/motion-director.webp",
+      "size": 3245936,
+      "imageUrl": "https://cdn.muapi.ai/outputs/generated/60b9c1a3-c3a3-45f6-a22f-7deeab6fed5a_c975e874.png"
     }
   ]
 }

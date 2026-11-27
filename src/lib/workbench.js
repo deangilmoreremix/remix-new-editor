@@ -1,3 +1,4 @@
+import { goTo } from './routeUrl.js';
 // SmartVid Workbench integration (Motion Workbench port, apps/shotcraft/workbench).
 //
 // The Workbench is the editor for every studio that produces AI content, EXCEPT
@@ -65,7 +66,7 @@ export function openInWorkbench(items, opts = {}) {
     sessionStorage.setItem(HANDOFF_KEY, JSON.stringify({ assets, mode: opts.mode || 'new', name: opts.name || null, at: Date.now() }));
   } catch { /* storage blocked: the Workbench still opens, empty */ }
   if (typeof opts.navigate === 'function') opts.navigate(WORKBENCH_ROUTE);
-  else window.location.hash = `/${WORKBENCH_ROUTE}`;
+  else goTo(WORKBENCH_ROUTE);
   return true;
 }
 

@@ -2,9 +2,11 @@
 // AI Photo Studio — 6 categories × 5 styles = 30 product-photography presets.
 // Follows the exact pattern of existing studios (vanilla DOM + mountStudioChrome).
 
+import { createStudioHeader } from '../lib/thumbnails.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { listBrands, savePhotoshoot } from '../lib/brandStore.js';
-import { PHOTO_CATEGORIES, PHOTO_STYLES, generateProductPhoto } from '../lib/photoStudio.js';
+import { listBrands, savePhotoshoot, resolveBrandId } from '../lib/brandStore.js';
+import { navigate } from '../lib/brandNavigation.js';
+import { PHOTO_CATEGORIES, findStyle, generateProductPhoto } from '../lib/photoStudio.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createSafeImage } from '../lib/security.js';
 import { showToast, createLoadingOverlay } from '../lib/loading.js';
@@ -18,17 +20,18 @@ const RESOLUTIONS = ['1k', '2k', '4k'];
 export function PhotoStudioPage() {
   const container = document.createElement('div');
   container.className = 'w-full h-full overflow-y-auto bg-app-bg custom-scrollbar';
-  mountStudioChrome(container, { currentRoute: 'photo-studio', title: 'Photo Studio' });
+  mountStudioChrome(container, { currentRoute: 'photo-studio' });
 
   const brands = listBrands();
-  const selectedBrand = brands[0] || null;
+  // ?brandId= (from Brand DNA) or the last-used brand picks the initial brand; the dropdown can change it.
+  let selectedBrand = brands.find((b) => b.id === resolveBrandId()) || brands[0] || null;
 
   // ---- State ----
   const state = {
     productImageUrl: null,
     logoUrl: selectedBrand?.logoUrl || null,
-    selectedCategories: [],
-    selectedStyles: [],
+    // Preset keys as 'categoryId/styleId' (6 categories × 5 styles = 30 presets).
+    selectedPresets: [],
     resolution: '2k',
     direction: '',
     negativePrompt: '',
@@ -52,13 +55,7 @@ export function PhotoStudioPage() {
   root.className = 'w-full max-w-3xl mx-auto px-4 py-8 animate-fade-in-up';
 
   // ---- Header ----
-  const header = document.createElement('div');
-  header.className = 'mb-6';
-  header.innerHTML = `
-    <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Photo Studio</h1>
-    <p class="text-secondary text-sm">AI product photography with brand-aware styling.</p>
-  `;
-  root.appendChild(header);
+  root.appendChild(createStudioHeader('photo-studio', 'Photo Studio', 'AI product photography with brand-aware styling.', 'mb-6'));
 
   // ---- Upload + Brand Selector ----
   const uploadRow = document.createElement('div');
@@ -82,12 +79,14 @@ export function PhotoStudioPage() {
   if (brands.length > 0) {
     const brandSelect = document.createElement('select');
     brandSelect.className = 'bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer';
+    brandSelect.dataset.help = 'photo brand';
     brandSelect.innerHTML = `
       <option value="">No brand logo</option>
       ${brands.map(b => `<option value="${b.id}" ${b.id === selectedBrand?.id ? 'selected' : ''}>${b.brandName}</option>`).join('')}
     `;
     brandSelect.onchange = () => {
       const b = brands.find(x => x.id === brandSelect.value);
+      selectedBrand = b || null; // generation and saved photoshoots follow the dropdown
       state.logoUrl = b?.logoUrl || null;
     };
     uploadRow.appendChild(brandSelect);
@@ -138,6 +137,7 @@ export function PhotoStudioPage() {
   muapiModeRow.appendChild(muapiLabel);
 
   const modeToggle = document.createElement('button');
+  modeToggle.dataset.help = 'photo generation mode';
   modeToggle.type = 'button';
   modeToggle.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${state.muapiMode ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
   modeToggle.textContent = state.muapiMode ? 'Direct MuAPI' : 'Brand API';
@@ -172,7 +172,7 @@ export function PhotoStudioPage() {
     advancedMuapiRow.classList.remove('hidden');
 
     const card = document.createElement('div');
-    card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col gap-3';
+    card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col gap-3';
 
     const addField = (label, type, value, onChange, placeholder) => {
       const row = document.createElement('div');
@@ -262,46 +262,63 @@ export function PhotoStudioPage() {
     muapiModelWrapper.appendChild(select);
   }
 
-  // ---- Category + Style Selectors (multi-select) ----
+  // ---- Preset picker: 6 categories, each with its own 5 styles ----
   const selectorRow = document.createElement('div');
-  selectorRow.className = 'grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6';
+  selectorRow.className = 'flex flex-col gap-4 mb-6';
 
-  const createMultiSelector = (label, options, selected, onChange) => {
+  const createPresetPicker = () => {
     const wrapper = document.createElement('div');
-    const lbl = document.createElement('label');
-    lbl.className = 'text-xs font-bold text-secondary uppercase tracking-wider block mb-2';
-    lbl.textContent = label;
-    wrapper.appendChild(lbl);
+    wrapper.className = 'flex flex-col gap-4';
+    PHOTO_CATEGORIES.forEach((category) => {
+      const keys = category.styles.map((st) => `${category.id}/${st.id}`);
+      const allOn = keys.every((k) => state.selectedPresets.includes(k));
+      const group = document.createElement('div');
+      group.dataset.photoCategory = category.id;
 
-    const grid = document.createElement('div');
-    grid.className = 'grid grid-cols-2 gap-2';
-    options.forEach(opt => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      const isSelected = selected.includes(opt.id);
-      btn.className = `px-3 py-2 rounded-xl text-xs font-bold transition-all border ${isSelected ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
-      btn.textContent = opt.label;
-      btn.onclick = () => {
-        const idx = selected.indexOf(opt.id);
-        if (idx >= 0) {
-          selected.splice(idx, 1);
-        } else {
-          selected.push(opt.id);
-        }
-        onChange(selected);
+      const head = document.createElement('div');
+      head.className = 'flex items-center justify-between mb-2';
+      const title = document.createElement('div');
+      title.innerHTML = `<div class="text-xs font-bold text-secondary uppercase tracking-wider">${category.label}</div><div class="text-[10px] text-muted">${category.description}</div>`;
+      const all = document.createElement('button');
+      all.type = 'button';
+      all.className = 'text-[10px] font-bold text-primary hover:underline';
+      all.textContent = allOn ? 'Clear' : 'Select all';
+      all.dataset.help = 'photo select all';
+      all.onclick = () => {
+        state.selectedPresets = allOn
+          ? state.selectedPresets.filter((k) => !keys.includes(k))
+          : [...new Set([...state.selectedPresets, ...keys])];
         renderSelectors();
       };
-      grid.appendChild(btn);
+      head.appendChild(title);
+      head.appendChild(all);
+      group.appendChild(head);
+
+      const grid = document.createElement('div');
+      grid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2';
+      category.styles.forEach((st) => {
+        const key = `${category.id}/${st.id}`;
+        const on = state.selectedPresets.includes(key);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.dataset.photoPreset = key;
+        btn.title = st.prompt;
+        btn.dataset.helpName = st.label; btn.dataset.helpText = st.prompt; // the style's own prompt is its tooltip
+        btn.className = `px-3 py-2 rounded-xl text-xs font-bold transition-all border ${on ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
+        btn.textContent = `${st.label} · ${st.aspect}`;
+        btn.onclick = () => {
+          state.selectedPresets = on ? state.selectedPresets.filter((k) => k !== key) : [...state.selectedPresets, key];
+          renderSelectors();
+        };
+        grid.appendChild(btn);
+      });
+      group.appendChild(grid);
+      wrapper.appendChild(group);
     });
-    wrapper.appendChild(grid);
     return wrapper;
   };
 
-  const categorySelector = createMultiSelector('Category', PHOTO_CATEGORIES, state.selectedCategories, (v) => { state.selectedCategories = v; });
-  const styleSelector = createMultiSelector('Style', PHOTO_STYLES, state.selectedStyles, (v) => { state.selectedStyles = v; });
-
-  selectorRow.appendChild(categorySelector);
-  selectorRow.appendChild(styleSelector);
+  selectorRow.appendChild(createPresetPicker());
   root.appendChild(selectorRow);
 
   // ---- Generate Button ----
@@ -313,8 +330,8 @@ export function PhotoStudioPage() {
       showToast('Please upload a product image first', 'error');
       return;
     }
-    if (state.selectedCategories.length === 0 || state.selectedStyles.length === 0) {
-      showToast('Please select at least one category and style', 'error');
+    if (state.selectedPresets.length === 0) {
+      showToast('Please select at least one photo style', 'error');
       return;
     }
 
@@ -328,12 +345,10 @@ export function PhotoStudioPage() {
     const overlay = createLoadingOverlay('Generating product photos...');
     container.appendChild(overlay);
 
-    const selectedPairs = [];
-    state.selectedCategories.forEach(cat => {
-      state.selectedStyles.forEach(style => {
-        selectedPairs.push({ category: cat, style });
-      });
-    });
+    const selectedPairs = state.selectedPresets
+      .map((key) => key.split('/'))
+      .filter(([cat, style]) => findStyle(cat, style))
+      .map(([category, style]) => ({ category, style }));
 
     try {
       const queue = [...selectedPairs];
@@ -341,8 +356,7 @@ export function PhotoStudioPage() {
         const batch = queue.splice(0, CONCURRENCY);
         const batchResults = await Promise.allSettled(
           batch.map(async ({ category, style }) => {
-            const categoryMeta = PHOTO_CATEGORIES.find(c => c.id === category) || PHOTO_CATEGORIES[0];
-            const styleMeta = PHOTO_STYLES.find(s => s.id === style) || PHOTO_STYLES[0];
+            const { category: categoryMeta, style: styleMeta } = findStyle(category, style);
 
             if (state.muapiMode && state.selectedMuapiModel) {
               const result = await muapi.generateI2I({
@@ -380,7 +394,8 @@ export function PhotoStudioPage() {
             // Open-Pomelli's photo studio (nano-banana-2-edit), client-side.
             const result = await generateProductPhoto({
               productImageUrl: state.productImageUrl,
-              logoUrl: selectedBrand?.logoUrl || null,
+              logoUrl: state.logoUrl || null,
+              brand: selectedBrand,
               category,
               style,
               direction: state.direction || '',
@@ -457,8 +472,7 @@ export function PhotoStudioPage() {
 
   function renderSelectors() {
     selectorRow.innerHTML = '';
-    selectorRow.appendChild(createMultiSelector('Category', PHOTO_CATEGORIES, state.selectedCategories, (v) => { state.selectedCategories = v; }));
-    selectorRow.appendChild(createMultiSelector('Style', PHOTO_STYLES, state.selectedStyles, (v) => { state.selectedStyles = v; }));
+    selectorRow.appendChild(createPresetPicker());
   }
 
   function renderResults() {
@@ -466,7 +480,7 @@ export function PhotoStudioPage() {
 
     state.results.forEach((result, idx) => {
       const card = document.createElement('div');
-      card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden mb-4';
+      card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden mb-4';
 
       if (result.imageUrl) {
         const img = createSafeImage(result.imageUrl, 'Generated product photo', 'w-full h-64 md:h-80 object-cover');
@@ -483,9 +497,19 @@ export function PhotoStudioPage() {
         <div class="flex gap-2">
           <a href="${result.imageUrl}" download class="btn-secondary-modern text-xs">Download</a>
           <button type="button" data-photo-personalize class="btn-secondary-modern text-xs" aria-haspopup="dialog">Personalize</button>
-          <a href="/animate?sourceType=photoshoot&sourceId=${result.id}" class="btn-primary-modern text-xs">Animate →</a>
+          <button type="button" data-photo-animate class="btn-primary-modern text-xs">Animate →</button>
         </div>
       `;
+      // Animate: hand the photo to Animate Studio (it reads this key on load and clears it).
+      // A plain /animate href would reload the SPA at the root and never reach #/animate.
+      const animateBtn = meta.querySelector('[data-photo-animate]');
+      if (animateBtn) {
+        animateBtn.addEventListener('click', () => {
+          if (!result.imageUrl) return;
+          try { sessionStorage.setItem('storyboard_animate_frame', JSON.stringify({ imageUrl: result.imageUrl })); } catch { /* storage unavailable */ }
+          navigate('animate');
+        });
+      }
       // Personalize (OpenHiggsBolt photo-studio page): this photo, 1:1.
       const personalizeBtn = meta.querySelector('[data-photo-personalize]');
       if (personalizeBtn && result.imageUrl) {
@@ -496,7 +520,7 @@ export function PhotoStudioPage() {
             studioName: 'Photo Studio',
             mediaUrl: result.imageUrl,
             mediaType: 'image',
-            aspectRatio: '1:1',
+            aspectRatio: result.aspect || '1:1',
             prompt: result.direction || state.direction || '',
             title: result.styleLabel || 'Product photo',
             trigger: personalizeBtn,

@@ -1,0 +1,31 @@
+{
+  "upload": {
+    "selector": "#content-area button[title=\"Reference media\"]",
+    "click": false
+  },
+  "remove-delete": {
+    "setup": "(()=>{const t=Date.now();const e=(u,type,f,p,m,i)=>({id:'local-guide-'+i,url:u,type,filename:f,prompt:p,model:m,studio:'image',source:'saved',created_at:new Date(t-i*60000).toISOString()});localStorage.setItem('sv_saved_content',JSON.stringify([e('/media/minimax-h3/previews/kintsugi-sword-seamless-loop.jpg','image','kintsugi-katana.jpg','A kintsugi katana on black velvet, molten gold seams','flux-2-pro',0),e('/media/awesome-seedance/videos/adam.mp4','video','street-interview.mp4','Handheld street interview, natural light','seedance-2.0',1),e('/media/minimax-h3/previews/porto-francesinha-comedy-recipe.jpg','image','francesinha.jpg','Overloaded Porto francesinha sandwich, cinematic food shot','nano-banana-pro',2),e('/media/minimax-h3/previews/black-and-gold-perfume-commercial.jpg','image','perfume-ad.jpg','Black and gold perfume bottle, luxury lighting','seedream-4',3),e('/media/outreach-sample/hi-there.mp3','audio','hello-voice.mp3','Friendly hello voice line','elevenlabs-v3',4)]));return 'ok'})();(()=>{const s=document.createElement('style');s.textContent='#content-area .grid > .group:first-child > .opacity-0{opacity:1!important}';document.head.appendChild(s);location.hash='#/apps';setTimeout(()=>{location.hash='#/content-library'},800);})()",
+    "reload": false,
+    "steps": [
+      {
+        "selector": "h1",
+        "wait": 6000
+      }
+    ],
+    "selector": "#content-area .grid > .group:first-child > button.absolute.top-2.left-2",
+    "click": false
+  },
+  "preview": {
+    "setup": "(()=>{const t=Date.now();const e=(u,type,f,p,m,i)=>({id:'local-guide-'+i,url:u,type,filename:f,prompt:p,model:m,studio:'image',source:'saved',created_at:new Date(t-i*60000).toISOString()});localStorage.setItem('sv_saved_content',JSON.stringify([e('/media/minimax-h3/previews/kintsugi-sword-seamless-loop.jpg','image','kintsugi-katana.jpg','A kintsugi katana on black velvet, molten gold seams','flux-2-pro',0),e('/media/awesome-seedance/videos/adam.mp4','video','street-interview.mp4','Handheld street interview, natural light','seedance-2.0',1),e('/media/minimax-h3/previews/porto-francesinha-comedy-recipe.jpg','image','francesinha.jpg','Overloaded Porto francesinha sandwich, cinematic food shot','nano-banana-pro',2),e('/media/minimax-h3/previews/black-and-gold-perfume-commercial.jpg','image','perfume-ad.jpg','Black and gold perfume bottle, luxury lighting','seedream-4',3),e('/media/outreach-sample/hi-there.mp3','audio','hello-voice.mp3','Friendly hello voice line','elevenlabs-v3',4)]));return 'ok'})()",
+    "steps": [
+      {
+        "selector": "h1",
+        "wait": 2500
+      },
+      {
+        "selector": "#content-area .grid > .group >> nth=0",
+        "wait": 2500
+      }
+    ]
+  }
+}

@@ -1,4 +1,14 @@
+import { guideHrefFor } from '../guideLinks.js';
+import { videoSlot, mountLandingVideos } from '../common/landingVideo.js';
 // Six Creative Engines Section - Animated with parallax and hover effects
+
+const ENGINE_CLIPS = {
+  create: ['c01-hero-prompt', 'Typing a prompt in Video Studio'],
+  enhance: ['c11-vfx-effects', 'AI VFX and Effects studios'],
+  produce: ['c06-director', 'The Director studio'],
+  localize: ['c10-lip-sync', 'Lip Sync Studio'],
+  scale: ['c12-templates', 'The template library']
+};
 
 export function SixEnginesSection() {
   const engines = [
@@ -44,7 +54,7 @@ export function SixEnginesSection() {
       description: 'Streamline workflows with AI assistance',
       icon: '🤖',
       gradient: 'from-yellow-500 to-yellow-400',
-      apps: ['Video Agent', 'Agents', 'Assist', 'Chat'],
+      apps: ['Animation Agent', 'Agents', 'Assist', 'Chat'],
       color: 'yellow'
     },
     {
@@ -115,6 +125,7 @@ export function SixEnginesSection() {
             
             <!-- Content -->
             <div class="relative z-10">
+              ${ENGINE_CLIPS[engine.id] ? videoSlot(ENGINE_CLIPS[engine.id][0], ENGINE_CLIPS[engine.id][1], { className: 'aspect-video rounded-lg border border-white/10 mb-4' }) : ''}
               <div class="w-16 h-16 bg-gradient-to-br ${engine.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
                 <span class="text-3xl">${engine.icon}</span>
               </div>
@@ -123,14 +134,17 @@ export function SixEnginesSection() {
               
               <!-- App Tags with stagger animation -->
               <div class="flex flex-wrap gap-2">
-                ${engine.apps.map((app, i) => `
-                  <span 
-                    class="engine-app-tag text-xs px-2 py-1 bg-white/5 rounded-full text-gray-300 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300"
+                ${engine.apps.map((app, i) => {
+                  const href = guideHrefFor(app);
+                  const tag = href ? 'a' : 'span';
+                  return `
+                  <${tag} ${href ? `href="${href}" title="${app} feature guide"` : ''}
+                    class="engine-app-tag text-xs px-2 py-1 bg-white/5 rounded-full text-gray-300 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300${href ? ' hover:text-[#d9ff00] hover:bg-white/10' : ''}"
                     style="transition-delay: ${i * 50}ms;"
                   >
                     ${app}
-                  </span>
-                `).join('')}
+                  </${tag}>`;
+                }).join('')}
               </div>
             </div>
 
@@ -188,6 +202,12 @@ export function SixEnginesSection() {
       
       .engine-card {
         transition: transform 0.5s ease-out-quart, border-color 0.3s ease, box-shadow 0.3s ease;
+      }
+      /* The global .animate-in rule starts elements at opacity 0 until a .visible class is added;
+         this section adds animate-in on scroll, so the cards must be explicitly shown. */
+      .engine-card.animate-in {
+        opacity: 1;
+        transform: translateY(0);
       }
       .engine-card:hover {
         transform: translateY(-8px) scale(1.02);
@@ -265,5 +285,6 @@ export function SixEnginesSection() {
     });
   }, 100);
 
+  mountLandingVideos(section);
   return section;
 }

@@ -17,9 +17,11 @@ import { resolveToken, TOKEN_PATTERN } from '../../../components/personalize/tok
 import { personalizedImageLook } from '../../personalization/imageStyle.js';
 import { getAddon, addonOptions } from './registry.js';
 import { ensureFormFont } from './addonOverlay.js';
+import { applyLottieEdits } from '../../../cinegen/lib/editor/stage2/lottie-edit';
 import { buildLowerThirdLottie, lowerThirdFrame } from './lowerThirds.js';
 import { loadGlTransitions, createTransitionRenderer } from './glTransitionRenderer.js';
 import { ctaTarget } from './ctaLink.js';
+import { tokensToHtml } from './tokenChips.js';
 
 export const OVERLAY_TAG = 'overlay-clip';
 export const PERSONALIZED_PLACEHOLDER = '/static/images/personalized-image-placeholder.svg';
@@ -214,7 +216,9 @@ function buildText(opts, ctx) {
   });
   const span = document.createElement('span');
   span.className = 'personalizer-input';
-  span.textContent = resolveOverlayText(opts.text, ctx.profile);
+  const shown = resolveOverlayText(opts.text, ctx.profile);
+  // Editor preview: a token with no contact to fill it is shown as a chip, as upstream's editor does (the player and export keep the text).
+  if (ctx.editor && /\{\{/.test(shown)) span.innerHTML = tokensToHtml(shown); else span.textContent = shown;
   row.appendChild(wrapLink(span, opts, ctx.editor));
   inner.appendChild(row);
   el.appendChild(inner);
@@ -333,6 +337,9 @@ function buildSticker(opts) {
   }
   if (opts.kind === 'lottie') {
     el.dataset.lottie = src;
+    // [remix] Stage 2: colour / text replacement + speed (cinegen/lib/editor/stage2/lottie-edit.ts)
+    el._lottieEdits = { colors: opts.lottieColors, texts: opts.lottieTexts, values: opts.lottieValues, hidden: opts.lottieHidden }; // [remix] Stage 11: value slots + hidden layers
+    el._lottieSpeed = Number(opts.lottieSpeed) > 0 ? Number(opts.lottieSpeed) : 1;
   } else {
     const img = document.createElement('img');
     img.src = src;
@@ -389,7 +396,61 @@ function buildVideoTransition(opts) {
   return el;
 }
 
+/**
+ * Editor-only stand-in for clips the Remotion player (or the published page) draws itself: a labelled dashed box
+ * at the clip's geometry. It is what gets selected, dragged and resized in the editor; it is never exported.
+ * `title` says what the clip is, `sub` says what it does or shows, and `preview` (shown only when the Remotion
+ * player is off, since the player draws the real thing) lists the text it will show.
+ */
+function buildPlaceholder(kind, { title, sub = '', preview = '' }) {
+  const el = document.createElement('div');
+  el.className = `addon-placeholder addon-placeholder--${kind}`;
+  const tag = document.createElement('span');
+  tag.className = 'addon-placeholder__tag';
+  const t = document.createElement('strong');
+  t.textContent = title;
+  tag.appendChild(t);
+  if (sub) {
+    const d = document.createElement('small');
+    d.textContent = sub;
+    tag.appendChild(d);
+  }
+  el.appendChild(tag);
+  if (preview) {
+    const p = document.createElement('div');
+    p.className = 'addon-placeholder__preview';
+    p.textContent = preview;
+    el.appendChild(p);
+  }
+  return el;
+}
+
+const clock = (sec) => `${Math.floor((Number(sec) || 0) / 60)}:${String(Math.floor((Number(sec) || 0) % 60)).padStart(2, '0')}`;
+const prettyId = (id) => String(id || '').replace(/[-_]+/g, ' ').replace(/^./, (c) => c.toUpperCase());
+
+function hotspotPlaceholder(o) {
+  const what = o.action === 'seek'
+    ? `jumps to ${clock(o.seekTime)}`
+    : (o.linkMode === 'phone' ? `calls ${o.phoneNumber || 'a number'}` : `opens ${String(o.linkUrl || 'a link').replace(/^https?:\/\//, '').slice(0, 28)}`);
+  return buildPlaceholder('hotspot', { title: `🎯 ${o.label || 'Hotspot'}`, sub: `Viewers click here · ${what} · not visible in the video` });
+}
+
+function designPlaceholder(o, ctx) {
+  const texts = Object.values(o.slots || {})
+    .map((v) => resolveOverlayText(String(v ?? ''), ctx.profile).replace(/\{\{[^}]*\}\}/g, '').trim())
+    .filter(Boolean);
+  const first = o.primarySlot && o.slots?.[o.primarySlot] != null
+    ? resolveOverlayText(String(o.slots[o.primarySlot]), ctx.profile).replace(/\{\{[^}]*\}\}/g, '').trim()
+    : texts[0] || '';
+  const name = o.designName || prettyId(o.designId) || 'Studio design';
+  return buildPlaceholder('design', { title: `🎨 ${name}${first ? ` · ${first.slice(0, 40)}` : ''}`, sub: ctx.profile ? '' : 'Pick a contact to preview their details', preview: texts.join(' · ').slice(0, 140) });
+}
+
 const BUILDERS = {
+  // Hotspot: clickable only on the published page, so in the editor it is a box you can place.
+  'addon-hotspot': (o) => hotspotPlaceholder(o),
+  // Studio design: the player draws the design; this box lets you move and resize it.
+  'overlay-studio-design': (o, ctx) => designPlaceholder(o, ctx || {}),
   'overlay-transition': (o) => buildOverlayTransition(o),
   'overlay-video-transition': (o) => buildVideoTransition(o),
   'overlay-lower-third': (o, ctx) => buildLowerThird(o, ctx),
@@ -451,7 +512,8 @@ export async function finishOverlayElement(el, { playing = false } = {}) {
         fetch(el.dataset.lottie).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))),
       ]);
       if (!el.isConnected) return;
-      el._lottie = lottie.loadAnimation({ container: el, renderer: 'svg', loop: true, autoplay: playing, animationData: data });
+      el._lottie = lottie.loadAnimation({ container: el, renderer: 'svg', loop: true, autoplay: playing, animationData: applyLottieEdits(data, el._lottieEdits) });
+      if (el._lottieSpeed && el._lottieSpeed !== 1) el._lottie.setSpeed(el._lottieSpeed);
       if (!playing) el._lottie.goToAndStop(0, true);
     } catch (err) {
       el.classList.add('is-error');
@@ -596,6 +658,8 @@ export function setOverlayPlaying(layer, playing) {
 export function playInAnimation(el, animation) {
   const a = animation || {};
   if (!a.in && !a.idle) return;
+  // replaying on the same element (Play after Pause): a leftover idle class would win over the entrance in the stylesheet
+  el.classList.remove('infinite', ...[a.in, a.idle].filter(Boolean));
   el.classList.add('animated');
   const startIdle = () => {
     if (a.in) el.classList.remove(a.in);
@@ -628,12 +692,15 @@ export function playOutAndRemove(el, animation) {
 // ---------------------------------------------------------------- active set
 
 /** Overlay clips active at time t (s), in paint order: earlier tracks first. */
+/** An addon the editor draws as an overlay box: real overlays, and viewer-only ones flagged `editorOverlay` (Hotspot). */
+export const isEditorOverlay = (addon) => !!addon && (addon.category === 'overlay' || addon.editorOverlay === true);
+
 export function activeOverlays(tracks, t, timelineSeconds) {
   const out = [];
   (tracks || []).forEach((track, trackIndex) => {
     (track.items || track.clips || []).forEach((clip) => {
       const addon = getAddon(clip.type);
-      if (!addon || addon.category !== 'overlay') return;
+      if (!isEditorOverlay(addon)) return;
       const start = (clip.left / 100) * timelineSeconds;
       const end = start + (clip.width / 100) * timelineSeconds;
       if (t >= start && t < end) out.push({ clip, trackIndex, start });

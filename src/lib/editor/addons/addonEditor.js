@@ -35,10 +35,16 @@ function slugify(label, existing) {
   return id;
 }
 
+import { tokensToHtml, htmlToTokens, tokenChip } from './tokenChips.js';
+import { ensureFormFont } from './addonOverlay.js';
+import { presetSampleStyle } from './textStylePresets.js';
+
 const ANIM_PHASES = [['in', 'In'], ['idle', 'Idle'], ['out', 'Out']];
+// Upstream's Text Position icons (public/static/svgImages/text/basic_group).
+const POSITION_ICON_DIR = '/static/svgImages/text/basic_group';
 const POSITION_PRESETS = [
-  ['left', '⇤', 'Align left'], ['center', '↔', 'Center horizontally'], ['right', '⇥', 'Align right'],
-  ['top', '⤒', 'Align top'], ['middle', '↕', 'Center vertically'], ['bottom', '⤓', 'Align bottom'],
+  ['left', 'text-icon-left', 'Align left'], ['center', 'text-icon-center', 'Center horizontally'], ['right', 'text-icon-right', 'Align right'],
+  ['top', 'text-position-top', 'Align top'], ['middle', 'text-position-center', 'Center vertically'], ['bottom', 'text-position-bottom', 'Align bottom'],
 ];
 const STICKER_TABS = [['emoticons', 'Emoticons'], ['shapes', 'Shapes'], ['animatedEmoji', 'Animated emoji'], ['animated', 'Your file']];
 
@@ -122,15 +128,24 @@ function renderFinderImages(field, services) {
   </div>`;
 }
 
+/** "Aa" sample in the chosen font (the font is loaded the same way the overlay loads it). */
+function fontPreview(family, imported = []) {
+  if (!family) return '';
+  if (!imported.includes(family)) ensureFormFont(family); // an imported font is already in the page; Google does not have it
+  return `<div class="addon-font-preview" style="font-family:&quot;${esc(family)}&quot;, sans-serif" aria-hidden="true">Aa — The quick brown fox 123</div>`;
+}
+
 function renderField(field, options, idPrefix, ui = {}, services = {}) {
   const value = getPath(options, field.key);
   const id = `${idPrefix}-${field.key.replace(/\./g, '-')}`;
   const label = `<label for="${id}">${esc(field.label)}</label>`;
   switch (field.type) {
+    case 'note':
+      return `<p class="addon-field__hint">${esc(field.text)}</p>`;
     case 'toggle':
       return `<div class="clip-editor__field addon-field addon-field--toggle"><label><input id="${id}" type="checkbox" data-key="${field.key}" data-kind="toggle" ${value ? 'checked' : ''}/> ${esc(field.label)}</label></div>`;
     case 'range':
-      return `<div class="clip-editor__field addon-field">${label}<div class="addon-field__range"><input id="${id}" type="range" data-key="${field.key}" data-kind="number" value="${esc(value ?? 0)}" min="${field.min ?? 0}" max="${field.max ?? 100}" step="${field.step ?? 1}"/><output>${esc(value ?? 0)}</output></div></div>`;
+      return `<div class="clip-editor__field addon-field${field.disabledIf?.(options) ? ' is-disabled' : ''}">${label}<div class="addon-field__range"><input id="${id}" type="range" data-key="${field.key}" data-kind="number" value="${esc(value ?? 0)}" min="${field.min ?? 0}" max="${field.max ?? 100}" step="${field.step ?? 1}"${field.disabledIf?.(options) ? ' disabled' : ''}/><output>${esc(value ?? 0)}</output></div></div>`;
     case 'number':
       return `<div class="clip-editor__field addon-field">${label}<input id="${id}" type="number" data-key="${field.key}" data-kind="number" value="${esc(value ?? 0)}"${field.min != null ? ` min="${field.min}"` : ''}${field.max != null ? ` max="${field.max}"` : ''}${field.step != null ? ` step="${field.step}"` : ''}/></div>`;
     case 'textarea':
@@ -152,9 +167,22 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
         <div class="addon-image-actions"><label class="mini-btn addon-upload-btn">Load .cube file<input type="file" accept=".cube,text/plain" data-cube-upload="${field.key}" hidden /></label>
         <span class="addon-field__hint">${loadedName ? esc(loadedName) : 'Identity (no change)'}</span></div></div>`;
     }
-    case 'font':
-      return `<div class="clip-editor__field addon-field">${label}<select id="${id}" data-key="${field.key}" data-kind="select" class="addon-font-select">${(field.options || [])
-        .map(([v, l]) => `<option value="${esc(v)}" ${String(v) === String(value) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></div>`;
+    case 'font': {
+      const options = typeof field.options === 'function' ? field.options(services) : (field.options || []);
+      const imported = services.userFonts?.() ?? [];
+      const installed = services.systemFonts?.() ?? [];
+      const opt = ([v, l]) => `<option value="${esc(v)}" ${String(v).toLowerCase() === String(value).toLowerCase() ? 'selected' : ''}>${esc(l)}</option>`;
+      // options carry an optional group; consecutive options of one group share an <optgroup> (a plain list stays plain)
+      const grouped = options.some((o) => o[2]);
+      const list = grouped
+        ? [...new Set(options.map((o) => o[2] || 'Fonts'))].map((g) => `<optgroup label="${esc(g)}">${options.filter((o) => (o[2] || 'Fonts') === g).map(opt).join('')}</optgroup>`).join('')
+        : options.map(opt).join('');
+      const onThisComputer = installed.some((f) => f.toLowerCase() === String(value).toLowerCase()) && !imported.includes(value);
+      const systemUi = services.canLoadSystemFonts?.()
+        ? `<button type="button" class="mini-btn" data-system-fonts="${esc(field.key)}">${installed.length ? `Refresh fonts on this computer (${installed.length})` : 'Use fonts installed on this computer…'}</button>`
+        : '';
+      return `<div class="clip-editor__field addon-field">${label}<select id="${id}" data-key="${field.key}" data-kind="select" class="addon-font-select">${list}</select>${field.preview ? fontPreview(value, [...imported, ...installed]) : ''}${onThisComputer ? '<span class="addon-field__hint" data-system-font-note>This font is installed on your computer. Anyone watching on another device will see a default font instead; import the font file to include it.</span>' : ''}${services.importFont || systemUi ? `<div class="addon-font-import">${services.importFont ? `<button type="button" class="mini-btn" data-font-import="${esc(field.key)}">Import font…</button><input type="file" accept=".ttf,.otf,.woff,.woff2" hidden data-font-file="${esc(field.key)}"/><span class="addon-field__hint">.ttf, .otf, .woff or .woff2 up to 8 MB. Kept in this browser.</span>` : ''}${systemUi}${ui.fontError ? `<span class="addon-font-error" role="alert">${esc(ui.fontError)}</span>` : ''}</div>` : ''}</div>`;
+    }
     case 'tokens': {
       // Text with personalization tokens; the select inserts {{token}} at
       // the cursor (upstream's Personalize button).
@@ -164,8 +192,11 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
       const tokens = field.tokenFilter === 'image'
         ? [['image', 'Image'], ['d image "https://"', 'Image with fallback URL']]
         : (services.tokens || []);
+      const box = field.chips && !field.maxLength
+        ? `<div id="${id}" class="addon-rich" contenteditable="true" role="textbox" aria-multiline="true" aria-label="${esc(field.label)}" data-key="${field.key}" data-kind="rich-tokens">${tokensToHtml(value)}</div>`
+        : null;
       return `<div class="clip-editor__field addon-field addon-field--tokens">${label}
-        <textarea id="${id}" rows="${field.rows || 3}" data-key="${field.key}" data-kind="text"${field.maxLength ? ` maxlength="${field.maxLength}"` : ''}>${esc(value)}</textarea>
+        ${box || `<textarea id="${id}" rows="${field.rows || 3}" data-key="${field.key}" data-kind="text"${field.maxLength ? ` maxlength="${field.maxLength}"` : ''}>${esc(value)}</textarea>`}
         ${tokens.length ? `<select class="addon-token-insert" data-token-for="${id}" aria-label="Insert personalization token"><option value="">+ Personalize: insert token…</option>${tokens.map(([k, l]) => `<option value="${esc(k)}">${esc(l)}</option>`).join('')}</select>` : ''}
       </div>`;
     }
@@ -185,16 +216,23 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
     case 'animation': {
       const a = value || {};
       return `<div class="clip-editor__field addon-field addon-field--animation"><label>${esc(field.label)}</label>
-        ${ANIM_PHASES.map(([phase, phaseLabel]) => `<label class="addon-anim-row">${phaseLabel}
+        ${ANIM_PHASES.map(([phase, phaseLabel]) => {
+          const list = (field.animations || {})[phase] || [];
+          const open = ui.animOpen === `${field.key}.${phase}`;
+          return `<div class="addon-anim-phase"><label class="addon-anim-row">${phaseLabel}
           <select data-key="${field.key}.${phase}" data-kind="select-null">
             <option value="">None</option>
-            ${((field.animations || {})[phase] || []).map(([v, l]) => `<option value="${esc(v)}" ${a[phase] === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}
-          </select></label>`).join('')}
+            ${list.map(([v, l]) => `<option value="${esc(v)}" ${a[phase] === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}
+          </select></label>
+          <button type="button" class="mini-btn addon-anim-browse" data-anim-open="${field.key}.${phase}" aria-expanded="${open}">${open ? 'Close' : 'Browse effects'}</button>
+          ${open ? `<div class="addon-anim-grid" role="listbox" aria-label="${esc(phaseLabel)} effects">${[['', 'None'], ...list].map(([v, l]) => `<button type="button" role="option" aria-selected="${(a[phase] || '') === v}" class="addon-anim-tile${(a[phase] || '') === v ? ' is-on' : ''}" data-anim-pick="${field.key}.${phase}" data-anim-value="${esc(v)}" data-anim-phase="${phase}"><span class="addon-anim-sample">Aa</span><span class="addon-anim-name">${esc(l)}</span></button>`).join('')}</div>` : ''}
+          </div>`;
+        }).join('')}
       </div>`;
     }
     case 'position':
       return `<div class="clip-editor__field addon-field addon-field--position"><label>${esc(field.label)}</label>
-        <div class="addon-position-grid">${POSITION_PRESETS.map(([v, icon, title]) => `<button type="button" class="mini-btn" data-position-key="${field.key}" data-position-value="${v}" title="${title}" aria-label="${title}">${icon}</button>`).join('')}</div>
+        <div class="addon-position-grid">${POSITION_PRESETS.map(([v, icon, title]) => `<button type="button" class="mini-btn" data-position-key="${field.key}" data-position-value="${v}" title="${title}" aria-label="${title}"><img src="${POSITION_ICON_DIR}/${icon}.svg" alt="" width="14" height="14" draggable="false"/></button>`).join('')}</div>
       </div>`;
     case 'videoPicker': {
       // Overlay transition videos from Pixabay / Pexels. Results load
@@ -254,22 +292,50 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
     case 'designPicker': {
       // A grid of design thumbnails (field.designs, field.thumb(design, options) → markup),
       // grouped under field.categories headings when given.
-      const tile = (d) => `<button type="button" class="addon-design${d.id === value ? ' active' : ''}" data-design-pick="${esc(d.id)}" data-pick-key="${esc(field.key)}" aria-pressed="${d.id === value}" title="${esc(d.label)}">${field.thumb ? field.thumb(d, options) : ''}<span>${esc(d.label)}</span></button>`;
+      // field.livePreview: each tile shows a real, scaled-down render of the design (markup that contains a form, so the tile is a div, not a button)
+      const tag = field.livePreview ? 'div role="button" tabindex="0"' : 'button type="button"';
+      const end = field.livePreview ? 'div' : 'button';
+      const tile = (d) => `<${tag} class="addon-design${d.id === value ? ' active' : ''}" data-design-pick="${esc(d.id)}" data-pick-key="${esc(field.key)}" aria-pressed="${d.id === value}" title="${esc(d.label)}">${field.thumb ? field.thumb(d, options) : ''}<span>${esc(d.label)}</span></${end}>`;
       const groups = field.categories
         ? field.categories.map(([cid, clabel]) => {
           const items = (field.designs || []).filter((d) => (d.category || 'arrow') === cid);
-          return items.length ? `<div class="addon-designs__heading">${esc(clabel)}</div><div class="addon-designs" role="group" aria-label="${esc(clabel)}">${items.map(tile).join('')}</div>` : '';
+          return items.length ? `<div class="addon-designs__heading">${esc(clabel)}</div><div class="addon-designs${field.livePreview ? ' addon-designs--live' : ''}" role="group" aria-label="${esc(clabel)}">${items.map(tile).join('')}</div>` : '';
         }).join('')
         : `<div class="addon-designs" role="group" aria-label="${esc(field.label)}">${(field.designs || []).map(tile).join('')}</div>`;
       return `<div class="clip-editor__field addon-field addon-field--designs"><label>${esc(field.label)}</label>${groups}</div>`;
+    }
+    case 'colorSchemes': {
+      // One-click colour schemes: each tile is a hue; field.applyScheme(current, scheme) returns every colour key to set.
+      const tiles = (field.schemes || []).map((sc) => `<button type="button" class="addon-theme addon-scheme${String(value || '') === sc.id ? ' active' : ''}" data-scheme-pick="${esc(sc.id)}" data-scheme-key="${esc(field.key)}" aria-pressed="${String(value || '') === sc.id}" title="${esc(sc.label)}"><span class="addon-scheme__swatch" style="background:${esc(field.swatch ? field.swatch(sc) : '#888')}"></span><span>${esc(sc.label)}</span></button>`).join('');
+      return `<div class="clip-editor__field addon-field addon-field--schemes"><label>${esc(field.label)}</label><div class="addon-themes" role="group" aria-label="${esc(field.label)}">${tiles}</div></div>`;
     }
     case 'themePicker': {
       // One-click colour schemes: each theme sets several keys at once.
       const tiles = (field.themes || []).map((t) => `<button type="button" class="addon-theme" data-theme-pick="${esc(t.id)}" data-theme-key="${esc(field.key)}" title="${esc(t.label)}"><span class="addon-theme__swatch" style="background:${esc(t.hintBackground)};border-color:${esc(t.hintBorderColor)}"><i style="background:${esc(t.pointerColor)}"></i></span><span>${esc(t.label)}</span></button>`).join('');
       return `<div class="clip-editor__field addon-field addon-field--themes"><label>${esc(field.label)}</label><div class="addon-themes" role="group" aria-label="${esc(field.label)}">${tiles}</div></div>`;
     }
-    case 'color':
-      return `<div class="clip-editor__field addon-field">${label}<input id="${id}" type="color" data-key="${field.key}" data-kind="text" value="${esc(value || '#000000')}"/></div>`;
+    case 'action':
+      if (field.hostOnly && !services.fieldAction) return ''; // only offered where the host can do it (Smart Text: Convert to Smart Speech)
+      // A button that runs services.fieldAction(field.action, options, { setResult }).
+      return `<div class="clip-editor__field addon-field addon-field--action"><button type="button" class="mini-btn" style="width:100%" data-field-action="${esc(field.action)}">${esc(field.label)}</button><span class="addon-field__hint addon-action-result" role="status" style="font-size:11px;color:var(--text-dim)"></span></div>`;
+    case 'color': {
+      const swatches = (field.swatches || []).map((c) => `<button type="button" class="addon-swatch${String(value).toLowerCase() === c.toLowerCase() ? ' is-on' : ''}" data-swatch-key="${esc(field.key)}" data-swatch-value="${esc(c)}" style="background:${esc(c)}" title="${esc(c)}" aria-label="Colour ${esc(c)}"></button>`).join('');
+      return `<div class="clip-editor__field addon-field addon-field--color">${label}<div class="addon-colorrow"><input id="${id}" type="color" data-key="${field.key}" data-kind="text" value="${esc(value || '#000000')}"/>${field.swatches ? `<input type="text" class="addon-hex" data-key="${field.key}" data-kind="hex" value="${esc(value || '#000000')}" maxlength="7" spellcheck="false" aria-label="${esc(field.label)} (hex)"/>` : ''}</div>${swatches ? `<div class="addon-swatches" role="group" aria-label="${esc(field.label)} presets">${swatches}</div>` : ''}</div>`;
+    }
+    case 'stylePresets':
+      // ready-made looks: one click sets font, colours, effects and animation together
+      return `<div class="clip-editor__field addon-field addon-field--styles"><label>${esc(field.label)}</label><div class="addon-style-grid" role="group" aria-label="${esc(field.label)}">${(field.presets || []).map((pr) => { ensureFormFont(pr.patch.fontFamily); return `<button type="button" class="addon-style-tile" data-style-preset="${esc(pr.id)}" data-style-field="${esc(field.key)}" title="${esc(pr.label)}" aria-label="${esc(pr.label)} style"><span class="addon-style-sample" style="${esc(presetSampleStyle(pr.patch))}">Aa</span><span class="addon-style-name">${esc(pr.label)}</span></button>`; }).join('')}</div></div>`;
+    case 'toggleBtn':
+      // a B / I style button that stays pressed (upstream's Bold and Italic)
+      return `<div class="clip-editor__field addon-field addon-field--togglebtn"><button type="button" class="mini-btn addon-togglebtn${value ? ' is-on' : ''}" aria-pressed="${!!value}" data-toggle-btn="${esc(field.key)}" title="${esc(field.title || field.label)}" aria-label="${esc(field.title || field.label)}" style="${esc(field.style || '')}">${esc(field.label)}</button></div>`;
+    case 'align':
+      // left / centre / right as upstream's icon buttons
+      return `<div class="clip-editor__field addon-field addon-field--align"><div class="addon-position-grid" role="group" aria-label="${esc(field.label)}">${['left', 'center', 'right'].map((v) => `<button type="button" class="mini-btn${value === v ? ' is-on' : ''}" data-position-key="${esc(field.key)}" data-position-value="${v}" title="Align ${v}" aria-label="Align ${v}" aria-pressed="${value === v}"><img src="/static/svgImages/text/advanced/text-align-${v}.svg" alt="" width="14" height="14" draggable="false"/></button>`).join('')}</div></div>`;
+    case 'toggleColor': {
+      // a switch with its colour beside it; the colour is greyed out while the switch is off (upstream's Shadow / Stroke / Background)
+      const on = !!value;
+      return `<div class="clip-editor__field addon-field addon-field--togglecolor"><label><input id="${id}" type="checkbox" data-key="${field.key}" data-kind="toggle" ${on ? 'checked' : ''}/> ${esc(field.label)}</label><input type="color" data-key="${field.colorKey}" data-kind="text" value="${esc(getPath(options, field.colorKey) || '#000000')}" ${on ? '' : 'disabled'} aria-label="${esc(field.label)} colour"/></div>`;
+    }
     case 'url':
       return `<div class="clip-editor__field addon-field">${label}<input id="${id}" type="url" placeholder="https://" data-key="${field.key}" data-kind="text" value="${esc(value)}"/></div>`;
     case 'select':
@@ -285,6 +351,7 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
           <label class="addon-fieldlist__req" title="Required"><input type="checkbox" class="addon-fieldlist__required" ${f.required ? 'checked' : ''}/> req</label>
           <button type="button" class="mini-btn addon-fieldlist__up" ${i === 0 ? 'disabled' : ''} aria-label="Move up">↑</button>
           <button type="button" class="mini-btn addon-fieldlist__remove" ${list.length <= (field.min ?? 1) ? 'disabled' : ''} aria-label="Remove field">✕</button>
+          ${f.type === 'select' ? `<input type="text" class="addon-fieldlist__options" value="${esc(f.options ?? '')}" placeholder="Choices, separated by commas (e.g. Small, Medium, Large)" aria-label="Dropdown choices" />` : ''}
           ${field.placeholders ? `<input type="text" class="addon-fieldlist__placeholder" value="${esc(f.placeholder ?? '')}" placeholder="Hint shown inside the box (empty = the label)" aria-label="Box hint text" />` : ''}
         </div>`).join('');
       return `<div class="clip-editor__field addon-field addon-fieldlist" data-key="${field.key}" data-kind="fieldList">
@@ -310,7 +377,9 @@ export function renderAddonEditor(container, {
   const ui = {};
   let activeTab = null;
   let drawnFields = [];
+  let disposed = false; // async results (font loads / imports, searches) that arrive after destroy() must not touch the container, now owned by a newer editor
   const draw = () => {
+    if (disposed) return;
     const all = ((fieldsFor ? fieldsFor(current) : fields) || []).filter((f) => !f.showIf || f.showIf(current));
     drawnFields = all;
     // Upstream settings panels are tabbed (Basic / Styles / Fields /
@@ -335,6 +404,7 @@ export function renderAddonEditor(container, {
     if (onFieldChange) current = onFieldChange(key, current) || current;
   };
   const emit = (structural, key) => {
+    if (disposed) return;
     if (key) applyHook(key);
     onChange?.(JSON.parse(JSON.stringify(current)), { structural });
     if (structural) draw();
@@ -389,7 +459,17 @@ export function renderAddonEditor(container, {
     }
     // ---- richer field types
     if (e.type === 'click') {
-      const btn = el.closest('button');
+      const btn = el.closest('button, [role="button"][data-design-pick]');
+      if (btn?.dataset.fieldAction) {
+        const out = btn.parentElement.querySelector('.addon-action-result');
+        const setResult = (text) => { if (out) out.textContent = text; };
+        if (!services.fieldAction) return;
+        btn.disabled = true;
+        Promise.resolve(services.fieldAction(btn.dataset.fieldAction, JSON.parse(JSON.stringify(current)), { setResult }))
+          .catch((err) => setResult(err?.message || 'Failed'))
+          .finally(() => { btn.disabled = false; });
+        return;
+      }
       if (btn?.dataset.imgSource) {
         ui.imgSource = btn.dataset.imgSource;
         draw();
@@ -448,12 +528,67 @@ export function renderAddonEditor(container, {
         draw();
         return;
       }
+      if (btn?.dataset.systemFonts) {
+        // the browser asks for permission here, from this click
+        Promise.resolve(services.loadSystemFonts?.())
+          .then(() => { ui.fontError = ''; draw(); })
+          .catch((err) => { ui.fontError = err?.message || 'Could not read the fonts on this computer.'; draw(); });
+        return;
+      }
+      if (btn?.dataset.fontImport) {
+        btn.parentElement?.querySelector('input[type=file]')?.click();
+        return;
+      }
+      if (btn?.dataset.animOpen) {
+        ui.animOpen = ui.animOpen === btn.dataset.animOpen ? null : btn.dataset.animOpen;
+        draw();
+        return;
+      }
+      if (btn?.dataset.animPick) {
+        ui.animOpen = null;
+        setAndEmit(btn.dataset.animPick, btn.dataset.animValue || null);
+        return;
+      }
+      if (btn?.dataset.stylePreset) {
+        const field = drawnFields.find((f) => f.key === btn.dataset.styleField);
+        const preset = (field?.presets || []).find((pr) => pr.id === btn.dataset.stylePreset);
+        if (preset) {
+          // the whole look is one edit: set every key, then report once
+          Object.entries(preset.patch).forEach(([k, v]) => setPath(current, k, v));
+          emit(true, Object.keys(preset.patch).at(-1));
+        }
+        return;
+      }
+      if (btn?.dataset.toggleBtn) {
+        setAndEmit(btn.dataset.toggleBtn, !getPath(current, btn.dataset.toggleBtn));
+        return;
+      }
+      if (btn?.dataset.swatchValue) {
+        setAndEmit(btn.dataset.swatchKey, btn.dataset.swatchValue);
+        return;
+      }
       if (btn?.dataset.positionValue) {
         setAndEmit(btn.dataset.positionKey, btn.dataset.positionValue);
         return;
       }
       if (btn?.dataset.designPick) {
-        setAndEmit(btn.dataset.pickKey, btn.dataset.designPick);
+        // A design that carries a `patch` (the opt-in form's 30 designs) sets all its options at once; plain designs (pointer arrows) set just their id.
+        const field = drawnFields.find((f) => f.key === btn.dataset.pickKey);
+        const design = (field?.designs || []).find((x) => x.id === btn.dataset.designPick);
+        if (design?.patch) {
+          const patch = field?.applyDesign ? field.applyDesign(current, design) : design.patch;
+          Object.entries(patch).forEach(([k, v]) => setPath(current, k, v));
+          emit(true, btn.dataset.pickKey);
+        } else setAndEmit(btn.dataset.pickKey, btn.dataset.designPick);
+        return;
+      }
+      if (btn?.hasAttribute('data-scheme-pick')) {
+        const field = drawnFields.find((f) => f.key === btn.dataset.schemeKey);
+        const scheme = (field?.schemes || []).find((sc) => sc.id === btn.dataset.schemePick);
+        if (scheme && field?.applyScheme) {
+          Object.entries(field.applyScheme(current, scheme)).forEach(([k, v]) => setPath(current, k, v));
+          emit(true, field.key);
+        }
         return;
       }
       if (btn?.dataset.themePick) {
@@ -521,6 +656,20 @@ export function renderAddonEditor(container, {
       return;
     }
     if (e.type === 'change' && el.classList?.contains('addon-token-insert')) {
+      const rich = el.closest('.addon-field--tokens')?.querySelector('.addon-rich');
+      if (rich) {
+        if (el.value) {
+          // insert a chip where the cursor was (the menu click moved focus away), else at the end
+          const doc = rich.ownerDocument;
+          const chip = tokenChip(doc, el.value);
+          const r = richRange && rich.contains(richRange.startContainer) ? richRange : null;
+          if (r) { r.deleteContents(); r.insertNode(chip); r.setStartAfter(chip); r.collapse(true); richRange = r.cloneRange(); } else rich.appendChild(chip);
+          setPath(current, rich.dataset.key, htmlToTokens(rich));
+          emit(false, rich.dataset.key);
+        }
+        el.value = '';
+        return;
+      }
       const ta = el.closest('.addon-field--tokens')?.querySelector('textarea');
       if (ta && el.value) {
         const token = `{{${el.value}}}`;
@@ -531,6 +680,16 @@ export function renderAddonEditor(container, {
         emit(false, ta.dataset.key);
       }
       el.value = '';
+      return;
+    }
+    if (e.type === 'change' && el.dataset?.fontFile) {
+      const file = el.files?.[0];
+      const fontKey = el.dataset.fontFile;
+      el.value = '';
+      if (!file || !services.importFont) return;
+      Promise.resolve(services.importFont(file))
+        .then((family) => { if (disposed) return; ui.fontError = ''; if (family) setAndEmit(fontKey, family); else draw(); })
+        .catch((err) => { if (disposed) return; ui.fontError = err?.message || 'That font could not be added.'; draw(); });
       return;
     }
     if (e.type === 'change' && (el.dataset?.imageUpload || el.dataset?.lottieUpload)) {
@@ -607,38 +766,113 @@ export function renderAddonEditor(container, {
         list[i].token = String(el.value || '').trim().toUpperCase() || 'FIELD';
       } else if (el.classList.contains('addon-fieldlist__placeholder')) {
         list[i].placeholder = el.value;
+      } else if (el.classList.contains('addon-fieldlist__options')) {
+        list[i].options = el.value;
       } else if (el.classList.contains('addon-fieldlist__type')) {
         list[i].type = el.value;
       } else if (el.classList.contains('addon-fieldlist__required')) {
         list[i].required = el.checked;
       } else return;
       setPath(current, listWrap.dataset.key, list);
-      emit(false);
+      emit(el.classList.contains('addon-fieldlist__type')); // a type change redraws (a dropdown row gets its choices box)
       return;
     }
     const key = el.dataset?.key;
     if (!key || e.type === 'click') return;
     const kind = el.dataset.kind;
+    if (kind === 'hex') {
+      if (e.type !== 'change') return;
+      let v = el.value.trim();
+      if (v && v[0] !== '#') v = `#${v}`;
+      if (/^#[0-9a-f]{3}$/i.test(v)) v = `#${v[1]}${v[1]}${v[2]}${v[2]}${v[3]}${v[3]}`;
+      if (/^#[0-9a-f]{6}$/i.test(v)) setAndEmit(key, v.toUpperCase());
+      else el.value = getPath(current, key) || ''; // not a colour: keep the old one
+      return;
+    }
+    if (kind === 'rich-tokens') { setPath(current, key, htmlToTokens(el)); emit(false, key); return; }
     if (kind === 'points') return; // committed on change (above)
     if (kind === 'toggle') setPath(current, key, el.checked);
-    else if (kind === 'number') {
+    else if (kind === 'text' && el.type === 'color') {
+      // dragging the picker does not redraw, so bring the hex box and the chosen swatch along
+      setPath(current, key, el.value);
+      const hex = container.querySelector(`input[data-kind="hex"][data-key="${key}"]`);
+      if (hex) hex.value = el.value.toUpperCase();
+      container.querySelectorAll(`[data-swatch-key="${key}"]`).forEach((b) => b.classList.toggle('is-on', b.dataset.swatchValue.toLowerCase() === el.value.toLowerCase()));
+    } else if (kind === 'number') {
       const n = Number(el.value);
       setPath(current, key, Number.isFinite(n) ? n : 0);
     } else setPath(current, key, el.value);
     emit(kind === 'toggle' || kind === 'select', key);
   };
 
+  // Smart Text box: remember the cursor (choosing a token from the menu moves focus), and paste as plain text.
+  let richRange = null;
+  const trackRange = (e) => {
+    if (!e.target.closest?.('.addon-rich')) return;
+    const sel = e.target.ownerDocument.getSelection?.();
+    if (sel && sel.rangeCount && e.target.closest('.addon-rich').contains(sel.anchorNode)) richRange = sel.getRangeAt(0).cloneRange();
+  };
+  const onPaste = (e) => {
+    const rich = e.target.closest?.('.addon-rich');
+    if (!rich) return;
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData)?.getData('text/plain') || '';
+    e.target.ownerDocument.execCommand?.('insertText', false, text);
+  };
+  // Typing must not reach the editor's global shortcuts (Space = play, E / V / B = tools, Backspace = delete clip): they only skip input / textarea.
+  const stopKeys = (e) => {
+    if (e.target.closest?.('.addon-rich')) e.stopPropagation();
+    // a design tile that is a div (it holds a live preview) works from the keyboard like a button
+    const tile = e.target.closest?.('[role="button"][data-design-pick]');
+    if (tile && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); tile.click(); }
+  };
+  // Effect tiles play their effect while hovered / focused (Animate.css classes, like the editor preview)
+  const playTile = (e) => {
+    const tile = e.target.closest?.('.addon-anim-tile');
+    const sample = tile?.querySelector('.addon-anim-sample');
+    if (!sample || !tile.dataset.animValue) return;
+    const name = tile.dataset.animValue;
+    sample.className = 'addon-anim-sample';
+    void sample.offsetWidth; // restart
+    sample.classList.add('animated', name);
+    if (tile.dataset.animPhase === 'idle') sample.classList.add('infinite');
+    else sample.addEventListener('animationend', () => sample.classList.remove('animated', name), { once: true });
+  };
+  const stopTile = (e) => {
+    const sample = e.target.closest?.('.addon-anim-tile')?.querySelector('.addon-anim-sample');
+    if (sample) sample.className = 'addon-anim-sample';
+  };
+  container.addEventListener('mouseover', playTile);
+  container.addEventListener('focusin', playTile);
+  container.addEventListener('mouseout', stopTile);
+  container.addEventListener('focusout', stopTile);
+  container.addEventListener('keydown', stopKeys);
+  container.addEventListener('keyup', trackRange);
+  container.addEventListener('mouseup', trackRange);
+  container.addEventListener('focusout', trackRange);
+  container.addEventListener('paste', onPaste);
   container.addEventListener('input', handle);
   container.addEventListener('change', handle);
   container.addEventListener('click', handle);
   draw();
   return {
     destroy() {
+      disposed = true;
       container.removeEventListener('input', handle);
       container.removeEventListener('change', handle);
       container.removeEventListener('click', handle);
+      container.removeEventListener('keydown', stopKeys);
+      container.removeEventListener('mouseover', playTile);
+      container.removeEventListener('focusin', playTile);
+      container.removeEventListener('mouseout', stopTile);
+      container.removeEventListener('focusout', stopTile);
+      container.removeEventListener('keyup', trackRange);
+      container.removeEventListener('mouseup', trackRange);
+      container.removeEventListener('focusout', trackRange);
+      container.removeEventListener('paste', onPaste);
     },
     setOptions(next) {
+      if (disposed) return;
       current = JSON.parse(JSON.stringify(next || {}));
       draw();
     },

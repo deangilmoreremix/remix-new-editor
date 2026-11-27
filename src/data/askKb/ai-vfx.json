@@ -1,0 +1,228 @@
+{
+  "id": "ai-vfx",
+  "name": "AI VFX Studio",
+  "route": "#/ai-vfx",
+  "description": "AI VFX Studio turns one still image into a short video using a preset effect: a camera move, an AI transformation or an explosion/element VFX. You pick an effect card, add an image, choose aspect ratio, duration, size and quality, and press Generate.",
+  "shortDescription": "Hollywood camera moves, explosive VFX and AI effects from a single image.",
+  "fullDescription": "AI VFX Studio is a native in-app version of the open-source AI-VFX app. The page has an input bar at the top (image box, optional prompt, image URL field, four dropdowns and a Generate button) and a gallery of effect cards underneath, grouped in three tabs: AI Effects (64 presets), Motion Controls (47 camera moves) and VFX (9 elements and destruction effects). Everything runs through the MuAPI generate_wan_ai_effects endpoint, so you need a MuAPI key. Defaults are 9:16 portrait, 5 seconds, 480p and Medium quality, which keeps first tests quick. Finished videos appear in a results grid on the page with a Download link, and are also saved to your generation history.",
+  "bestFor": "Creators who want fast cinematic camera moves, explosion or elemental VFX and viral-style AI transformations from a single photo, with simple controls for aspect ratio, length and quality.",
+  "whenToUse": [
+    "You have one image and want a ready-made camera move such as Dolly In, Crash Zoom In, 360 Orbit or FPV Drone Cam.",
+    "You want an element or destruction effect such as Building Explosion, Tornado, Electricity or Disintegration.",
+    "You want a viral-style AI transformation such as Hulk Transformation, Kamehameha or Cakeify.",
+    "You want to choose between portrait, landscape and square, and between 5 or 10 second clips.",
+    "You want to paste an image link instead of uploading a file."
+  ],
+  "whenToUseAnother": [
+    "Use Effects Studio (#/effects) when you want still-image effects (figurines, comic looks, Nano Banana, Kontext edits), the extra Video FX v2 presets, before-and-after compare, or Add to Library and Insert into Timeline buttons.",
+    "Use Animate Studio (#/animate) when you want to describe the motion yourself and pick any image-to-video model.",
+    "Use Video Tools (#/videotools) when you already have a video and want to upscale, translate, caption or recast it.",
+    "Use Video Studio (#/video) for text-to-video or image-to-video with full model selection.",
+    "Use Timeline (#/timeline) to assemble several clips into a finished edit."
+  ],
+  "keyFeatures": [
+    "Three category tabs with counts: AI Effects (64), Motion Controls (47), VFX (9).",
+    "Thumbnail grid of effect cards; click a card to select it.",
+    "Image input by upload or by pasting an https image URL.",
+    "Optional prompt: describe the subject, for example a red sports car.",
+    "Four dropdowns: Aspect, Duration, Size, Quality.",
+    "Generate button with live Rendering message and a results grid with Download links.",
+    "Results saved to your generation history."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "AI Effects tab",
+      "explanation": "64 transformation presets such as 360 Rotation, Abandoned Places, Angry, Animal Documentary, Assassin It, Baby It, Boxing, Bride It, Cakeify, Cartoon Jaw Drop, Cats, Crush It, Crying, Cyberpunk 2077, Deflate It, Disney Princess It, Dogs, Eye Close-Up, Fantasy Landscapes, Film Noir, Fire, Glamor, Goblin, Gun Reveal, Hulk Transformation, Inflate It, Jungle It, Jumpscare, Kamehameha, Kiss Cam, Kissing, Lego, Laughing, Little Planet, Live Wallpaper, Looping Pixel Art, Melt It, Mona Lisa It, Museum It, Muscle Show Off, Orc, Pixar, Pirate Captain, POV Driving, Samurai It, Sharingan Eyes, Skyrim Fus-Ro-Dah, Squish It, Steamboat Willie, Super Saiyan Transformation, Tsunami, Ultra Wide, VHS Footage, Wind Blast, Younger Self Selfie, Zen It, Zoom Call.",
+      "whyToUse": "Fun, attention-grabbing transformations for short-form content.",
+      "inputRequired": "One image and one selected effect.",
+      "restrictions": "The effect names are exactly the ones the API accepts; you cannot type a custom effect."
+    },
+    {
+      "feature": "Motion Controls tab",
+      "explanation": "47 camera moves: 360 Orbit, Arc Shot, Car Chase, Car Mount Cam, Crash Zoom In/Out, Crane Down, Crane Overhead, Crane Punch-In, Crane Up, Dirty Lens, Dolly In/Out/Left/Right, Dolly Zoom In/Out, Fast Dolly Zoom In/Out, Dutch Angle, Fisheye Lens, Focus Shift, FPV Drone Cam, Handheld Cam, Head Tracking, Hero Run, Human Timelapse, Landscape Timelapse, Lazy Susan, Lens Crack, Lens Flare, Matrix Shot, Motion Blur, Object POV, Overhead, Rap Video Cam, Robotic Cam, Snorricam, Tilt Down, Tilt Up, Whip Pan, Wiggle, Zoom In, Zoom In Through Object, Zoom Into Mouth, Zoom Out, Zoom Out Through Object.",
+      "whyToUse": "Give a still shot a professional camera move without describing it.",
+      "inputRequired": "One image and one selected move.",
+      "restrictions": "The prompt is inserted into the effect's template, so use it to name the subject."
+    },
+    {
+      "feature": "VFX tab",
+      "explanation": "9 element and destruction effects: Building Explosion, Car Explosion, Decay Time-Lapse, Disintegration, Electricity, Flying, Huge Explosion, Levitate, Tornado.",
+      "whyToUse": "Dramatic action looks such as explosions, storms, levitation and decay.",
+      "inputRequired": "One image and one selected effect.",
+      "restrictions": "Results depend on the scene; building or car effects work best when the image clearly shows a building or car."
+    },
+    {
+      "feature": "Image input (upload or URL)",
+      "explanation": "Click the dashed box labelled Add image to upload a JPEG, PNG, WebP or GIF, or paste a link into the field with the placeholder: ...or paste an image URL (https://). While uploading the box shows Uploading....",
+      "whyToUse": "Use upload for your own photos and the URL box for images already online.",
+      "inputRequired": "One image. The studio does not take video input.",
+      "restrictions": "The URL must start with http:// or https:// or you see the toast Image URL must start with http(s)://. Uploads are limited by MuAPI to 10 MB for images. Uploading needs a MuAPI key and prompts for it if missing."
+    },
+    {
+      "feature": "Aspect, Duration, Size, Quality dropdowns",
+      "explanation": "Aspect: 9:16 Portrait (default), 16:9 Landscape, 1:1 Square. Duration: 5s (default) or 10s. Size: 480p (default) or 720p. Quality: Medium (default) or High.",
+      "whyToUse": "Match the clip to the platform and trade speed for quality.",
+      "inputRequired": "Optional; defaults apply.",
+      "restrictions": "Only these options exist. The API limits resolution to 480p or 720p and quality to medium or high for this endpoint."
+    },
+    {
+      "feature": "Prompt box",
+      "explanation": "Placeholder text: Optional: describe the subject (e.g. a red sports car). The text is passed into the effect's built-in prompt template.",
+      "whyToUse": "Name your subject so the effect is applied to the right thing.",
+      "inputRequired": "Optional.",
+      "restrictions": "Keep it short and about the subject; it is not a free-form scene description."
+    },
+    {
+      "feature": "Results grid",
+      "explanation": "While rendering, a card says Rendering and the effect name. When ready a video card appears with playback controls, the effect name and a Download link. New results appear first.",
+      "whyToUse": "Preview and download without leaving the page.",
+      "inputRequired": "A finished generation.",
+      "restrictions": "The results grid only holds this visit's results; older ones are in your generation history. There are no Add to Library, Timeline, Compare or Publish buttons on this page."
+    }
+  ],
+  "howToUse": "1. Open AI VFX Studio from the side menu (#/ai-vfx). 2. Choose a tab: AI Effects, Motion Controls or VFX. 3. Click an effect card. The line above the prompt changes from Pick an effect below, add an image, then Generate. to Effect: followed by the effect name. 4. Click the dashed Add image box to upload a picture (JPEG, PNG, WebP or GIF), or paste a link in the ...or paste an image URL (https://) field. 5. Optional: type the subject in the prompt box. 6. Set Aspect (9:16 Portrait, 16:9 Landscape, 1:1 Square), Duration (5s or 10s), Size (480p or 720p) and Quality (Medium or High). 7. Press Generate. The button shows Generating... and a card shows Rendering with the effect name. 8. When the toast says Video ready, play the result and press Download.",
+  "howToSteps": [
+    "Open #/ai-vfx and pick a tab.",
+    "Click an effect card.",
+    "Add an image by upload or https link.",
+    "Optionally describe the subject.",
+    "Choose Aspect, Duration, Size and Quality.",
+    "Press Generate and wait for Video ready.",
+    "Press Download on the result card."
+  ],
+  "gettingStarted": [
+    "Keep the defaults (9:16, 5s, 480p, Medium) for your first test; they render fastest.",
+    "Try a Motion Controls move like Dolly In on a clear product or portrait photo.",
+    "Once you like the effect, switch Size to 720p and Quality to High for a final render."
+  ],
+  "inputs": ["Effect (card)", "Image (upload or URL)", "Prompt", "Aspect", "Duration", "Size", "Quality"],
+  "requiredInputs": ["Effect (card)", "Image (upload or URL)"],
+  "optionalInputs": ["Prompt", "Aspect", "Duration", "Size", "Quality"],
+  "inputDetails": [
+    {"name": "Effect (card)", "description": "The preset you click in the grid. Without one, Generate shows the toast Select an effect first.", "required": true, "whenToUse": "Always.", "restrictions": "Switching tabs keeps your selected effect until you pick another."},
+    {"name": "Image (upload or URL)", "description": "The still image to animate. Without one, Generate shows the toast Add an image (upload or https URL) first.", "required": true, "whenToUse": "Always.", "restrictions": "Upload accepts JPEG, PNG, WebP and GIF. MuAPI size limit for images is 10 MB. URL must start with http:// or https://. The image must be reachable by the service."},
+    {"name": "Prompt", "description": "Optional subject description.", "required": false, "whenToUse": "When the effect needs to know what the subject is.", "restrictions": "If empty no prompt is sent."},
+    {"name": "Aspect", "description": "Output shape: 9:16 Portrait, 16:9 Landscape or 1:1 Square.", "required": false, "whenToUse": "Match your target platform.", "restrictions": "Default 9:16."},
+    {"name": "Duration", "description": "5s or 10s.", "required": false, "whenToUse": "Use 10s for longer moves.", "restrictions": "Default 5s. Longer clips take longer to render."},
+    {"name": "Size", "description": "Resolution 480p or 720p.", "required": false, "whenToUse": "720p for final output.", "restrictions": "Default 480p. The page does not offer 1080p."},
+    {"name": "Quality", "description": "Medium or High.", "required": false, "whenToUse": "High for final output.", "restrictions": "Default Medium."}
+  ],
+  "generationModes": ["AI Effects", "Motion Controls", "VFX"],
+  "modeExplanations": [
+    {"mode": "AI Effects", "description": "Creative AI transformations and character or scene effects (64 presets).", "useCase": "Viral clips, character transformations, fun reveals."},
+    {"mode": "Motion Controls", "description": "Camera movements applied to your image (47 presets).", "useCase": "Cinematic push-ins, orbits, crane moves and lens looks."},
+    {"mode": "VFX", "description": "Elements and destruction effects (9 presets).", "useCase": "Explosions, tornado, electricity, levitation and decay."}
+  ],
+  "modelCapabilities": "AI VFX Studio has no model picker. All three tabs call the MuAPI generate_wan_ai_effects endpoint (a Wan-based effects service) through the shared MuAPI client. The AI Effects list comes from the ai-video-effects model definition, Motion Controls from motion-controls and VFX from the vfx model, so every card shown is a name the API accepts. The catalog file describes ai-video-effects as an AI video effects pipeline, motion-controls as motion parameter control for image-to-video, and vfx as visual effects processing. No price, speed or quality numbers for these models appear in the catalog, description or comparison files, so none are stated.",
+  "outputs": [
+    "A short video clip in 9:16, 16:9 or 1:1.",
+    "5 or 10 seconds long, at 480p or 720p.",
+    "Shown in the results grid with a Download link and saved to your generation history."
+  ],
+  "limitations": [
+    "Single image input only; no video or multi-image input.",
+    "Preset effects only; no custom effect creation.",
+    "Duration options are only 5s and 10s; resolution options only 480p and 720p.",
+    "No compare, library, timeline or social-publish buttons on this page.",
+    "Requires a MuAPI key; uploads follow MuAPI limits (10 MB for images).",
+    "Duplicate-looking names exist across studios (for example Flying also appears in Effects Studio's Video FX v2 tab); each studio uses its own list."
+  ],
+  "limitationDetails": [
+    {"limitation": "Only 480p or 720p", "impact": "Output is not full HD.", "workaround": "Use Upscale tools in Video Tools (#/videotools) to enlarge the finished clip."},
+    {"limitation": "One image at a time", "impact": "You cannot blend several images into one effect.", "workaround": "Use Animate Studio with a reference-style model, or Video Studio."},
+    {"limitation": "No library or timeline buttons", "impact": "You must download the clip to reuse it elsewhere.", "workaround": "Use Download, then upload into Timeline or Video Tools. Your history also keeps the generation."}
+  ],
+  "troubleshooting": [
+    "Toast says Select an effect first: click one of the effect cards, then press Generate.",
+    "Toast says Add an image (upload or https URL) first: upload a picture or paste an https link and wait for the thumbnail to appear in the box.",
+    "Toast says Image URL must start with http(s)://: paste a full link beginning with https://.",
+    "Settings window opens when you upload or generate: add your MuAPI key and try again.",
+    "Toast says Upload failed or shows an upload error: check the file is JPEG, PNG, WebP or GIF and 10 MB or smaller, then retry.",
+    "Toast says No video URL returned: the service finished without a video. Try again, or choose another effect or image.",
+    "Generation failed toast (shown for about 6 seconds): read the message, retry, or reduce to the defaults (5s, 480p, Medium).",
+    "Image is blank or the preview does not load from a pasted URL: the link may block hotlinking. Download the image and upload it instead.",
+    "An effect card shows no thumbnail: the picture is missing but the effect still works."
+  ],
+  "troubleshootingSteps": [
+    {"issue": "Nothing happens when I press Generate", "steps": ["Check the line above the prompt shows Effect: and a name.", "Confirm a thumbnail appears in the image box.", "Wait: while busy the button reads Generating... and is disabled."]},
+    {"issue": "Upload keeps failing", "steps": ["Use JPEG, PNG, WebP or GIF.", "Keep the file at 10 MB or less.", "Make sure your MuAPI key is saved.", "Try pasting an image URL instead."]},
+    {"issue": "The effect does not look right", "steps": ["Use a clear, well-composed image with an obvious subject.", "Add a short prompt naming the subject.", "Switch Quality to High and Size to 720p.", "Try a different effect in the same tab."]}
+  ],
+  "commonProblems": [
+    {"problem": "Output looks low resolution", "whyItHappens": "Default Size is 480p.", "howToFix": "Change Size to 720p and Quality to High."},
+    {"problem": "Portrait video when I wanted landscape", "whyItHappens": "Default Aspect is 9:16 Portrait.", "howToFix": "Change Aspect to 16:9 Landscape before pressing Generate."},
+    {"problem": "Effect ignores my prompt", "whyItHappens": "The prompt is dropped into the effect's template and is only meant to describe the subject.", "howToFix": "Reword the prompt as a short noun phrase, like a red sports car."}
+  ],
+  "exampleWorkflows": [
+    {"title": "Cinematic product push-in", "steps": ["Open Motion Controls.", "Click Dolly In.", "Upload a clean product photo.", "Type the subject, for example a black leather watch.", "Keep 16:9 Landscape, set 720p and High.", "Press Generate and Download."]},
+    {"title": "Explosion shot from a car photo", "steps": ["Open the VFX tab and click Car Explosion.", "Upload a car photo.", "Choose 5s, 480p, Medium for a quick test.", "Press Generate and review.", "If good, repeat at 720p High."]},
+    {"title": "Viral transformation for a short", "steps": ["Open AI Effects and pick Hulk Transformation or Kamehameha.", "Upload a clear half-body photo.", "Keep 9:16 Portrait.", "Generate, then download the clip for upload to social."]}
+  ],
+  "useCases": [
+    {"title": "Product teaser", "description": "Create a camera-move teaser from a single product still.", "steps": ["Pick a Motion Controls effect.", "Upload the product photo.", "Generate at 720p High."], "expectedOutput": "A 5 second product video with a camera move."},
+    {"title": "Action intro", "description": "Make a dramatic opener with explosion or tornado style VFX.", "steps": ["Pick a VFX effect.", "Upload a matching scene image.", "Generate."], "expectedOutput": "A short VFX clip."},
+    {"title": "Meme-style clip", "description": "Apply a transformation effect to a photo of a friend or pet.", "steps": ["Pick a card in AI Effects such as Cats, Dogs or Puppy it.", "Upload the photo.", "Generate and download."], "expectedOutput": "A funny short video."}
+  ],
+  "faqs": [
+    {"question": "How many effects are there?", "answer": "The tabs show AI Effects 64, Motion Controls 47 and VFX 9, so 120 presets. The upstream project text mentions 80+ effects, but the numbers on the tab buttons in this app are the ones to trust."},
+    {"question": "Can I make a 10 second video?", "answer": "Yes. Set Duration to 10s. The default is 5s."},
+    {"question": "What is the difference between this and Effects Studio?", "answer": "AI VFX Studio focuses on video-from-one-image with Aspect, Duration, Size and Quality controls and includes the VFX tab. Effects Studio also has still-image effect tabs, Video FX v2, compare, library, timeline and Advanced settings, but fixes video at 720p and 5 seconds."},
+    {"question": "Do I need a prompt?", "answer": "No. It is optional and is only used to describe the subject."},
+    {"question": "Which image formats work?", "answer": "The uploader accepts JPEG, PNG, WebP and GIF. You can also paste an https image link."},
+    {"question": "How long does it take?", "answer": "The upstream README says typically 1 to 3 minutes. The page itself shows Rendering until the service replies; actual times vary by effect, duration and quality."},
+    {"question": "Where are my videos kept?", "answer": "The results grid shows videos from this visit with a Download link, and each one is saved to your generation history."}
+  ],
+  "glossary": {
+    "VFX": "Visual effects, such as explosions, electricity or levitation.",
+    "Motion Control": "A preset camera move such as a dolly, orbit or crane shot.",
+    "Aspect": "The shape of the video, such as 9:16 for phones or 16:9 for widescreen.",
+    "Size": "The video resolution, 480p or 720p.",
+    "Quality": "Medium or High processing level.",
+    "MuAPI": "The service that renders the effects. A MuAPI key is required."
+  },
+  "tips": [
+    "Test with defaults first, then upgrade to 720p and High for the keeper.",
+    "Use sharp, well-lit images with a clear subject.",
+    "Match the subject to the effect: car for Car Explosion, person for transformations.",
+    "Keep prompts to a few words naming the subject."
+  ],
+  "bestPractices": [
+    "Pick Aspect first so you do not need to re-render for a different platform.",
+    "Download clips you like right away.",
+    "Use short prompts and one effect per render."
+  ],
+  "relatedStudios": ["effects", "animate", "videotools", "video", "timeline", "upscale"],
+  "relatedStudioGuidance": [
+    {"studio": "effects", "relationship": "Shares the Video Effects and Motion Controls presets and adds still-image and Video FX v2 presets.", "whenToMove": "When you want image effects, Compare, Insert into Timeline or Add to Library.", "why": "It has more post-result actions."},
+    {"studio": "animate", "relationship": "Free-form image-to-video with a model choice.", "whenToMove": "When you want to describe custom motion.", "why": "AI VFX uses presets only."},
+    {"studio": "videotools", "relationship": "Post-processing for video.", "whenToMove": "To upscale, caption, translate or reframe your clip.", "why": "AI VFX only generates clips."},
+    {"studio": "timeline", "relationship": "Editor for assembling clips.", "whenToMove": "When combining several VFX clips.", "why": "AI VFX makes single clips."}
+  ],
+  "notConfirmed": [
+    "Price or credit cost per generation is not stated in the files read.",
+    "Actual render time. The README says 1 to 3 minutes typically; the page has no stated timeout.",
+    "The README mentions 50+ camera moves, 30+ VFX and 80+ effects and names such as Venom or Vertigo Effect that are not in this app's lists; the app's real counts are 64, 47 and 9.",
+    "Whether 10 second duration or 720p/High are supported for every single effect; the page offers them for all.",
+    "Whether a pasted URL is validated beyond starting with http or https.",
+    "The apps/ai-vfx Next.js project is the upstream origin; the in-app page does not embed or require it."
+  ],
+  "sourceFiles": [
+    "src/components/AIVFXPage.js",
+    "apps/ai-vfx/README.md",
+    "src/lib/muapi.js (generateVideoEffect)",
+    "src/lib/models.js (ai-video-effects, motion-controls, vfx enums)",
+    "public/api/model-catalog.json",
+    "src/lib/modelDescriptions.js",
+    "src/lib/modelComparisonData.js",
+    "src/lib/instructions.js",
+    "src/data/studioLandingPages.js",
+    "src/features/ask-smartvideo/studioRegistry.js",
+    "EFFECT_STUDIO_AUDIT.md"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read AIVFXPage.js in full, evaluated the three effect enums from src/lib/models.js, read generateVideoEffect in muapi.js and the upstream apps/ai-vfx README. instructions.js and studioLandingPages.js have no entry for this studio.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

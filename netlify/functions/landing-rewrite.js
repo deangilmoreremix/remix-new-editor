@@ -1,0 +1,150 @@
+// netlify/functions/landing-rewrite.js
+// AI rewrite for landing-page copy, on the OpenAI Responses API with the signed-in
+// user's own key (BYOK, X-OpenAI-Key). The client sends ONLY text values (id + text);
+// the model returns the same ids with new text, so sections, layout, links, images
+// and form fields can never be changed by it. The client also re-checks every answer.
+
+import { withClerkAuth } from './_shared/clerkAuth.js';
+import { userOpenAIKey, NEED_OPENAI_KEY, BAD_OPENAI_KEY, OPENAI_NO_CREDIT } from './_shared/byok.js';
+import { OPENAI_TEXT_MODEL } from './_shared/openaiModels.js';
+
+const MODEL = process.env.OPENAI_LANDING_MODEL || process.env.OPENAI_RESPONSES_TEXT_MODEL || OPENAI_TEXT_MODEL;
+const TIMEOUT_MS = 90_000;
+const MAX_BODY = 120_000;
+export const MAX_ITEMS = 80;
+export const MAX_TEXT = 700;
+
+const json = (statusCode, body) => ({ statusCode, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+const fail = (statusCode, code, message) => json(statusCode, { ok: false, error: { code, message } });
+
+export const SCHEMA = {
+  type: 'object',
+  properties: { items: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, text: { type: 'string' } }, required: ['id', 'text'], additionalProperties: false } } },
+  required: ['items'],
+  additionalProperties: false,
+};
+
+const INSTRUCTIONS = `You rewrite the copy of one landing page. You receive a list of short texts, each with an id and a "role" hint (headline, button, label, quote, name, stat, text).
+Rules:
+- Return EVERY id exactly once, in any order, with new text for it. Never add, drop or rename ids.
+- Keep each text about the same length (within ~30%) and the same kind of text: a button stays a short button label, a headline stays a headline, a quote stays a quote, a stat stays a number-like stat.
+- Keep every {{token|fallback}} placeholder and every [[highlight]] marker exactly as written (same text, same count), and keep line breaks where they are.
+- Do not add HTML, markdown, emoji, links or contact details.
+- Follow the user's instruction for tone, audience and business. Names, quotes and numbers are placeholders: invent plausible, clearly generic ones that fit the business, never real people or companies.
+- Write in the language of the page unless told otherwise.`;
+
+export const MAX_OPTIONS = 3;
+const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
+
+const WRITE_INSTRUCTIONS = `You write the text of ONE field on a landing page. You receive the field's name, its kind, a maximum length, the text currently in it (may be empty), the page and business context, and an instruction.
+Rules:
+- Return exactly the requested number of options, with ids o1, o2, ... in order. Each option is a different take on the same field; none is a copy of the current text.
+- Fit the field: a button is a short action label, a headline is a punchy line, a quote is one believable sentence, a name is a plain name. Stay under the maximum length.
+- If the current text contains {{token|fallback}} placeholders or [[highlight]] markers, keep them exactly as written in every option. You may use {{firstname|there}} or {{company|your team}} only when it fits naturally.
+- The field description says how the text must look. Follow it exactly:
+  - "casing": "upper" = write in ALL CAPS; "title" = Title Case; "sentence" = normal sentence case.
+  - "highlight": true = wrap one or two key words in [[double brackets]] (the design shows them in its accent colour); false = never use [[ ]].
+  - "list": a comma separated list; if a count is given, exactly that many items, no empty items.
+  - "lines": that many lines separated by line breaks.
+  - "numeric": only a short number or statistic such as 3.4x, 128,349 or 98%, nothing else.
+- End the way the current text ends: headlines, buttons and labels have no full stop unless the current text does.
+- Do not add HTML, markdown, emoji, links or contact details.
+- Names, quotes and numbers are placeholders: invent plausible, clearly generic ones that fit the business; never claim real customers, awards or statistics.
+- Follow the user's instruction for tone, audience and business. Write in the language of the page unless told otherwise.`;
+
+/** One field, several options. The current text may be empty (that is the point). */
+export function buildWriteRequest(input) {
+  const label = String(input?.label || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+  if (!label) return { error: 'Say which field to write.' };
+  const n = clamp(Math.round(Number(input?.n)) || MAX_OPTIONS, 1, MAX_OPTIONS);
+  const maxChars = clamp(Math.round(Number(input?.maxChars)) || 160, 20, MAX_TEXT);
+  const current = String(input?.current ?? '');
+  if (current.length > MAX_TEXT) return { error: 'The current text is too long.' };
+  const fmt = input?.format && typeof input.format === 'object' ? input.format : {};
+  const casing = ['upper', 'title', 'sentence'].includes(input?.casing) ? input.casing : undefined;
+  const field = {
+    name: label, kind: String(input?.role || 'text').slice(0, 20), maxChars, current, options: n,
+    ...(casing ? { casing } : {}),
+    highlight: fmt.highlight === true,
+    ...(fmt.list ? { list: Number(fmt.list.count) > 0 ? { items: Math.min(20, Math.round(Number(fmt.list.count))) } : {} } : {}),
+    ...(fmt.lines ? { lines: Number(fmt.lines.count) > 0 ? Math.min(12, Math.round(Number(fmt.lines.count))) : 'several' } : {}),
+    ...(fmt.numeric ? { numeric: true } : {}),
+  };
+  const instruction = String(input?.instruction || '').slice(0, 600);
+  const ctx = String(input?.context || '').slice(0, 400);
+  const user = `${ctx ? `Page: ${ctx}\n` : ''}Instruction: ${instruction || 'Write clear, engaging copy.'}\n\nFIELD (JSON):\n${JSON.stringify(field)}`;
+  const ids = Array.from({ length: n }, (_, i) => `o${i + 1}`);
+  return {
+    body: { model: MODEL, instructions: WRITE_INSTRUCTIONS, input: [{ role: 'user', content: user }], text: { format: { type: 'json_schema', name: 'landing_write', schema: SCHEMA, strict: true } }, store: false },
+    ids,
+    maxChars,
+    write: true,
+  };
+}
+
+/** An option is usable when it is plain text that fits the field. */
+export function usableOption(text, maxChars) {
+  const t = typeof text === 'string' ? text.trim() : '';
+  return !!t && t.length <= Math.round(maxChars * 1.3) && !/[<>]/.test(t) && !/:\/\/|www\./i.test(t);
+}
+
+export function buildRequest(input) {
+  if (input?.mode === 'write') return buildWriteRequest(input);
+  const items = Array.isArray(input?.items) ? input.items : null;
+  if (!items || !items.length) return { error: 'No text to rewrite.' };
+  if (items.length > MAX_ITEMS) return { error: `Send at most ${MAX_ITEMS} texts at a time.` };
+  const clean = [];
+  for (const it of items) {
+    if (!it || typeof it.id !== 'string' || typeof it.text !== 'string' || !it.text.trim()) return { error: 'Each item needs an id and text.' };
+    if (it.text.length > MAX_TEXT) return { error: 'One of the texts is too long.' };
+    clean.push({ id: it.id.slice(0, 40), role: String(it.role || 'text').slice(0, 20), text: it.text });
+  }
+  const instruction = String(input?.instruction || '').slice(0, 600);
+  const ctx = String(input?.context || '').slice(0, 400);
+  const user = `${ctx ? `Page: ${ctx}\n` : ''}Instruction: ${instruction || 'Make the copy clearer and more engaging.'}\n\nTEXTS (JSON):\n${JSON.stringify(clean)}`;
+  return { body: { model: MODEL, instructions: INSTRUCTIONS, input: [{ role: 'user', content: user }], text: { format: { type: 'json_schema', name: 'landing_rewrite', schema: SCHEMA, strict: true } }, store: false }, ids: clean.map((c) => c.id) };
+}
+
+export function parseOutput(data) {
+  let text = typeof data?.output_text === 'string' ? data.output_text : '';
+  if (!text) {
+    text = (Array.isArray(data?.output) ? data.output : []).filter((o) => o.type === 'message').flatMap((o) => o.content || []).filter((c) => c.type === 'output_text').map((c) => c.text).join('');
+  }
+  try { return JSON.parse(text); } catch { return null; }
+}
+
+export async function handle(body, { key, fetchImpl = fetch } = {}) {
+  if (!key) return fail(401, 'need_key', NEED_OPENAI_KEY);
+  const req = buildRequest(body?.input ?? body);
+  if (req.error) return fail(400, 'bad_request', req.error);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetchImpl('https://api.openai.com/v1/responses', { method: 'POST', signal: controller.signal, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` }, body: JSON.stringify(req.body) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      if (res.status === 401) return fail(401, 'bad_key', BAD_OPENAI_KEY);
+      if (res.status === 429) return fail(429, 'no_credit', OPENAI_NO_CREDIT);
+      return fail(502, 'provider_error', 'The AI service returned an error.');
+    }
+    const out = parseOutput(data);
+    if (!out || !Array.isArray(out.items)) return fail(502, 'bad_output', 'The AI returned an unreadable answer. Try again.');
+    // Only ids we sent come back; anything else is dropped.
+    const allowed = new Set(req.ids);
+    let items = out.items.filter((i) => i && allowed.has(i.id) && typeof i.text === 'string').map((i) => ({ id: i.id, text: i.text }));
+    if (req.write) items = items.filter((i) => usableOption(i.text, req.maxChars)).map((i) => ({ id: i.id, text: i.text.trim() }));
+    return json(200, { ok: true, items, model: data.model || MODEL });
+  } catch (e) {
+    return fail(e?.name === 'AbortError' ? 504 : 502, 'provider_error', e?.name === 'AbortError' ? 'The AI took too long.' : 'The AI service is unreachable.');
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export const handler = withClerkAuth(async (event) => {
+  if (event.httpMethod !== 'POST') return fail(405, 'method_not_allowed', 'Use POST');
+  if ((event.body || '').length > MAX_BODY) return fail(413, 'too_large', 'Request too large');
+  let body;
+  try { body = JSON.parse(event.body || '{}'); } catch { return fail(400, 'bad_request', 'Body must be JSON'); }
+  return handle(body, { key: userOpenAIKey(event.headers) });
+});

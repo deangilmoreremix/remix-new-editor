@@ -47,7 +47,7 @@ export function CharacterPage() {
 
   // Features
   const featuresSection = document.createElement('div');
-  featuresSection.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6';
+  featuresSection.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6';
   featuresSection.innerHTML = `
     <h2 class="text-xl font-black text-white mb-4">Consistent Characters</h2>
     <p class="text-sm text-muted mb-6">Create and maintain character consistency across all your projects</p>
@@ -65,7 +65,7 @@ export function CharacterPage() {
 
   // Models
   const modelsSection = document.createElement('div');
-  modelsSection.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6';
+  modelsSection.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6';
   modelsSection.innerHTML = `
     <h2 class="text-xl font-black text-white mb-4">Available Models</h2>
     <p class="text-sm text-muted mb-6">Specialized models for character generation</p>
@@ -85,7 +85,7 @@ export function CharacterPage() {
 
   // Example Prompts
   const promptsSection = document.createElement('div');
-  promptsSection.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6';
+  promptsSection.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6';
   promptsSection.innerHTML = `
     <h2 class="text-xl font-black text-white mb-4">Example Prompts</h2>
     <p class="text-sm text-muted mb-6">Get inspired by these character creations</p>
@@ -102,7 +102,7 @@ export function CharacterPage() {
 
   // CTA
   const ctaSection = document.createElement('div');
-  ctaSection.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl mb-6 text-center';
+  ctaSection.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl mb-6 text-center';
   ctaSection.innerHTML = `
     <h2 class="text-xl font-black text-white mb-2">Create Your Character</h2>
     <p class="text-sm text-muted mb-6">Generate consistent, professional characters</p>
@@ -119,6 +119,7 @@ export function CharacterPage() {
     btn.onclick = () => navigate('character');
   });
   container.querySelector('.cta-btn').onclick = () => navigate('character');
+  container.querySelector('.cta-btn').dataset.helpText = 'Open Character Studio.';
 
   return container;
 }

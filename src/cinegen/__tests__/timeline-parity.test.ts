@@ -10,10 +10,12 @@ const BUDGET: Record<string, number> = {
   'components/edit/track-row.tsx': 10,
   'components/edit/clip-card.tsx': 40,
   'components/edit/tool-sidebar.tsx': 30,
-  'components/edit/left-panel.tsx': 60,
+  'components/edit/left-panel.tsx': 80,
   'components/edit/timeline-viewer.tsx': 70,
-  'components/edit/timeline-editor.tsx': 220,
-  'components/edit/edit-tab.tsx': 260,
+  // [remix] 240: the Landing pages tab, Template videos modal and desktop drop-to-track were added to this file after the 220 budget was set.
+  'components/edit/timeline-editor.tsx': 240,
+  // [remix] 270: Lead Generator / List Builder designs (onAddOverlay takes a design id and reuses the one List Builder a video has) were added after the 260 budget was set.
+  'components/edit/edit-tab.tsx': 270,
   'lib/editor/playback-engine.ts': 80,
 };
 

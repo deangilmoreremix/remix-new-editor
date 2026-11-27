@@ -51,7 +51,7 @@ export function UpscalePage() {
     </div>
 
     <!-- Features -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-xl font-black text-white mb-1">Super Resolution</h2>
       <p class="text-sm text-muted mb-6">Upscale your images without quality loss</p>
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -66,7 +66,7 @@ export function UpscalePage() {
     </div>
 
     <!-- Upscale Methods -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-xl font-black text-white mb-1">Upscale Methods</h2>
       <p class="text-sm text-muted mb-6">Choose the best method for your needs</p>
       <div class="grid md:grid-cols-3 gap-4">
@@ -85,7 +85,7 @@ export function UpscalePage() {
     </div>
 
     <!-- Upscale Factors -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-xl font-black text-white mb-1">Upscale Factors</h2>
       <p class="text-sm text-muted mb-6">Increase resolution up to 8x</p>
       <div class="flex flex-wrap justify-center gap-4">
@@ -105,7 +105,7 @@ export function UpscalePage() {
     </div>
 
     <!-- Final CTA -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center">
       <h2 class="text-2xl font-black text-white mb-2">Upscale Your Images</h2>
       <p class="text-white/60 text-sm mb-6 max-w-md mx-auto">Enhance resolution with AI-powered upscaling</p>
       <button class="cta-btn btn-primary-modern">
@@ -117,7 +117,10 @@ export function UpscalePage() {
   container.appendChild(contentWrapper);
 
   container.querySelector('.start-btn').onclick = () => navigate('upscale');
+
+  container.querySelector('.start-btn').dataset.helpText = 'Open Upscale Suite.';
   container.querySelector('.cta-btn').onclick = () => navigate('upscale');
+  container.querySelector('.cta-btn').dataset.helpText = 'Open Upscale Suite.';
 
   return container;
 }

@@ -9,12 +9,22 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  # onnxruntime-node (a nested dependency of @bg0/browser and kokoro-js) downloads a CUDA/GPU
+  # binary in its postinstall and the release asset now returns 404, which fails every fresh
+  # install ("Failed to download the binaries: 404"). Netlify has no GPU, so skip it.
+  ONNXRUNTIME_NODE_INSTALL_CUDA = "skip"
+  # puppeteer and playwright download hundreds of MB of browser binaries during
+  # install. The Netlify build never launches a browser (functions use the
+  # @sparticuz/chromium package instead), so skip them to save build disk space.
+  PUPPETEER_SKIP_DOWNLOAD = "true"
+  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1"
   # Server-only secrets that the Netlify functions read at runtime. Listing them
   # here keeps the build-time secrets scanner from failing a deploy when one of
   # them legitimately appears in a log line or build output. Every name below is
   # read ONLY by code under netlify/functions/ (server-side) — none is inlined
   # into the client bundle, and none carries a VITE_ prefix.
-  SECRETS_SCAN_OMIT_KEYS = "INTERNAL_FUNCTION_SECRET,FIRECRAWL_API_KEY,CLERK_SECRET_KEY,MAIGRET_WORKER_SECRET,MAIGRET_WORKER_URL,PERSONALIZATION_DISCOVERY_SECRET,SUPABASE_SERVICE_ROLE_KEY,CLERK_WEBHOOK_SIGNING_SECRET,OPENAI_API_KEY,MUAPI_API_KEY,PIXABAY_API_KEY,FAL_KEY,GEMINI_API_KEY,GITHUB_TOKEN"
+  SECRETS_SCAN_OMIT_KEYS = "INTERNAL_FUNCTION_SECRET,FIRECRAWL_API_KEY,CLERK_SECRET_KEY,MAIGRET_WORKER_SECRET,MAIGRET_WORKER_URL,PERSONALIZATION_DISCOVERY_SECRET,SUPABASE_SERVICE_ROLE_KEY,CLERK_WEBHOOK_SIGNING_SECRET,OPENAI_API_KEY,MUAPI_API_KEY,PIXABAY_API_KEY,FAL_KEY,GEMINI_API_KEY,GITHUB_TOKEN,VAPID_PRIVATE_KEY,PUSH_DISPATCH_SECRET,RESEND_API_KEY,ALERT_EMAIL_FROM,ADMIN_ALERT_EMAIL"
 
 # MEDIA UPLOADS DO NOT TRANSIT NETLIFY FUNCTIONS.
 # Netlify synchronous functions cap the request payload at 6 MB (≈4.5 MB for
@@ -46,6 +56,16 @@
 [functions."website-builder-api"]
   node_bundler = "esbuild"
 
+# Brand Studio site scraper (POST /api/scrape): headless Chromium behind the
+# discovery SSRF guard. Declares its own path, so no redirect is needed.
+[functions."brand-scrape"]
+  node_bundler = "esbuild"
+  external_node_modules = ["@sparticuz/chromium", "playwright-core", "playwright"]
+
+# Brand Kit deep scan (POST /api/brand-kit): plain SSRF-validated fetches of the site's own pages; no browser.
+[functions."brand-kit"]
+  node_bundler = "esbuild"
+
 [functions."motion-studio-capture-background"]
   node_bundler = "esbuild"
   external_node_modules = ["@sparticuz/chromium", "playwright-core", "playwright"]
@@ -61,7 +81,7 @@
 # In dev this is handled by the Vite proxy in vite.config.js; Netlify builds
 # need an explicit redirect proxy. Set DIRECTOR_API_URL as a build-time env var
 # (Netlify dashboard) to the live director-backend URL, e.g.
-# https://director-backend.onrender.com. If unset, requests fall through to the
+# https://<director-backend-beam-url>. If unset, requests fall through to the
 # SPA fallback (which will 404 the API call) rather than silently mocking.
 [[redirects]]
   from = "/director-api/*"
@@ -91,6 +111,14 @@
   status = 200
   force = true
 
+# Local demo / template clips and posters (public/media/**). The Remotion export runner is a sandboxed frame with an opaque origin,
+# so reading these (decoding frames into a canvas) is a cross-origin request and needs CORS (same reason as /assets/* and /hyperframes/*).
+# The Template videos library itself is hosted in the Supabase bucket demo-template-videos (public, CORS *), not here.
+[[headers]]
+  for = "/media/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+
 # Template Generator AI (script writing + image generation). These /api paths had no
 # rewrite, so production served index.html (404) and the AI buttons failed.
 [[redirects]]
@@ -113,6 +141,13 @@
   status = 200
   force = true
 
+# Zack D studio (curiosity-loop 3D shorts): script/trends (OpenAI) + media jobs (MuAPI), BYOK.
+[[redirects]]
+  from = "/api/zackd"
+  to = "/.netlify/functions/zackd"
+  status = 200
+  force = true
+
 # AI Agent voiceover + music (MuAPI, MUAPI_API_KEY).
 [[redirects]]
   from = "/api/agent-audio"
@@ -125,6 +160,21 @@
 [[redirects]]
   from = "/api/timeline-ai"
   to = "/.netlify/functions/timeline-ai"
+  status = 200
+  force = true
+
+# Video Pages -> MailerLite sync (user's own MailerLite token, sent per request
+# as X-MailerLite-Key; never stored or logged).
+[[redirects]]
+  from = "/api/landing-sync"
+  to = "/.netlify/functions/landing-sync"
+  status = 200
+  force = true
+
+# Landing page copy rewrite (OpenAI Responses API, user's own key).
+[[redirects]]
+  from = "/api/landing-rewrite"
+  to = "/.netlify/functions/landing-rewrite"
   status = 200
   force = true
 
@@ -189,9 +239,19 @@
     Access-Control-Allow-Origin = "*"
     Cache-Control = "public, max-age=3600"
 
+# [template-generator] Bundled background music. The sandboxed export-runner iframe has an opaque origin, so it can only fetch the
+# music tracks the Template Generator adds to a video when they are served with CORS.
+[[headers]]
+  for = "/motion-studio/bgmlib/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=604800"
+
 # The public video player (/watch/<id>) can be embedded anywhere: its
 # framing headers are rewritten by netlify/edge-functions/watch-embed.js
 # (header rules below are merged, not overridden, so a rule can't do it).
+# Video landing pages (/p/<slug>) work the same way via
+# netlify/edge-functions/page-meta.js (link-preview tags; framing only for ?embed=1).
 
 # Security headers
 [[headers]]
@@ -207,7 +267,8 @@
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(self)"
+    # camera=(self): the Video Outreach studio and the recorders record the webcam (same origin only).
+    Permissions-Policy = "camera=(self), microphone=(self)"
 
 # Ensure the SPA fallback only fires when no file matches.
 # Netlify's default redirect behavior already skips existing files.
@@ -277,11 +338,42 @@ force = false
   status = 404
   force = false
 
+# Studio pages live at clean paths (/image, /cinema-template, /template/<id>,
+# /academy/track/...). Three studio ids share a name with a folder under
+# public/ that holds static files but no index.html. Netlify would also fall
+# through to the catch-all below, but the rules are explicit so a folder that
+# one day gains an index.html cannot silently take over the studio URL.
+# `force = false`: real files inside those folders (lesson media, sounds,
+# templates) are still served as files.
+[[redirects]]
+  from = "/academy"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/academy/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/recorder"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/zackd"
+  to = "/index.html"
+  status = 200
+  force = false
+
 # SPA fallback: any path that doesn't match a real file or one of the
-# explicit redirects above is served by the SPA shell (`/index.html`).
-# This is the standard pattern for client-side hash-routed SPAs and
-# prevents 404s for any menu link that incorrectly uses a real
-# `<a href="/route">` instead of the in-app hash router.
+# explicit redirects above is served by the SPA shell (`/index.html`), which
+# reads the path as the page (src/lib/routeUrl.js). Old hash links
+# (/#/image, /?a=1#/image) still load: the browser never sends the hash to the
+# server, and the app rewrites the address bar to the clean path on load.
 # `force = false` so existing files (assets/, favicon, manifest, etc.)
 # are still served directly without a redirect.
 [[redirects]]
@@ -289,3 +381,12 @@ from = "/*"
 to = "/index.html"
 status = 200
 force = false
+
+# Web Push (owner browser alerts): called by the database (pg_net) with x-push-secret. The
+# `web-push` package is loaded at runtime via dynamic import, so keep it external.
+[functions."push-dispatch"]
+  external_node_modules = ["web-push"]
+
+# Scheduled (every 15 min): sends the "while you were away" summary push after quiet hours, same send code as push-dispatch.
+[functions."push-quiet-flush"]
+  external_node_modules = ["web-push"]

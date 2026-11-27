@@ -1,7 +1,7 @@
 import { navigate } from '../lib/router.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createStudioHeader } from '../lib/thumbnails.js';
 import { escapeHtml } from '../lib/security.js';
 import { getVideoMetadata, downloadFrame, copyToClipboard, saveDraft, saveTemplate, duplicateTemplate, listTemplates, listDrafts, sendToStoryboard } from '../lib/editor/renderActions.js';
 import { enqueueRender, listRenderQueue, subscribe, removeFromRenderQueue, startProcessor, setRenderExecutor } from '../lib/editor/renderQueueStore.js';
@@ -338,47 +338,20 @@ export function RenderPage() {
     });
   }
 
+  // Shared studio banner (same size and width as every other studio), with the page's actions in a row under it.
   const hero = document.createElement('div');
-  hero.className = 'relative mb-8 overflow-hidden rounded-[28px] md:mb-10';
-  const heroBanner = createHeroSection('render', 'h-44 md:h-60');
-  if (heroBanner) {
-    heroBanner.classList.add('rounded-[28px]');
-    const heroOverlay = document.createElement('div');
-    heroOverlay.className = 'absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-6 md:p-8 z-10';
-    heroOverlay.innerHTML = `
-      <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p class="mb-3 text-xs uppercase tracking-[0.28em] text-white/70">AI Film Studio</p>
-          <h1 class="text-3xl font-black tracking-tight md:text-5xl text-white">Video Render</h1>
-          <p class="mt-2 max-w-2xl text-sm text-white/60 md:text-base">Review, refine, and process your generated video with a cinematic render workflow.</p>
-        </div>
-        <div class="flex flex-wrap gap-3">
-          <button id="saveDraftBtn" class="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-zinc-100 shadow-lg shadow-black/20 transition hover:bg-white/10">Save Draft</button>
-          <button class="start-render-btn rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black shadow-xl transition hover:opacity-90">Start Render</button>
-        </div>
-      </div>
-    `;
-    heroBanner.appendChild(heroOverlay);
-    hero.appendChild(heroBanner);
-  } else {
-    // Fallback if hero image not found
-    hero.className = 'relative mb-8 h-44 overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,#17181b_0%,#0c0d10_45%,#1b2230_100%)] md:mb-10 md:h-60';
-    hero.innerHTML = `
-      <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-6 md:p-8">
-        <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p class="mb-3 text-xs uppercase tracking-[0.28em] text-white/70">AI Film Studio</p>
-            <h1 class="text-3xl font-black tracking-tight md:text-5xl">Video Render</h1>
-            <p class="mt-2 max-w-2xl text-sm text-white/60 md:text-base">Review, refine, and process your generated video with a cinematic render workflow.</p>
-          </div>
-          <div class="flex flex-wrap gap-3">
-            <button id="saveDraftBtn" class="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-zinc-100 shadow-lg shadow-black/20 transition hover:bg-white/10">Save Draft</button>
-            <button class="start-render-btn rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black shadow-xl transition hover:opacity-90">Start Render</button>
-          </div>
-        </div>
-      </div>
-    `;
-  }
+  hero.className = 'mb-8 md:mb-10';
+  hero.appendChild(createStudioHeader('render', 'Video Render', 'Review, refine, and process your generated video with a cinematic render workflow.', 'mb-4'));
+  const heroActions = document.createElement('div');
+  heroActions.className = 'flex flex-col gap-4 md:flex-row md:items-center md:justify-between';
+  heroActions.innerHTML = `
+    <p class="text-xs uppercase tracking-[0.28em] text-white/70">AI Film Studio</p>
+    <div class="flex flex-wrap gap-3">
+      <button id="saveDraftBtn" class="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-zinc-100 shadow-lg shadow-black/20 transition hover:bg-white/10">Save Draft</button>
+      <button class="start-render-btn rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black shadow-xl transition hover:opacity-90">Start Render</button>
+    </div>
+  `;
+  hero.appendChild(heroActions);
   inner.appendChild(hero);
 
   // Main grid
@@ -550,6 +523,7 @@ export function RenderPage() {
     btn.textContent = preset;
     btn.onclick = () => selectPreset(preset);
     btn.setAttribute('aria-pressed', String(preset === selectedPreset));
+    btn.dataset.help = 'render preset';
     presetsBtnsDiv.appendChild(btn);
   });
   presetsDiv.querySelector('div').appendChild(presetsBtnsDiv);

@@ -7,6 +7,7 @@
  * codec, timeout) the sampler returns `null`, and the quality check reports
  * "readability not verified" instead of guessing.
  */
+import { toPlayablePreviewMediaUrl } from '../remoteMedia'
 import type { LumaSample } from './types'
 
 /** sRGB luma (Rec. 709 weights) of an RGBA buffer, as a cols×rows grid in 0..1. */
@@ -108,7 +109,8 @@ export async function sampleFrames(
   video.muted = true
   video.preload = 'auto'
   video.playsInline = true
-  video.src = url
+  // Same-origin proxy for hosts that refuse cross-site reads (e.g. video.twimg.com); other URLs are unchanged.
+  video.src = toPlayablePreviewMediaUrl(url)
   try {
     const ready = await new Promise<boolean>((resolve) => {
       const timer = setTimeout(() => resolve(false), timeoutMs)
@@ -151,6 +153,30 @@ export async function sampleFrames(
     video.removeAttribute('src')
     video.load()
   }
+}
+
+/**
+ * Frame measurements are expensive (they seek the video), so they are cached per URL. The cache is
+ * shared: the Layout Quality hook fills it, and the preview input builder reads it so the composition
+ * can size its text scrims to the footage without re-measuring or awaiting anything.
+ */
+const SAMPLE_CACHE = new Map<string, LumaSample[] | null>()
+/**
+ * Cache key for a clip as shown in a frame of `compW`x`compH`: the footage is cropped to cover the frame
+ * (objectFit: 'cover'), so the same clip in a different frame shape is a different measurement.
+ */
+export function sampleCacheKey(url: string | null | undefined, compW?: number, compH?: number): string | null {
+  if (!url) return null
+  return compW && compH ? `${url}|${compW}x${compH}` : url
+}
+export const hasCachedSamples = (url: string): boolean => SAMPLE_CACHE.has(url)
+/** Cached samples for `url`, or `null` when measuring failed / was never done. */
+export function getCachedSamples(url: string | null | undefined): LumaSample[] | null {
+  if (!url) return null
+  return SAMPLE_CACHE.get(url) ?? null
+}
+export function setCachedSamples(url: string, samples: LumaSample[] | null): void {
+  SAMPLE_CACHE.set(url, samples)
 }
 
 /** Natural width/height of each image URL; URLs that cannot be loaded are omitted. */

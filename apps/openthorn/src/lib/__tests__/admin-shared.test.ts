@@ -18,6 +18,37 @@ describe('admin server helpers', () => {
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-key'
   })
 
+  describe('verifyUser and builder suspension', () => {
+    const authOk = () => jsonResponse({ id: USER_ID, email: 'a@b.co' })
+
+    it('accepts a valid token whose profile is not suspended', async () => {
+      fetchMock.mockResolvedValueOnce(authOk()).mockResolvedValueOnce(jsonResponse([{ suspended: false }]))
+      const { verifyUser } = await import('../../../api/_shared')
+      await expect(verifyUser('Bearer t')).resolves.toEqual({ id: USER_ID, email: 'a@b.co' })
+      expect(String(fetchMock.mock.calls[1][0])).toContain(`/rest/v1/wb_profiles?id=eq.${USER_ID}&select=suspended`)
+    })
+
+    it('rejects an existing session once the profile is suspended', async () => {
+      fetchMock.mockResolvedValueOnce(authOk()).mockResolvedValueOnce(jsonResponse([{ suspended: true }]))
+      const { verifyUser } = await import('../../../api/_shared')
+      await expect(verifyUser('Bearer t')).resolves.toBeNull()
+    })
+
+    it('fails closed when the suspension lookup errors', async () => {
+      fetchMock.mockResolvedValueOnce(authOk()).mockResolvedValueOnce(jsonResponse({}, false, 500))
+      const { verifyUser } = await import('../../../api/_shared')
+      await expect(verifyUser('Bearer t')).resolves.toBeNull()
+    })
+
+    it('skips the check when no service role key is configured (local dev)', async () => {
+      delete process.env.SUPABASE_SERVICE_ROLE_KEY
+      fetchMock.mockResolvedValueOnce(authOk())
+      const { verifyUser } = await import('../../../api/_shared')
+      await expect(verifyUser('Bearer t')).resolves.toEqual({ id: USER_ID, email: 'a@b.co' })
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+    })
+  })
+
   it('isAdminUser returns true when the profile row has is_admin', async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse([{ is_admin: true }]))
     const { isAdminUser } = await import('../../../api/_shared')

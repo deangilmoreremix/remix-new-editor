@@ -98,6 +98,8 @@ export function configureCapableBrowser() {
 }
 
 export function resetRendererMocks() {
+  // These tests start renders that are never resolved; forget them so the next test is not refused as "busy".
+  webExportModule.resetActiveExport()
   vi.clearAllMocks()
   configureCapableBrowser()
 }
@@ -130,13 +132,16 @@ export const TestOpener: FC<{ ctxRef: HarnessRef }> = ({ ctxRef }) => {
   return null
 }
 
-export async function renderProvider(ctxRef: HarnessRef): Promise<HTMLDivElement> {
+export async function renderProvider(
+  ctxRef: HarnessRef,
+  options: { access?: 'anonymous' | 'authenticated' } = {},
+): Promise<HTMLDivElement> {
   const container = document.createElement('div')
   document.body.appendChild(container)
   const root = createRoot(container)
   await act(async () => {
     root.render(
-      <DemoPersonalizeProvider>
+      <DemoPersonalizeProvider access={options.access}>
         <TestOpener ctxRef={ctxRef} />
       </DemoPersonalizeProvider>,
     )

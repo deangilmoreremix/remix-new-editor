@@ -1,0 +1,64 @@
+{
+  "describe-and-generate-a-storyboard": {
+    "selector": "#vi-premise",
+    "click": true,
+    "type": "A 15-second launch ad for a trail-running shoe: a runner climbs a misty ridge at dawn",
+    "then": [
+      {
+        "selector": "#vi-generate-btn",
+        "hold": 1500
+      }
+    ]
+  },
+  "customize-panel": {
+    "selector": "#video-intent-toggle",
+    "click": true,
+    "then": [
+      {
+        "selector": "#vi-subject",
+        "type": "Trail shoe launch"
+      },
+      {
+        "selector": "#vi-tone",
+        "hold": 900
+      },
+      {
+        "selector": "#vi-targetAudience",
+        "type": "Weekend runners"
+      }
+    ]
+  },
+  "also-generate-frame-images": {
+    "selector": "xpath=//label[@for='vi-with-images' or .//input[@id='vi-with-images']]",
+    "click": false
+  },
+  "frame-cards": {
+    "selector": "xpath=(//select[.//option[normalize-space(.)='Wide Shot']])[1]",
+    "click": true,
+    "then": [
+      {
+        "selector": "xpath=(//button[@aria-label='Move frame later'])[1]"
+      }
+    ]
+  },
+  "start-from-shot-preset": {
+    "selector": "xpath=//button[normalize-space(.)='+ Add frame']",
+    "click": true,
+    "then": [
+      {
+        "selector": "xpath=(//button[normalize-space(.)='✨ Start from shot preset'])[last()]",
+        "hold": 2000
+      }
+    ]
+  },
+  "save-load-and-export": {
+    "selector": "xpath=//button[normalize-space(.)='Save']",
+    "click": true,
+    "then": [
+      {
+        "selector": "xpath=//button[normalize-space(.)='Export ▾']",
+        "hold": 2000
+      }
+    ]
+  }
+}

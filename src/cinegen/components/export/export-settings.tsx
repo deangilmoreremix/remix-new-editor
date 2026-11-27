@@ -1,15 +1,17 @@
 
 
-import { useState } from 'react';
+import { useState, type MutableRefObject } from 'react';
 import type { ExportPreset } from '@cinegen/types/export';
 // [remix] OpenChatCut export bitrate modes (export/bitrate.ts) and auto-QA preference (export/autoQa.ts)
 import { DEFAULT_CUSTOM_BITRATE_MBPS, MAX_VIDEO_BITRATE_MBPS, MIN_VIDEO_BITRATE_MBPS, requestedVideoBitrateBps, type VideoBitrateMode } from '../../../openchatcut/export/bitrate';
 // [remix] OpenChatCut master-quality policy (media/qualityPolicy.ts): master → high default bitrate
 import { ASPECTS } from '@cinegen/lib/occ/frame-geometry';
 import { defaultBitrateModeForQuality, getQualityMode, setQualityMode } from '../../../openchatcut/media/qualityPolicy';
+import { ExportFormatSelect } from './export-format-select'; // [remix] Stage 11
+import type { ExportContainer } from '@cinegen/lib/export/containers';
 import { loadExportAutoQaPreference, saveExportAutoQaPreference } from '../../../openchatcut/export/autoQa';
 
-export interface ExportExtras { videoBitrate?: number; qa: boolean; aspect?: string }
+export interface ExportExtras { videoBitrate?: number; qa: boolean; aspect?: string; container?: ExportContainer /* [remix] Stage 11 */; /** one video per listed contact (Personalized output) */ contactIds?: string[] }
 function aspectFrame(w: number, h: number, aspect: string): [number, number] {
   const [a, b] = aspect.split(':').map(Number); const r = a / b; const short = Math.min(w, h);
   const even = (n: number) => Math.max(2, Math.round(n / 2) * 2);
@@ -25,12 +27,17 @@ interface ExportSettingsProps {
   fit?: 'contain' | 'cover';
   onFit?: (fit: 'contain' | 'cover') => void;
   hasClips: boolean;
+  /** [remix] why Render is unavailable even though the timeline has clips */
+  blockedReason?: string;
   onRender: (preset: ExportPreset, fps: 24 | 30 | 60, extras: ExportExtras) => void;
+  /** [remix] Personalized output renders one video per contact with the options chosen here */
+  renderRef?: MutableRefObject<((contactIds?: string[]) => void) | null>;
 }
 
-export function ExportSettings({ hasClips, onRender, aspect = '16:9', onAspect, fit = 'cover', onFit }: ExportSettingsProps) {
+export function ExportSettings({ hasClips, blockedReason, onRender, aspect = '16:9', onAspect, fit = 'cover', onFit, renderRef }: ExportSettingsProps) {
   const [preset, setPreset] = useState<ExportPreset>('standard');
   const [fps, setFps] = useState<24 | 30 | 60>(30);
+  const [container, setContainer] = useState<ExportContainer>('mp4'); // [remix] Stage 11
   const setAspect = (a: string) => onAspect?.(a);
   const [bitrateMode, setBitrateMode] = useState<VideoBitrateMode>(() => defaultBitrateModeForQuality());
   const [master, setMaster] = useState(() => getQualityMode() === 'master');
@@ -39,6 +46,8 @@ export function ExportSettings({ hasClips, onRender, aspect = '16:9', onAspect, 
   const [pw, ph] = PRESET_SIZE[preset];
   const [w, h] = aspectFrame(pw, ph, aspect);
   const requested = requestedVideoBitrateBps({ mode: bitrateMode, width: w, height: h, fps, customMbps });
+
+  if (renderRef) renderRef.current = hasClips ? (contactIds) => onRender(preset, fps, { videoBitrate: requested, qa: contactIds?.length ? false : qa, aspect, ...(contactIds?.length ? { contactIds } : {}) }) : null;
 
   const presets: { value: ExportPreset; label: string; resolution: string }[] = [
     { value: 'draft', label: 'Draft', resolution: '720p' },
@@ -64,6 +73,8 @@ export function ExportSettings({ hasClips, onRender, aspect = '16:9', onAspect, 
         </div>
       </div>
 
+      <ExportFormatSelect value={container} onChange={setContainer} />
+
       <div className="export-settings__section">
         <div className="export-settings__label">Frame Rate</div>
         <select
@@ -79,18 +90,21 @@ export function ExportSettings({ hasClips, onRender, aspect = '16:9', onAspect, 
 
       <div className="export-settings__section">
         <div className="export-settings__label">Aspect ratio</div>
+        <div className="export-settings__row">
         <select className="export-settings__fps-select" data-testid="export-aspect" value={aspect} onChange={(e) => setAspect(e.target.value)}>
           {ASPECTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
-        <span style={{ fontSize: 11, opacity: 0.65, marginLeft: 8 }}>{w}×{h}</span>
-        <select className="export-settings__fps-select" data-testid="export-fit" title="How pictures fill the frame (clips can override this)" style={{ marginLeft: 8 }} value={fit} onChange={(e) => onFit?.(e.target.value as 'contain' | 'cover')}>
+        <span style={{ fontSize: 11, opacity: 0.65 }}>{w}×{h}</span>
+        <select className="export-settings__fps-select" data-testid="export-fit" title="How pictures fill the frame (clips can override this)" value={fit} onChange={(e) => onFit?.(e.target.value as 'contain' | 'cover')}>
           <option value="contain">Contain (whole picture)</option>
           <option value="cover">Cover (fill frame)</option>
         </select>
+        </div>
       </div>
 
       <div className="export-settings__section">
         <div className="export-settings__label">Video bitrate</div>
+        <div className="export-settings__row">
         <select className="export-settings__fps-select" data-testid="export-bitrate-mode" value={bitrateMode} onChange={(e) => setBitrateMode(e.target.value as VideoBitrateMode)}>
           <option value="auto">Auto</option>
           <option value="compact">Compact (smaller file)</option>
@@ -99,9 +113,10 @@ export function ExportSettings({ hasClips, onRender, aspect = '16:9', onAspect, 
           <option value="custom">Custom…</option>
         </select>
         {bitrateMode === 'custom' && (
-          <input className="export-settings__fps-select" type="number" data-testid="export-bitrate-custom" min={MIN_VIDEO_BITRATE_MBPS} max={MAX_VIDEO_BITRATE_MBPS} value={customMbps} onChange={(e) => setCustomMbps(Number(e.target.value))} style={{ width: 90, marginLeft: 8 }} />
+          <input className="export-settings__fps-select" type="number" data-testid="export-bitrate-custom" min={MIN_VIDEO_BITRATE_MBPS} max={MAX_VIDEO_BITRATE_MBPS} value={customMbps} onChange={(e) => setCustomMbps(Number(e.target.value))} style={{ width: 90, minWidth: 90 }} />
         )}
-        {requested ? <span style={{ fontSize: 11, opacity: 0.65, marginLeft: 8 }}>{(requested / 1_000_000).toFixed(1)} Mbps</span> : null}
+        {requested ? <span style={{ fontSize: 11, opacity: 0.65 }}>{(requested / 1_000_000).toFixed(1)} Mbps</span> : null}
+        </div>
       </div>
 
       <div className="export-settings__section">
@@ -118,8 +133,8 @@ export function ExportSettings({ hasClips, onRender, aspect = '16:9', onAspect, 
       <button
         className="export-settings__render-btn"
         disabled={!hasClips}
-        onClick={() => onRender(preset, fps, { videoBitrate: requested, qa, aspect })}
-        title={hasClips ? undefined : 'Add clips to the timeline first'}
+        onClick={() => onRender(preset, fps, { videoBitrate: requested, qa, aspect, container })}
+        title={hasClips ? undefined : (blockedReason || 'Add clips to the timeline first')}
       >
         Render
       </button>

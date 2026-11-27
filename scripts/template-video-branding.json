@@ -1,0 +1,1915 @@
+{
+ "note": "Per-clip branding verdicts for the landing-page demo clips. none = reviewed, no visible logo/watermark/credit; logo = has a visible logo, watermark, badge, caption credit or in-scene brand text; exclude = not footage (placeholder graphics / documentation screenshot).",
+ "entries": {
+  "mmx25:10-second-16-9-photoreal-cinematic-wide-shot-fly-735905": {
+   "branding": "none"
+  },
+  "mmx25:15-second-16-9-photoreal-cinematic-action-sequence-with-743096": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:15-second-cinematic-burst-cut-video-showcasing-t-241802": {
+   "branding": "none"
+  },
+  "mmx25:15-second-cinematic-showdown-between-the-most-technolog-354071": {
+   "branding": "none"
+  },
+  "mmx25:15-second-ultra-premium-luxury-perfume-commercial-in-ci-520833": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:15-seconds-16-9-landscape-blend-live-action-footage-of-867462": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:16-9-15s-hyper-realistic-korean-noir-crime-teaser-a-447606": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:16-9-cinematic-wuxia-mystery-set-in-a-bamboo-571041": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:16-9-luxury-fashion-commercial-using-as-exact-vi-969702": {
+   "branding": "none"
+  },
+  "mmx25:1980s-open-source-family-comedy": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:1998-seoul-rainy-bus-stop-archival-home-video-300930": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:3-references-one-model-894024": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:3d-pixar-style-animated-comedy-short-film-ultra-premium-057697": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:3x3-contact-sheet-female-rapper-grid-performance-672833": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:7-grok-imagine-1-5-649179": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:7-second-video-the-office-us-mockumentary-style-inside-the-709123": {
+   "branding": "none"
+  },
+  "mmx25:a-handheld-found-footage-shot-from-behind-a-person-playing-800047": {
+   "branding": "none"
+  },
+  "mmx25:a-hyper-realistic-handheld-phone-video-of-a-quiet-suburban-495564": {
+   "branding": "none"
+  },
+  "mmx25:afternoon-nap-in-a-hammock-190553": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:ai-cant-replace-you-joey-113820": {
+   "branding": "none"
+  },
+  "mmx25:also-has-an-impressive-understanding-of-differen-911311": {
+   "branding": "none"
+  },
+  "mmx25:an-1890s-field-guide-plate-drawing-itself-963371": {
+   "branding": "none"
+  },
+  "mmx25:an-other-example-of-poster-animation-and-honestl-483220": {
+   "branding": "none"
+  },
+  "mmx25:an-other-great-use-for-product-showcase-096175": {
+   "branding": "none"
+  },
+  "mmx25:and-reference-preserve-the-rider-s-face-short-curly-375367": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:beat-synced-k-pop-multimodal-mv-043716": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:been-testing-the-new-flux3-and-hailuo-minimax-h3-models-282651": {
+   "branding": "none"
+  },
+  "mmx25:blackberry-vanilla-soda-ugc-vlog-998714": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:blue-haired-hero-and-spirit-fox-escape-209379": {
+   "branding": "none"
+  },
+  "mmx25:bond-style-spy-thriller-op-art-anime-title-seque-295024": {
+   "branding": "none"
+  },
+  "mmx25:buddhist-monastery-courtyard-at-dawn-mist-drifting-betw-411584": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:can-reason-i-wanted-to-see-if-reasoning-could-167396": {
+   "branding": "none"
+  },
+  "mmx25:canyon-wingsuit-thread-world-build-a-wingsuit-pilot-thr-927857": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:cinematic-15-second-commercial-shot-fast-paced-editing-160587": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:cinematic-character-introduction-focused-on-pres-135392": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:cinematic-editorial-film-not-a-traditional-adver-555943": {
+   "branding": "none"
+  },
+  "mmx25:cinematic-luxury-skincare-product-commercial-vertical-9-591469": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:cinematic-sci-fi-suspense-video-a-realistic-spaceship-crew-in-024495": {
+   "branding": "none"
+  },
+  "mmx25:cinematic-wildlife-documentary-vertical-framing-subject-592938": {
+   "branding": "none"
+  },
+  "mmx25:circle-square-triangle-and-star-317678": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:cloaked-avenger-identity-lock-and-wardrobe-reference-us-595100": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:comfyui5t2v-197998": {
+   "branding": "none"
+  },
+  "mmx25:concrete-plaza-kickflip-drop-082714": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:create-a-15-second-ultra-photorealistic-live-action-war-sequence-714552": {
+   "branding": "none"
+  },
+  "mmx25:create-a-breathtaking-15-second-cinematic-flower-morph-sequence-using-622337": {
+   "branding": "none"
+  },
+  "mmx25:created-in-675674": {
+   "branding": "none"
+  },
+  "mmx25:created-this-with-minimax-h3-on-185447": {
+   "branding": "none"
+  },
+  "mmx25:created-using-minimax-h3-on-933942": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:created-with-minimax-h3-059973": {
+   "branding": "none"
+  },
+  "mmx25:created-with-minimax-h3-243802": {
+   "branding": "none"
+  },
+  "mmx25:created-with-minimax-h3-522089": {
+   "branding": "none"
+  },
+  "mmx25:created-with-minimax-h3-540945": {
+   "branding": "none"
+  },
+  "mmx25:created-with-minimax-h3-708458": {
+   "branding": "none"
+  },
+  "mmx25:created-with-minimax-h3-823597": {
+   "branding": "none"
+  },
+  "mmx25:created-with-minimax-h3-879541": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:created-with-minimax-h3-915217": {
+   "branding": "none"
+  },
+  "mmx25:created-with-minimax-h3-in-453795": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:creating-a-sleek-professional-ad-for-using-itsel-709286": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:cyber-grunge-fashion-film-with-vhs-glitch-978345": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:dark-pop-cyber-grunge-rap-music-video-style-998615": {
+   "branding": "none"
+  },
+  "mmx25:dark-pop-trio-music-video-performance-with-on-screen-titles-931081": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:deck-builder-turn-ui-choreography-446745": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:documentary-about-a-superhero-who-has-extremely-bad-luc-615837": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:dramatic-performances-301360": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:drowning-deep-down-the-ocean-created-with-minimax-h3-773704": {
+   "branding": "none"
+  },
+  "mmx25:duration-15-seconds-aspect-ratio-16-9-style-authentic-613617": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:duration-15s-808615": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:dv-16mm-camcorder-vlog-with-soft-vhs-tape-quality-209852": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:dynamic-product-landing-page-ui-ux-demo-inspired-by-nik-789559": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:emotional-performance-lip-sync-to-reference-audio-609528": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:empty-suit-stop-motion-assembly-854152": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:enra-vael-forge-city-character-introduction-325876": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:fast-paced-15-second-16-9-anime-opening-title-se-734471": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:fire-breathing-dragon-in-broken-palace-831106": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:fire-dragon-and-rider-over-scorched-world-726278": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:first-storyboard-image-to-video-using-s-minimax-h3-on-105162": {
+   "branding": "none"
+  },
+  "mmx25:first-storyboard-image-to-video-using-s-minimax-h3-on-333283": {
+   "branding": "none"
+  },
+  "mmx25:first-storyboard-image-to-video-using-s-minimax-h3-on-440739": {
+   "branding": "none"
+  },
+  "mmx25:first-storyboard-image-to-video-using-s-minimax-h3-on-517354": {
+   "branding": "none"
+  },
+  "mmx25:first-storyboard-image-to-video-using-s-minimax-h3-on-951530": {
+   "branding": "none"
+  },
+  "mmx25:first-storyboard-image-to-video-using-s-minimax-h3-on-954269": {
+   "branding": "none"
+  },
+  "mmx25:first-storyboard-image-to-video-using-s-minimax-h3-on-995928": {
+   "branding": "none"
+  },
+  "mmx25:first-try-with-minimax-h3-and-is-full-cinematic-276158": {
+   "branding": "none"
+  },
+  "mmx25:five-cinematic-dialogue-set-piece-scenes-875568": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:found-footage-film-with-335284": {
+   "branding": "none"
+  },
+  "mmx25:fourthi-storyboard-image-to-video-using-minimax-h3-on-470161": {
+   "branding": "none"
+  },
+  "mmx25:from-hailuio-can-easily-make-motivational-videos-599712": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:generated-a-french-bulldog-with-minimax-h3-182507": {
+   "branding": "none"
+  },
+  "mmx25:generated-with-810731": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:generated-with-minimax-h3-on-116099": {
+   "branding": "none"
+  },
+  "mmx25:giant-koi-park-incident": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:going-open-source-could-mark-a-turning-point-for-006285": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:gorgeous-latina-beauty-dancing-through-the-magic-428386": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:gourmet-burger-ugc-taste-test-165289": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:gpt-image-2-758841": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:grokminimax-h3-715612": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:h3-local-i-like-vague-105742": {
+   "branding": "none"
+  },
+  "mmx25:hailuo-has-been-great-at-text-motion-graphics-for-a-330229": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:hailuo-minimax-h3-is-super-good-for-product-videos-129035": {
+   "branding": "none"
+  },
+  "mmx25:hailuo-minimax-h3-vs-seedance-2-0-186452": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:handcrafted-paper-cut-stop-motion-short-512241": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:hard-sci-fi-desert-3x3-grid-animation-sequence-845158": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:hip-hop-music-video-make-the-character-from-video1-107776": {
+   "branding": "logo",
+   "marks": "name caption \"Ben Nash\" on the last frame"
+  },
+  "mmx25:how-to-push-hailuo-minimax-h3-to-its-absolute-limit-576280": {
+   "branding": "none"
+  },
+  "mmx25:human-cakes-minimax-h3-local-046088": {
+   "branding": "none"
+  },
+  "mmx25:i-created-this-fun-days-of-the-week-lesson-for-k-723522": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:i-created-this-kids-counting-video-with-on-446929": {
+   "branding": "none"
+  },
+  "mmx25:i-made-a-comedy-special-with-hailuo-h3-and-the-076759": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:ice-cave-exploration-902327": {
+   "branding": "none"
+  },
+  "mmx25:image-1-for-the-character-image-2-for-the-619967": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:image-1-starting-frame-474111": {
+   "branding": "none"
+  },
+  "mmx25:image-as-the-exact-character-reference-preserve-her-fac-150697": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:image-as-the-exact-character-reference-preserve-her-fac-256521": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:image-as-the-exact-source-image-and-first-frame-221921": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:image-model-gpt-image-2-143224": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:impressionante-fazer-isso-com-uma-ia-local-035362": {
+   "branding": "none"
+  },
+  "mmx25:inspired-by-the-odyssey-622590": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:is-a-huge-model-for-some-themes-157293": {
+   "branding": "none"
+  },
+  "mmx25:is-now-publicly-available-844521": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:is-redefining-ai-with-open-weight-multimodal-int-960837": {
+   "branding": "none"
+  },
+  "mmx25:is-seriously-good-at-this-kind-of-k-pop-lyric-987242": {
+   "branding": "none"
+  },
+  "mmx25:is-this-real-i-honestly-cant-believe-it-988527": {
+   "branding": "none"
+  },
+  "mmx25:ist-jetzt-in-edimakor-verfugbar-394936": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:it-came-out-pretty-good-253323": {
+   "branding": "none"
+  },
+  "mmx25:jazz-noir-anime-title-sequence-652641": {
+   "branding": "none"
+  },
+  "mmx25:kaldr-cold-perfume-commercial-multi-reference-943073": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:krea-2-turbo-minimax-h3-in-comfyui-742459": {
+   "branding": "none"
+  },
+  "mmx25:live-action-relationship-confession-drama-scene-224793": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:local-ai-000274": {
+   "branding": "none"
+  },
+  "mmx25:low-angle-fashion-tracking-film-062019": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:luna-is-back-now-that-i-can-render-text-beautifu-328598": {
+   "branding": "none"
+  },
+  "mmx25:luxury-checkered-sports-coupe-night-to-dawn-commercial-451623": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:luxury-metallic-gown-desert-runway-fashion-ad-907132": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:luxury-perfume-commercial": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:luxury-skincare-storyboard-commercial-805571": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:luxury-watch-storyboard-campaign-903017": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:luxury-wireless-headphones-product-showcase-291312": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:made-it-on-225758": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:main-subject-603469": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:main-subject-757074": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:main-subject-young-korean-woman-early-20s-oversi-162229": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:mechanical-bull-charge-the-beasts-are-coming-720815": {
+   "branding": "none"
+  },
+  "mmx25:midjourney-v8-2-suno-835622": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:mind-blown-one-shot-376793": {
+   "branding": "none"
+  },
+  "mmx25:minimax-3-prompt-create-a-premium-16-9-landscape-fashion-108362": {
+   "branding": "none"
+  },
+  "mmx25:minimax-h3-268047": {
+   "branding": "none"
+  },
+  "mmx25:minimax-h3-282512": {
+   "branding": "none"
+  },
+  "mmx25:minimax-h3-feels-like-a-really-good-fit-for-interactive-417323": {
+   "branding": "none"
+  },
+  "mmx25:minimax-h3-in-173149": {
+   "branding": "none"
+  },
+  "mmx25:minimax-h3-is-incredible-at-text-rendering-644291": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:minimax-h3-keeps-delivering-beautiful-vfx-sequences-725200": {
+   "branding": "none"
+  },
+  "mmx25:minimax-h3-on-229978": {
+   "branding": "none"
+  },
+  "mmx25:minimax-h3-on-v-s-seedance-2-5-783077": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:minimax-h3-one-shotted-this-complete-scene-726491": {
+   "branding": "none"
+  },
+  "mmx25:minimax-h3x-423684": {
+   "branding": "none"
+  },
+  "mmx25:model-on-generative-ai-is-getting-really-good-i-238799": {
+   "branding": "none"
+  },
+  "mmx25:modern-warfare-fps-gameplay": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:most-cinematic-scenes-challenge-742779": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:mumbai-monsoon-fpv-drone-flight-942674": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:nightclub-breakdance-orbit-717186": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:no-moon-restoration-yet-834347": {
+   "branding": "none"
+  },
+  "mmx25:no-painful-reactions-707867": {
+   "branding": "none"
+  },
+  "mmx25:no-way-this-is-golden-595436": {
+   "branding": "none"
+  },
+  "mmx25:nostalgic-montage-of-different-clips-graphic-motion-lay-586917": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:nova-x-smartphone-tvc": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:okay-one-more-i-couldn-t-stop-837115": {
+   "branding": "none"
+  },
+  "mmx25:omnittovkling3-0minimax-h3-630895": {
+   "branding": "none"
+  },
+  "mmx25:one-gripe-with-unless-i-specify-exactly-what-eac-460476": {
+   "branding": "none"
+  },
+  "mmx25:photorealistic-cinematic-1950s-american-diner-chrome-stools-red-vinyl-ne-227011": {
+   "branding": "none"
+  },
+  "mmx25:pixar-style-mouse-adventure-3d-animation-582726": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:pixversev6-795780": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:pizza-night-ugc-domino-s-vlog-197798": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:player-stats-ui-animation-with-gpt-image-2-and-575169": {
+   "branding": "none"
+  },
+  "mmx25:porto-francesinha-comedy-recipe-282615": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:post-workout-gym-vlog": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:premium-9-16-fashion-eyewear-commercial-match-the-refer-665060": {
+   "branding": "none"
+  },
+  "mmx25:premium-cinematic-fashion-campaign-outfit-reveal-103224": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:radiantglo-skincare-commercial": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:radio-operator-evacuation-bridge": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:ramen-bowl-ugc-taste-test-612348": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:reference-control-use-the-uploaded-part-2-storyboard-image-for-477564": {
+   "branding": "none"
+  },
+  "mmx25:romantic-montage-of-two-people-exploring-a-beaut-106839": {
+   "branding": "none"
+  },
+  "mmx25:s-expressive-imagination-is-also-top-notch-052621": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:sagrada-familia-fpv-flight": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:sci-fi-explorer-approaches-dark-gateway-mystery-410508": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:seamless-loop-cinematic-warrior-blade-reconstruction-513162": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:seamless-warrior-sword-reflection-loop-874724": {
+   "branding": "none"
+  },
+  "mmx25:second-storyboard-image-to-video-using-minimax-h3-on-215889": {
+   "branding": "none"
+  },
+  "mmx25:second-storyboard-image-to-video-using-minimax-h3-on-451093": {
+   "branding": "none"
+  },
+  "mmx25:second-storyboard-image-to-video-using-minimax-h3-on-665414": {
+   "branding": "none"
+  },
+  "mmx25:second-storyboard-image-to-video-using-s-minimax-h3-on-495506": {
+   "branding": "none"
+  },
+  "mmx25:second-storyboard-image-to-video-using-s-minimax-h3-on-647644": {
+   "branding": "none"
+  },
+  "mmx25:seedance2-854556": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:seocnd-storyboard-image-to-video-using-s-minimax-h3-on-442041": {
+   "branding": "none"
+  },
+  "mmx25:shot-opens-tight-on-a-beautiful-woman-face-wind-452380": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:shots-shot-id-1-start-time-00-00-end-878083": {
+   "branding": "none"
+  },
+  "mmx25:skyship-flight-across-a-floating-kingdom-single-continu-344891": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:slow-motion-handheld-close-up-16-9-shaky-organic-handhe-994748": {
+   "branding": "none"
+  },
+  "mmx25:soft-cute-y2k-crush-k-pop-girl-group-rap-mv-748313": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:sola2-445763": {
+   "branding": "none"
+  },
+  "mmx25:someone-got-up-at-four-so-you-didn-t-have-to-455917": {
+   "branding": "none"
+  },
+  "mmx25:source-artwork-as-a-10-second-premium-sci-fi-mot-672988": {
+   "branding": "none"
+  },
+  "mmx25:spaghetti-western-pulp-anime-title-sequence-wher-935100": {
+   "branding": "none"
+  },
+  "mmx25:storm-cliff-golf-physics-challenge-037151": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:storm-lit-pirate-galleon-battle-561048": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:stormy-claymation-whale-breach-729607": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:storyboard-2-to-video-using-minimax-h3-on-852170": {
+   "branding": "none"
+  },
+  "mmx25:storyboard-image-to-video-using-s-minimax-h3-on-693556": {
+   "branding": "none"
+  },
+  "mmx25:strawberry-seasonal-match-cut-food-commercial-117943": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:stunning-action-packed-scene-following-a-little-robot-r-288619": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:style-dark-rap-rap-music-video-with-photoreal-high-fash-066367": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:style-hyper-realistic-dark-fantasy-tavern-cinematic-gro-137433": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:subject-person-from-image1-face-and-hairstyle-mu-249079": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:surreal-blue-studio-dance-with-horse-588086": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:t2v-hailuo-minimaxh3-prompt-format-create-a-15-second-16-099381": {
+   "branding": "none"
+  },
+  "mmx25:t2v2k-197897": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:tested-minimax-h3-for-the-first-time-with-a-scene-784843": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:the-brief-jessica-x-the-bag-804089": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:the-downhill-slingshot-698388": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:the-last-thing-you-see-in-your-first-and-last-290296": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:the-necromancer-walks-along-raising-skeletons-wi-614835": {
+   "branding": "none"
+  },
+  "mmx25:the-viewer-should-immediately-want-to-see-how-3-200-630916": {
+   "branding": "none"
+  },
+  "mmx25:third-storyboard-image-to-video-using-minimax-h3-on-135909": {
+   "branding": "none"
+  },
+  "mmx25:this-model-shines-at-generating-mixedmedia-motion-graphics-combining-vis-961590": {
+   "branding": "none"
+  },
+  "mmx25:this-video-was-made-with-h3-in-krea-797558": {
+   "branding": "none"
+  },
+  "mmx25:time-for-some-munchies-uh-h3-local-looks-like-th-170082": {
+   "branding": "none"
+  },
+  "mmx25:title-luxury-emerald-necklace-commercial-storyboard-for-872509": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:top-down-stop-motion-style-video-of-four-hands-assembli-679353": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:total-gen-time-29-minuets-on-a-rtx-3060-976597": {
+   "branding": "none"
+  },
+  "mmx25:tried-a-simple-slice-of-life-scene-with-on-281571": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:two-characters-arguing-in-english-make-the-emotion-feel-377881": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:ugc-style-skincare-video-featuring-a-realistic-young-wo-242986": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:ui-ux-motion-showcase-video-for-a-high-performance-luxu-229386": {
+   "branding": "none"
+  },
+  "mmx25:ultra-cinematic-aaa-adventure-game-trailer-one-continuo-722460": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:ultra-cinematic-macro-shot-a-calm-mountain-lake-039920": {
+   "branding": "none"
+  },
+  "mmx25:ultra-fast-paced-cinematic-action-sequence-a-man-in-a-078815": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:ultra-premium-cinematic-luxury-perfume-commercial-783085": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:upload-use-la-ragazza-in-reference-as-a-strict-265763": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:urban-street-superpowered-punch-action-sequence-712509": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:vertical-car-transformation-street-culture-film-378938": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:via-mlx-serve-by-561487": {
+   "branding": "none"
+  },
+  "mmx25:video-models-are-going-to-revolutionize-educatio-411987": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:video-prompt-case-311602-311602": {
+   "branding": "none"
+  },
+  "mmx25:video-prompt-case-710776-710776": {
+   "branding": "none"
+  },
+  "mmx25:video-prompt-case-917120-917120": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:video-seedance-2-5-and-minimax-h3-on-161893": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:wake-up-we-hunt-mechanical-bull-mount-700581": {
+   "branding": "none"
+  },
+  "mmx25:watercolor-anime-fetish-montage-rapid-cuts-335119": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:what-if-cleopatra-ordered-pizza-892346": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:what-if-superman-had-to-do-his-own-laundry-986556": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:which-one-looks-better-to-you-565341": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmx25:would-you-like-to-dance-986858": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmx25:x-midjourney-v8-2-on-624724": {
+   "branding": "none"
+  },
+  "mmxLegacy:1980s-open-source-family-comedy": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmxLegacy:bamboo-forest-wuxia-mystery": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmxLegacy:black-and-gold-perfume-commercial": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmxLegacy:blackberry-vanilla-soda-ugc-vlog": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmxLegacy:blue-haired-hero-and-spirit-fox-escape": {
+   "branding": "none"
+  },
+  "mmxLegacy:cyber-warrior-vs-primordial-fighter": {
+   "branding": "none"
+  },
+  "mmxLegacy:emerald-bio-serum-product-film": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmxLegacy:giant-koi-park-incident": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmxLegacy:golden-guardian-web-hero-loop": {
+   "branding": "none"
+  },
+  "mmxLegacy:gourmet-burger-ugc-taste-test": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmxLegacy:greenhouse-tea-isekai-anime": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmxLegacy:ice-gunslinger-interactive-web-loop": {
+   "branding": "none"
+  },
+  "mmxLegacy:kintsugi-sword-seamless-loop": {
+   "branding": "none"
+  },
+  "mmxLegacy:low-angle-fashion-tracking-film": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmxLegacy:luxury-perfume-commercial": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmxLegacy:luxury-skincare-storyboard-commercial": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmxLegacy:macaw-scream-in-extreme-slow-motion": {
+   "branding": "none"
+  },
+  "mmxLegacy:modern-warfare-fps-gameplay": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmxLegacy:morning-lip-oil-ugc-testimonial": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmxLegacy:nighttime-motorcycle-chase-synced-to-music": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmxLegacy:porto-francesinha-comedy-recipe": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmxLegacy:radio-operator-evacuation-bridge": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmxLegacy:ramen-bowl-ugc-taste-test": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmxLegacy:storm-lit-pirate-galleon-battle": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmxLegacy:stormy-claymation-whale-breach": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmxLegacy:strawberry-drink-transformation-commercial": {
+   "branding": "none"
+  },
+  "mmxLegacy:surreal-blue-studio-dance-with-a-horse": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "mmxLegacy:theme-park-memory-montage": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "mmxLegacy:y2k-k-pop-candy-typography-music-video": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:19-0-20-6-crash-zoom-into-her-eyes-one-305933": {
+   "branding": "none"
+  },
+  "sd25:1970s-mediterranean-woman-documentary-685471": {
+   "branding": "none"
+  },
+  "sd25:1977-boston-zombie-outbreak": {
+   "branding": "none"
+  },
+  "sd25:2-generated-the-video-with-seedance-2-5-which-is-821090": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:30-second-photorealistic-live-action-comedy-16-9-040994": {
+   "branding": "none"
+  },
+  "sd25:30-second-ultra-realistic-multi-shot-candid-obse-683460": {
+   "branding": "none"
+  },
+  "sd25:30-seconds-of-pure-cinematic-martial-arts-with-insane-camera-250284": {
+   "branding": "none"
+  },
+  "sd25:35-kling-974383": {
+   "branding": "none"
+  },
+  "sd25:4-character-refs-short-435656": {
+   "branding": "none"
+  },
+  "sd25:5-minutes-a-day-just-for-you-019376": {
+   "branding": "logo",
+   "marks": "\"AI\" corner badge"
+  },
+  "sd25:a-15-seconds-time-warp-disaster-created-using-seedance-2-195538": {
+   "branding": "none"
+  },
+  "sd25:a-30-second-3d-animated-action-emotional-story-b-685821": {
+   "branding": "none"
+  },
+  "sd25:a-30-second-cinematic-parkour-commercial-about-focus-movement-and-513060": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:a-morning-walk-woman-golden-retriever-quiet-suburban-park-nothing-540574": {
+   "branding": "none"
+  },
+  "sd25:a-pixar-style-short-dave-checks-the-sky-before-leaving-551127": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:a-structured-15-second-high-intensity-action-due-398669": {
+   "branding": "none"
+  },
+  "sd25:action-film-study-229811": {
+   "branding": "logo",
+   "marks": "\"AI\" corner badge"
+  },
+  "sd25:action-film-study-279563": {
+   "branding": "none"
+  },
+  "sd25:action-film-study-720086": {
+   "branding": "none"
+  },
+  "sd25:ai-video-generation-just-got-terrifyingly-good-945734": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:alpine-roller-coaster-ride": {
+   "branding": "none"
+  },
+  "sd25:amazonian-warrior-animal-transformation": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:an-everyday-drive-made-special-by-the-glow-of-th-007654": {
+   "branding": "none"
+  },
+  "sd25:another-experiment-with-a-30-second-cinematic-in-256736": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:bazaar-chase-cinematic": {
+   "branding": "none"
+  },
+  "sd25:blonde-warrior-battlefield": {
+   "branding": "none"
+  },
+  "sd25:blue-disc-anime-hero-battle": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:bytedance-released-an-official-mpt-guide-and-mos-020061": {
+   "branding": "exclude"
+  },
+  "sd25:camera-handheld-dv-16mm-daily-vlog-footage-the-v-110168": {
+   "branding": "none"
+  },
+  "sd25:camera-handheld-dv-16mm-vertical-9-16-daily-vlog-178710": {
+   "branding": "none"
+  },
+  "sd25:camera-look-handheld-mini-dv-camcorder-footage-f-761919": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:camera-look-handheld-mini-dv-camcorder-footage-f-981913": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:cartoon-bulldog-versus-live-boxer-029228": {
+   "branding": "none"
+  },
+  "sd25:casual-apartment-tour": {
+   "branding": "none"
+  },
+  "sd25:catch-it-clean-it-grill-it-eat-it-all-100-657649": {
+   "branding": "none"
+  },
+  "sd25:children-and-dragons-picnic-chaos-175096": {
+   "branding": "none"
+  },
+  "sd25:cinematic-story-study-143211": {
+   "branding": "logo",
+   "marks": "\"AI\" corner badge"
+  },
+  "sd25:cinematic-story-study-501840": {
+   "branding": "none"
+  },
+  "sd25:cinematic-story-study-765916": {
+   "branding": "none"
+  },
+  "sd25:cinematic-story-study-866658": {
+   "branding": "none"
+  },
+  "sd25:cleopatra-by-540828": {
+   "branding": "none"
+  },
+  "sd25:cloud-world-first-person-freefall": {
+   "branding": "none"
+  },
+  "sd25:continuous-body-control-dance-test-900903": {
+   "branding": "none"
+  },
+  "sd25:corridor-video-continuation": {
+   "branding": "none"
+  },
+  "sd25:crazy-right-413578": {
+   "branding": "none"
+  },
+  "sd25:create-a-30-second-ultra-realistic-documentary-home-video-of-620321": {
+   "branding": "none"
+  },
+  "sd25:created-in-423842": {
+   "branding": "none"
+  },
+  "sd25:created-on-with-seedance-2-5-606682": {
+   "branding": "none"
+  },
+  "sd25:created-this-with-seedance-2-5-on-587451": {
+   "branding": "none"
+  },
+  "sd25:created-with-seedance-2-5-141060": {
+   "branding": "logo",
+   "marks": "\"Created With Seedance 2.5\" end card"
+  },
+  "sd25:created-with-seedance-2-5-721493": {
+   "branding": "none"
+  },
+  "sd25:created-with-seedance-2-5-on-822971": {
+   "branding": "none"
+  },
+  "sd25:creation-on-828971": {
+   "branding": "none"
+  },
+  "sd25:cybernetic-freefall-armor-624470": {
+   "branding": "none"
+  },
+  "sd25:desert-hoverboard-ruin-run": {
+   "branding": "logo",
+   "marks": "\"AI\" badge"
+  },
+  "sd25:devastated-city-continuous-escape-880148": {
+   "branding": "none"
+  },
+  "sd25:dola-ai-is-giving-free-ai-video-credits-823385": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "sd25:duration-20s-16-9-24fps-445413": {
+   "branding": "none"
+  },
+  "sd25:duration-20s-16-9-24fps-duel-from-romance-of-203080": {
+   "branding": "none"
+  },
+  "sd25:dv-16mm-tape-camcorder-handheld-feel-pov-of-chas-664481": {
+   "branding": "none"
+  },
+  "sd25:eryan-griffin-canyon-flight": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:every-destination-becomes-magical-when-you-slow-615320": {
+   "branding": "none"
+  },
+  "sd25:every-fingerprint-every-frame-stutter-227781": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:expression-motion-light-different-class-from-2-0-937224": {
+   "branding": "none"
+  },
+  "sd25:faceless-riders-highway-chase": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:fantasy-film-study-565204": {
+   "branding": "none"
+  },
+  "sd25:fantasy-palace-romance-drama": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:fictional-stadium-sports-commercial": {
+   "branding": "none"
+  },
+  "sd25:fighter-jet-battleship-strike-814869": {
+   "branding": "none"
+  },
+  "sd25:film-empresses-in-the-palace-segment-the-jinghong-dance-967532": {
+   "branding": "none"
+  },
+  "sd25:five-beautiful-women-in-five-countries-greet-the-915882": {
+   "branding": "none"
+  },
+  "sd25:flooded-botanical-archive-climb": {
+   "branding": "none"
+  },
+  "sd25:flooded-village-survival-thriller": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:fpv-to-pov-action-sequence-280439": {
+   "branding": "none"
+  },
+  "sd25:free-seedream-on-renoise-is-such-a-nice-surprise-558738": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:frozen-time-rewind-effect-664385": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:giant-and-dragon-lake-battle": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:gpt-image-2-and-seedance-2-5-734939": {
+   "branding": "none"
+  },
+  "sd25:grand-bazaar-stunt-chase": {
+   "branding": "none"
+  },
+  "sd25:handcrafted-illustrated-animation": {
+   "branding": "none"
+  },
+  "sd25:handmade-doll-boxer-swarm-594949": {
+   "branding": "none"
+  },
+  "sd25:honestly-it-feels-like-a-random-clip-from-a-real-900148": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:hyper-realistic-30-second-miniature-philippines-drone-showcase-tilt-shif-210205": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:i-created-this-cinematic-advertisement-using-406311": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "sd25:i-honestly-didn-t-expect-seedance-2-5-to-hold-557485": {
+   "branding": "none"
+  },
+  "sd25:i-just-created-this-entire-animated-short-using-341887": {
+   "branding": "none"
+  },
+  "sd25:i-just-figured-out-the-best-way-to-use-487592": {
+   "branding": "none"
+  },
+  "sd25:i-just-made-this-video-with-seedance-2-5-it-918460": {
+   "branding": "none"
+  },
+  "sd25:i-just-nailed-this-video-with-seedance-2-5-model-859522": {
+   "branding": "none"
+  },
+  "sd25:i-made-this-full-video-in-5-minutes-100-automated-857085": {
+   "branding": "logo",
+   "marks": "\"Click the link to get 20% OFF\" promo end card"
+  },
+  "sd25:i-remixed-the-243738": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:i-tested-inside-and-the-upgrade-is-immediately-n-105315": {
+   "branding": "none"
+  },
+  "sd25:i-ve-spent-a-lot-of-time-with-over-the-past-428749": {
+   "branding": "none"
+  },
+  "sd25:i-went-for-my-tennis-practice-and-seedance-2-5-586531": {
+   "branding": "none"
+  },
+  "sd25:illustrated-creature-flood-escape-172377": {
+   "branding": "none"
+  },
+  "sd25:im-genuinely-impressed-by-how-well-seedance-2-5-keeps-635022": {
+   "branding": "none"
+  },
+  "sd25:img-gpt-image-2-033082": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:is-an-official-platform-for-it-brings-cinema-gra-031982": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:is-extra-realistic-on-019109": {
+   "branding": "none"
+  },
+  "sd25:is-too-spicy-905417": {
+   "branding": "none"
+  },
+  "sd25:it-s-insane-what-seedance-2-5-can-do-479241": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:it-s-insane-what-you-can-make-with-171692": {
+   "branding": "none"
+  },
+  "sd25:it-was-ridiculously-easy-588278": {
+   "branding": "none"
+  },
+  "sd25:italian-coast-wakeboarding-splash-433442": {
+   "branding": "none"
+  },
+  "sd25:jan-thirty-second-delivery-run-271585": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:japanese-game-show-foam-roller": {
+   "branding": "none"
+  },
+  "sd25:japanese-mobile-carrier-family-ad": {
+   "branding": "none"
+  },
+  "sd25:japanese-street-lip-sync-comparison": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:justice-awakens-the-scales-of-truth-begin-to-move-887120": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:k-pop-idol-day-camcorder-montage-345309": {
+   "branding": "none"
+  },
+  "sd25:kolejny-test-seedance-2-5-wesoe-miasteczko-rok-1410-polska-893338": {
+   "branding": "none"
+  },
+  "sd25:korean-city-day-vlog-993075": {
+   "branding": "none"
+  },
+  "sd25:korean-mini-dv-street-vlog": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:kung-fu-battle-long-take": {
+   "branding": "none"
+  },
+  "sd25:let-yourself-be-hypnotized-by-the-magical-sound-of-the-904230": {
+   "branding": "none"
+  },
+  "sd25:listen-up-228251": {
+   "branding": "logo",
+   "marks": "monitor in the scene reads \"SEEDANCE 2.5 NO MUSIC PROMPT\""
+  },
+  "sd25:lunar-cafe-dialogue": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:made-with-365832": {
+   "branding": "none"
+  },
+  "sd25:made-with-seedance-2-5-490561": {
+   "branding": "none"
+  },
+  "sd25:made-with-seedance-2-5-cinematic-visuals-realistic-physics-and-254024": {
+   "branding": "logo",
+   "marks": "brand text and sparkle watermark"
+  },
+  "sd25:made-with-seedance-2-5-in-668920": {
+   "branding": "none"
+  },
+  "sd25:made-with-seedance-2-5-native-30-second-video-no-571790": {
+   "branding": "none"
+  },
+  "sd25:made-with-seedance-2-5-on-110436": {
+   "branding": "none"
+  },
+  "sd25:made-with-seedance-2-5-on-352388": {
+   "branding": "logo",
+   "marks": "faint \"Created With Seedance 2.5\" text on the last frame"
+  },
+  "sd25:made-with-seedance-2-5-on-576337": {
+   "branding": "none"
+  },
+  "sd25:made-with-seedance-2-5-on-636796": {
+   "branding": "none"
+  },
+  "sd25:making-of-movie-titanoboa-behind-the-scenes-515958": {
+   "branding": "none"
+  },
+  "sd25:making-these-kinds-of-uniquely-styled-videos-has-gotten-so-113956": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:mecha-motorcycle-high-speed-dash": {
+   "branding": "none"
+  },
+  "sd25:mechanical-war-bull-battle": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:midjourney-v8-2-gpt-image-2-685091": {
+   "branding": "none"
+  },
+  "sd25:minimax-h3-on-vs-seedance-2-5-967648": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:morning-coffee-mini-dv-vlog": {
+   "branding": "logo",
+   "marks": "\"AI\" corner badge"
+  },
+  "sd25:mpt-create-a-10-second-16-9-avant-garde-fashion-261494": {
+   "branding": "none"
+  },
+  "sd25:mpt-create-a-15-second-cinematic-street-culture-381511": {
+   "branding": "none"
+  },
+  "sd25:mpt-create-a-15-second-cinematic-underground-fas-855712": {
+   "branding": "none"
+  },
+  "sd25:mpter-and-comparison-057958": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:my-first-test-of-526392": {
+   "branding": "logo",
+   "marks": "\"ICHE FILMS\" logo and handle"
+  },
+  "sd25:n-exactly-15-second-photorealistic-shopping-vlog-990763": {
+   "branding": "none"
+  },
+  "sd25:never-mess-with-a-spider-girl-658741": {
+   "branding": "none"
+  },
+  "sd25:non-stop-forward-momentum-attempt-870222": {
+   "branding": "none"
+  },
+  "sd25:obsidian-giant-transformation-531249": {
+   "branding": "none"
+  },
+  "sd25:one-30-second-9-16-photorealistic-live-action-dr-771813": {
+   "branding": "none"
+  },
+  "sd25:one-30-second-fight-scene-252981": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:painterly-tsunami-destruction-sequence-047131": {
+   "branding": "none"
+  },
+  "sd25:painterly-underwater-wreck-chase": {
+   "branding": "logo",
+   "marks": "MiniMax / Hailuo AI watermark (or similar platform watermark)"
+  },
+  "sd25:parisian-city-girl-vlog": {
+   "branding": "none"
+  },
+  "sd25:parking-lot-energy-hits-different-after-midnight-868579": {
+   "branding": "none"
+  },
+  "sd25:photorealistic-cinematic-3d-character-render-physically-based-rendering-825338": {
+   "branding": "none"
+  },
+  "sd25:photorealistic-cinematic-modern-american-airport-643718": {
+   "branding": "logo",
+   "marks": "\"AI\" corner badge"
+  },
+  "sd25:planetarium-gravity-distortion-288542": {
+   "branding": "none"
+  },
+  "sd25:pov-back-in-high-school-for-30-seconds-and-none-634586": {
+   "branding": "none"
+  },
+  "sd25:product-commercial-study-045019": {
+   "branding": "none"
+  },
+  "sd25:product-commercial-study-191208": {
+   "branding": "none"
+  },
+  "sd25:product-commercial-study-209333": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:product-commercial-study-256505": {
+   "branding": "none"
+  },
+  "sd25:product-commercial-study-309837": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:product-commercial-study-662980": {
+   "branding": "none"
+  },
+  "sd25:prompt-character-reference-mapping-image-1-is-character-name-use-486583": {
+   "branding": "none"
+  },
+  "sd25:quiet-city-bicycle-ride": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:rainy-neon-thriller": {
+   "branding": "none"
+  },
+  "sd25:rainy-night-market-family-animation-775828": {
+   "branding": "none"
+  },
+  "sd25:rapper-reference-performance": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:real-world-action-is-getting-easier-to-direct-304904": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:reference-layer-based-on-image-the-rider-s-face-hair-824057": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:reply-seedance-and-i-ll-send-it-must-be-following-463805": {
+   "branding": "none"
+  },
+  "sd25:robots-text-hold-studio-comedy": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:seedance-2-5-280310": {
+   "branding": "none"
+  },
+  "sd25:seedance-2-5-312407": {
+   "branding": "none"
+  },
+  "sd25:seedance-2-5-420849": {
+   "branding": "none"
+  },
+  "sd25:seedance-2-5-551218": {
+   "branding": "none"
+  },
+  "sd25:seedance-2-5-581571": {
+   "branding": "none"
+  },
+  "sd25:seedance-2-5-did-well-077118": {
+   "branding": "none"
+  },
+  "sd25:seedance-2-5-didn-t-blink-559715": {
+   "branding": "none"
+  },
+  "sd25:seedance-2-5-emotion-control-is-insane-made-with-828740": {
+   "branding": "none"
+  },
+  "sd25:seedance-2-5-gpt-image-2-using-253535": {
+   "branding": "none"
+  },
+  "sd25:seedance-2-5-in-451524": {
+   "branding": "none"
+  },
+  "sd25:seedance-2-5-in-696981": {
+   "branding": "none"
+  },
+  "sd25:seedance-2-5-is-live-on-toapis-api-232790": {
+   "branding": "none"
+  },
+  "sd25:seedance-2-5-on-237518": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:seedance-2-5-on-384530": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:seedance-2-5-on-423855": {
+   "branding": "none"
+  },
+  "sd25:seedance-2-5-on-832715": {
+   "branding": "none"
+  },
+  "sd25:seedance-2-5-used-616691": {
+   "branding": "none"
+  },
+  "sd25:she-herds-clouds-651566": {
+   "branding": "none"
+  },
+  "sd25:shot-1-ecu-85mm-push-in-on-the-phone-screen-734483": {
+   "branding": "none"
+  },
+  "sd25:sports-film-study-255212": {
+   "branding": "none"
+  },
+  "sd25:sports-film-study-274971": {
+   "branding": "none"
+  },
+  "sd25:stop-wasting-credits-on-random-705676": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:stylized-family-animation": {
+   "branding": "none"
+  },
+  "sd25:super-casual-real-smartphone-home-video-footage-896933": {
+   "branding": "logo",
+   "marks": "\"AI\" corner badge"
+  },
+  "sd25:supermodel-woman-wrestling-432306": {
+   "branding": "none"
+  },
+  "sd25:tactical-one-take-action-demo": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:ten-member-idol-concert": {
+   "branding": "logo",
+   "marks": "\"AI\" corner badge"
+  },
+  "sd25:text-to-video-30s-552259": {
+   "branding": "none"
+  },
+  "sd25:text-to-video-3d-animation-246455": {
+   "branding": "none"
+  },
+  "sd25:the-elven-princess-greets-the-orcs-635938": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:the-moon-took-a-night-off-everything-went-wrong-546768": {
+   "branding": "none"
+  },
+  "sd25:the-paper-boat-429699": {
+   "branding": "none"
+  },
+  "sd25:the-suit-was-still-listening": {
+   "branding": "none"
+  },
+  "sd25:the-tricky-part-was-forcing-alien-hands-on-the-dap-956391": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:the-umbrella-escape-488195": {
+   "branding": "none"
+  },
+  "sd25:they-said-is-here-to-cook-and-i-agree-with-140421": {
+   "branding": "none"
+  },
+  "sd25:thirty-character-family-dinner-307528": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:this-video-was-100-351093": {
+   "branding": "none"
+  },
+  "sd25:thousand-year-static-landscape": {
+   "branding": "none"
+  },
+  "sd25:three-a-m-french-nightlife-pov-399523": {
+   "branding": "none"
+  },
+  "sd25:tokyo-fisheye-streetwear-fashion-film-562052": {
+   "branding": "none"
+  },
+  "sd25:tokyo-samurai-versus-stone-titan": {
+   "branding": "none"
+  },
+  "sd25:trainee-days-camcorder-montage-251247": {
+   "branding": "none"
+  },
+  "sd25:tried-fitting-50-cuts-into-30-seconds-with-822773": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:tried-making-a-post-minion-video-with-in-956768": {
+   "branding": "none"
+  },
+  "sd25:trippy-music-video-052209": {
+   "branding": "none"
+  },
+  "sd25:trojan-war-selfie-vlog": {
+   "branding": "none"
+  },
+  "sd25:try-it-now-on-088591": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:try-it-now-on-336575": {
+   "branding": "none"
+  },
+  "sd25:try-it-now-on-656068": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:turkish-eggs-mini-dv-recipe-vlog-107610": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:ugc-on-is-just-crazy-066501": {
+   "branding": "none"
+  },
+  "sd25:ultra-realistic-spontaneous-vertical-handheld-footage-recorded-during-fi-459303": {
+   "branding": "none"
+  },
+  "sd25:underground-london-techno-club": {
+   "branding": "none"
+  },
+  "sd25:underground-rap-performance-studio-129750": {
+   "branding": "none"
+  },
+  "sd25:unveiling-pure-luxury-the-ultimate-red-ferrari-e-698838": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:use-code-umesh25-for-25-off-any-runway-plan-affiliate-906242": {
+   "branding": "none"
+  },
+  "sd25:use-image-only-for-the-womans-face-identity-hair-433265": {
+   "branding": "none"
+  },
+  "sd25:use-the-uploaded-reference-image-as-the-exact-character-reference-396603": {
+   "branding": "none"
+  },
+  "sd25:using-seedance-2-5-topaz-upscaler-inside-786932": {
+   "branding": "none"
+  },
+  "sd25:victorian-greenhouse-mechanical-hummingbird": {
+   "branding": "logo",
+   "marks": "\"AI\" corner badge"
+  },
+  "sd25:video-created-with-seedance-2-5-on-489739": {
+   "branding": "none"
+  },
+  "sd25:video-created-with-seedance-2-5-on-784738": {
+   "branding": "none"
+  },
+  "sd25:video-created-with-seedance-2-5-on-cinematic-story-director-169553": {
+   "branding": "none"
+  },
+  "sd25:video-prompt-case-003695-003695": {
+   "branding": "none"
+  },
+  "sd25:video-prompt-case-388128": {
+   "branding": "none"
+  },
+  "sd25:vietnam-city-scooter-long-take-216517": {
+   "branding": "none"
+  },
+  "sd25:vietnamese-mythic-sea-battle": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:white-dragon-camp-rampage": {
+   "branding": "none"
+  },
+  "sd25:who-else-is-cooking-superhero-cats-with-seedance-2-5-562528": {
+   "branding": "none"
+  },
+  "sd25:wizard-of-oz-scarecrow-plan": {
+   "branding": "none"
+  },
+  "sd25:wow-the-metamorphosis-in-is-totally-cinematic-to-155054": {
+   "branding": "logo",
+   "marks": "\"ICHE FILMS\" logo and handle"
+  },
+  "sd25:year-plan-15sec-654814": {
+   "branding": "none"
+  },
+  "sd25:you-can-now-generate-dynamic-camera-movements-with-up-to-501168": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sd25:zero-uncanny-valley-152696": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "sdLegacy:crystal-ball-match-cut-brand-film": {
+   "branding": "exclude"
+  },
+  "sdLegacy:deep-sea-coral-reef-jellyfish-scene": {
+   "branding": "exclude"
+  },
+  "sdLegacy:desert-horned-lizard-grapefruit-ad": {
+   "branding": "exclude"
+  },
+  "sdLegacy:floating-desert-museum-cinematic-film": {
+   "branding": "exclude"
+  },
+  "sdLegacy:fruit-cookie-commercial": {
+   "branding": "exclude"
+  },
+  "sdLegacy:haute-couture-dream-bokeh-film": {
+   "branding": "exclude"
+  },
+  "sdLegacy:mechanical-flower-bloom-brand-film": {
+   "branding": "exclude"
+  },
+  "sdLegacy:multilingual-creative-typography-loop": {
+   "branding": "exclude"
+  },
+  "sdLegacy:oceanic-civilization-epic-sci-fi-film": {
+   "branding": "exclude"
+  },
+  "sdLegacy:one-shot-rooms-with-shifting-worlds": {
+   "branding": "exclude"
+  },
+  "sdLegacy:peking-opera-heritage-short-film": {
+   "branding": "exclude"
+  },
+  "sdLegacy:retro-suede-boots-brand-concept-film": {
+   "branding": "exclude"
+  },
+  "sdLegacy:silk-road-pomegranate-folk-animation": {
+   "branding": "exclude"
+  },
+  "sdLegacy:steampunk-clockwork-odyssey": {
+   "branding": "exclude"
+  },
+  "sdLegacy:window-to-eye-concept-film": {
+   "branding": "exclude"
+  },
+  "zerolu:adam": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "zerolu:bootoshi": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "zerolu:guizang": {
+   "branding": "none"
+  },
+  "zerolu:john1": {
+   "branding": "none"
+  },
+  "zerolu:john10": {
+   "branding": "none"
+  },
+  "zerolu:john2": {
+   "branding": "none"
+  },
+  "zerolu:john3": {
+   "branding": "none"
+  },
+  "zerolu:john4": {
+   "branding": "logo",
+   "marks": "burned-in subtitles"
+  },
+  "zerolu:john5": {
+   "branding": "none"
+  },
+  "zerolu:john6": {
+   "branding": "none"
+  },
+  "zerolu:john7": {
+   "branding": "logo",
+   "marks": "burned-in caption"
+  },
+  "zerolu:john8": {
+   "branding": "none"
+  },
+  "zerolu:john9": {
+   "branding": "none"
+  },
+  "zerolu:lucy-love-ai": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "zerolu:mollick": {
+   "branding": "logo",
+   "marks": "faint \"AI generated\" watermark"
+  },
+  "zerolu:nachos2d": {
+   "branding": "logo",
+   "marks": "visible logo, watermark, badge or on-screen credit"
+  },
+  "zerolu:vicky": {
+   "branding": "logo",
+   "marks": "burned-in subtitle text on the last frame"
+  }
+ }
+}

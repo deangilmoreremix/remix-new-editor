@@ -1,8 +1,7 @@
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createHeroSection } from '../lib/thumbnails.js';
-import { showToast } from '../lib/loading.js';
+import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 
-const SVG_AI_ASSIST = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg>';
 const SVG_SPIN = '<svg class="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-opacity="0.3"/><path d="M21 12a9 9 0 00-9-9"/></svg>';
 const SVG_CALENDAR = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
 
@@ -14,7 +13,6 @@ export function SmartVideoScheduler() {
   mountStudioChrome(container, { currentRoute: 'smart-video-scheduler', title: 'Smart Video Scheduler' });
 
   let activeTab = 'Calendar';
-  let aiPanelOpen = false;
   const aiLoading = false;
   const contentIdeas = [];
 
@@ -33,20 +31,6 @@ export function SmartVideoScheduler() {
     topBar.appendChild(hero);
   }
 
-  const aiAssistBtn = document.createElement('button');
-  aiAssistBtn.type = 'button';
-  aiAssistBtn.className = 'absolute top-8 right-4 md:right-8 z-20 flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-bold shadow-lg hover:shadow-violet-500/25 hover:scale-105 transition-all';
-  aiAssistBtn.innerHTML = `${SVG_AI_ASSIST} AI Assist`;
-  aiAssistBtn.onclick = () => {
-    aiPanelOpen = !aiPanelOpen;
-    if (aiPanelOpen && window.openModal) {
-      window.openModal('ai-caption-assistant', {
-        onGenerate: (caption) => { showToast('Caption generated!', 'success'); },
-      });
-      aiPanelOpen = false;
-    }
-  };
-  topBar.appendChild(aiAssistBtn);
   wrapper.appendChild(topBar);
 
   const tabBar = document.createElement('div');
@@ -89,7 +73,14 @@ export function SmartVideoScheduler() {
     } else if (activeTab === 'Schedule') {
       const placeholder = document.createElement('div');
       placeholder.className = 'flex flex-col items-center justify-center py-20 text-center';
-      placeholder.innerHTML = '<div class="text-5xl mb-4">⏰</div><h3 class="text-lg font-bold text-white mb-2">Schedule Posts</h3><p class="text-sm text-white/50 max-w-md">Schedule your content for the best times. AI will suggest optimal posting times.</p>';
+      placeholder.innerHTML = '<div class="text-5xl mb-4">⏰</div><h3 class="text-lg font-bold text-white mb-2">Publish a video</h3><p class="text-sm text-white/50 max-w-md mb-5">Pick a video, add a caption and an AI-generated thumbnail, then publish it to your connected accounts. Timed scheduling is not available yet.</p>';
+      const publishBtn = document.createElement('button');
+      publishBtn.type = 'button';
+      publishBtn.dataset.testid = 'scheduler-publish';
+      publishBtn.className = 'px-5 py-2.5 rounded-lg text-sm font-bold bg-primary text-black hover:opacity-90 transition-all';
+      publishBtn.textContent = 'Publish to Social';
+      publishBtn.onclick = () => openSocialPublish({ mediaType: 'video' });
+      placeholder.appendChild(publishBtn);
       contentArea.appendChild(placeholder);
     } else if (activeTab === 'Analytics') {
       const placeholder = document.createElement('div');

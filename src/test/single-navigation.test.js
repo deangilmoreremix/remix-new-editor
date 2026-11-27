@@ -61,4 +61,49 @@ describe('single navigation', () => {
     sidebar.dispatchEvent(new CustomEvent('route-changed', { detail: { page: 'brand-dna' } }));
     expect(sidebar.querySelector('[aria-current="page"]').dataset.sidebarItem).toBe('brand');
   });
+
+  it('menu expands to full width and folds groups, and remembers both', async () => {
+    localStorage.removeItem('sv:sidebar');
+    window.location.hash = '#/image';
+    const { Sidebar } = await import('../components/Sidebar.js');
+    const { sidebar } = Sidebar(vi.fn());
+    const toggle = sidebar.querySelector('[data-sidebar-toggle]');
+    expect(sidebar.style.width).toBe('68px');
+    toggle.click();
+    expect(sidebar.style.width).toBe('232px');
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+
+    const heading = sidebar.querySelector('[data-sidebar-group="Utilities"]');
+    const body = sidebar.querySelector('[data-sidebar-group-body="Utilities"]');
+    expect(heading.getAttribute('aria-expanded')).toBe('true');
+    heading.click();
+    expect(heading.getAttribute('aria-expanded')).toBe('false');
+    expect(body.style.display).toBe('none');
+
+    // A new menu picks both choices back up.
+    const again = Sidebar(vi.fn()).sidebar;
+    expect(again.style.width).toBe('232px');
+    expect(again.querySelector('[data-sidebar-group-body="Utilities"]').style.display).toBe('none');
+
+    // Going to a studio inside a folded group opens it.
+    again.dispatchEvent(new CustomEvent('route-changed', { detail: { page: 'viral' } }));
+    expect(again.querySelector('[data-sidebar-group-body="Utilities"]').style.display).toBe('');
+  });
+
+  it('Academy is in the side menu: opens the academy page and stays highlighted on tracks and lessons', async () => {
+    window.location.hash = '#/academy';
+    const { Sidebar } = await import('../components/Sidebar.js');
+    const navigate = vi.fn();
+    const { sidebar } = Sidebar(navigate);
+    const btn = sidebar.querySelector('[data-sidebar-item="academy"]');
+    expect(btn).toBeTruthy();
+    expect(btn.textContent).toContain('Academy');
+    expect(sidebar.querySelector('[aria-current="page"]').dataset.sidebarItem).toBe('academy');
+    btn.click();
+    expect(navigate).toHaveBeenCalledWith('academy');
+    for (const page of ['academy/track/02-ai-filmmaking', 'academy/track/06-ai-audio-and-music/lesson/06-ai-audio-and-music::04-music-sfx-generation']) {
+      sidebar.dispatchEvent(new CustomEvent('route-changed', { detail: { page } }));
+      expect(sidebar.querySelector('[aria-current="page"]').dataset.sidebarItem).toBe('academy');
+    }
+  });
 });

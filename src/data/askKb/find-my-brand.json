@@ -1,0 +1,150 @@
+{
+  "id": "find-my-brand",
+  "name": "Find My Brand",
+  "route": "#/find-my-brand",
+  "description": "A free brand discovery tool. Paste a business website and SmartVideo reads the page it already has and shows the logo, photos, products and branding found on it, ready to review.",
+  "shortDescription": "Free: paste a website and pull its logo, photos and branding.",
+  "fullDescription": "Find My Brand (#/find-my-brand, not in the side menu) is a simple page with the label 'SmartVideo - Free Discovery', the title Find My Brand and a button '✦ Find My Brand'. It opens the shared personalization modal in anonymous mode and opens it automatically when you arrive. In the modal you paste your website (placeholder https://yourbusiness.com), or search for a business instead, and the tool surfaces the logos, photos, products and branding already on the page for you to review and arrange. Per the page text, nothing is generated, nothing is charged and nothing is saved.",
+  "bestFor": "Business owners, freelancers and agencies who want to quickly see and collect the real brand assets on a website, without signing in or paying.",
+  "whenToUse": [
+    "You want your business logo, photos and products pulled from your own site.",
+    "You are about to make a video or page for a business and want its real assets.",
+    "You want to try the discovery step for free before using other studios."
+  ],
+  "whenToUseAnother": [
+    "Use Lead Finder (#/leadfinder) when you need to find businesses in an area.",
+    "Use Personalizer (#/personalizer) to build a personalized page with what you found.",
+    "Use Video (#/video) or Brand (#/brand) to generate content from your brand.",
+    "Use Website Builder (#/website-builder) to build a site."
+  ],
+  "keyFeatures": [
+    "Free and signed-out",
+    "Opens automatically when you arrive",
+    "Paste a website URL or search for a business",
+    "Shows logos, photos, products and branding found on the page",
+    "Review and arrange the assets into sections",
+    "Nothing is generated, charged or saved"
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Find My Brand button",
+      "explanation": "The big button '✦ Find My Brand' opens the discovery modal. The modal also opens by itself the first time you land on the page.",
+      "whyToUse": "Starts discovery.",
+      "inputRequired": "None.",
+      "restrictions": "If the modal is closed you can click the button to reopen it."
+    },
+    {
+      "feature": "Website URL discovery",
+      "explanation": "Type or paste your website in the field (placeholder https://yourbusiness.com) and click '✦ Find My Brand'. While it runs the button reads 'Finding...'. Found assets appear to review.",
+      "whyToUse": "Collect real brand assets.",
+      "inputRequired": "A website URL.",
+      "restrictions": "Results depend on what the page contains."
+    },
+    {
+      "feature": "Search for a business instead",
+      "explanation": "If you do not have the website, you can search for a business and then use its website for discovery. If a result has no website you are told: 'No website is listed for this business. Paste one in the Website field and use Find My Brand.'",
+      "whyToUse": "Handy when you only know the business name and place.",
+      "inputRequired": "Business details.",
+      "restrictions": "Business search data comes from OpenStreetMap and may be incomplete."
+    },
+    {
+      "feature": "Review and arrange",
+      "explanation": "Discovered images appear in a Discovered section; you can drag them into the section you want (for example logos, products, brand references, other images), open a viewer with Previous and Next, edit or revert images and remove ones you do not want.",
+      "whyToUse": "Keep only the useful assets.",
+      "inputRequired": "Discovery results.",
+      "restrictions": "Importing and saving assets to a library requires sign in; the page says discovery is free and nothing is saved when signed out."
+    }
+  ],
+  "howToUse": "1. Open Find My Brand from #/find-my-brand; the modal opens automatically. 2. If it is closed, click '✦ Find My Brand'. 3. Paste your business website in the field (https://yourbusiness.com). 4. Click '✦ Find My Brand' and wait while the button shows 'Finding...'. 5. Review the Discovered Assets. 6. Drag assets into the sections you want and remove any you do not need.",
+  "howToSteps": [
+    "Open #/find-my-brand.",
+    "Paste the website address.",
+    "Click Find My Brand.",
+    "Review and arrange the results."
+  ],
+  "gettingStarted": [
+    "Use the full website address, for example https://yourbusiness.com.",
+    "Start with the home page, which usually has the logo and best photos."
+  ],
+  "inputs": ["Website URL", "Business search (optional)"],
+  "requiredInputs": ["Website URL"],
+  "optionalInputs": ["Business search"],
+  "inputDetails": [
+    {"name": "Website URL", "description": "The business website to read.", "required": true, "whenToUse": "Always, unless you search for a business first.", "restrictions": "The site must be reachable and not too slow."}
+  ],
+  "generationModes": [],
+  "modeExplanations": [],
+  "modelCapabilities": "",
+  "outputs": ["Found logo, photos, products and branding shown for review"],
+  "limitations": [
+    "Only finds what is already on the page.",
+    "Nothing is saved when signed out.",
+    "Slow or blocking sites may time out."
+  ],
+  "limitationDetails": [
+    {"limitation": "Depends on the page", "impact": "Few or no assets if the site is sparse.", "workaround": "Try another page or upload your own images in Personalizer."},
+    {"limitation": "Nothing saved", "impact": "Results are gone when you leave.", "workaround": "Sign in and import assets, or download what you need."}
+  ],
+  "troubleshooting": [
+    "Enter a website URL: the field was empty; paste the address.",
+    "No assets found on that page: try another page of the site.",
+    "Discovery timed out. The site may be too slow: try again.",
+    "The discovery service is busy: wait a moment and retry.",
+    "Discovery service unavailable: try again later.",
+    "Modal did not open: click the Find My Brand button."
+  ],
+  "troubleshootingSteps": [
+    {"issue": "Nothing is found", "steps": ["Check the address is correct and starts with https://.", "Try the home page.", "Try again later in case the site was slow."]},
+    {"issue": "Asked to sign in", "steps": ["Sign in to import assets into your library.", "Run Find My Brand again."]}
+  ],
+  "commonProblems": [
+    {"problem": "Wrong or missing logo", "whyItHappens": "The page does not mark its logo clearly.", "howToFix": "Choose a different image or upload your own."},
+    {"problem": "Results lost after leaving", "whyItHappens": "Nothing is saved while signed out.", "howToFix": "Sign in and import the assets you want."}
+  ],
+  "exampleWorkflows": [
+    {"title": "Grab brand assets", "steps": ["Open #/find-my-brand.", "Paste https://yourbusiness.com.", "Click Find My Brand.", "Drag the logo and best photos into place."]}
+  ],
+  "useCases": [
+    {"title": "Prepare a client video", "description": "See a client's real assets before making content.", "steps": ["Paste the client site.", "Review logo and photos.", "Move on to Personalizer or Video."], "expectedOutput": "A set of reviewed brand assets."}
+  ],
+  "faqs": [
+    {"question": "Is it free?", "answer": "Yes. The page says nothing is generated, nothing is charged and nothing is saved."},
+    {"question": "Do I need to sign in?", "answer": "No, it is a free, signed-out tool. Importing assets into your library needs sign in."},
+    {"question": "What does it find?", "answer": "The logo, photos, products and branding already on the business page."}
+  ],
+  "glossary": {
+    "Discovery": "Reading a web page to find its images and branding.",
+    "Brand assets": "Logos, photos and product images that represent a business."
+  },
+  "tips": [
+    "Use the business home page first.",
+    "Remove blurry or irrelevant images before moving on."
+  ],
+  "bestPractices": [
+    "Check you have the right to use the assets you find.",
+    "Keep your own copy of important images."
+  ],
+  "relatedStudios": ["leadfinder", "personalizer", "brand", "website-builder", "video"],
+  "relatedStudioGuidance": [
+    {"studio": "leadfinder", "relationship": "Finds businesses to run discovery on", "whenToMove": "You need prospects.", "why": "Searches by niche and location."},
+    {"studio": "personalizer", "relationship": "Uses the assets", "whenToMove": "You want to build a page.", "why": "It places assets and tokens on a canvas."}
+  ],
+  "notConfirmed": [
+    "Maximum number of images discovered.",
+    "Rate limits for signed-out use.",
+    "Exact list of file types returned."
+  ],
+  "sourceFiles": [
+    "src/components/FindMyBrandPage.js",
+    "src/features/personalization/shared/personalization/PersonalizationModal.tsx",
+    "src/features/personalization/shared/personalization/demoSources.ts",
+    "src/components/personalize/PersonalizationHubPanel.js",
+    "src/components/LeadFinderStudio.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read FindMyBrandPage.js, demoSources.ts free discovery source and the modal's Find My Brand strings.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

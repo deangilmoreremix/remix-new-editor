@@ -4,7 +4,7 @@ import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { listRemotionDesignTemplates } from '../../templates'
 
-vi.mock('../PersonalizationTemplateBrowser', () => ({ PersonalizationTemplateBrowser: () => <div data-testid="full-browser" /> }))
+vi.mock('../PersonalizationTemplateBrowser', () => ({ PersonalizationTemplateBrowser: (props: { showError?: boolean }) => <div data-testid="full-browser" data-show-error={String(props.showError)} /> }))
 import { DesignRecommendations } from '../DesignRecommendations'
 
 beforeAll(() => { (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true })
@@ -39,14 +39,21 @@ describe('DesignRecommendations', () => {
   })
   it('selecting a recommended design uses the single shared selection; selecting the active one clears it', () => {
     const { el, onSelectDesign } = mount()
+    act(() => { q(el, 'design-how-replace')!.click() })
     const first = el.querySelector('[data-testid^="design-rec-"]') as HTMLElement
     act(() => { first.click() })
     expect(onSelectDesign).toHaveBeenCalledWith(first.getAttribute('data-testid')!.replace('design-rec-', ''))
     document.body.innerHTML = ''
     const id = first.getAttribute('data-testid')!.replace('design-rec-', '')
     const m2 = mount({ activeDesignId: id })
+    act(() => { q(m2.el, 'design-how-replace')!.click() })
     act(() => { (m2.el.querySelector(`[data-testid="design-rec-${id}"]`) as HTMLElement).click() })
     expect(m2.onSelectDesign).toHaveBeenCalledWith(null)
+  })
+  it('the library does not print its own copy of the refusal message (the panel prints it once)', () => {
+    const { el } = mount()
+    act(() => { q(el, 'design-browse-all')!.click() })
+    expect(q(el, 'full-browser')!.getAttribute('data-show-error')).toBe('false')
   })
   it('the full searchable library is one click away', () => {
     const { el } = mount()
@@ -54,12 +61,20 @@ describe('DesignRecommendations', () => {
     act(() => { q(el, 'design-browse-all')!.click() })
     expect(q(el, 'full-browser')).not.toBeNull()
   })
-  it('Add mode adds the design on top (keeping the layout) instead of replacing it', () => {
+  it('adds the design on top (keeping the layout) by default instead of replacing it', () => {
     const { el, onSelectDesign, onAddDesign } = mount()
-    act(() => { q(el, 'design-how-add')!.click() })
+    expect(q(el, 'design-how-add')!.getAttribute('aria-pressed')).toBe('true')
     const first = el.querySelector('[data-testid^="design-rec-"]') as HTMLElement
     act(() => { first.click() })
     expect(onAddDesign).toHaveBeenCalledWith(first.getAttribute('data-testid')!.replace('design-rec-', ''))
     expect(onSelectDesign).not.toHaveBeenCalled()
+  })
+  it('preselects the suggested goal with its reason until the customer picks one', () => {
+    const { el } = mount({ suggestion: { goal: 'promote-offer', reason: 'Their website has online booking.' } })
+    expect(q(el, 'design-goal-promote-offer')!.getAttribute('aria-pressed')).toBe('true')
+    expect(q(el, 'design-goal-reason')!.textContent).toContain('online booking')
+    act(() => { q(el, 'design-goal-brand-moment')!.click() })
+    expect(q(el, 'design-goal-brand-moment')!.getAttribute('aria-pressed')).toBe('true')
+    expect(q(el, 'design-goal-reason')).toBeNull()
   })
 })

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import ImageEditorModal from '../image-editor/ImageEditorModal'
 
 // jsdom cannot decode images; the PNG re-encode is covered in normalizeImage.test.ts.
@@ -58,6 +58,30 @@ describe('ImageEditorModal', () => {
     expect(screen.getByText('Remove Background')).toBeTruthy()
     expect(screen.getByText('Crop / Rotate')).toBeTruthy()
     expect(screen.getByTestId('image-editor-apply-hint').textContent).toMatch(/Make an edit first/)
+  })
+
+  it('offers the Images 2.6 engines, render detail up to max and a composition complexity select', async () => {
+    render(
+      <ImageEditorModal
+        open
+        asset={{ id: 'a', name: 'A', imageUrl: 'data:image/png;base64,AA==', originalImageUrl: 'data:image/png;base64,AA==', category: 'logo', source: 'discovered' }}
+        onClose={vi.fn()}
+        onApply={vi.fn()}
+      />,
+    )
+    await act(async () => { screen.getByText('Advanced Edit').click() }) // the engine controls live in Advanced mode
+    const engine = screen.getByLabelText('Image engine') as HTMLSelectElement
+    expect(engine.value).toBe('standard')
+    expect(Array.from(engine.options).map((o) => o.textContent)).toEqual(['Standard (2.5)', 'Fast draft (2.6 Flare)', 'Detailed render (2.6 Sunburst)'])
+    const detail = screen.getByLabelText('Render detail') as HTMLSelectElement
+    expect(Array.from(detail.options).map((o) => o.value)).toEqual(['default', 'low', 'medium', 'high', 'xhigh', 'max'])
+    const complexity = screen.getByLabelText('Composition complexity') as HTMLSelectElement
+    expect(complexity.disabled).toBe(true)
+    expect(screen.queryByTestId('smart-edit-engine-note')).toBeNull()
+    fireEvent.change(engine, { target: { value: 'detail' } })
+    expect(complexity.disabled).toBe(false)
+    expect(screen.getByTestId('smart-edit-engine-note').textContent).toMatch(/Smart Edit.*2\.5/)
+    expect(Array.from(complexity.options).map((o) => o.value)).toEqual(['', 'low', 'medium', 'high'])
   })
 
   it('does not render while closed', () => {

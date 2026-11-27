@@ -14,7 +14,7 @@ Use this checklist to verify the Director feature is fully functional in the sta
 
 ```bash
 # 1.1 — smoke test
-BACKEND="https://videoagent-backend.onrender.com"
+BACKEND="https://<videoagent-backend-beam-url>"
 START=$(date +%s%3N)
 HTTP=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND/health")
 END=$(date +%s%3N)
@@ -36,7 +36,7 @@ echo "HTTP $HTTP in ${DUR}ms"
 
 ```bash
 # 2.1 and 2.2
-DIRECTOR_FE="https://director-frontend.onrender.com"
+DIRECTOR_FE="https://<director-frontend-beam-url>"
 HTTP=$(curl -s -o /dev/null -w "%{http_code}" "$DIRECTOR_FE/director")
 DUR=$(curl -o /dev/null -s -w "%{time_total}" "$DIRECTOR_FE/director")
 echo "Director page: HTTP $HTTP in ${DUR}s"
@@ -124,7 +124,7 @@ Each agent must be present in the API response and return a valid payload when i
 The remaining 29 agents are Director backend-only agents handled at `POST /api/director/agent/<id>` by `directorProxy.js`. Verify reachability:
 
 ```bash
-DIRECTOR_PROXY="https://videoagent-backend.onrender.com"
+DIRECTOR_PROXY="https://<videoagent-backend-beam-url>"
 for agent in screenwriter camera-operator character-extractor editor transcribe highlight-reel collage dubbing voice-replacement summarize-video clip-segmentation; do
   HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
     -X POST "$DIRECTOR_PROXY/api/director/agent/$agent" \
@@ -170,7 +170,7 @@ done
 Verify the SSRF block list catches private and loopback addresses:
 
 ```bash
-BACKEND="https://videoagent-backend.onrender.com"
+BACKEND="https://<videoagent-backend-beam-url>"
 JWT="<staging-jwt>"
 
 echo "--- 127.0.0.1 ---"
@@ -298,9 +298,9 @@ Add or run `e2e/director-staging.spec.ts`:
 // e2e/director-staging.spec.ts
 import { test, expect } from '@playwright/test';
 
-const STAGING_URL = process.env.STAGING_URL || 'https://director-frontend.onrender.com';
+const STAGING_URL = process.env.STAGING_URL || 'https://<director-frontend-beam-url>';
 const JWT = process.env.STAGING_JWT!;
-const BACKEND = process.env.BACKEND_URL || 'https://videoagent-backend.onrender.com';
+const BACKEND = process.env.BACKEND_URL || 'https://<videoagent-backend-beam-url>';
 
 test.describe('Director Staging Verification', () => {
   test.beforeEach(async ({ page }) => {

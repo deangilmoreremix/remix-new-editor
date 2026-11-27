@@ -564,3 +564,62 @@ describe('saved recast videos and the "Continue with …" offer', () => {
     expect(JSON.parse(localStorage.getItem(await savedRecastsKey()) || '[]')).toHaveLength(1)
   })
 })
+
+describe('the output belongs to the customer it was made for', () => {
+  const projectFor = (extra: Record<string, unknown> = {}) => ({
+    ok: true,
+    data: {
+      id: RESTORED_ID,
+      sourceType: 'go-ai-viral-video',
+      sourceDemoId: SOURCE.id,
+      originalPrompt: 'Original prompt',
+      personalizedPrompt: 'Restored prompt',
+      identityAssetIds: [],
+      logoAssetIds: [],
+      productAssetIds: [],
+      brandReferenceAssetIds: [],
+      outputUrls: ['https://cdn.example.com/customer-a.png'],
+      outputType: 'image',
+      clientId: 'client-a',
+      guidedStep: 2,
+      viewMode: 'advanced',
+      ...extra,
+    },
+  })
+  const lastWrite = () => {
+    const writes = projectWrites()
+    return writes[writes.length - 1].project as { client?: { clientId?: string | null }; generation?: { outputUrls?: string[]; outputGeneratedAt?: string } }
+  }
+  async function restoreCustomerA(extra: Record<string, unknown> = {}) {
+    localStorage.setItem('smartvideo_clients', JSON.stringify({ 'client-a': { id: 'client-a', name: 'Customer A', businessName: 'Customer A', updatedAt: '2026-01-01T00:00:00.000Z', createdAt: '2026-01-01T00:00:00.000Z' }, 'client-b': { id: 'client-b', name: 'Customer B', businessName: 'Customer B', updatedAt: '2026-01-02T00:00:00.000Z', createdAt: '2026-01-02T00:00:00.000Z' } }))
+    persistenceSpy.loadProject.mockResolvedValue(projectFor(extra))
+    await mount()
+    await act(async () => { ctx().openPersonalize({ source: SOURCE }) })
+    await settle()
+    await act(async () => { await ctx().resumeLastProject() })
+    await settle()
+    expect(lastWrite().client?.clientId).toBe('client-a')
+    expect(lastWrite().generation?.outputUrls).toEqual(['https://cdn.example.com/customer-a.png'])
+  }
+
+  it("never saves the previous customer's picture under the customer picked next", async () => {
+    await restoreCustomerA()
+    await act(async () => { ctx().selectClient('client-b') })
+    await settle()
+    const saved = lastWrite()
+    expect(saved.client?.clientId).toBe('client-b')
+    expect(saved.generation?.outputUrls ?? []).toEqual([])
+  })
+
+  it('keeps the picture while the same customer stays selected', async () => {
+    await restoreCustomerA()
+    await act(async () => { ctx().selectClient('client-a') })
+    await settle()
+    expect(lastWrite().generation?.outputUrls).toEqual(['https://cdn.example.com/customer-a.png'])
+  })
+
+  it('saves when the output was generated, and keeps a restored stamp', async () => {
+    await restoreCustomerA({ generation: undefined, outputGeneratedAt: '2026-11-09T10:00:00.000Z' })
+    expect(lastWrite().generation?.outputGeneratedAt).toBe('2026-11-09T10:00:00.000Z')
+  })
+})

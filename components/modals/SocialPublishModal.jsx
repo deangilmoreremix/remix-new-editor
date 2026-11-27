@@ -7,7 +7,12 @@ import socialPublishing, {
 } from '../../lib/socialPublishing';
 
 import { enhanceSocialPostText, TONALITIES } from '../../lib/socialPostEnhancer';
+// Pure payload builder (muapi field names and limits per platform), shared with the personalization publisher.
+import { toPublicThumbnailUrl } from '../../src/lib/socialThumbnail.js';
+import { buildPublishPayload } from '../../src/features/personalization/shared/api/socialPayloads';
 import openaiConfig from '../../lib/config/openaiConfig.js';
+// Same palette as the "Personalize this demo" window (black, lime accent, 22px shell), so every publishing window looks like one app.
+import { C } from '../../src/features/personalization/shared/personalization/guided/tokens';
 // The thumbnail creator is lazy-loaded on demand (see handleCreateThumbnail) so
 // the publish modal stays lightweight until the user opts into a thumbnail.
 import { seedThumbnailFieldsFromSocialCopy } from '../../lib/socialPublisherThumbnail';
@@ -33,70 +38,85 @@ import { seedThumbnailFieldsFromSocialCopy } from '../../lib/socialPublisherThum
 // into local form state so a single thumbnail step drives the live preview.
 // ---------------------------------------------------------------------------
 
-const PLATFORM_BY_ID = Object.fromEntries(SOCIAL_PLATFORMS.map((p) => [p.id, p]));
+// Platforms whose payload comes from the shared builder (YouTube, TikTok and Instagram have their own forms).
+const BUILDER_PLATFORMS = ['facebook'];
 
-const APP_ACCENT = '#6d5efc';
-const APP_ACCENT2 = '#a855f7';
-const GRAY_DARK = 'rgba(26,25,48,0.9)';
+const PLATFORM_BY_ID = Object.fromEntries(SOCIAL_PLATFORMS.map((p) => [p.id, p]));
 
 const inputStyle = {
   width: '100%',
   boxSizing: 'border-box',
-  background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.12)',
-  borderRadius: 10,
-  color: '#fff',
-  padding: '10px 12px',
-  fontSize: 14,
+  minHeight: 40,
+  background: C.field,
+  border: `1px solid ${C.border}`,
+  borderRadius: 8,
+  color: C.text,
+  padding: '9px 11px',
+  fontSize: 13,
   outline: 'none',
 };
 
 const labelStyle = {
   display: 'block',
-  fontSize: 12,
-  fontWeight: 600,
-  letterSpacing: 0.4,
+  fontSize: 10,
+  fontWeight: 700,
+  letterSpacing: '.04em',
   textTransform: 'uppercase',
-  color: 'rgba(255,255,255,0.55)',
+  color: C.muted,
   margin: '14px 0 6px',
 };
 
 const sectionStyle = {
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: 14,
-  padding: 16,
+  border: `1px solid ${C.border}`,
+  borderRadius: 16,
+  padding: 18,
   marginBottom: 16,
-  background: 'rgba(255,255,255,0.02)',
+  background: C.panel,
 };
 
+// Main action: the app's lime button (black text), like the Personalize window's primary button.
 const primaryBtn = (disabled) => ({
-  background: 'transparent',
-  color: disabled ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.85)',
-  border: '1px solid rgba(255,255,255,0.12)',
-  borderLeft: '2px solid #d9ff00',
-  borderRadius: 8,
-  padding: '7px 10px',
-  fontSize: 11,
-  fontWeight: 700,
-  lineHeight: '1.2',
+  minHeight: 40,
+  background: disabled ? C.panel : C.accent,
+  color: disabled ? C.muted2 : C.onAccent,
+  border: `1px solid ${disabled ? C.border : C.accent}`,
+  borderRadius: 10,
+  padding: '0 20px',
+  fontSize: 12,
+  fontWeight: 800,
+  textTransform: 'uppercase',
+  letterSpacing: '.04em',
   cursor: disabled ? 'not-allowed' : 'pointer',
-  transition: 'all 200ms ease',
-  opacity: disabled ? 0.4 : 1,
+  transition: 'all 160ms ease',
+  opacity: disabled ? 0.6 : 1,
   pointerEvents: disabled ? 'none' : 'auto',
 });
 
 const ghostBtn = {
-  background: 'transparent',
-  color: 'rgba(255,255,255,0.75)',
-  border: '1px solid rgba(255,255,255,0.10)',
+  background: C.panel,
+  color: C.text,
+  border: `1px solid ${C.border}`,
   borderRadius: 8,
-  padding: '7px 10px',
+  padding: '7px 12px',
   fontSize: 11,
   fontWeight: 700,
   lineHeight: '1.2',
   cursor: 'pointer',
-  transition: 'all 200ms ease',
+  transition: 'all 160ms ease',
 };
+
+// A selectable pill (media type, step tab): lime outline + soft lime fill when on, like the Personalize window's chips.
+const pillStyle = (active) => ({
+  minHeight: 34,
+  padding: '0 14px',
+  borderRadius: 999,
+  border: `1px solid ${active ? C.cyanBorder : C.border}`,
+  background: active ? C.cyanSoft : 'transparent',
+  color: active ? C.cyan : C.muted,
+  fontSize: 11,
+  fontWeight: 700,
+  cursor: 'pointer',
+});
 
 function inferMediaType(url) {
   if (!url) return 'video';
@@ -148,9 +168,9 @@ const enhanceBtnStyle = (active) => ({
   width: 36,
   height: 36,
   borderRadius: 9,
-  border: '1px solid rgba(255,255,255,0.15)',
-  background: active ? 'rgba(109,94,252,0.25)' : 'rgba(255,255,255,0.04)',
-  color: '#cbbcff',
+  border: `1px solid ${active ? C.cyanBorder : C.border}`,
+  background: active ? C.cyanSoft : C.panel,
+  color: active ? C.cyan : C.muted,
   fontSize: 16,
   cursor: 'pointer',
   display: 'flex',
@@ -224,9 +244,9 @@ function RerollMenu({ field, enhancing, disabled, onReroll, currentText }) {
           width: REROLl_BTN_SIZE,
           height: REROLl_BTN_SIZE,
           borderRadius: 7,
-          border: '1px solid rgba(255,255,255,0.12)',
-          background: 'rgba(255,255,255,0.03)',
-          color: '#a9a4d6',
+          border: `1px solid ${C.border}`,
+          background: C.panel,
+          color: C.muted,
           fontSize: 13,
           cursor: 'pointer',
           display: 'inline-flex',
@@ -244,8 +264,8 @@ function RerollMenu({ field, enhancing, disabled, onReroll, currentText }) {
             top: '110%',
             right: 0,
             padding: '6px 8px',
-            background: GRAY_DARK,
-            border: '1px solid rgba(255,255,255,0.18)',
+            background: C.panel,
+            border: `1px solid ${C.borderStrong}`,
             borderRadius: 8,
             boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
             zIndex: 1000,
@@ -267,7 +287,7 @@ function RerollMenu({ field, enhancing, disabled, onReroll, currentText }) {
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: '#d6d3f2',
+                color: C.text,
                 fontSize: 12,
                 padding: '4px 6px',
                 borderRadius: 5,
@@ -280,7 +300,7 @@ function RerollMenu({ field, enhancing, disabled, onReroll, currentText }) {
           ))}
           <span
             style={{
-              color: '#8b87b3',
+              color: C.muted2,
               fontSize: 10,
               padding: '2px 4px',
               opacity: currentText ? 1 : 0.55,
@@ -305,7 +325,7 @@ const STEPS = [
 
 function StepBar({ activeStep, completedSteps, onStep }) {
   return (
-    <div style={{ display: 'flex', gap: 6, marginBottom: 18, flexWrap: 'wrap' }}>
+    <div role="tablist" aria-label="Publishing steps" style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
       {STEPS.map((s, i) => {
         const done = completedSteps.has(s.key);
         const active = activeStep === s.key;
@@ -313,31 +333,22 @@ function StepBar({ activeStep, completedSteps, onStep }) {
           <button
             key={s.key}
             type="button"
+            role="tab"
+            aria-selected={active}
             onClick={() => onStep(s.key)}
             disabled={s.key === 'preview'}
             style={{
-              flex: 1,
-              minWidth: 90,
-              padding: '9px 8px',
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: 0.5,
+              ...pillStyle(active),
+              flex: '1 1 110px',
+              minHeight: 38,
               textTransform: 'uppercase',
-              color: active ? '#fff' : done ? '#bbb8e3' : 'rgba(255,255,255,0.4)',
-              borderRadius: 10,
-              border: `1px solid ${active ? APP_ACCENT : done ? 'rgba(166,150,255,0.4)' : 'rgba(255,255,255,0.12)'}`,
-              background: active
-                ? `linear-gradient(135deg,${APP_ACCENT}22,${APP_ACCENT2}11)`
-                : done
-                ? 'rgba(109,94,252,0.12)'
-                : 'rgba(255,255,255,0.03)',
+              letterSpacing: '.04em',
+              color: active ? C.cyan : done ? C.text : C.muted,
               cursor: s.key === 'preview' ? 'default' : 'pointer',
               opacity: s.key === 'preview' ? 0.6 : 1,
-              backdropFilter: 'blur(8px)',
-              transition: 'border-color 140ms ease, background 140ms ease',
             }}
           >
-            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, marginRight: 6, fontSize: 11 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, marginRight: 8, fontSize: 10, borderRadius: 999, background: active ? C.cyanSoft : done ? 'rgba(34,197,94,.18)' : C.panelSoft, color: done && !active ? C.green : 'inherit' }}>
               {done ? '✓' : i + 1}
             </span>
             {s.label}
@@ -511,6 +522,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
   const [lastResponseIds, setLastResponseIds] = useState({}); // field -> responseId
   const [errorMsg, setErrorMsg] = useState(null);
   const [resultUrl, setResultUrl] = useState('');
+  const [noteMsg, setNoteMsg] = useState(''); // non-fatal follow-up result, e.g. the YouTube thumbnail
 
   const [enhancing, setEnhancing] = useState(null); // field currently being AI-enhanced
   const [renamingId, setRenamingId] = useState(null); // account id being renamed
@@ -532,6 +544,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
     caption: '',
     media_type: initialType === 'image' ? 'IMAGE' : 'VIDEO',
     placement: 'reels',
+    alt_placement: 'timeline', // Facebook
     share_to_feed: true,
     cover_url: '',
     thumb_offset: '',
@@ -550,7 +563,8 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
     setAccountsError(null);
     try {
       const list = await socialPublishing.listAccounts(externalUserId);
-      setAccounts(Array.isArray(list) ? list : []);
+      // Only platforms this window can publish to; accounts for others (connected in the muapi dashboard) are left out.
+      setAccounts(Array.isArray(list) ? list.filter((a) => PLATFORM_BY_ID[a.platform_name]) : []);
     } catch (e) {
       setAccountsError(e.message || 'Could not load connected accounts.');
     } finally {
@@ -783,9 +797,20 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
 
   const updateForm = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
+  // Facebook: build and validate with the shared per-platform builder.
+  const buildNewPlatform = useMemo(() => (platform) => buildPublishPayload({
+    platform,
+    accountId: selectedAccountId,
+    mediaUrl,
+    mediaType: mediaType === 'image' ? 'image' : 'video',
+    copy: { caption: form.caption, title: form.title, description: form.description },
+    settings: { placement: form.alt_placement },
+  }), [selectedAccountId, mediaUrl, mediaType, form]);
+
   const buildPayload = useMemo(() => {
     const platform = platformOfSelected;
-    return (platform) => {
+    return (platform, coverUrl = '') => {
+      if (BUILDER_PLATFORMS.includes(platform)) return buildNewPlatform(platform).payload || {};
       const base = { account_id: Number(selectedAccountId), media_url: mediaUrl };
       if (platform === 'youtube') {
         const tags = form.tags.split(',').map((t) => t.trim()).filter(Boolean);
@@ -817,13 +842,15 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         share_to_feed: !!form.share_to_feed,
       };
       if (form.caption.trim()) payload.caption = form.caption.trim();
-      if (form.cover_url.trim()) payload.cover_url = form.cover_url.trim();
+      // A hand-typed cover wins; otherwise the thumbnail from step 2 is the video's cover.
+      const cover = form.cover_url.trim() || coverUrl;
+      if (cover) payload.cover_url = cover;
       if (form.thumb_offset !== '' && Number(form.thumb_offset) >= 0) {
         payload.thumb_offset = Number(form.thumb_offset);
       }
       return payload;
     };
-  }, [selectedAccountId, mediaUrl, form, platformOfSelected]);
+  }, [selectedAccountId, mediaUrl, form, platformOfSelected, buildNewPlatform]);
 
   const handlePublish = useCallback(async () => {
     if (!isValidMediaUrl(mediaUrl)) {
@@ -843,14 +870,29 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
       setErrorMsg('Add a thumbnail to make your post pop (your media preview still works without one).');
       return;
     }
+    if (BUILDER_PLATFORMS.includes(platform)) {
+      const built = buildNewPlatform(platform);
+      if (built.errors.length) {
+        setErrorMsg(built.errors.join(' '));
+        return;
+      }
+    }
 
     setStatus('publishing');
     setErrorMsg(null);
+    setNoteMsg('');
     setProgress('Submitting…');
     const controller = new AbortController();
     abortRef.current = controller;
     try {
-      const result = await socialPublishing.publishAndPoll(platform, buildPayload(platform), {
+      const thumbUrl = form.thumbnail?.imageUrl || '';
+      let coverUrl = '';
+      if (platform === 'instagram' && form.media_type === 'VIDEO' && !form.cover_url.trim() && thumbUrl) {
+        setProgress('Uploading thumbnail…');
+        coverUrl = await toPublicThumbnailUrl(thumbUrl);
+        setProgress('Submitting…');
+      }
+      const result = await socialPublishing.publishAndPoll(platform, buildPayload(platform, coverUrl), {
         onStatus: (s) => setProgress(statusLabel(s)),
         signal: controller.signal,
       });
@@ -865,6 +907,29 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         result?.publish_id ||
         '';
       setResultUrl(typeof link === 'string' ? link : '');
+      // YouTube takes the thumbnail in a second call once the video exists (youtube-set-thumbnail).
+      // The video is already live, so a failure here is a note, never a failed publish.
+      let note = '';
+      if (platform === 'youtube' && thumbUrl) {
+        try {
+          setProgress('Setting thumbnail…');
+          const { extractYouTubeVideoId } = await import('../../src/features/personalization/shared/api/publishOrchestrator');
+          const videoId = extractYouTubeVideoId(result?.output || result);
+          if (!videoId) {
+            note = 'The thumbnail was not set because YouTube did not return the video ID. Set it in YouTube Studio.';
+          } else {
+            const thumbnailUrl = await toPublicThumbnailUrl(thumbUrl);
+            await socialPublishing.setYouTubeThumbnail(
+              { account_id: Number(selectedAccountId), video_id: videoId, thumbnail_url: thumbnailUrl },
+              { signal: controller.signal },
+            );
+            note = 'Thumbnail set on YouTube.';
+          }
+        } catch (thumbErr) {
+          note = `The thumbnail could not be set: ${thumbErr.message || thumbErr} (JPEG or PNG under 2 MB; custom thumbnails also need a verified YouTube channel).`;
+        }
+      }
+      setNoteMsg(note);
       setStatus('success');
       if (typeof opts.onPublished === 'function') {
         opts.onPublished({ platform, url: typeof link === 'string' ? link : '', raw: result });
@@ -873,7 +938,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
       setErrorMsg(e.message || 'Publishing failed.');
       setStatus('error');
     }
-  }, [mediaUrl, selectedAccount, form, opts, buildPayload]);
+  }, [mediaUrl, selectedAccount, form, opts, buildPayload, buildNewPlatform]);
 
   // --- draft / preview helpers ----------------------------------------------
   const handleSaveDraft = () => {
@@ -941,29 +1006,30 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
   // --- render ---------------------------------------------------------------
 
   return (
-    <div style={{ padding: '8px 8px 4px', color: '#fff', minWidth: 520, position: 'relative' }}>
-      {/* Header + step bar */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4,
-        padding: '6px 8px 6px', position: 'sticky', top: 0, zIndex: 5,
-        background: 'rgba(26,25,48,0.7)', backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(255,255,255,0.08)',
+    <div style={{ color: C.text, minWidth: 0, position: 'relative' }} role="group" aria-labelledby="social-publish-title">
+      {/* Header: icon tile, title, one line of help, close (same shape as the Personalize window's header) */}
+      <header style={{
+        display: 'flex', alignItems: 'flex-start', gap: 14, padding: '22px 28px',
+        position: 'sticky', top: 0, zIndex: 5, background: C.modal, borderBottom: `1px solid ${C.border}`,
       }}
       >
         <div style={{
-          width: 34, height: 34, borderRadius: 9,
-          background: `linear-gradient(135deg,${APP_ACCENT},${APP_ACCENT2})`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
+          width: 42, height: 42, borderRadius: 13, flexShrink: 0,
+          background: C.cyanSoft, color: C.cyan, fontSize: 20,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}
-        >📡</div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 17, fontWeight: 800 }}>Publish to Social</div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>
-            Media → Thumbnail → Copy → Platform → Preview
-          </div>
+        >↗</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h1 id="social-publish-title" style={{ margin: 0, fontSize: 19, lineHeight: 1.15, fontWeight: 700, letterSpacing: '-.01em', color: C.text }}>Publish to Social</h1>
+          <p style={{ margin: '6px 0 0', fontSize: 13, lineHeight: 1.5, color: C.muted }}>
+            Choose the video, write the caption, pick where it goes. Nothing is posted until you press Publish.
+          </p>
         </div>
-        {draftSaved && <div style={{ fontSize: 11, color: '#9affa9' }}>✓ Draft saved</div>}
-      </div>
+        {draftSaved && <div style={{ fontSize: 11, color: C.green, alignSelf: 'center' }}>✓ Draft saved</div>}
+        <button type="button" aria-label="Close" onClick={handleClose} style={{ ...ghostBtn, width: 34, height: 34, padding: 0, fontSize: 16, borderRadius: 10, flexShrink: 0 }}>✕</button>
+      </header>
 
+      <div style={{ padding: '20px 28px 4px' }}>
       <StepBar activeStep={activeStep} completedSteps={completedSteps} onStep={(k) => k !== 'preview' && setActiveStep(k)} />
 
       {/* Step 1: Media */}
@@ -984,12 +1050,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
                 key={t}
                 type="button"
                 onClick={() => setMediaType(t)}
-                style={{
-                  ...ghostBtn,
-                  background: mediaType === t ? 'rgba(109,94,252,0.25)' : 'transparent',
-                  borderColor: mediaType === t ? APP_ACCENT : 'rgba(255,255,255,0.15)',
-                  textTransform: 'capitalize',
-                }}
+                style={{ ...pillStyle(mediaType === t), textTransform: 'capitalize' }}
               >
                 {t}
               </button>
@@ -1152,6 +1213,26 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
               )}
             </>
           )}
+
+          {platformOfSelected === 'facebook' && (
+            <>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginTop: 10 }}>
+                <textarea
+                  style={{ ...inputStyle, flex: 1, minHeight: 56, resize: 'vertical' }}
+                  placeholder="Caption (supports #hashtags)"
+                  value={form.caption}
+                  onChange={(e) => updateForm('caption', e.target.value)}
+                />
+                <EnhanceButton active={enhancing === 'caption'} disabled={!form.caption.trim()} onClick={() => handleEnhance('caption')} />
+                <RerollMenu field="caption" enhancing={enhancing} disabled={!form.caption.trim()} onReroll={handleReroll} currentText={form.caption} />
+              </div>
+              <select style={{ ...inputStyle, marginTop: 10 }} value={form.alt_placement} onChange={(e) => updateForm('alt_placement', e.target.value)}>
+                <option value="timeline">Timeline</option>
+                <option value="reels">Reels</option>
+                <option value="stories">Stories</option>
+              </select>
+            </>
+          )}
         </div>
       )}
 
@@ -1166,7 +1247,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
           </div>
 
           {accountsLoading && <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 10 }}>Loading accounts…</div>}
-          {accountsError && <div style={{ fontSize: 13, color: '#ff8080', marginTop: 10 }}>{accountsError}</div>}
+          {accountsError && <div style={{ fontSize: 13, color: '#fca5a5', marginTop: 10 }}>{accountsError}</div>}
 
           {!accountsLoading && accounts.length === 0 && !accountsError && (
             <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 10 }}>
@@ -1186,14 +1267,15 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
                   style={{
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '10px 12px', borderRadius: 10,
-                    border: `1px solid ${checked ? APP_ACCENT : 'rgba(255,255,255,0.1)'}`,
-                    background: checked ? 'rgba(109,94,252,0.12)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${checked ? C.cyanBorder : C.border}`,
+                    background: checked ? C.cyanSoft : C.panelSoft,
                     opacity: compatible ? 1 : 0.45,
                   }}
                 >
                   <input
                     type="radio"
                     name="account"
+                    style={{ accentColor: C.accent }}
                     checked={checked}
                     disabled={!compatible || isRenaming}
                     onChange={() => setSelectedAccountId(String(acc.id))}
@@ -1235,14 +1317,14 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
                         >✎</button>
                         <button
                           type="button"
-                          style={{ ...ghostBtn, color: '#ff9a9a', borderColor: 'rgba(255,120,120,0.3)' }}
+                          style={{ ...ghostBtn, color: '#fca5a5', borderColor: 'rgba(239,68,68,0.35)' }}
                             onClick={() => handleDisconnect(acc.id)}
                         >Disconnect</button>
                         <button
                           type="button"
                           aria-label="Remove account permanently"
                           title="Remove permanently"
-                          style={{ ...ghostBtn, color: '#ff9a9a', borderColor: 'rgba(255,120,120,0.3)' }}
+                          style={{ ...ghostBtn, color: '#fca5a5', borderColor: 'rgba(239,68,68,0.35)' }}
                             onClick={() => handlePermanentRemove(acc.id)}
                         >🗑</button>
                       </>
@@ -1309,17 +1391,18 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
 
       {/* Status / errors */}
       {errorMsg && (
-        <div style={{ color: '#ff9a9a', fontSize: 13, margin: '0 0 12px', padding: '10px 12px', background: 'rgba(255,80,80,0.1)', borderRadius: 10 }}>
+        <div role="alert" style={{ color: '#fca5a5', fontSize: 13, margin: '0 0 12px', padding: '10px 12px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.35)', borderRadius: 10 }}>
           {errorMsg}
         </div>
       )}
 
       {status === 'success' && (
-        <div style={{ color: '#7CFFB2', fontSize: 14, margin: '0 0 12px', padding: '12px', background: 'rgba(80,255,160,0.1)', borderRadius: 10 }}>
+        <div role="status" style={{ color: C.green, fontSize: 14, margin: '0 0 12px', padding: '12px', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.35)', borderRadius: 10 }}>
           ✅ Published!
+          {noteMsg && <div style={{ marginTop: 6, fontSize: 13, opacity: 0.85 }}>{noteMsg}</div>}
           {resultUrl && (
             <div style={{ marginTop: 8 }}>
-              <a href={resultUrl} target="_blank" rel="noreferrer" style={{ color: '#9ad6ff', textDecoration: 'underline', wordBreak: 'break-all' }}>
+              <a href={resultUrl} target="_blank" rel="noreferrer" style={{ color: C.accent, textDecoration: 'underline', wordBreak: 'break-all' }}>
                 {resultUrl}
               </a>
             </div>
@@ -1334,16 +1417,17 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         </div>
       )}
 
-      {/* Sticky footer actions */}
+      </div>
+
+      {/* Footer actions: secondary buttons, then the lime Publish button */}
       <div style={{
-        display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8, paddingTop: 10,
-        borderTop: '1px solid rgba(255,255,255,0.08)', position: 'sticky', bottom: 0,
-        background: GRAY_DARK, zIndex: 5,
+        display: 'flex', gap: 10, justifyContent: 'flex-end', alignItems: 'center', marginTop: 8, padding: '14px 28px',
+        borderTop: `1px solid ${C.border}`, position: 'sticky', bottom: 0, background: C.modal, zIndex: 5,
       }}
       >
-        <button type="button" style={ghostBtn} onClick={handleSaveDraft}>Save draft (⌘S)</button>
-        <button type="button" style={ghostBtn} disabled={!canPreview} onClick={() => setActiveStep('preview')}>Preview</button>
-        <button type="button" style={ghostBtn} onClick={handleClose}>Close</button>
+        <button type="button" style={{ ...ghostBtn, minHeight: 40, padding: '0 16px' }} onClick={handleSaveDraft}>Save draft (⌘S)</button>
+        <button type="button" style={{ ...ghostBtn, minHeight: 40, padding: '0 16px', opacity: canPreview ? 1 : 0.5 }} disabled={!canPreview} onClick={() => setActiveStep('preview')}>Preview</button>
+        <button type="button" style={{ ...ghostBtn, minHeight: 40, padding: '0 16px' }} onClick={handleClose}>Close</button>
         {status === 'success' ? (
           <button type="button" style={primaryBtn(false)} onClick={handleClose}>Done</button>
         ) : (

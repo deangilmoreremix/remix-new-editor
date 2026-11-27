@@ -1,0 +1,36 @@
+{
+  "gtm-boost": {
+    "selector": ".gtm-boost-btn",
+    "steps": [],
+    "click": true,
+    "then": [
+      {
+        "selector": "#gtm-base-prompt",
+        "type": "Turn my product demo clip into a punchy launch teaser",
+        "hold": 800
+      },
+      {
+        "selector": ".gtm-chip:text-is(\"Product launch\")",
+        "hold": 600
+      },
+      {
+        "selector": ".gtm-chip:text-is(\"Leads\")",
+        "hold": 1200
+      }
+    ]
+  },
+  "video-to-video-in-video-studio": {
+    "selector": "button[title=\"Upload video to remove watermark\"]",
+    "click": true,
+    "upload": true,
+    "file": "video",
+    "then": [
+      {
+        "selector": "#v-model-btn",
+        "hold": 2200
+      }
+    ],
+    "setup": "(()=>{localStorage.setItem('muapi_key',btoa('muapi_2024_tour-placeholder-key'));const of=window.fetch;window.fetch=function(u,o){const s=String((u&&u.url)||u);if(o&&o.method==='POST'&&/muapi-proxy|upload/i.test(s))return Promise.resolve(new Response(JSON.stringify({url:'https://example.invalid/sample.mp4'}),{status:200,headers:{'content-type':'application/json'}}));return of.apply(this,arguments)}})()",
+    "reload": false
+  }
+}

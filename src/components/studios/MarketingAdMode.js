@@ -85,8 +85,12 @@ export function createMarketingAdMode() {
     onFiles: (files) => upload(files, refsSlot, (urls) => { state.refs = [...state.refs, ...urls]; refsSlot.setPreview(state.refs); }),
     onClear: () => { state.refs = []; },
   });
+  refsSlot.el.dataset.helpName = 'References';
+  refsSlot.el.dataset.helpText = 'Optional images that guide the look of the ad.';
 
   const formatPill = createPill({ label: state.format.name, title: 'Video format presets' });
+  formatPill.dataset.helpName = 'Video format';
+  formatPill.dataset.helpText = 'Pick a ready-made ad style such as UGC, Tutorial or Unboxing.';
   formatPill.addEventListener('click', () => openComposerPopover(formatPill, {
     title: 'Video Format Presets',
     items: AD_FORMATS.map((f) => ({ label: f.name, selected: f.name === state.format.name, onSelect: () => { state.format = f; formatPill.setLabel(f.name); } })),

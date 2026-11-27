@@ -11,7 +11,7 @@ import { DemoPersonalizeProvider, useDemoPersonalize } from '../DemoPersonalizeP
 import { validateProjectRequirements } from '../ai/toolExecutor';
 import { blockingByTab, requirementLocation } from '../advanced/ReadinessChecklist';
 
-vi.mock('next/navigation', () => ({
+vi.mock('@ohb/lib/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),
@@ -61,7 +61,7 @@ function TestOpener({ onMounted }: { onMounted: (open: (opts: any) => void) => v
 }
 
 /** Renders the provider + modal and opens it on the standard demo source. */
-async function openModal() {
+async function openModal(access?: 'anonymous' | 'authenticated', sourceMetadata: Record<string, unknown> = {}, sourceOverrides: Record<string, unknown> = {}, openAdvanced = true) {
   const container = document.createElement('div');
   container.setAttribute('data-testid', 'personalization-root')
   document.body.appendChild(container);
@@ -93,19 +93,23 @@ async function openModal() {
         fullPrompt: 'test',
         shortPrompt: 'test',
         sourceType: 'landing-demo',
-        sourceMetadata: {},
+        sourceMetadata,
+        ...sourceOverrides,
       },
+      ...(access ? { access } : {}),
     });
   });
 
   // Simple Mode is the default customer presentation; these layout guards
   // assert the full Advanced Editing layout, so opt into it after opening.
-  await act(async () => {
-    const button = Array.from(container.querySelectorAll('button')).find((candidate) =>
-      /advanced editing/i.test(candidate.textContent || ''),
-    );
-    button?.click();
-  });
+  if (openAdvanced) {
+    await act(async () => {
+      const button = Array.from(container.querySelectorAll('button')).find((candidate) =>
+        /advanced editing/i.test(candidate.textContent || ''),
+      );
+      button?.click();
+    });
+  }
 
   return container;
 }
@@ -232,4 +236,41 @@ describe('Advanced Editing readiness', () => {
     expect($(container, 'pz-tabpanel-assets')!.hidden).toBe(false)
     expect($(container, 'pz-section-assets-yours')!.hidden).toBe(false)
   });
+
+  it('a signed-out visitor sees the same checklist and bar, and the main button asks them to sign in', async () => {
+    window.location.hash = ''
+    const container = await openModal('anonymous');
+
+    expect($(container, 'pz-readiness')?.textContent).toMatch(/to finish before you create/)
+    expect($(container, 'pz-tab-client')!.getAttribute('data-issue')).toBe('true')
+    // Only the business name is asked for: the other requirements belong to controls they never get.
+    expect($(container, 'pz-readiness-item-consent')).toBeNull()
+    expect($(container, 'pz-footer-reason')!.textContent).toContain('business name')
+
+    const main = Array.from(container.querySelectorAll('footer button')).find((b) => /sign in to create/i.test(b.textContent || '')) as HTMLButtonElement
+    expect(main).toBeTruthy()
+    expect(main.disabled).toBe(true)
+
+    await act(async () => { latestCtx.updateClientForm({ businessName: 'Joe Roofing' }) })
+    expect(main.disabled).toBe(false)
+    await act(async () => { main.click() })
+    expect(window.location.hash).toBe('#/signin')
+  })
+
+  it('the free Find My Brand entry keeps its plain view with no create bar', async () => {
+    const container = await openModal('anonymous', { freeDiscovery: true });
+    expect(Array.from(container.querySelectorAll('button')).some((b) => /sign in to create/i.test(b.textContent || ''))).toBe(false)
+    expect($(container, 'pz-readiness')).toBeNull()
+  })
+
+  it("a studio's Personalize button starts the four-step wizard even with no video, and a brand entry stays on Advanced", async () => {
+    const studio = await openModal('authenticated', {}, { mediaType: 'prompt-only', sourceType: 'studio-project' }, false)
+    expect(studio.textContent).toContain('Find your business')
+    expect(studio.textContent).toContain('Your video')
+    expect(Array.from(studio.querySelectorAll('button')).some((b) => /advanced editing/i.test(b.textContent || ''))).toBe(true)
+    document.querySelectorAll('[data-testid="personalization-root"]').forEach((el) => el.remove())
+
+    const brand = await openModal('authenticated', {}, { mediaType: 'prompt-only', sourceType: 'landing-demo' }, false)
+    expect(brand.textContent).not.toContain('Preview and approve')
+  })
 });

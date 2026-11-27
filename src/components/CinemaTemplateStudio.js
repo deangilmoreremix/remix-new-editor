@@ -3,7 +3,11 @@
  * UI Component for the Cinematic Template System
  */
 
+import { parseLocation } from '../lib/routeUrl.js';
 import { showToast } from '../lib/loading.js';
+import { createTemplateCost } from '../lib/templateCost.js';
+import { formatActualCost } from '../lib/templateUx.js';
+import { createPresetsControl, createTipStrip, savePreset, buildExampleValues, saveTemplateInputs, loadTemplateInputs, applyValuesToForm, cssEscape, setFieldInvalid, isGenerateShortcut, buildCinemaShareUrl, decodeShareValues } from '../lib/templateUx.js';
 import { escapeHtml } from '../lib/security.js';
 import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { createActionRow, createAdvancedButton, setActionPillLabel, styleThumbnailButton, arrangeActionRow } from './studio/actionRow.js';
@@ -35,8 +39,9 @@ import { AuthModal } from './AuthModal.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
+import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { selectScenes } from '../lib/sceneSelector.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
@@ -46,9 +51,10 @@ import { resolveModel, normalizeAspectRatio, normalizeDuration, attachThumbnail,
 import { saveGeneration } from '../lib/generationHistory.js';
 import { appendMissingInputs, templateInputEntries, detectTemplateNiche } from '../lib/templatePromptComposer.js';
 import { createTemplateVideoTools } from '../lib/templateVideoTools.js';
-import { createResultHistory, createResultActions, createFrameScrubber, buildExtendParams, canExtend, snapshotGenerationParams } from '../lib/templateResultTools.js';
+import { createResultHistory, createResultActions, createFrameScrubber, buildExtendParams, canExtend, snapshotGenerationParams, snapshotFormInputs } from '../lib/templateResultTools.js';
 import { createAbortAwareGenerateButton, startGenerationProgress } from '../lib/studioHelpers.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
+import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
 
 /**
  * Resolve the `W:H` aspect ratio for a generation request.
@@ -82,6 +88,10 @@ export function CinemaTemplateStudio() {
   let currentTemplate = null;
   let currentMode = 'quick';
   let currentInputs = {};
+  // Refreshes the Presets dropdown after Save adds a project to it.
+  let cinemaPresetsRefresh = null;
+  // Re-prices the estimate under Generate (set once that line exists).
+  let costEstimateRefresh = () => {};
   let sceneBuilder = null;
   let selectedScenes = [];
   let view = 'browse';
@@ -193,6 +203,48 @@ export function CinemaTemplateStudio() {
 
   render();
 
+  // A share link (`?template=<id>&fill=<values>`) opens that template with the
+  // shared inputs filled in. Plain `?template=` links keep their old behaviour.
+  try {
+    const q = new URLSearchParams(window.location.search);
+    const sharedTemplate = q.get('fill') && q.get('template') ? registry.get(q.get('template')) : null;
+    if (sharedTemplate) selectTemplate(sharedTemplate);
+    else openLandingDemoHandoff(q);
+  } catch { /* ignore malformed links */ }
+
+  // Landing-page demo hand-off ("C" icon): instead of the generic gallery, open a
+  // cinematic template's create view with the demo's prompt already filled in,
+  // like the other studios do.
+  function openLandingDemoHandoff(q) {
+    const academyId = q.get('academy-template');
+    const promptParam = q.get('prompt');
+    const demoParam = q.get('template');
+    if (!academyId && !promptParam && !demoParam) return;
+    const fillPrompt = (text) => {
+      if (!text || !currentTemplate) return;
+      const schema = new TemplateInputBuilder(currentTemplate, currentMode).buildFormSchema();
+      const field = schema.find((i) => i && i.name === 'prompt' && (i.type === 'text' || i.type === 'textarea'))
+        || schema.find((i) => i && (i.type === 'text' || i.type === 'textarea'));
+      const form = container.querySelector('#inputs-form');
+      if (!field || !form) return;
+      const values = { [field.name]: text };
+      applyValuesToForm(form, values);
+      markFieldsEdited(values);
+    };
+    const template = registry.get('cinematic_short_film') || registry.getAll()[0];
+    if (!template) return;
+    selectTemplate(template);
+    const target = academyId ? getAcademyCreateTarget(academyId) : null;
+    const direct = target?.params?.prompt || promptParam || '';
+    if (direct) {
+      fillPrompt(direct);
+    } else if (demoParam && resolveTemplate(demoParam)) {
+      const tpl = resolveTemplate(demoParam);
+      if (tpl.basePrompt) fillPrompt(tpl.basePrompt);
+      else loadTemplatePrompt(demoParam).then(fillPrompt).catch(() => {});
+    }
+  }
+
   function render() {
     container.innerHTML = '';
 
@@ -227,7 +279,7 @@ export function CinemaTemplateStudio() {
     const customCount = registry.getAll().filter(t => t.isCustom).length;
 
     const header = document.createElement('div');
-    header.className = 'flex items-center justify-between p-4 border-b border-white/10 bg-black/50';
+    header.className = 'flex flex-wrap gap-3 items-center justify-between p-4 border-b border-white/10 bg-black/50';
     header.innerHTML = `
       <div class="flex items-center gap-4">
         <button id="back-btn" class="p-2 hover:bg-white/10 rounded-lg transition-colors">
@@ -454,7 +506,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     incomingStoryboard = null;
     storyboardProjectId = null;
     try {
-      const params = new URLSearchParams(window.location.hash.split('?')[1] || window.location.search);
+      const params = new URLSearchParams({ ...parseLocation().params });
       const storyboardParam = params.get('storyboard');
       const cinemaTemplateParam = params.get('template');
       if (storyboardParam) {
@@ -505,12 +557,12 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           </div>
         </div>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3 min-w-0">
         <div id="api-key-indicator" class="ml-auto flex items-center gap-2">
           <span class="api-key-dot w-2 h-2 rounded-full bg-zinc-600"></span>
           <span class="api-key-text text-[10px] uppercase tracking-wider text-zinc-500">No API key</span>
         </div>
-        <div class="flex bg-white/5 rounded-lg p-1">
+        <div class="flex flex-wrap bg-white/5 rounded-lg p-1">
           <button id="quick-mode-btn" class="px-4 py-1.5 ${currentMode === 'quick' ? 'bg-primary text-black' : 'text-white/70'} text-xs font-bold rounded-md transition-colors">
             Quick Mode
           </button>
@@ -530,11 +582,13 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     // two-column grid (form card left, preview/output right) that stacks on
     // narrower screens.
     const content = document.createElement('div');
-    content.className = 'flex-1 overflow-auto px-8 py-10';
+    content.className = 'flex-1 overflow-auto px-4 py-6 sm:px-8 sm:py-10';
 
     const centeredContainer = document.createElement('div');
     centeredContainer.className = 'mx-auto max-w-[980px]';
     content.appendChild(centeredContainer);
+    const tipStrip = createTipStrip();
+    if (tipStrip) centeredContainer.appendChild(tipStrip);
 
     // Left: Form inputs
     const formPanel = document.createElement('div');
@@ -545,7 +599,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       const name = t?.dataset?.advancedField || t?.name;
       if (name) userEditedFields.add(name);
     }));
-    formPanel.className = 'min-w-0 rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.02))] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.45)]';
+    formPanel.className = 'min-w-0 rounded-[24px] sm:rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.02))] p-4 sm:p-6 shadow-[0_20px_80px_rgba(0,0,0,0.45)]';
 
     // Hero thumbnail section (matches TemplateStudio editor view)
     const heroSection = document.createElement('div');
@@ -767,6 +821,23 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     // Debounced scene timeline refresh on input changes
     const formEl = container.querySelector('#inputs-form');
     if (formEl) {
+      // Ctrl/Cmd+Enter generates from any field.
+      formEl.addEventListener('keydown', (e) => {
+        if (isGenerateShortcut(e)) { e.preventDefault(); generateVideo(); }
+      });
+      // Correcting a field clears its invalid state; the message goes once none is left.
+      ['input', 'change'].forEach((evt) => formEl.addEventListener(evt, (e) => {
+        const t = e.target;
+        // A field stays invalid until its value passes the same rules Generate
+        // applies (required, not just whitespace, number min / max).
+        if (t && t.hasAttribute && t.hasAttribute('aria-invalid')) {
+          const stillInvalid = new TemplateInputBuilder(currentTemplate, currentMode)
+            .validateInputs(currentInputs)
+            .some((err) => err.field === t.name);
+          if (!stillInvalid) setFieldInvalid(t, false);
+        }
+        if (!formEl.querySelector('[aria-invalid]')) container.querySelector('#cin-required-error')?.remove();
+      }));
       formEl.addEventListener('input', () => {
         if (sceneTimelineDebounce) clearTimeout(sceneTimelineDebounce);
         sceneTimelineDebounce = setTimeout(() => {
@@ -826,7 +897,25 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         inputs: currentInputs,
         mode: currentMode
       });
-      showToast('Project saved!', 'success');
+      // Saved projects are also loadable as presets (text / select values).
+      const presetValues = {};
+      new TemplateInputBuilder(currentTemplate, currentMode).buildFormSchema().forEach((input) => {
+        if (input && input.name && ['text', 'textarea', 'select'].includes(input.type) && typeof currentInputs[input.name] === 'string') presetValues[input.name] = currentInputs[input.name];
+      });
+      let savedPreset = null;
+      let presetError = null;
+      try {
+        savedPreset = savePreset(currentTemplate.id, `Project ${new Date().toLocaleString()}`, presetValues);
+      } catch (err) {
+        // The project itself is saved above; only the preset copy failed. Say so.
+        presetError = err;
+      }
+      if (savedPreset && cinemaPresetsRefresh) cinemaPresetsRefresh(savedPreset.id);
+      if (presetError) {
+        showToast(`Project saved, but no preset copy was made: ${presetError.message || 'it could not be stored.'}`, 'warning');
+      } else {
+        showToast('Project saved!', 'success');
+      }
     };
 
     container.querySelector('#generate-btn').onclick = () => {
@@ -980,6 +1069,62 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       formContainer.appendChild(field);
     });
 
+    // Try an example + remembered inputs (only fills fields that are still empty).
+    const exampleValues = buildExampleValues(schema);
+    if (Object.keys(exampleValues).length) {
+      const exampleBtn = document.createElement('button');
+      exampleBtn.type = 'button';
+      exampleBtn.dataset.action = 'try-example';
+      exampleBtn.className = 'w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-zinc-200 transition hover:bg-white/[0.08]';
+      exampleBtn.textContent = '✨ Try an example';
+      exampleBtn.onclick = () => {
+        applyValuesToForm(formContainer, exampleValues);
+        markFieldsEdited(exampleValues);
+        showToast('Example filled in. Edit anything, then press Generate.', 'info');
+      };
+      formContainer.appendChild(exampleBtn);
+    }
+    // Copy a link that reopens this template with the current text / select values.
+    const shareBtn = document.createElement('button');
+    shareBtn.type = 'button';
+    shareBtn.dataset.action = 'copy-link';
+    shareBtn.className = 'w-full rounded-xl border border-white/10 bg-white/[0.02] px-4 py-2 text-xs font-semibold text-zinc-400 transition hover:bg-white/[0.06] hover:text-white';
+    shareBtn.textContent = '🔗 Copy link with these inputs';
+    shareBtn.onclick = async () => {
+      const url = buildCinemaShareUrl(currentTemplate.id, schema, currentInputs);
+      try {
+        await navigator.clipboard.writeText(url);
+        showToast('Link copied. Anyone who opens it gets these inputs filled in.', 'success');
+      } catch {
+        window.prompt('Copy this link', url);
+      }
+    };
+    formContainer.appendChild(shareBtn);
+    // A shared link's values win over what this browser remembered.
+    let sharedFill = '';
+    try { sharedFill = new URLSearchParams(window.location.search).get('fill') || ''; } catch { /* no window */ }
+    const remembered = { ...loadTemplateInputs(currentTemplate.id, schema), ...decodeShareValues(sharedFill, schema) };
+    Object.keys(remembered).forEach((name) => { if (currentInputs[name]) delete remembered[name]; });
+    if (Object.keys(remembered).length) {
+      applyValuesToForm(formContainer, remembered);
+      // Restored values are the user's own: Video Intent sync must not replace them.
+      markFieldsEdited(remembered);
+    }
+    const presetsControl = createPresetsControl({
+      templateId: currentTemplate.id,
+      getValues: () => {
+        const values = {};
+        schema.forEach((input) => {
+          if (input && input.name && ['text', 'textarea', 'select'].includes(input.type) && typeof currentInputs[input.name] === 'string') values[input.name] = currentInputs[input.name];
+        });
+        return values;
+      },
+      applyValues: (values) => { applyValuesToForm(formContainer, values); markFieldsEdited(values); },
+      notify: (msg, type) => showToast(msg, type),
+    });
+    formContainer.appendChild(presetsControl.element);
+    cinemaPresetsRefresh = presetsControl.refresh;
+
     if (currentTemplate.includeBrandContext) {
       const brandContainer = container.querySelector('#brand-form');
       if (brandContainer) {
@@ -1131,6 +1276,12 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       view = 'storyboard';
       render();
     });
+  }
+
+  // Values the user chose (typed, restored, example, preset, reused) stay
+  // theirs: Video Intent sync never replaces fields in this set.
+  function markFieldsEdited(values) {
+    Object.keys(values || {}).forEach((name) => userEditedFields.add(name));
   }
 
   function syncVideoIntentToTemplate(intent) {
@@ -1431,20 +1582,20 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           <div id="shots-list" class="space-y-2">
             ${shots.map((shot, shotIdx) => `
               <div class="grid grid-cols-12 gap-2 items-center shot-row" data-idx="${shotIdx}">
-                <div class="col-span-4">
+                <div class="col-span-12 sm:col-span-4">
                   <select class="shot-type w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs">
                     ${Object.entries(SHOT_TYPES).map(([key, val]) => `<option value="${key}" ${shot.type === key ? 'selected' : ''}>${val.name}</option>`).join('')}
                   </select>
                 </div>
-                <div class="col-span-3">
+                <div class="col-span-6 sm:col-span-3">
                   <select class="shot-movement w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs">
                     ${Object.entries(CAMERA_MOVEMENTS).map(([key, val]) => `<option value="${key}" ${shot.movement === key ? 'selected' : ''}>${val.name}</option>`).join('')}
                   </select>
                 </div>
-                <div class="col-span-3">
+                <div class="col-span-6 sm:col-span-3">
                   <input type="number" min="1" value="${shot.duration || 3}" class="shot-duration w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs" />
                 </div>
-                <div class="col-span-2 flex justify-end">
+                <div class="col-span-12 sm:col-span-2 flex justify-end">
                   <button class="remove-shot-btn text-white/30 hover:text-red-400 transition-colors" data-idx="${shotIdx}">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                   </button>
@@ -1481,20 +1632,20 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       row.className = 'grid grid-cols-12 gap-2 items-center shot-row';
       row.dataset.idx = idx;
       row.innerHTML = `
-        <div class="col-span-4">
+        <div class="col-span-12 sm:col-span-4">
           <select class="shot-type w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs">
             ${Object.entries(SHOT_TYPES).map(([key, val]) => `<option value="${key}">${val.name}</option>`).join('')}
           </select>
         </div>
-        <div class="col-span-3">
+        <div class="col-span-6 sm:col-span-3">
           <select class="shot-movement w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs">
             ${Object.entries(CAMERA_MOVEMENTS).map(([key, val]) => `<option value="${key}">${val.name}</option>`).join('')}
           </select>
         </div>
-        <div class="col-span-3">
+        <div class="col-span-6 sm:col-span-3">
           <input type="number" min="1" value="3" class="shot-duration w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs" />
         </div>
-        <div class="col-span-2 flex justify-end">
+        <div class="col-span-12 sm:col-span-2 flex justify-end">
           <button class="remove-shot-btn text-white/30 hover:text-red-400 transition-colors" data-idx="${idx}">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
           </button>
@@ -1550,11 +1701,11 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     label.className = 'mb-3 flex items-center justify-between gap-3';
     const showTextButtons = input.type === 'text' || input.type === 'textarea';
     label.innerHTML = `
-      <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">${input.label}${input.required ? ' <span class="text-primary">*</span>' : ''}</div>
+      <label for="cin-field-${input.name}" class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">${input.label}${input.required ? ' <span class="text-primary">*</span>' : ''}</label>
       ${showTextButtons ? `
         <div class="flex items-center gap-2">
           <button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white" data-field="${input.name}">Enhance</button>
-           ${isPrimaryPromptField ? '<div class="overflow-menu shrink-0" data-gtm-menu="primary"><button type="button" class="overflow-menu__trigger" data-tooltip="More tools" aria-label="More enhancement tools"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></button><div class="overflow-menu__panel"><button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button><button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button><button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button><button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button></div></div>' : ''}
+           ${isPrimaryPromptField ? '<div class="overflow-menu shrink-0" data-gtm-menu="primary"><button type="button" class="overflow-menu__trigger" data-tooltip="More tools" aria-label="More enhancement tools"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></button><div class="overflow-menu__panel"><button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button><button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button><button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button></div></div>' : ''}
         </div>
       ` : ''}
     `;
@@ -1566,6 +1717,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         const textInput = document.createElement('input');
         textInput.type = input.type;
         textInput.name = input.name;
+        textInput.id = `cin-field-${input.name}`;
         textInput.className = 'h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50';
         textInput.placeholder = input.placeholder || '';
         textInput.value = currentInputs[input.name] || '';
@@ -1581,6 +1733,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       case 'textarea': {
         const textarea = document.createElement('textarea');
         textarea.name = input.name;
+        textarea.id = `cin-field-${input.name}`;
         textarea.className = 'w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-400/50 resize-none';
         textarea.placeholder = input.placeholder || '';
         textarea.rows = 3;
@@ -1595,6 +1748,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       case 'select': {
         const select = document.createElement('select');
         select.name = input.name;
+        select.id = `cin-field-${input.name}`;
         select.className = 'h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50 appearance-none cursor-pointer';
 
         if (input.options && input.options.length > 0) {
@@ -1728,9 +1882,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
                 openGTMPromptModal('cinema-template-studio', { onPromptGenerated, templateContext });
               }).catch((err) => console.error('[CinemaTemplateStudio] GTM Boost failed:', err));
             } else if (action === 'recipe') {
-              openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
-            } else if (action === 'monetize') {
-              openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+              openRecipeModal({ studio: 'cinema' }).catch((err) => console.error('[Recipe] open failed:', err));
             } else if (action === 'prompts') {
               openPromptGallery({
                 appTheme: 'cinema-template-studio',
@@ -1968,6 +2120,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     if (outputType === 'video') {
       // Same per-model controls as the Video Studio prompt bar.
       videoSettings = createVideoSettingsControls({
+        onChange: () => costEstimateRefresh(),
         getTarget: () => {
           const { route, model } = currentMediaRoute();
           return { route, model };
@@ -2085,6 +2238,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     if (syncModelPickerToRoute) syncModelPickerToRoute(route);
     if (videoSettings) videoSettings.refresh();
     if (videoTools) videoTools.refresh();
+    costEstimateRefresh();
   }
 
 
@@ -2427,6 +2581,16 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     genBtn.textContent = 'Generate';
     genBtn.setAttribute('aria-label', 'Generate template');
     formPanel.appendChild(genBtn);
+    // Estimated price for one generation (best-effort; hidden when unavailable).
+    const costEstimate = createTemplateCost({
+      getRequest: () => {
+        const { model } = currentMediaRoute();
+        return { model, settings: videoSettings ? videoSettings.getSettings() : {} };
+      },
+    });
+    formPanel.appendChild(costEstimate.element);
+    costEstimateRefresh = () => costEstimate.refresh();
+    costEstimate.refresh();
 
     // Set disabled state based on isGenerating when rendering
     if (isGenerating) {
@@ -2538,11 +2702,34 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     const formBuilder = new TemplateInputBuilder(currentTemplate, currentMode);
     const errors = formBuilder.validateInputs(currentInputs);
 
+    // Start from a clean slate, so a passing validation leaves no stale
+    // invalid state or error message behind.
+    const formRootNow = container.querySelector('#inputs-form');
+    if (formRootNow) formRootNow.querySelectorAll('[aria-invalid]').forEach((el) => setFieldInvalid(el, false));
+    container.querySelector('#cin-required-error')?.remove();
+
     if (errors.length > 0) {
       showToast(`Please fill in required fields: ${errors.map(e => e.field).join(', ')}`, 'error');
+      const formRoot = container.querySelector('#inputs-form');
+      if (formRoot) {
+        const bad = errors.map((e) => formRoot.querySelector(`[name="${cssEscape(e.field)}"]`)).filter(Boolean);
+        // A persistent message the invalid fields point to (the toast disappears).
+        let errNote = container.querySelector('#cin-required-error');
+        if (!errNote) {
+          errNote = document.createElement('div');
+          errNote.id = 'cin-required-error';
+          errNote.setAttribute('role', 'alert');
+          errNote.className = 'mb-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200';
+          formRoot.prepend(errNote);
+        }
+        errNote.textContent = `Please fill in: ${errors.map((e) => e.field).join(', ')}.`;
+        bad.forEach((el) => setFieldInvalid(el, true, 'cin-required-error'));
+        bad[0]?.focus();
+      }
       return;
     }
 
+    saveTemplateInputs(currentTemplate.id, formBuilder.buildFormSchema(), currentInputs);
     TemplateStorage.addToRecent(currentTemplate.id, currentInputs);
 
     // Phase 1 scene selection: auto-pick scenes when the user hasn't
@@ -2848,9 +3035,15 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
    *   earlier run (Regenerate) — do not re-apply the current form's Advanced /
    *   Character Lock / ratio on top of it.
    */
-  async function runGeneration(params, { exact = false } = {}) {
+  async function runGeneration(params, { exact = false, inputs: submittedInputs } = {}) {
     if (isGenerating) return;
     const exactParams = exact ? { ...params } : null;
+    // The form values behind this run, captured now so edits made while it is
+    // in flight are not stored with its result. A re-run of a saved result
+    // (or a retry) passes the original snapshot through instead.
+    const inputsSnapshot = submittedInputs !== undefined
+      ? submittedInputs
+      : (exact ? null : snapshotFormInputs({ fields: currentInputs, mode: currentMode }));
 
     isGenerating = true;
     let genBtn = container.querySelector('#generate-btn');
@@ -2921,8 +3114,11 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           type: isVideo ? 'video' : 'image',
           templateId: currentTemplate.id,
           regenParams: snapshotGenerationParams(params),
+          inputs: inputsSnapshot,
         };
         resultHistory.add(currentResultEntry);
+        const spent = formatActualCost(result);
+        if (spent) showToast(spent, 'info');
         retryCount = 0;
         view = 'preview';
         render();
@@ -2949,8 +3145,8 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           retryCount++;
           if (errEl && errEl.parentNode) errEl.remove();
           // A failed Regenerate retries that same stored run, not the newest form.
-          if (exact) runGeneration({ ...exactParams }, { exact: true });
-          else runGeneration(lastGenerationParams);
+          if (exact) runGeneration({ ...exactParams }, { exact: true, inputs: inputsSnapshot });
+          else runGeneration(lastGenerationParams, { inputs: inputsSnapshot });
         };
         errEl.appendChild(retryBtn);
       }
@@ -3074,13 +3270,17 @@ const firstChild = storyboardRoot.firstElementChild;
     const mediaType = currentTemplate?.outputType === 'video' ? 'video' : 'image';
     const publishBtn = document.createElement('button');
     publishBtn.type = 'button';
-    publishBtn.className = 'publish-social-btn px-4 py-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white text-sm font-bold rounded-lg hover:scale-105 transition-transform';
+    publishBtn.className = 'publish-social-btn px-4 py-2 bg-gradient-to-r from-(--publish-from) to-(--publish-to) text-white text-sm font-bold rounded-lg hover:scale-105 transition-transform';
     publishBtn.textContent = 'Publish to Social';
     publishBtn.onclick = () => {
       const target = generationResult || resultMedia.src || '';
       if (target) openSocialPublish({ mediaUrl: target, mediaType });
     };
     actions.appendChild(publishBtn);
+    // Create landing page: same look as this row's Download button
+    const landingBtn = createLandingPageButton({ like: downloadBtn });
+    landingBtn.onclick = () => { const url = generationResult || resultMedia.src || ''; if (url) void openLandingPageFor({ url, type: isVideoOutput ? 'video' : 'image', studio: 'cinema-template' }); };
+    actions.appendChild(landingBtn);
 
     preview.appendChild(resultMedia);
     // Frame scrubber (Video Studio).
@@ -3103,7 +3303,7 @@ const firstChild = storyboardRoot.firstElementChild;
         // rather than silently re-running a different, newer generation.
         const templateType = currentTemplate?.outputType === 'video' ? 'video' : 'image';
         if (entry.regenParams && (!entry.type || entry.type === templateType)) {
-          runGeneration({ ...entry.regenParams }, { exact: true });
+          runGeneration({ ...entry.regenParams }, { exact: true, inputs: entry.inputs || null });
         } else {
           // Only open the form; the user starts the new generation.
           view = 'create';
@@ -3111,6 +3311,23 @@ const firstChild = storyboardRoot.firstElementChild;
         }
       },
       onExtend: (e, opts) => extendResult(e, opts),
+      // Load the form values behind this result back into the create view.
+      onReuse: (e) => {
+        const saved = e && e.inputs;
+        if (!saved) return;
+        if (e.templateId && e.templateId !== currentTemplate.id) {
+          showToast('These inputs belong to another template. Open that template to reuse them.', 'warning');
+          return;
+        }
+        currentInputs = { ...currentInputs, ...(saved.fields || {}) };
+        markFieldsEdited(saved.fields || {});
+        if (saved.mode === 'quick' || saved.mode === 'advanced') currentMode = saved.mode;
+        lastBuiltPrompt = '';
+        promptManuallyEdited = false;
+        view = 'create';
+        render();
+        showToast('Inputs loaded. Edit anything, then press Generate.', 'info');
+      },
     });
     resultActions.setEntry(entry);
     const actionsWrap = document.createElement('div');

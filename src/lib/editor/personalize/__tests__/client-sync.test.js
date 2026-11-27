@@ -17,6 +17,15 @@ const seed = (clients, extra = {}) => {
 describe('Personalize window (OpenHiggsBolt) contacts reach the editor', () => {
   beforeEach(() => localStorage.clear());
 
+  it('carries a client\'s brand colors to the contact (valid hex only), where the color tokens read them', () => {
+    const p = clientToProfile({ ...ann, brandColors: { primary: '#E11D48', accent: 'not-a-color' } });
+    expect(resolveToken(p, 'brandColor')).toBe('#e11d48');
+    expect(resolveToken(p, 'accentColor')).toBeFalsy(); // an invalid color is dropped, not carried
+    const both = clientToProfile({ ...ann, brandColors: { primary: '#0ea5e9', accent: '#f59e0b' } });
+    expect([resolveToken(both, 'brandColor'), resolveToken(both, 'primaryColor'), resolveToken(both, 'accentColor')]).toEqual(['#0ea5e9', '#0ea5e9', '#f59e0b']);
+    expect(clientToProfile(ann).brand).toBeUndefined(); // a client without colors adds nothing
+  });
+
   it('splits names and maps a client onto the studio tokens, business details included', () => {
     expect(splitName('Ann van Lee')).toEqual({ firstName: 'Ann', lastName: 'van Lee' });
     const p = clientToProfile(ann);

@@ -16,6 +16,7 @@ import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResol
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
+import { resolvePrefillModel, takePrefillModelName } from '../lib/prefillModel.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
@@ -35,11 +36,12 @@ import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
-import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { downloadMedia } from '../lib/resultActions/download.js';
+import { createResultBar } from './studio/resultBar.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { getCharacterReference, saveCharacterReference } from '../lib/characterConsistency.js';
+import { openLandingPageFor } from './studio/landingPageAction.js';
 
 export function VideoStudio() {
     const container = document.createElement('div');
@@ -47,7 +49,12 @@ export function VideoStudio() {
   mountStudioChrome(container, { currentRoute: 'video' });
 
     // --- State ---
-    const defaultModel = t2vModels[0];
+    // A model picked on the Text to Video page wins (key is always cleared; unknown names -> default).
+    // The Watermark Remover page sends video-to-video tools (e.g. the watermark remover); open those in v2v mode.
+    const prefillName = takePrefillModelName();
+    const prefillT2V = resolvePrefillModel(t2vModels, prefillName);
+    const prefillV2V = prefillT2V ? null : resolvePrefillModel(v2vModels, prefillName);
+    const defaultModel = prefillT2V || prefillV2V || t2vModels[0];
     let selectedModel = defaultModel.id;
     let selectedModelName = defaultModel.name;
     let selectedAr = defaultModel.inputs?.aspect_ratio?.default || '16:9';
@@ -76,7 +83,7 @@ export function VideoStudio() {
     let uploadedEndImageUrl = null;
     let imageMode = false; // false = t2v models, true = i2v models
     let refreshVideoCost = () => {};
-    let v2vMode = false;   // true = video-to-video tools mode
+    let v2vMode = !!prefillV2V;   // true = video-to-video tools mode
     let uploadedVideoUrl = null;
     let customThumbnailUrl = getCustomThumbnailFromCache('video-studio');
     // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
@@ -108,6 +115,9 @@ export function VideoStudio() {
 
     // Read gallery / deep-link params and apply them as studio defaults.
     // This lets "Create This Style" from ExampleGallery pre-fill the studio.
+    // The prompt textarea does not exist yet at this point, so the prompt is
+    // kept here and applied when the textarea is built (see videoPrefill below).
+    let deepLinkPrompt = '';
     try {
       const urlParams = new URLSearchParams(window.location.search);
       const templateParam = urlParams.get('template');
@@ -144,10 +154,7 @@ export function VideoStudio() {
         // Academy / direct-studio deep-link.
         const target = academyParam ? getAcademyCreateTarget(academyParam) : null;
         const params = target?.params || {};
-        if (params.prompt) {
-          const textarea = document.getElementById('v-v-prompt-textarea');
-          if (textarea) textarea.value = params.prompt;
-        }
+        deepLinkPrompt = params.prompt || promptParam || '';
         if (params.style) selectedStyle = params.style;
         if (params.aspect_ratio) selectedAr = params.aspect_ratio;
         if (params.duration) selectedDuration = params.duration;
@@ -181,7 +188,7 @@ export function VideoStudio() {
     promptWrapper.style.animationDelay = '0.2s';
 
     const bar = document.createElement('div');
-    bar.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 md:gap-5 shadow-3xl';
+    bar.className = 'w-full bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 md:gap-5 shadow-3xl';
 
     const topRow = document.createElement('div');
     topRow.className = 'flex items-start gap-5 px-2';
@@ -587,6 +594,7 @@ export function VideoStudio() {
             stagedAspectRatio = staged.params?.aspectRatio || null;
         }
     }
+    if (!videoPrefill && deepLinkPrompt) videoPrefill = deepLinkPrompt;
     if (videoPrefill) {
         textarea.value = videoPrefill;
         requestAnimationFrame(() => {
@@ -660,7 +668,7 @@ export function VideoStudio() {
       },
     });
 
-    // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
+    // Enhancement tools overflow menu (GTM Boost, Recipes, Prompts)
     const enhanceMenu = document.createElement('div');
     enhanceMenu.className = 'overflow-menu shrink-0';
     enhanceMenu.innerHTML = `
@@ -670,7 +678,6 @@ export function VideoStudio() {
       <div class="overflow-menu__panel">
         <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
         <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
-        <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
         <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
       </div>
     `;
@@ -702,9 +709,7 @@ export function VideoStudio() {
             }, { basePrompt: textarea.value });
           }).catch(() => {});
         } else if (action === 'recipe') {
-          openRecipeModal().catch(() => {});
-        } else if (action === 'monetize') {
-          openMonetizationHub().catch(() => {});
+          openRecipeModal({ studio: 'video' }).catch(() => {});
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'video-studio',
@@ -891,6 +896,7 @@ export function VideoStudio() {
           generationHistory,
         });
       },
+      getResult: () => { const el = document.querySelector('#v-result-video'); return el ? (el.currentSrc || el.src || '') : ''; },
       getProject: () => ({}),
       getPersonalizableFields: () => {
         const textarea = document.getElementById('v-v-prompt-textarea');
@@ -1004,7 +1010,7 @@ generateBtn.type = 'button';
     advancedPanel.className = 'w-full mt-6 animate-fade-in-up hidden';
     advancedPanel.id = 'v-advanced-panel';
     advancedPanel.innerHTML = `
-        <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4">
+        <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4">
             <div class="flex items-center justify-between pb-3 border-b border-white/5">
                 <h3 class="text-sm font-bold text-white">Advanced Options</h3>
                 <button id="v-close-adv-btn" class="text-white/40 hover:text-white transition-colors">
@@ -1103,7 +1109,7 @@ generateBtn.type = 'button';
     motionStylePanel.className = 'w-full mt-4 animate-fade-in-up hidden';
     motionStylePanel.id = 'v-motion-style-panel';
     motionStylePanel.innerHTML = `
-        <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-5">
+        <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-5">
             <div class="flex items-center justify-between pb-3 border-b border-white/5">
                 <h3 class="text-sm font-bold text-white">Motion & Style</h3>
                 <button id="v-close-motion-btn" class="text-white/40 hover:text-white transition-colors">
@@ -1282,6 +1288,11 @@ generateBtn.type = 'button';
           if (advModel) dynamicControls.update(advModel);
         }
     };
+
+    // Opened straight into a v2v tool (prefill): the "Initial visibility" block
+    // above assumed t2v and showed a bogus duration (getDurationsForModel → [5]
+    // for unknown ids). Run the same v2v path a mode switch would.
+    if (v2vMode) updateControlsForModel(selectedModel);
 
     // ---- Upstream split-pane video model picker integration ----------------
     let videoPickerController = null;
@@ -1617,15 +1628,11 @@ generateBtn.type = 'button';
 
     // Canvas Controls
     const canvasControls = document.createElement('div');
-    canvasControls.className = 'mt-6 flex gap-3 opacity-0 transition-opacity delay-500 duration-500 justify-center';
+    canvasControls.className = 'mt-6 flex flex-wrap gap-3 opacity-0 transition-opacity delay-500 duration-500 justify-center';
 
     const regenerateBtn = document.createElement('button');
     regenerateBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
     regenerateBtn.textContent = '↻ Regenerate';
-
-    const downloadBtn = document.createElement('button');
-    downloadBtn.className = 'btn-secondary-modern px-6 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-glow active:scale-95';
-    downloadBtn.textContent = '↓ Download';
 
     const extendBtn = document.createElement('button');
     extendBtn.className = 'hidden bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-primary/30 text-primary backdrop-blur-lg';
@@ -1643,23 +1650,45 @@ generateBtn.type = 'button';
 
     canvasControls.appendChild(regenerateBtn);
     canvasControls.appendChild(extendBtn);
-    canvasControls.appendChild(downloadBtn);
     canvasControls.appendChild(renderBtn);
     canvasControls.appendChild(newPromptBtn);
 
-    const publishBtn = document.createElement('button');
-    publishBtn.type = 'button';
-    publishBtn.className = 'bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white px-6 py-2.5 rounded-2xl text-xs font-bold transition-all hover:shadow-glow';
-    publishBtn.textContent = 'Publish to Social';
+    // Shared result bar: Download MP4, Get link (file URL + /watch page) and Publish to Social. setUrl() keeps
+    // all three on the current video (including after captions).
+    const resultBar = createResultBar({ kind: 'video', filename: 'video', studio: 'video', extraActions: [{ id: 'video-landing-page', label: 'Create landing page', onClick: (url) => { if (url) void openLandingPageFor({ url, type: 'video', studio: 'video' }); } }] });
+    resultBar.el.classList.add('w-full');
+    canvasControls.appendChild(resultBar.el);
 
-    canvasControls.appendChild(publishBtn);
+    // The caption button is created once (it used to be added again on every result).
+    let captionSourceUrl = '';
+    const captionBtn = document.createElement('button');
+    captionBtn.type = 'button';
+    captionBtn.textContent = '💬 Add AI Captions';
+    captionBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
+    captionBtn.onclick = () => {
+        if (!captionSourceUrl) return;
+        addCaptionButton({
+            videoUrl: captionSourceUrl,
+            appTheme: 'video-studio',
+            onComplete: (captionedUrl) => {
+                resultVideo.src = captionedUrl;
+                resultBar.setUrl(captionedUrl, { filenameSuffix: '-captioned' });
+                showToast('Preview updated with captions');
+            },
+        });
+    };
+    canvasControls.insertBefore(captionBtn, resultBar.el);
 
     canvas.appendChild(videoContainer);
     canvas.appendChild(canvasControls);
     container.appendChild(canvas);
 
     // --- Helper: Show video in canvas ---
+    // Bumped by every show and by reset, so a slow video that finishes loading
+    // after the user hit New (or picked another) can't reopen the canvas.
+    let canvasLoadToken = 0;
     const showVideoInCanvas = (videoUrl, genModel) => {
+        const token = ++canvasLoadToken;
         hero.classList.add('hidden');
         promptWrapper.classList.add('hidden');
 
@@ -1670,30 +1699,21 @@ generateBtn.type = 'button';
         extendBtn.classList.toggle('hidden', continuationTargets.length === 0);
         extendBtn.textContent = continuationTargets.length === 1 ? `↗ ${continuationLabel(continuationTargets[0])}` : '↗ Extend / 4K';
 
-        resultVideo.src = videoUrl;
         resultVideo.onloadeddata = () => {
+            if (token !== canvasLoadToken) return;
             canvas.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
+            container.classList.add('studio-result-showing'); // hides the example gallery under the result
             canvas.classList.add('opacity-100', 'translate-y-0', 'scale-100');
             canvasControls.classList.remove('opacity-0');
             canvasControls.classList.add('opacity-100');
         };
-        publishBtn.onclick = () => { const url = resultVideo.src; if (url) openSocialPublish({ mediaUrl: url, mediaType: 'video' }); };
-
-        const captionBtn = document.createElement('button');
-        captionBtn.type = 'button';
-        captionBtn.textContent = '💬 Add AI Captions';
-        captionBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
-        captionBtn.onclick = () => {
-          addCaptionButton({
-            videoUrl,
-            appTheme: 'video-studio',
-            onComplete: (captionedUrl) => {
-              resultVideo.src = captionedUrl;
-              showToast('Preview updated with captions');
-            },
-          });
-        };
-        canvasControls.appendChild(captionBtn);
+        resultVideo.src = videoUrl; // after onloadeddata is attached (load-token guard)
+        captionSourceUrl = videoUrl;
+        const shownEntry = generationHistory.find((e) => e.url === videoUrl);
+        resultBar.setUrl(videoUrl, {
+            filename: `video-${shownEntry?.id || lastGenerationId || 'clip'}`,
+            title: 'AI video', // never the prompt: the title is public (page title and /v/<business>/<slug> address)
+        });
     };
 
     // --- Helper: Add to history ---
@@ -1777,21 +1797,15 @@ generateBtn.type = 'button';
     };
 
     // --- Helper: Download file ---
+    const downloadsRunning = new Set();
     const downloadFile = async (url, filename) => {
+        if (downloadsRunning.has(url)) return; // a double click would start two full downloads
+        downloadsRunning.add(url);
         try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            const blobUrl = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = blobUrl;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(blobUrl);
-        } catch (err) {
-            window.open(url, '_blank');
-        }
+            const result = await downloadMedia(url, { filename: String(filename || 'video').replace(/\.[a-z0-9]+$/i, ''), kind: 'video' });
+            if (result.method === 'manual') showToast('The browser would not save this video directly. Click the video to open it, then use Download MP4 there.');
+            else if (!result.ok || result.method === 'tab') showToast(result.message);
+        } finally { downloadsRunning.delete(url); }
     };
 
     // --- Load history from localStorage ---
@@ -1806,14 +1820,6 @@ generateBtn.type = 'button';
     } catch (e) { /* ignore */ }
 
     // --- Button Handlers ---
-    downloadBtn.onclick = () => {
-        const current = resultVideo.src;
-        if (current) {
-            const entry = generationHistory.find(e => e.url === current);
-            downloadFile(current, `video-${entry?.id || 'clip'}.mp4`);
-        }
-    };
-
     regenerateBtn.onclick = () => generateBtn.click();
 
     // Open in Render: persist the current generation to the asset store
@@ -1844,7 +1850,9 @@ generateBtn.type = 'button';
     };
 
     const resetToPromptBar = () => {
+        canvasLoadToken++; // drop any still-loading result
         canvas.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
+        container.classList.remove('studio-result-showing');
         canvas.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
         canvasControls.classList.add('opacity-0');
         canvasControls.classList.remove('opacity-100');

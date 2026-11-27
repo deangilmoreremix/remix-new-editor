@@ -1,0 +1,317 @@
+// Ask SmartVideo — floating help assistant (vanilla DOM, mounted once in main.js).
+//
+// Grounded in the studio registry via /api/ask-smartvideo (retrieval + the
+// user's own OpenAI key). Source chips navigate with the SPA router, so the
+// conversation survives moving between studios; history is kept in
+// sessionStorage for the tab.
+import { onRouteChange, goTo } from '../../lib/routeUrl.js';
+import { apiKeyManager } from '../../lib/apiKeyManager.js';
+import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
+import { ENDPOINT, studioLabel, studioForRoute, renderAnswer, parseSSE, starterPrompts, pickChips, pageOf, isAcademyUrl, journeyPrompts } from './askCore.js';
+import { guideForStudio, searchGuides, guideUrl, tourVideoFor } from './askGuides.js';
+
+const STORE = 'askSmartVideo:v1';
+const MAX_LEN = 1500;
+
+const load = () => { try { return JSON.parse(sessionStorage.getItem(STORE)) || []; } catch { return []; } };
+const save = (m) => { try { sessionStorage.setItem(STORE, JSON.stringify(m.slice(-30))); } catch { /* storage unavailable */ } };
+
+async function authHeader() {
+  try {
+    const token = await globalThis.window?.Clerk?.session?.getToken?.();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  } catch { return {}; }
+}
+
+/**
+ * @param {{ navigate: (page: string) => void, getPage: () => string, onGuidePage?: boolean }} deps
+ *   onGuidePage: mounted on a public /studios guide page (guide links open in the same tab)
+ */
+export function mountAskSmartVideo({ navigate, getPage, onGuidePage = false }) {
+  if (document.getElementById('ask-smartvideo-root')) return;
+  let messages = load(); // { role, content, sources? }
+  let busy = false;
+  let abort = null;
+
+  const root = document.createElement('div');
+  root.id = 'ask-smartvideo-root';
+  root.innerHTML = `
+    <style>
+      #ask-smartvideo-root .ask-body a.ask-cite{display:inline-block;min-width:16px;padding:0 4px;margin:0 1px;border-radius:6px;background:rgba(217,255,0,.15);color:#d9ff00;font-size:11px;text-align:center;text-decoration:none}
+      /* Desktop: the panel takes the launcher's corner (the launcher hides while it is open). */
+      @media (min-width:640px){#ask-smartvideo-root [data-ask="panel"]{bottom:1.25rem;max-height:calc(100vh - 2.5rem)}}
+      #ask-smartvideo-root .ask-body p{margin:0 0 .5rem}#ask-smartvideo-root .ask-body ol,#ask-smartvideo-root .ask-body ul{margin:0 0 .5rem 1.1rem;padding:0}
+      #ask-smartvideo-root .ask-body ol{list-style:decimal}#ask-smartvideo-root .ask-body ul{list-style:disc}
+      #ask-smartvideo-root .ask-body code{background:rgba(255,255,255,.08);padding:0 4px;border-radius:4px}
+    </style>
+    <button type="button" data-ask="launcher" aria-label="Ask SmartVideo" aria-expanded="false"
+      class="fixed bottom-5 right-5 z-[60] flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-semibold text-black shadow-lg hover:bg-primary-hover transition-colors">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      <span>Ask SmartVideo</span>
+    </button>
+    <section data-ask="panel" role="dialog" aria-label="Ask SmartVideo" hidden
+      class="fixed inset-0 sm:inset-auto sm:right-5 z-[70] flex flex-col bg-panel-bg border border-white/10 sm:rounded-2xl shadow-2xl sm:w-[400px] sm:h-[600px]">
+      <header class="flex items-center justify-between px-4 py-3 border-b border-white/10">
+        <div><div class="text-sm font-semibold text-white">Ask SmartVideo</div><div data-ask="context" class="text-xs text-muted"></div></div>
+        <div class="flex gap-1">
+          <button type="button" data-ask="clear" class="text-xs text-secondary hover:text-white px-2 py-1 rounded-lg hover:bg-white/5">Clear</button>
+          <button type="button" data-ask="close" aria-label="Close" class="text-secondary hover:text-white px-2 py-1 rounded-lg hover:bg-white/5">✕</button>
+        </div>
+      </header>
+      <div data-ask="log" class="flex-1 overflow-y-auto px-4 py-3 space-y-3 custom-scrollbar" aria-live="polite"></div>
+      <div data-ask="keycard" hidden class="relative mx-4 mb-2 rounded-xl border border-primary/30 bg-primary/10 p-3 pr-8 text-xs text-white">
+        <button type="button" data-ask="dismiss-key" aria-label="Dismiss" class="absolute right-1.5 top-1.5 rounded-md px-1.5 text-secondary hover:text-white hover:bg-white/10">✕</button>
+        <strong>Add your OpenAI key for full AI answers.</strong> Without it, answers come from the studio guides. Ask SmartVideo uses your own OpenAI key. <button type="button" data-ask="settings" class="underline text-primary">Open API keys</button>
+      </div>
+      <form data-ask="form" class="flex items-end gap-2 border-t border-white/10 p-3">
+        <textarea data-ask="input" rows="1" maxlength="${MAX_LEN}" placeholder="Ask about any studio…" aria-label="Your question"
+          class="flex-1 resize-none rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/60 max-h-28"></textarea>
+        <button type="submit" data-ask="send" class="rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-black disabled:opacity-50">Send</button>
+      </form>
+      <p class="px-3 pb-3 -mt-1 text-[10px] leading-snug text-muted">Uses your own OpenAI key — usage is billed to your OpenAI account. AI answers can be wrong; check the linked page. Never paste API keys here.</p>
+    </section>`;
+  document.body.appendChild(root);
+
+  const $ = (k) => root.querySelector(`[data-ask="${k}"]`);
+  const panel = $('panel'); const log = $('log'); const input = $('input'); const sendBtn = $('send'); const keycard = $('keycard');
+
+  // The key notice can be dismissed for the tab (sessionStorage), like the chat history.
+  const KEY_DISMISS = 'askSmartVideo:keycardDismissed';
+  const keyDismissed = () => { try { return sessionStorage.getItem(KEY_DISMISS) === '1'; } catch { return false; } };
+  const syncKeycard = () => { keycard.hidden = apiKeyManager.hasOpenAIKey() || keyDismissed(); };
+
+  const studioId = () => studioForRoute(getPage());
+  const ctx = () => (studioId() ? `Help for ${studioLabel(studioId())} and the whole app` : 'Help for every studio, the Academy and more');
+  const bubble = (role, html) => {
+    const d = document.createElement('div');
+    d.className = role === 'user' ? 'ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-primary/90 text-black px-3 py-2 text-sm whitespace-pre-wrap' : 'ask-body max-w-[95%] rounded-2xl rounded-bl-sm bg-white/5 text-white px-3 py-2 text-sm';
+    if (role === 'user') d.textContent = html; else d.innerHTML = html;
+    log.appendChild(d);
+    log.scrollTop = log.scrollHeight;
+    return d;
+  };
+  const chipsFor = (answer, sources) => {
+    const { cited, chips } = pickChips(answer, sources || []);
+    if (!chips.length) return null;
+    const wrap = document.createElement('div');
+    wrap.className = 'flex flex-wrap items-center gap-1.5 pt-1';
+    const lab = document.createElement('span'); lab.className = 'text-[11px] text-muted'; lab.textContent = cited ? 'Sources' : 'Related pages'; wrap.appendChild(lab);
+    chips.forEach((c) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.dataset.askUrl = c.url;
+      b.className = c.academy || isAcademyUrl(c.url)
+        ? 'rounded-full border border-purple-400/40 bg-purple-500/10 px-2.5 py-1 text-xs text-purple-200 hover:border-purple-300'
+        : c.guide
+          ? 'rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs text-primary hover:border-primary'
+          : 'rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white hover:border-primary/50';
+      b.textContent = c.label;
+      wrap.appendChild(b);
+    });
+    return wrap;
+  };
+
+  // ── Studio feature guides (no OpenAI key needed) ─────────────────────────────
+  const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  /** One feature: name, definition, why / needs / limits, screenshot, links to its guide section and the studio. */
+  const featureCard = (g, f, { open = false, showStudio = false } = {}) => {
+    const d = el('details', 'rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2');
+    d.open = open;
+    const sum = el('summary', 'cursor-pointer text-xs font-semibold text-white');
+    sum.textContent = showStudio ? `${f.name} · ${g.name}` : f.name;
+    d.appendChild(sum);
+    const body = el('div', 'pt-2 space-y-1.5 text-xs text-secondary');
+    if (f.definition) body.appendChild(el('p', 'text-white/90', f.definition));
+    [['Why use it', f.whyToUse], ['What you need', f.inputRequired], ['Limits', f.restrictions]].forEach(([k, v]) => {
+      if (!v) return;
+      const p = el('p'); p.appendChild(el('span', 'font-semibold text-primary', `${k}: `)); p.appendChild(document.createTextNode(v)); body.appendChild(p);
+    });
+    if (f.screenshot) {
+      const a = el('a', 'block overflow-hidden rounded-lg border border-white/10');
+      if (!g.unlisted) { a.href = guideUrl(g, f); a.dataset.askUrl = guideUrl(g, f); }
+      const img = el('img', 'w-full'); img.src = f.screenshot; img.alt = `${f.name} in ${g.name}`; img.loading = 'lazy';
+      a.appendChild(img); body.appendChild(a);
+    }
+    const links = el('div', 'flex flex-wrap gap-1.5 pt-1');
+    const link = (label, url, guide) => { const b = el('button', guide ? 'rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] text-primary hover:border-primary' : 'rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white hover:border-primary/50', label); b.type = 'button'; b.dataset.askUrl = url; links.appendChild(b); };
+    if (!g.unlisted) link('Feature guide', guideUrl(g, f), true);
+    link(`Open ${g.name}`, `#/${g.route}`, false);
+    body.appendChild(links);
+    d.appendChild(body);
+    return d;
+  };
+  /** The active studio's guide: every feature, collapsed, plus a link to the full guide page. */
+  const renderStudioGuide = async (into) => {
+    const id = studioId();
+    let g = null;
+    try { g = await guideForStudio(id); } catch { /* guide chunk failed to load; the chat still works */ }
+    if (!g || !into.isConnected || studioId() !== id) return;
+    const box = el('div', 'pt-3');
+    const head = el('div', 'flex items-center justify-between gap-2');
+    head.appendChild(el('div', 'text-[11px] font-semibold uppercase tracking-wide text-muted', `${g.name} guide · ${g.features.length} features`));
+    const all = el('button', 'text-[11px] text-primary hover:underline', 'Full guide ↗'); all.type = 'button'; all.dataset.askUrl = guideUrl(g);
+    if (!g.unlisted) head.appendChild(all);
+    box.appendChild(head);
+    if (g.shortDescription) box.appendChild(el('p', 'pt-1 text-xs text-secondary', g.shortDescription));
+    // The studio's tour video (captions are burned in). It is not fetched until the viewer presses play (preload none).
+    let tour = null;
+    try { tour = await tourVideoFor(g.slug); } catch { /* no video: the guide still shows */ }
+    if (tour && into.isConnected && studioId() === id) {
+      const wrap = el('div', 'pt-2');
+      wrap.appendChild(el('div', 'pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted', `Watch the ${g.name} tour · ${Math.floor(tour.seconds / 60)}:${String(tour.seconds % 60).padStart(2, '0')}`));
+      const v = el('video', 'w-full aspect-[16/10] rounded-lg border border-white/10 bg-black');
+      v.controls = true; v.preload = 'none'; v.playsInline = true; v.poster = tour.poster; v.src = tour.video;
+      v.setAttribute('aria-label', `${g.name} tour video`);
+      wrap.appendChild(v);
+      box.appendChild(wrap);
+    }
+    const list = el('div', 'flex flex-col gap-1.5 pt-2');
+    g.features.forEach((f) => list.appendChild(featureCard(g, f)));
+    box.appendChild(list);
+    into.appendChild(box);
+  };
+  /** Without an OpenAI key: answer from the guides with a local search. */
+  const answerFromGuides = async (text) => {
+    const out = bubble('assistant', '');
+    out.appendChild(el('p', 'text-xs text-secondary', 'Matching features from the studio guides:'));
+    let hits = [];
+    try { hits = await searchGuides(text, { studioId: studioId(), limit: 5 }); } catch { /* ignore */ }
+    if (!hits.length) out.appendChild(el('p', 'text-xs text-white', 'No feature matched. Try other words, or add your OpenAI key for a full answer.'));
+    const list = el('div', 'flex flex-col gap-1.5 pt-1');
+    hits.forEach((h, i) => list.appendChild(featureCard(h.guide, h.feature, { open: i === 0, showStudio: true })));
+    out.appendChild(list);
+    log.scrollTop = log.scrollHeight;
+  };
+
+  function renderAll() {
+    $('context').textContent = ctx();
+    syncKeycard();
+    log.innerHTML = '';
+    if (!messages.length) {
+      const intro = bubble('assistant', renderAnswer('Ask how to do anything in SmartVideo. Answers come from our studio guides and Academy courses, and link to the page they came from.'));
+      const w = document.createElement('div'); w.className = 'flex flex-col gap-1.5 pt-1';
+      starterPrompts(studioId()).forEach((q) => {
+        const b = document.createElement('button'); b.type = 'button'; b.dataset.askStarter = q; b.textContent = q;
+        b.className = 'text-left rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white hover:border-primary/50';
+        w.appendChild(b);
+      });
+      intro.appendChild(w);
+      const guideSlot = document.createElement('div'); intro.appendChild(guideSlot); // keeps the guide above the walkthroughs
+      renderStudioGuide(guideSlot);
+      // Guided walkthroughs that chain studios into a finished video.
+      const journeys = journeyPrompts();
+      if (journeys.length) {
+        const head = document.createElement('div');
+        head.className = 'pt-3 text-[11px] font-semibold uppercase tracking-wide text-muted';
+        head.textContent = 'Make a video';
+        const jw = document.createElement('div');
+        jw.className = 'flex flex-col gap-1.5 pt-1';
+        journeys.forEach((j) => {
+          const b = document.createElement('button'); b.type = 'button'; b.dataset.askStarter = j.prompt; b.dataset.askJourney = j.id; b.textContent = j.title;
+          b.className = 'text-left rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-white hover:border-primary/60';
+          jw.appendChild(b);
+        });
+        intro.appendChild(head);
+        intro.appendChild(jw);
+      }
+      return;
+    }
+    messages.forEach((m) => {
+      if (m.role === 'user') return bubble('user', m.content);
+      const b = bubble('assistant', renderAnswer(m.content, m.sources));
+      const c = chipsFor(m.content, m.sources); if (c) b.appendChild(c);
+    });
+  }
+
+  async function ask(text) {
+    text = String(text || '').trim().slice(0, MAX_LEN);
+    if (!text || busy) return;
+    if (!apiKeyManager.hasOpenAIKey()) {
+      // No key: still answer from the studio guides, and offer the key for full AI answers.
+      syncKeycard();
+      bubble('user', text);
+      answerFromGuides(text);
+      return;
+    }
+    busy = true; sendBtn.disabled = true;
+    messages.push({ role: 'user', content: text });
+    const turn = { role: 'assistant', content: '', sources: [] };
+    messages.push(turn);
+    renderAll();
+    const out = log.lastElementChild;
+    out.textContent = '…';
+    abort = new AbortController();
+    try {
+      const res = await fetch(ENDPOINT, {
+        method: 'POST', signal: abort.signal,
+        headers: { 'Content-Type': 'application/json', ...(await authHeader()), ...openaiKeyHeader() },
+        body: JSON.stringify({ messages: messages.slice(0, -1).map(({ role, content }) => ({ role, content })), studioId: studioId() }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        if (j.code === 'need_key') keycard.hidden = false;
+        throw new Error(res.status === 401 ? 'Please sign in to use Ask SmartVideo.' : j.error || 'Ask SmartVideo is unavailable right now. Try again in a moment.');
+      }
+      const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = '';
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (value) buf += dec.decode(value, { stream: true });
+        const { events, rest } = parseSSE(buf); buf = rest;
+        for (const { event, data } of events) {
+          if (event === 'sources') turn.sources = data;
+          else if (event === 'delta') { turn.content += data.text; out.innerHTML = renderAnswer(turn.content, turn.sources); log.scrollTop = log.scrollHeight; }
+          else if (event === 'error') throw new Error(data.message);
+        }
+        if (done) break;
+      }
+      out.innerHTML = renderAnswer(turn.content, turn.sources);
+      const c = chipsFor(turn.content, turn.sources); if (c) out.appendChild(c);
+    } catch (err) {
+      if (err.name === 'AbortError') { /* cleared or closed */ } else {
+        turn.content = turn.content || err.message || 'Something went wrong.';
+        out.innerHTML = renderAnswer(turn.content, []);
+      }
+    } finally {
+      busy = false; sendBtn.disabled = false; abort = null;
+      save(messages.filter((m) => m.content));
+    }
+  }
+
+  const setOpen = (open) => {
+    panel.hidden = !open;
+    $('launcher').setAttribute('aria-expanded', String(open));
+    $('launcher').style.display = open ? 'none' : '';
+    if (open) { renderAll(); input.focus(); }
+  };
+  const go = (url) => {
+    // Public feature guides: same tab when already on a guide page, else a new tab so the app stays open.
+    if (String(url).startsWith('/studios')) {
+      if (onGuidePage) window.location.href = url; else window.open(url, '_blank', 'noopener');
+      return;
+    }
+    // On a public guide page there is no app shell: go to the app page itself.
+    if (onGuidePage) { window.location.href = `/${String(url).replace(/^#?\/?/, '')}`; return; }
+    if (isAcademyUrl(url)) goTo(String(url).replace(/^#?\/?/, '')); // the Academy page parses its own path
+    else if (pageOf(url) === 'settings') window.dispatchEvent(new CustomEvent('navigate', { detail: { page: 'settings' } }));
+    else navigate(pageOf(url));
+    if (window.matchMedia('(max-width: 639px)').matches) setOpen(false);
+  };
+
+  root.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-ask-url],[data-ask-starter],[data-ask]');
+    if (!t) return;
+    if (t.dataset.askUrl) { e.preventDefault(); return go(t.dataset.askUrl); }
+    if (t.dataset.askStarter) return ask(t.dataset.askStarter);
+    const k = t.dataset.ask;
+    if (k === 'launcher') setOpen(panel.hidden);
+    else if (k === 'close') setOpen(false);
+    else if (k === 'settings') go('#/settings');
+    else if (k === 'dismiss-key') { try { sessionStorage.setItem(KEY_DISMISS, '1'); } catch { /* storage unavailable */ } keycard.hidden = true; }
+    else if (k === 'clear') { abort?.abort(); messages = []; save([]); renderAll(); }
+  });
+  $('form').addEventListener('submit', (e) => { e.preventDefault(); const v = input.value; input.value = ''; input.style.height = ''; ask(v); });
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('form').requestSubmit(); } });
+  input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = `${Math.min(input.scrollHeight, 112)}px`; });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.hidden) setOpen(false); });
+  // Keep "You're in <studio>" and the starters current as the user moves around.
+  onRouteChange(() => { if (!panel.hidden && !busy && !messages.length) renderAll(); else if (!panel.hidden) $('context').textContent = ctx(); });
+}

@@ -53,7 +53,7 @@ export function CinemaPage() {
     </div>
 
     <!-- Features -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-lg font-black text-white mb-1">Professional Controls</h2>
       <p class="text-sm text-muted mb-4">Cinematic tools at your fingertips</p>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -68,7 +68,7 @@ export function CinemaPage() {
     </div>
 
     <!-- Camera Controls -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-lg font-black text-white mb-1">Camera Controls</h2>
       <p class="text-sm text-muted mb-4">Full control over your shots</p>
 
@@ -92,7 +92,7 @@ export function CinemaPage() {
     </div>
 
     <!-- Example Prompts -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-lg font-black text-white mb-1">Example Shots</h2>
       <p class="text-sm text-muted mb-4">Get inspired by these cinematic prompts</p>
       <div class="grid md:grid-cols-3 gap-3">
@@ -106,7 +106,7 @@ export function CinemaPage() {
     </div>
 
     <!-- CTA -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center mb-6">
       <h2 class="text-xl md:text-2xl font-black text-white mb-2">Create Cinema Magic</h2>
       <p class="text-sm text-muted mb-6">Generate professional cinema-quality shots</p>
       <button class="cta-btn btn-primary-modern">
@@ -118,7 +118,10 @@ export function CinemaPage() {
   container.appendChild(contentWrapper);
 
   container.querySelector('.start-btn').onclick = () => navigate('cinema');
+
+  container.querySelector('.start-btn').dataset.helpText = 'Open Cinema Studio.';
   container.querySelector('.cta-btn').onclick = () => navigate('cinema');
+  container.querySelector('.cta-btn').dataset.helpText = 'Open Cinema Studio.';
 
   return container;
 }

@@ -1,0 +1,14 @@
+{
+  "slug": "upscale-suite",
+  "name": "Upscale Suite",
+  "intro": "Upscale Suite makes a small or soft image larger and sharper with AI. Upload a picture, choose a method, and download the bigger result.",
+  "features": {
+    "upload-and-pexels": "Start by getting your image in. Use the picker button to upload, or the Pexels button to browse free stock photos.",
+    "method-picker": "The method picker at the top offers AI Upscaler, Topaz Upscale and Seed Upscale. Each gives a different look, so try more than one on important images.",
+    "scale-factor": "Open the Advanced panel to find Scale Factor for the AI Upscaler. Choose two times to double width and height, or four times for even more.",
+    "upscale-image": "The Upscale Image button starts the job. It reads Upscaling while it works, and it needs an image loaded first.",
+    "result-card-download-and-publish-to-social": "The result card has Download to save your enlarged image, and Publish to Social to share it right away.",
+    "thumbnail-tools-menu-and-attachments": "Thumbnail lets you make a custom cover for the studio, and the three-dot menu holds Recipes and Prompts as optional extras."
+  },
+  "outro": "That's Upscale Suite. Begin with your best original, try two times before four times, and save upscaling for the very last step."
+}

@@ -1,0 +1,367 @@
+{
+  "id": "smart-video-studio",
+  "name": "SmartVideo Studio",
+  "route": "#/smart-video-studio",
+  "description": "A one-screen AI studio: pick a mode (Image, Video, Audio, Avatar, 3D, AI Tools), pick a model, fill its settings, prompt, and see generations.",
+  "shortDescription": "All-in-one studio: choose a mode and model, set options, prompt, generate.",
+  "fullDescription": "SmartVideo Studio (#/smart-video-studio) is built as a single workspace. A header shows the title SmartVideo Studio and your MuAPI credit balance when available ('Balance: N credits'). On the left, a mode rail switches between Image, Video, Audio, Avatar, 3D and AI Tools (hover shows the mode and how many models it has). Next to it, the Model picker ('Select a model...') opens a searchable list ('Search models...') where each model shows its name, description, family, cost ('N credits' or 'Dynamic') and badges such as BEST, FAST, BUDGET, AUDIO, 4K and LoRA. Under it, the model's own settings are built from the model's schema, grouped into sections, with Example Prompts, a '✨ Enhance' toggle, an 'Advanced' button for extra settings, a cost estimate ('~N credits') and Reset. The main area lists your generations with filters (All, Images, Video, Audio, Avatar, 3d), 'Search generations...', and per-card Retry, Use as input and Delete. The prompt bar at the bottom ('Enter your prompt here...') and its Generate button (or Enter) send the prompt to the chosen model. The model list comes from the app's model registry service.",
+  "bestFor": "People who want every kind of AI model (image, video, audio, avatar, 3D and tools) in one screen with each model's full settings.",
+  "whenToUse": [
+    "You want to switch between image, video, audio, avatar and 3D models without changing pages.",
+    "You want to see a model's full list of settings and an estimated cost before generating."
+  ],
+  "whenToUseAnother": [
+    "Use Image Studio (#/image) for images; it works today.",
+    "Use Video Studio (#/video) for video generation.",
+    "Use Audio Studio (#/audio) for music, voice and sound.",
+    "Use Avatar Studio (#/avatar) for talking avatars."
+  ],
+  "keyFeatures": [
+    "Mode rail: Image, Video, Audio, Avatar, 3D, AI Tools",
+    "Searchable model picker with badges and cost",
+    "Settings form built from each model's schema",
+    "Example Prompts and '✨ Enhance'",
+    "Advanced settings toggle",
+    "Cost estimate and Reset",
+    "Prompt bar with Generate (Enter to send)",
+    "Generations list with type filters and search",
+    "Retry, Use as input and Delete on each generation",
+    "Credit balance in the header"
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Mode rail",
+      "explanation": "The vertical bar on the left with Image, Video, Audio, Avatar, 3D and AI Tools. The active mode shows its name; hovering shows the name and model count. Switching mode picks the first model of that mode if your model is not in it.",
+      "whyToUse": "Choose what kind of media to make.",
+      "inputRequired": "None.",
+      "restrictions": "Starts on Image. Modes with no models have nothing to pick."
+    },
+    {
+      "feature": "Model picker",
+      "explanation": "Under 'Model', click the selected model (or 'Select a model...') to open the list. Type in 'Search models...' to filter by name, description, family or category. Each card shows badges (🏆 BEST, ⚡ FAST, 💰 BUDGET, 🔊 AUDIO, 📺 4K, 🧬 LoRA), the family and the cost in credits or 'Dynamic'.",
+      "whyToUse": "Find the right model and compare cost.",
+      "inputRequired": "None.",
+      "restrictions": "Shows 'No models found.' when nothing matches. Only enabled models are listed."
+    },
+    {
+      "feature": "Model settings form",
+      "explanation": "The selected model's inputs, built from its schema and grouped into sections (for example a Prompt section). Fields can be text, sliders, dropdowns, toggles, image/video/audio uploads, aspect ratio, duration, resolution, seed and more; anything unrecognised appears under 'Additional Parameters'. Some fields only appear when another field has a certain value.",
+      "whyToUse": "Set every option the model supports.",
+      "inputRequired": "Depends on the model.",
+      "restrictions": "If the model cannot be found: 'Model \"<id>\" not found.' with a Retry button."
+    },
+    {
+      "feature": "Example Prompts",
+      "explanation": "When the model provides examples, up to four 'Example Prompts' chips appear; clicking one fills the form's prompt.",
+      "whyToUse": "A quick start when you do not know what to write.",
+      "inputRequired": "None.",
+      "restrictions": "Only for models whose schema includes examples."
+    },
+    {
+      "feature": "Enhance prompt",
+      "explanation": "The '✨ Enhance' button in the Prompt section shows an 'Enhanced Prompt' preview: your prompt plus ', highly detailed, professional quality, 8k resolution, masterpiece'.",
+      "whyToUse": "See a more detailed version of your prompt.",
+      "inputRequired": "A prompt in the form.",
+      "restrictions": "The enhanced text is a preview; it is not what gets sent."
+    },
+    {
+      "feature": "Advanced settings",
+      "explanation": "When a model has advanced fields, an 'Advanced' button shows them; it then reads 'Less'.",
+      "whyToUse": "Keeps the form short until you need fine control.",
+      "inputRequired": "None.",
+      "restrictions": "Only appears when the model has advanced fields."
+    },
+    {
+      "feature": "Cost estimate and Reset",
+      "explanation": "Under the form, '~N credits' shows the estimated cost, updated half a second after you change a setting. 'Reset' clears the form and the prompt bar.",
+      "whyToUse": "Check the price before generating.",
+      "inputRequired": "None.",
+      "restrictions": "The estimate shows 0 if the estimate service does not answer."
+    },
+    {
+      "feature": "Prompt bar and Generate",
+      "explanation": "The bar at the bottom: type in 'Enter your prompt here...' and click Generate or press Enter (Shift+Enter for a new line). The button reads 'Generating...' while it works and the prompt clears when the job is added.",
+      "whyToUse": "Start a generation.",
+      "inputRequired": "A model and a prompt; Generate is disabled without them.",
+      "restrictions": "The form also has its own Generate button, which is disabled until the form's prompt is filled and only works when the bottom prompt bar has text too."
+    },
+    {
+      "feature": "Generations list and filters",
+      "explanation": "The main area lists your generations with the model, status, prompt and time. Filter by All, Images, Video, Audio, Avatar or 3d, or type in 'Search generations...' (model name or prompt).",
+      "whyToUse": "Find and review results.",
+      "inputRequired": "None.",
+      "restrictions": "Empty state: 'No generations yet. Start by entering a prompt and clicking Generate.' The list lives on the page and is empty again after a reload."
+    },
+    {
+      "feature": "Generation actions",
+      "explanation": "Completed generations have 🔄 Retry (runs the same model and settings again) and ↗️ Use as input; every generation has 🗑️ Delete, which asks 'Are you sure you want to delete this generation?'.",
+      "whyToUse": "Rerun or tidy up results.",
+      "inputRequired": "A generation in the list.",
+      "restrictions": "Use as input does not do anything visible yet. Delete only removes the card from the list."
+    },
+    {
+      "feature": "Credit balance",
+      "explanation": "The header shows 'Balance: N credits' when your balance can be read.",
+      "whyToUse": "Know how many credits you have left.",
+      "inputRequired": "Signed in.",
+      "restrictions": "Hidden when the balance cannot be loaded."
+    }
+  ],
+  "howToUse": "1. Open SmartVideo Studio (#/smart-video-studio). 2. Pick a mode on the left rail (Image, Video, Audio, Avatar, 3D or AI Tools). 3. Open the Model picker, search and choose a model. 4. Fill the model's settings; open Advanced if needed and check the '~N credits' estimate. 5. Type your prompt in the bottom bar and press Generate (or Enter). 6. Find the result in the generations list, filter or search it, and Retry or Delete.",
+  "howToSteps": [
+    "Open #/smart-video-studio.",
+    "Choose a mode.",
+    "Choose a model.",
+    "Set its options.",
+    "Type a prompt and click Generate.",
+    "Review the generation."
+  ],
+  "gettingStarted": [
+    "Start in Image mode with a model that has the ⚡ FAST or 💰 BUDGET badge.",
+    "Click an Example Prompt if the model offers them.",
+    "Check the cost estimate before generating."
+  ],
+  "inputs": [
+    "Mode",
+    "Model",
+    "Model settings",
+    "Prompt"
+  ],
+  "requiredInputs": [
+    "Model",
+    "Prompt"
+  ],
+  "optionalInputs": [
+    "Model settings",
+    "Advanced settings"
+  ],
+  "inputDetails": [
+    {
+      "name": "Prompt",
+      "description": "What you want, typed in the bottom bar ('Enter your prompt here...').",
+      "required": true,
+      "whenToUse": "Every generation.",
+      "restrictions": "Enter sends; Shift+Enter adds a new line."
+    },
+    {
+      "name": "Model settings",
+      "description": "Fields from the model's schema.",
+      "required": false,
+      "whenToUse": "To change size, length, seed and other options.",
+      "restrictions": "Each model has different fields."
+    }
+  ],
+  "generationModes": [
+    "Image",
+    "Video",
+    "Audio",
+    "Avatar",
+    "3D",
+    "AI Tools"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Image",
+      "description": "Text to Image, Image to Image, Edit, Upscale, Background, LoRA and Product models.",
+      "useCase": "Pictures and edits."
+    },
+    {
+      "mode": "Video",
+      "description": "Text to Video, Image to Video, Video to Video, Effects, Motion, Upscale, First/Last Frame and Reference Video models.",
+      "useCase": "Video clips."
+    },
+    {
+      "mode": "Audio",
+      "description": "Text to Audio, Music, Speech and Video to Audio models.",
+      "useCase": "Sound, music and voice."
+    },
+    {
+      "mode": "Avatar",
+      "description": "Audio to Video, Lip Sync, Talking Avatar and Character Animation models.",
+      "useCase": "Talking people and characters."
+    },
+    {
+      "mode": "3D",
+      "description": "Text to 3D, Image to 3D and Multi-image to 3D models.",
+      "useCase": "3D models."
+    },
+    {
+      "mode": "AI Tools",
+      "description": "Face Swap, Social Tools, SEO, Enhancement and Other.",
+      "useCase": "Utilities."
+    }
+  ],
+  "modelCapabilities": "Models come from the app's model registry service and are sorted into modes by category. Each model's settings, cost (or 'Dynamic' pricing) and badges come from its registry entry; badges are inferred from the name and description (pro/high quality = BEST, fast/schnell/lite = FAST, cost under 0.01 = BUDGET, 4k = 4K).",
+  "outputs": [
+    "Generations (image, video or audio) in the list on the page"
+  ],
+  "limitations": [
+    "Generating needs your MuAPI key (Settings); without one, the job card shows 'Add your MuAPI key in Settings to generate.' The 3D and AI Tools modes have no models yet.",
+    "Needs the model registry, generate and balance services; without them no models are listed.",
+    "Generations are not kept after a reload.",
+    "'Use as input' does nothing visible yet.",
+    "The '✨ Enhance' text is not sent."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Needs a MuAPI key; 3D and AI Tools are empty",
+      "impact": "The studio uses the same model catalog and MuAPI key as the other studios. 3D and AI Tools show 'No models are available in this category yet'.",
+      "workaround": "Add your MuAPI key in Settings. For 3D or AI tools, use the dedicated studios."
+    },
+    {
+      "limitation": "Generations live only on the page",
+      "impact": "A reload empties the list.",
+      "workaround": "Save results you want to keep."
+    }
+  ],
+  "troubleshooting": [
+    "'Add your MuAPI key in Settings to generate': add your key in Settings, then generate again.",
+    "The model list is empty or shows loading bars: the model registry did not answer.",
+    "Generate is greyed out: choose a model and type a prompt in the bottom bar.",
+    "The form shows 'Model \"...\" not found.': click Retry, or pick another model."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Nothing happens on Generate",
+      "steps": [
+        "Check a model is selected.",
+        "Type the prompt in the bottom prompt bar, not only in the form.",
+        "Check your balance in the header."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "The form's Generate button is disabled",
+      "whyItHappens": "It needs the form's own prompt field filled.",
+      "howToFix": "Use the bottom prompt bar's Generate button instead."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Make an image",
+      "steps": [
+        "Stay in Image mode.",
+        "Pick a model.",
+        "Type a prompt in the bottom bar.",
+        "Click Generate.",
+        "Find the image in the list."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Compare models",
+      "description": "Try the same prompt on several models.",
+      "steps": [
+        "Pick a model",
+        "Generate",
+        "Pick another model",
+        "Generate again"
+      ],
+      "expectedOutput": "Several generations in the list, filterable by type."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Why did my generation fail with 'Add your MuAPI key'?",
+      "answer": "SmartVideo Studio runs models through your MuAPI key, like the other studios. Add it in Settings and try again."
+    },
+    {
+      "question": "How do I know what a model costs?",
+      "answer": "The model list shows each model's cost in credits (or 'Dynamic'), and the form shows '~N credits' for your settings."
+    },
+    {
+      "question": "Are my generations saved?",
+      "answer": "They are listed on the page only; a reload clears the list."
+    },
+    {
+      "question": "What do the badges mean?",
+      "answer": "BEST for pro/high-quality models, FAST for fast/lite models, BUDGET for very cheap ones, AUDIO for models that make sound, 4K and LoRA for those capabilities."
+    }
+  ],
+  "glossary": {
+    "Mode": "The kind of media: Image, Video, Audio, Avatar, 3D or AI Tools.",
+    "Schema": "The list of inputs a model accepts; the form is built from it.",
+    "Credits": "The unit the cost estimate and balance are shown in."
+  },
+  "tips": [
+    "Search the model list by family name (for example 'kling' or 'flux').",
+    "Open Advanced only when you need it.",
+    "Watch the '~N credits' estimate as you change settings."
+  ],
+  "bestPractices": [
+    "Pick budget models for drafts and BEST models for finals.",
+    "Download results you want to keep."
+  ],
+  "relatedStudios": [
+    "image",
+    "video",
+    "audio",
+    "avatar",
+    "videotools",
+    "upscale"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "image",
+      "relationship": "Images",
+      "whenToMove": "For images today.",
+      "why": "Works now with 80+ models."
+    },
+    {
+      "studio": "video",
+      "relationship": "Video",
+      "whenToMove": "For video clips.",
+      "why": "Full video generation."
+    },
+    {
+      "studio": "audio",
+      "relationship": "Audio",
+      "whenToMove": "For music, voice and sound.",
+      "why": "Dedicated audio tools."
+    },
+    {
+      "studio": "avatar",
+      "relationship": "Avatars",
+      "whenToMove": "For talking avatars.",
+      "why": "Dedicated avatar flow."
+    },
+    {
+      "studio": "videotools",
+      "relationship": "Tools",
+      "whenToMove": "For video utilities.",
+      "why": "Groups video tools."
+    },
+    {
+      "studio": "upscale",
+      "relationship": "Upscaling",
+      "whenToMove": "To sharpen results.",
+      "why": "Dedicated upscalers."
+    }
+  ],
+  "notConfirmed": [
+    "Whether a separate model registry (/api/model-registry) and generate service (/api/generate) will exist in production; until then the studio uses the app's built-in model catalog and MuAPI.",
+    "How a 3D result is shown: the generation card only previews images, video and audio.",
+    "Whether 'Use as input' will load the result into the form (it only logs today)."
+  ],
+  "sourceFiles": [
+    "src/components/studios/SmartVideoStudio/SmartVideoStudio.tsx",
+    "src/components/studios/SmartVideoStudio/ModeRail.tsx",
+    "src/components/studios/SmartVideoStudio/ModelSelector.tsx",
+    "src/components/studios/SmartVideoStudio/DynamicModelForm.tsx",
+    "src/components/studios/SmartVideoStudio/GenerationsPanel.tsx",
+    "src/components/studios/SmartVideoStudio/svStudio/modelRegistry.ts",
+    "src/components/studios/SmartVideoStudio/svStudio/generationGateway.ts",
+    "src/components/studios/SmartVideoStudio/svStudio/costEstimator.ts",
+    "src/components/studios/SmartVideoStudio/svStudio/outputRenderer.ts",
+    "src/components/studios/SmartVideoStudio/svStudio/schemaNormalizer.ts",
+    "src/lib/router.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "verifiedAt": "2026-11-20",
+    "verifiedBy": "Code review (LLM-assisted)",
+    "evidence": "Read SmartVideoStudio.tsx, ModeRail, ModelSelector, DynamicModelForm, GenerationsPanel and svStudio/*. Opened #/smart-video-studio in the dev app: the mode rail lists Image, Video, Audio and Avatar models from the built-in catalog, model forms render, and Generate without a key shows a failed card with the key message."
+  }
+}

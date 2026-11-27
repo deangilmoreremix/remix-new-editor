@@ -31,7 +31,7 @@ const ALL_APPS = [
   { id: 'community', title: 'Community', description: 'Showcase examples, discover creative workflows, highlight user creations, and build a community around AI video creation.', link: '/community?public=1' },
   { id: 'assist', title: 'Assist', description: 'Use guided AI help for prompts, workflows, studio selection, creative improvement, and project completion.', link: '/assist?public=1' },
   { id: 'lip-sync', title: 'Lip Sync', description: 'Generate accurate lip sync for any video, character, or avatar in any language for natural-looking dubbed content.', link: '/lipsync?public=1' },
-  { id: 'video-agent', title: 'Video Agent', description: 'Automate video creation with AI agents that handle editing, effects, voiceovers, and publishing from a single prompt.', link: '/video-agent?public=1' },
+  { id: 'video-agent', title: 'Animation Agent', description: 'Automate video creation with AI agents that handle editing, effects, voiceovers, and publishing from a single prompt.', link: '/video-agent?public=1' },
   { id: 'agents', title: 'Agents', description: 'Use specialized AI agents for creative direction, editing, storyboarding, video creation, pitch improvement, and production planning.', link: '/agents?public=1' },
 ];
 
@@ -217,11 +217,16 @@ export default async function LandingPage() {
     const videoGallery = createLazySection(() => import('./sections/AIVideoGallery.jsx'), 'gallery', {}, 6);
     const academyShowcase = createLazySection(() => import('./sections/AcademyVideoShowcase.jsx'), 'academy', {}, 7);
     const repoVideoShowcase = createLazySection(() => import('./sections/ShowcaseRepoVideo.jsx'), 'repo-video', {}, 8);
+    // NEW: product demo + studio demos (click-to-play, additive).
+    const productDemo = createLazySection(() => import('./sections/ProductDemoSection.jsx'), 'product-demo', {}, 1);
+    const studioDemos = createLazySection(() => import('./sections/StudioDemosSection.jsx'), 'studio-demos', {}, 3);
     container.appendChild(scrollingStrip);
     container.appendChild(hookSection);
+    container.appendChild(productDemo);     // NEW
     container.appendChild(aiWorkflow);      // NEW
     container.appendChild(sixEngines);
     container.appendChild(appsGrid);
+    container.appendChild(studioDemos);     // NEW
     container.appendChild(madeWith);        // NEW
     container.appendChild(ugcShowcase);     // NEW
     container.appendChild(features);
@@ -234,6 +239,9 @@ export default async function LandingPage() {
     container.appendChild(valueStack);
     container.appendChild(agency);
     container.appendChild(offer);
+    // Not lazy: the guide links should be in the page from the start, for crawlers.
+    const { StudioGuidesSection } = await import('./sections/StudioGuidesSection.jsx');
+    container.appendChild(StudioGuidesSection());
     container.appendChild(finalCTA);
   } catch (error) {
     console.error('Error rendering landing page:', error);

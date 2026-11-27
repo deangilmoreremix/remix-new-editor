@@ -1,4 +1,4 @@
-// SmartVid Video Agent — port of Remotion's prompt-to-motion-graphics template
+// SmartVid Animation Agent — port of the prompt-to-motion-graphics template
 // (apps/motion-agent, built to public/motion-agent/ by `npm run build:motion-agent`).
 // Describe an animation, the agent writes Remotion code, the Player previews it live,
 // follow-up chat edits it, and "Render & Download" renders the MP4 in the browser
@@ -13,6 +13,8 @@ import { createEditorBanner } from '../../../lib/thumbnails.js';
 import { apiKeyManager } from '../../../lib/apiKeyManager.js';
 import { saveGeneration } from '../../../lib/generationHistory.js';
 import { uploadFileToSupabase } from '../../../lib/uploadService.js';
+import { createLandingPageButton, openLandingPageFor } from '../../studio/landingPageAction.js';
+import { consumeStudioPrefill } from '../../../lib/studioPrefill.js';
 
 // Explicit index.html: the dev server's SPA fallback would otherwise serve the main app.
 export const MOTION_AGENT_APP_PATH = '/motion-agent/index.html';
@@ -48,10 +50,10 @@ export function VideoAgentStudio() {
   requestAnimationFrame(fit);
   window.addEventListener('resize', fit);
 
-  const { topbar } = mountStudioChrome(container, { currentRoute: 'video-agent', title: 'Video Agent' });
+  const { topbar } = mountStudioChrome(container, { currentRoute: 'video-agent', title: 'Animation Agent' });
   // The banner carries the page title, so the bar below it only holds status.
   topbar.querySelector('.studio-topbar__title')?.remove();
-  container.insertBefore(createEditorBanner('video-agent', 'Video Agent', 'Describe an animation and the agent writes, previews and renders it'), container.firstChild);
+  container.insertBefore(createEditorBanner('video-agent', 'Animation Agent', 'Describe an animation and the agent writes, previews and renders it'), container.firstChild);
   const status = document.createElement('span');
   status.className = 'text-xs text-secondary mr-3';
   status.setAttribute('aria-live', 'polite');
@@ -62,8 +64,12 @@ export function VideoAgentStudio() {
   container.appendChild(body);
 
   const iframe = document.createElement('iframe');
-  iframe.src = MOTION_AGENT_APP_PATH;
-  iframe.title = 'SmartVid Video Agent';
+  // A brief staged by another studio (e.g. a Brand Kit's "Make with Animation Agent") opens the agent's generate page.
+  const stagedBrief = consumeStudioPrefill('video-agent');
+  iframe.src = stagedBrief?.prompt
+    ? `${MOTION_AGENT_APP_PATH}#/generate?${new URLSearchParams({ prompt: stagedBrief.prompt })}`
+    : MOTION_AGENT_APP_PATH;
+  iframe.title = 'Animation Agent';
   iframe.className = 'absolute inset-0 w-full h-full border-0 bg-black';
   iframe.setAttribute('allow', 'clipboard-read; clipboard-write; fullscreen');
   body.appendChild(iframe);
@@ -73,13 +79,23 @@ export function VideoAgentStudio() {
     iframe.contentWindow?.postMessage({ type: 'sv:auth', token: await getClerkToken(), openaiKey: getUserOpenAIKey() }, window.location.origin);
   };
 
+  // After the video is saved: a text button in the same style as the status line.
+  let landingBtn = null;
+  const showLandingButton = (url) => {
+    landingBtn?.remove();
+    landingBtn = createLandingPageButton({ className: 'text-xs font-bold text-primary hover:underline mr-3' });
+    landingBtn.onclick = () => { void openLandingPageFor({ url, type: 'video', studio: 'videoagent' }); };
+    status.after(landingBtn);
+  };
+
   async function saveExport(blob, name, prompt) {
     status.textContent = 'Saving video to your library…';
     try {
       const file = new File([blob], name || 'video-agent.mp4', { type: 'video/mp4' });
       const { url } = await uploadFileToSupabase(file, { category: 'video' });
-      saveGeneration({ studio: 'videoagent', type: 'video', url, prompt: prompt || 'Video Agent animation' });
+      saveGeneration({ studio: 'videoagent', type: 'video', url, prompt: prompt || 'Animation Agent animation' });
       status.textContent = 'Saved to your library';
+      showLandingButton(url);
     } catch (e) {
       status.textContent = `Downloaded — couldn't save to library (${e?.message || 'upload failed'})`;
     }

@@ -1,3 +1,4 @@
+import { goTo } from '../routeUrl.js';
 import { assetStore } from './assetStore.js';
 import { ASSET_TYPE_VALUES } from './assetSchema.js';
 import { isWorkbenchEligible, openInWorkbench } from '../workbench.js';
@@ -62,7 +63,7 @@ export async function openInTimeline(assetId) {
       return;
     }
     
-    window.location.hash = `/timeline?asset=${assetId}`;
+    goTo('timeline', { asset: assetId });
     
     await assetStore.updateAsset(assetId, {
       routing: {
@@ -88,7 +89,7 @@ export async function openInEditor(assetId) {
     const media = asset.media || {};
     const type = asset.type === 'video' || asset.type === 'audio' ? asset.type : 'image';
     if (!isWorkbenchEligible(asset.sourceApp) || !openInWorkbench([{ url: media.url || asset.url, type, prompt: asset.title }])) {
-      window.location.hash = `/edit?asset=${assetId}`;
+      goTo('edit', { asset: assetId });
     }
     
     await assetStore.updateAsset(assetId, {
@@ -110,7 +111,7 @@ export async function openInRender(assetId) {
       return;
     }
     
-    window.location.hash = `/render?asset=${assetId}`;
+    goTo('render', { asset: assetId });
     
     await assetStore.updateAsset(assetId, {
       routing: {

@@ -1,12 +1,15 @@
 import './style.css';
 import './components/modals/modal-styles.css';
+import './styles/outline-buttons.css';
+import './styles/studio-tooltip.css';
 
 // Popcorn.JS — initialize as early as possible (ESM init replicating
 // lib/PopcornProxy.js). initPopcorn() runs labeled dynamic imports so the
 // real error surfaces in the dev-tools console if any step fails.
 import { initPopcorn } from './lib/popcornInit.js';
-const IS_WATCH_PAGE = /^\/(watch|v)\//.test(window.location.pathname) || /^#\/(watch|v)\//.test(window.location.hash);
-// The public video player (/watch/<id>) doesn't use Popcorn.
+import { parseLocation, installLinkInterceptor } from './lib/routeUrl.js';
+const IS_WATCH_PAGE = /^(watch|v|p)\//.test(parseLocation().page);
+// The public video player (/watch/<id>, /v/<business>/<slug>) and landing pages (/p/<slug>) don't use Popcorn.
 (IS_WATCH_PAGE ? Promise.resolve(null) : initPopcorn()).then(() => {
   if (IS_WATCH_PAGE) return;
   console.log('[popcorn]', typeof window.Popcorn, Object.keys(window.Popcorn.registryByName || {}).length);
@@ -16,8 +19,12 @@ const IS_WATCH_PAGE = /^\/(watch|v)\//.test(window.location.pathname) || /^#\/(w
 
 import { Header } from './components/Header.js';
 import { Sidebar } from './components/Sidebar.js';
-import { initRouter, navigate } from './lib/router.js';
+import { initRouter, navigate, getCurrentPage, isCurrentRoute, isKnownPage } from './lib/router.js';
+import { mountAskSmartVideo } from './features/ask-smartvideo/AskSmartVideo.js';
 import { mountGenerationNotifications } from './components/studio/generationNotifications.js';
+import { mountStudioTooltips } from './components/studio/tooltipLayer.js';
+import { mountLandingPageButtons } from './components/studio/landingPageAttach.js';
+import { mountSchedulePostButtons } from './components/studio/socialPostAttach.js';
 import { ensureClerkLoaded } from './lib/clerkInit.js';
 import { perfMonitor } from './lib/performance.js';
 import { analytics } from './lib/analytics.js';
@@ -88,6 +95,11 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   });
 }
 
+// Notification clicks from the service worker (Web Push): open the owner's alerts like the header bell does.
+import { installPushMessageListener, consumeAlertsMarker } from './lib/push/openAlerts.js';
+installPushMessageListener();
+consumeAlertsMarker();
+
 // Visibility change handler - pause/resume operations when tab is hidden
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
@@ -118,21 +130,14 @@ try {
   app.innerHTML = '';
 
   // Compute initial page from URL (deep linking + studio query param)
-  const path = window.location.pathname;
-  const hash = window.location.hash;
-  let initialPage = 'landing';
+  // Both URL forms work: clean paths (/signin) and the older hash routes (/#/signin,
+  // /?a=1#/image, /#/edit?asset=7). See lib/routeUrl.js.
+  const parsedLocation = parseLocation();
+  let initialPage = parsedLocation.page;
 
-  if (path === '/' || path === '') {
-    initialPage = 'landing';
-  } else if (path.startsWith('/')) {
-    initialPage = path.slice(1);
-  }
-
-  // Hash-based routing (e.g. /#/signin)
-  if (hash && hash.startsWith('#/')) {
-    const hashPage = hash.slice(2).replace(/^\//, '');
-    if (hashPage) initialPage = hashPage;
-  }
+  // A business's own domain (netlify/edge-functions/custom-domain.js): videos.acme.com/intro opens /v/acme/intro.
+  const customRoute = document.querySelector('meta[name="sv-route"]')?.getAttribute('content');
+  if (customRoute && /^v\/[a-z0-9-]+\/[a-z0-9-]+$/.test(customRoute)) initialPage = customRoute;
 
   // Handle studio query param
   const studioParam = new URLSearchParams(window.location.search).get('studio');
@@ -149,11 +154,44 @@ try {
     return;
   }
 
+  // No-spend preview of one Edit Studio app (/edit-preview?tool=app-<id>), shown in an iframe on the
+  // Edit Studio guide page: the real tool UI with no app shell, no sign-in and nothing generated.
+  if (initialPage.split(/[?#]/)[0].replace(/\/+$/, '') === 'edit-preview') {
+    const { EditStudio } = await import('./components/EditStudio.js');
+    const holder = document.createElement('div');
+    holder.style.cssText = 'height:100vh;overflow:hidden';
+    holder.appendChild(EditStudio({ embed: true }));
+    app.appendChild(holder);
+    // Esc inside the preview frame never reaches the guide page, so ask the page to close the dialog.
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && window.parent !== window) window.parent.postMessage({ source: 'sv-edit-preview', type: 'close' }, window.location.origin);
+    });
+    return;
+  }
+
+  // Public studio feature guides (/studios, /studios/<slug>): no app shell,
+  // no sign-in. Prerendered to static HTML at build time for SEO.
+  const guidePath = initialPage.split(/[?#]/)[0].replace(/\/+$/, '');
+  if (guidePath === 'studios' || /^studios\/[a-z0-9-]+$/.test(guidePath)) {
+    const { mountGuidePage } = await import('./components/guides/mountGuidePage.js');
+    mountGuidePage(app, guidePath.slice('studios/'.length));
+    console.log('[App] Studio guide rendered');
+    return;
+  }
+
   // Public interactive video player (/watch/<id>): no app shell, no sign-in.
   if (initialPage.startsWith('watch/')) {
     const { mountWatchPage } = await import('./pages/WatchPage.jsx');
     await mountWatchPage(app, decodeURIComponent(initialPage.slice('watch/'.length).split(/[/?#]/)[0]));
     console.log('[App] Watch page rendered');
+    return;
+  }
+
+  // Public video landing page (/p/<slug>): no app shell, no sign-in.
+  if (initialPage.startsWith('p/')) {
+    const { mountVideoPage } = await import('./pages/VideoPage.jsx');
+    await mountVideoPage(app, decodeURIComponent(initialPage.slice('p/'.length).split(/[/?#]/)[0]));
+    console.log('[App] Video landing page rendered');
     return;
   }
 
@@ -195,6 +233,10 @@ try {
   const { header: headerEl, headerAuthSlot } = Header((page) => navigate(page));
   app.appendChild(headerEl);
   mountGenerationNotifications((page) => navigate(page));
+  mountStudioTooltips();
+  mountLandingPageButtons(); // "Create landing page" beside every studio's Download link, in that studio's own style
+  mountSchedulePostButtons(); // "Schedule post" (AI-written social post) beside it, same mechanism
+  mountAskSmartVideo({ navigate: (page) => navigate(page), getPage: () => getCurrentPage() || '' });
 
   const body = document.createElement('div');
   // min-h-0 keeps the row inside the viewport: without it the (long) sidebar
@@ -227,6 +269,7 @@ try {
   initRouter(contentArea, (page) => {
     headerEl.dispatchEvent(new CustomEvent('route-changed', { detail: { page } }));
     sidebar.dispatchEvent(new CustomEvent('route-changed', { detail: { page } }));
+    window.dispatchEvent(new CustomEvent('sv:route-changed', { detail: { page } }));
     if (typeof activeTimelineModal?.unmount === 'function') {
       activeTimelineModal.unmount();
     }
@@ -236,15 +279,18 @@ try {
     }
   });
 
-  // Sync the router with hash changes so deep links and browser back/forward
-  // work even when the initial hash was not yet populated during page load.
-  window.addEventListener('hashchange', () => {
-    const hash = window.location.hash;
-    if (hash && hash.startsWith('#/')) {
-      const page = hash.slice(2).replace(/^\//, '');
-      if (page) navigate(page);
-    }
-  });
+  // Browser Back/Forward and hand-edited URLs: the browser has already moved the address bar,
+  // so just open the page it now points at. Back between two hash URLs fires popstate and
+  // hashchange both; isCurrentRoute drops the second one.
+  const syncFromLocation = () => {
+    const { page, params } = parseLocation();
+    if (page === 'landing' || isCurrentRoute(page)) return;
+    navigate(page, params, { history: 'none' });
+  };
+  // Links to app pages (/image, #/image, /?a=1#/image) open in-app instead of reloading.
+  installLinkInterceptor({ navigate: (page, params) => navigate(page, params), isKnownPage });
+  window.addEventListener('popstate', syncFromLocation);
+  window.addEventListener('hashchange', syncFromLocation);
 
   // Track initialization time
   const initDuration = performance.now() - initStart;
@@ -255,7 +301,7 @@ try {
   console.log('[App] Navigating to initial page:', initialPage);
   // Preserve any deep-link query params (e.g. ?asset=<id> for Render) so the
   // target page can read them. navigate() serializes params into the URL.
-  const initialParams = Object.fromEntries(new URLSearchParams(window.location.search).entries());
+  const initialParams = parsedLocation.params;
   // Ensure the shared Clerk instance is loaded before the router checks
   // authentication on gated studio pages. Without this, ensureStudioAccess
   // in router.js calls waitForClerk() before ClerkProvider has set
@@ -268,7 +314,7 @@ try {
       console.warn('[App] Clerk preload failed, continuing anyway:', err.message);
     }
   }
-  navigate(initialPage, initialParams);
+  navigate(initialPage, initialParams, { history: 'replace' });
 
   // Show the provider API key setup popup once when the user lands in the app.
   // Gated per-session so it doesn't re-appear on every in-app navigation, and
@@ -324,6 +370,8 @@ function showSetupModalOnce() {
     window.__setupPopupShown = true;
   }
   import('./components/SettingsModal.js').then(({ SettingsModal }) => {
+    // A studio (e.g. MuAPI Studio) may already have opened the same window: never stack a second one.
+    if (document.querySelector('[data-api-keys-modal]')) return;
     document.body.appendChild(SettingsModal());
   }).catch((err) => {
     console.warn('[App] Failed to open setup popup', err);

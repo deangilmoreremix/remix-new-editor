@@ -20,7 +20,7 @@ import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
 
 export function LipSyncStudio() {
     const container = document.createElement('div');
@@ -66,7 +66,7 @@ export function LipSyncStudio() {
     promptWrapper.style.animationDelay = '0.2s';
 
     const bar = document.createElement('div');
-    bar.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 md:gap-5 shadow-3xl';
+    bar.className = 'w-full bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 md:gap-5 shadow-3xl';
 
     // --- Mode Toggle (Image vs Video) ---
     const modeToggleRow = document.createElement('div');
@@ -85,6 +85,7 @@ export function LipSyncStudio() {
     videoModeBtn.type = 'button';
     videoModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-white/10 text-muted hover:border-white/30 hover:text-white';
     videoModeBtn.textContent = '🎬 Video';
+    videoModeBtn.dataset.help = 'video source';
 
     modeToggleRow.appendChild(modeLabel);
     modeToggleRow.appendChild(imageModeBtn);
@@ -224,7 +225,7 @@ export function LipSyncStudio() {
     uploadsRow.appendChild(audioUploadBtn);
     uploadsRow.appendChild(textarea);
 
-    // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
+    // Enhancement tools overflow menu (GTM Boost, Recipes, Prompts)
     const enhanceMenu = document.createElement('div');
     enhanceMenu.className = 'overflow-menu shrink-0';
     enhanceMenu.innerHTML = `
@@ -234,7 +235,6 @@ export function LipSyncStudio() {
       <div class="overflow-menu__panel">
         <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
         <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
-        <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
         <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
       </div>
     `;
@@ -265,11 +265,8 @@ export function LipSyncStudio() {
           }).catch(() => {});
         } else if (action === 'recipe') {
           openRecipeModal({
-            onRunRecipe: (url) => {
-            }
+            studio: 'lipsync'
           }).catch(() => {});
-        } else if (action === 'monetize') {
-          openMonetizationHub().catch(() => {});
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'lip-sync-studio',
@@ -465,7 +462,7 @@ export function LipSyncStudio() {
     advancedPanel.className = 'w-full mt-6 animate-fade-in-up hidden';
     advancedPanel.id = 'ls-advanced-panel';
     const advancedCard = document.createElement('div');
-    advancedCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4';
+    advancedCard.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4';
     advancedPanel.appendChild(advancedCard);
 
     const advHeader = document.createElement('div');
@@ -505,7 +502,7 @@ export function LipSyncStudio() {
     // 3. DROPDOWN SYSTEM
     // ==========================================
     const dropdown = document.createElement('div');
-    dropdown.className = 'hidden fixed z-[200] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 min-w-[200px] max-h-[400px] overflow-y-auto custom-scrollbar';
+    dropdown.className = 'hidden fixed z-[200] bg-card-bg border border-white/10 rounded-2xl shadow-3xl p-2 min-w-[200px] max-h-[400px] overflow-y-auto custom-scrollbar';
     dropdown.id = 'ls-dropdown';
 
     const closeDropdown = (e) => {
@@ -975,6 +972,8 @@ export function LipSyncStudio() {
     publishBtn.textContent = 'Publish to Social';
 
     canvasControls.appendChild(publishBtn);
+    const landingBtn = createLandingPageButton({ like: downloadBtn });
+    canvasControls.appendChild(landingBtn);
 
     canvas.appendChild(videoContainer);
     canvas.appendChild(canvasControls);
@@ -991,6 +990,7 @@ export function LipSyncStudio() {
             canvasControls.classList.add('opacity-100');
         };
         publishBtn.onclick = () => openSocialPublish({ mediaUrl: videoUrl, mediaType: 'video' });
+        landingBtn.onclick = () => { void openLandingPageFor({ url: resultVideo.src || videoUrl, type: 'video', studio: 'lipsync' }); };
 
         const captionBtn = document.createElement('button');
         captionBtn.type = 'button';
@@ -1086,7 +1086,7 @@ export function LipSyncStudio() {
         const apiKey = apiKeyManager.getKey();
         if (!apiKey) return;
         const banner = document.createElement('div');
-        banner.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[200] bg-[#111] border border-white/10 text-white text-sm px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3';
+        banner.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[200] bg-card-bg border border-white/10 text-white text-sm px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3';
         banner.innerHTML = `<span class="animate-spin text-primary">◌</span> <span class="banner-text">Resuming ${pending.length} pending generation${pending.length > 1 ? 's' : ''}…</span>`;
         document.body.appendChild(banner);
         let remaining = pending.length;

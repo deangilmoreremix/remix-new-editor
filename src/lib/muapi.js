@@ -116,6 +116,22 @@ function checkOutputIntegrity(result) {
   }
 }
 
+/**
+ * Settings an app passes explicitly (`params.extraParams`) for a model whose bundled schema does not
+ * list them (e.g. Video Background Remover's background colour). They only fill keys the client has not
+ * already set, and only plain string / number / boolean values under simple names, so they can never
+ * replace a validated field or smuggle in nested data.
+ */
+function mergeExtraParams(finalPayload, extra) {
+    if (!extra || typeof extra !== 'object' || Array.isArray(extra)) return finalPayload;
+    for (const [key, value] of Object.entries(extra)) {
+        if (key in finalPayload || value === undefined || value === null || value === '') continue;
+        if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(key)) continue;
+        if (['string', 'number', 'boolean'].includes(typeof value)) finalPayload[key] = value;
+    }
+    return finalPayload;
+}
+
 export class MuapiClient {
     constructor() {
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -201,6 +217,15 @@ export class MuapiClient {
         const result = await this.pollForResult(requestId, maxAttempts, interval, effectiveSignal);
         const url = result.outputs?.[0] || result.url || result.output?.url;
         return { ...result, id: result.id || requestId, request_id: requestId, url };
+    }
+
+    /**
+     * Public wrapper around _submitAndPoll for callers that build their own payload.
+     * opts: { signal, onRequestId, generationType, studioType, maxAttempts, interval }
+     */
+    submitAndPoll(endpoint, payload, opts = {}) {
+        const { signal, onRequestId, ...pollOpts } = opts;
+        return this._submitAndPoll(endpoint, payload, { onRequestId }, signal, pollOpts);
     }
 
     /** Vibe Motion: generate a motion-graphics clip from a prompt. */
@@ -570,11 +595,29 @@ export class MuapiClient {
                         notFound.terminal = true;
                         throw notFound;
                     }
-                    const errText = await response.text();
-                    throw new Error(`Poll Failed: ${response.status} - ${errText.slice(0, 100)}`);
+                    // MuAPI answers a failed job with a 4xx and { detail: { status: 'failed', error } }. It will never
+                    // succeed on retry, so report the real reason now instead of polling until the attempt limit.
+                    // Bounded: a stuck proxy must not hang the poll loop on the error body.
+                    const errText = await Promise.race([
+                        response.text(),
+                        new Promise((resolve) => setTimeout(() => resolve(''), 10_000)),
+                    ]).catch(() => '');
+                    let detail = null;
+                    try { detail = JSON.parse(errText)?.detail ?? null; } catch { /* not JSON */ }
+                    const rawReason = typeof detail === 'string' ? detail : (detail?.error?.message || detail?.error || null);
+                    const reason = rawReason && typeof rawReason !== 'string' ? JSON.stringify(rawReason) : rawReason;
+                    const failed = new Error(reason ? `Generation failed: ${reason}` : `Poll Failed: ${response.status} - ${errText.slice(0, 100)}`);
+                    failed.requestId = requestId;
+                    // Terminal when MuAPI says the job failed, or the request can never succeed (auth). Other 4xx
+                    // (409/425/...) may be transient while a long job runs, so they keep polling.
+                    const providerFailed = ['failed', 'error'].includes(String(detail?.status || '').toLowerCase());
+                    failed.terminal = (providerFailed && response.status !== 429 && response.status !== 408) || response.status === 401 || response.status === 403;
+                    throw failed;
                 }
 
-                const data = await response.json();
+                let data = await response.json();
+                // The same failure shape can arrive through a proxy as a 200 { detail: { status: 'failed', ... } }.
+                if (data && !data.status && data.detail && typeof data.detail === 'object' && data.detail.status) data = data.detail;
 
                 // NEW: Validate output integrity before accepting completed results
                 const status = data.status?.toLowerCase();
@@ -837,6 +880,8 @@ export class MuapiClient {
             finalPayload[key] = value;
         }
 
+        mergeExtraParams(finalPayload, params.extraParams);
+
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
@@ -980,6 +1025,8 @@ export class MuapiClient {
 
         // Native audio (Phase 7)
         if (params.native_audio) finalPayload.native_audio = params.native_audio;
+
+        mergeExtraParams(finalPayload, params.extraParams);
 
         try {
              const response = await fetch(this.proxyUrl, {
@@ -1163,6 +1210,8 @@ export class MuapiClient {
             finalPayload[key] = value;
         }
 
+        mergeExtraParams(finalPayload, params.extraParams);
+
         try {
              const response = await fetch(this.proxyUrl, {
                  method: 'POST',
@@ -1214,6 +1263,7 @@ export class MuapiClient {
 
         if (params.model) finalPayload.model = params.model;
         if (params.video_url) finalPayload.video_url = params.video_url;
+        if (params.image_url) finalPayload.image_url = params.image_url;
         if (params.audio_url) finalPayload.audio_url = params.audio_url;
         if (params.prompt) finalPayload.prompt = params.prompt;
         // A local-only (data:) thumbnail is a studio preview, not a hosted URL the API can use.
@@ -1279,7 +1329,9 @@ export class MuapiClient {
         const finalPayload = {};
 
         if (params.model) finalPayload.model = params.model;
-        if (params.prompt) finalPayload.prompt = params.prompt;
+        // Speech callers pass the text as `text`; it was never forwarded. Send it as `prompt`.
+        const spokenText = params.prompt || params.text;
+        if (spokenText) finalPayload.prompt = spokenText;
         if (params.duration) finalPayload.duration = params.duration;
         if (params.style) finalPayload.style = params.style;
         if (params.audio_url) finalPayload.audio_url = params.audio_url;
@@ -1592,11 +1644,13 @@ export class MuapiClient {
         return null;
     }
 
-    async text(prompt, model = 'gpt-5-nano', signal) {
+    // MuAPI dashed GPT-6 ids: gpt-6-luna is the cheap text model (no image
+    // input); gpt-6-1-sol accepts `image_url`, so vision defaults to it.
+    async text(prompt, model = 'gpt-6-luna', signal) {
         return MuapiClient.extractText(await this._runPrediction(model, { prompt }, signal));
     }
 
-    async vision(prompt, imageUrl, model = 'gpt-5-nano', signal) {
+    async vision(prompt, imageUrl, model = 'gpt-6-1-sol', signal) {
         return MuapiClient.extractText(await this._runPrediction(model, { prompt, image_url: imageUrl }, signal));
     }
 
@@ -1609,6 +1663,26 @@ export class MuapiClient {
             output_format: opts.outputFormat ?? 'png',
         }, signal);
         return MuapiClient.extractMediaUrl(r);
+    }
+
+    // nano-banana text-to-image (Open-Pomelli `muapi.image`).
+    async image(prompt, aspectRatio = '1:1', signal) {
+        const r = await this._runPrediction('nano-banana', { prompt, aspect_ratio: aspectRatio }, signal);
+        const url = MuapiClient.extractMediaUrl(r);
+        if (!url) throw new Error('No image URL in response');
+        return url;
+    }
+
+    // nano-banana-edit with reference images, e.g. the brand logo (Open-Pomelli `muapi.imageEdit`).
+    async imageEdit(prompt, imagesList, aspectRatio = 'Auto', signal) {
+        const r = await this._runPrediction('nano-banana-edit', {
+            prompt,
+            images_list: imagesList,
+            aspect_ratio: aspectRatio,
+        }, signal);
+        const url = MuapiClient.extractMediaUrl(r);
+        if (!url) throw new Error('No image URL in response');
+        return url;
     }
 
     async image2(prompt, opts = {}, signal) {

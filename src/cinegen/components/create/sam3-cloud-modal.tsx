@@ -73,7 +73,7 @@ interface BoxCloudPrompt {
 type CloudPrompt = TextCloudPrompt | PointCloudPrompt | BoxCloudPrompt;
 
 const SEGMENT_COLORS = [
-  'rgba(34, 211, 238, 0.45)',
+  'rgba(217, 255, 0, 0.45)',
   'rgba(91, 143, 212, 0.45)',
   'rgba(92, 184, 122, 0.45)',
   'rgba(207, 125, 96, 0.45)',
@@ -82,7 +82,7 @@ const SEGMENT_COLORS = [
 ];
 
 const SEGMENT_SOLID_COLORS = [
-  '#22d3ee',
+  '#d9ff00',
   '#5b8fd4',
   '#5cb87a',
   '#cf7d60',
@@ -478,7 +478,7 @@ function ImageSegmentationPane({
       try {
         const apiKey = getApiKey();
         if (!apiKey) throw new Error('Masking runs on your device.');
-        const uploaded = await window.electronAPI.elements.uploadMediaSource(sourceUrl, apiKey);
+        const uploaded = { url: sourceUrl }; // [remix] segmentation runs on this device, so the picture is not uploaded anywhere
         const img = await loadImageElement(sourceUrl);
         if (cancelled) return;
         setRemoteSourceUrl(uploaded.url);
@@ -1182,7 +1182,7 @@ function VideoSegmentationPane({
       try {
         const apiKey = getApiKey();
         if (!apiKey) throw new Error('Masking runs on your device.');
-        const uploaded = await window.electronAPI.elements.uploadMediaSource(sourceUrl, apiKey);
+        const uploaded = { url: sourceUrl }; // [remix] segmentation runs on this device, so the picture is not uploaded anywhere
         if (cancelled) return;
         setRemoteSourceUrl(uploaded.url);
         setLoading(false);
@@ -1723,7 +1723,7 @@ function VideoSegmentationPane({
                 <div className="sam3__segment-list">
                   {promptHistory.map((prompt) => (
                     <div key={prompt.id} className="sam3__segment-item">
-                      <div className="sam3__segment-swatch" style={{ background: prompt.kind === 'text' ? '#22d3ee' : (prompt.positive ? '#5cb87a' : '#cf7d60') }} />
+                      <div className="sam3__segment-swatch" style={{ background: prompt.kind === 'text' ? '#d9ff00' : (prompt.positive ? '#5cb87a' : '#cf7d60') }} />
                       <span className="sam3__segment-name">
                         {prompt.kind === 'text'
                           ? prompt.text

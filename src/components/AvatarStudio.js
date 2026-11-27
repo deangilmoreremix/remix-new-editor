@@ -21,7 +21,6 @@ import { addCaptionButton } from '../lib/editor/captionActions.js';
 import ExampleGallery from './studios/ExampleGallery.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
 import { createActionRow, arrangeActionRow, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 
@@ -33,6 +32,9 @@ export function AvatarStudio() {
   let selectedModel = avatarModels[0];
   let nativeAudio = false;
   let uploadedVideoUrl = null;
+  // 'image' | 'video' as reported by the picker / Pexels; the URL itself can't
+  // be trusted (clip.mp4#t=1, extensionless CDN links).
+  let uploadedSourceType = null;
   let uploadedAudioUrl = null;
   let prompt = '';
   let customThumbnailUrl = getCustomThumbnailFromCache('avatar-studio');
@@ -71,7 +73,7 @@ const triggerBtn = document.createElement('button');
   updateTrigger();
 
   const dropdown = document.createElement('div');
-  dropdown.className = 'fixed z-[200] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
+  dropdown.className = 'fixed z-[200] bg-card-bg border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
   dropdown.style.width = 'calc(100vw - 2rem)';
   dropdown.style.maxWidth = '480px';
   dropdown.style.maxHeight = '70vh';
@@ -129,12 +131,14 @@ const triggerBtn = document.createElement('button');
   };
 
   modelWrapper.appendChild(triggerBtn);
-  modelWrapper.appendChild(dropdown);
   container.appendChild(modelWrapper);
+  // On the page container, not the animated wrapper: a transformed parent traps the
+  // dropdown's z-index and the form card painted over it.
+  container.appendChild(dropdown);
 
   // Form card
   const formCard = document.createElement('div');
-  formCard.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
+  formCard.className = 'w-full bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
   formCard.style.animationDelay = '0.2s';
 
   // Video/Image upload (for lip sync models)
@@ -148,10 +152,11 @@ const triggerBtn = document.createElement('button');
   const videoPicker = createUploadPicker({
     anchorContainer: container,
     acceptVideo: true,
-    onSelect: ({ url, type }) => { 
-      uploadedVideoUrl = url; 
+    onSelect: ({ url, type }) => {
+      uploadedVideoUrl = url;
+      uploadedSourceType = type === 'image' || type === 'video' ? type : null;
     },
-    onClear: () => { uploadedVideoUrl = null; },
+    onClear: () => { uploadedVideoUrl = null; uploadedSourceType = null; },
   });
   videoUploadGroup.appendChild(videoPicker.trigger);
 
@@ -172,6 +177,7 @@ const triggerBtn = document.createElement('button');
           ? (asset.video_files?.find(f => f.quality === 'hd') || asset.video_files?.[0])?.link || asset.url
           : (asset.src?.large || asset.src?.original || asset.url);
         uploadedVideoUrl = url;
+        uploadedSourceType = isVideo ? 'video' : 'image';
       },
     });
   };
@@ -250,7 +256,7 @@ const triggerBtn = document.createElement('button');
   promptInput.oninput = (e) => { prompt = e.target.value; };
   promptGroup.appendChild(promptInput);
 
-  // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
+  // Enhancement tools overflow menu (GTM Boost, Recipes, Prompts)
     const enhanceMenu = document.createElement('div');
     enhanceMenu.className = 'overflow-menu shrink-0';
     enhanceMenu.innerHTML = `
@@ -260,7 +266,6 @@ const triggerBtn = document.createElement('button');
       <div class="overflow-menu__panel">
         <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
         <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
-        <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
         <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
       </div>
     `;
@@ -291,11 +296,8 @@ const triggerBtn = document.createElement('button');
           }).catch(() => {});
         } else if (action === 'recipe') {
           openRecipeModal({
-            onRunRecipe: (url) => {
-            }
+            studio: 'avatar'
           }).catch(() => {});
-        } else if (action === 'monetize') {
-          openMonetizationHub().catch(() => {});
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'avatar-studio',
@@ -342,7 +344,7 @@ const triggerBtn = document.createElement('button');
     dynamicControls = createAdvancedControls({
       model,
       container: dynamicControlsContainer,
-      exclude: new Set(['video_url', 'audio_url', 'prompt']),
+      exclude: new Set(['video_url', 'image_url', 'audio_url', 'prompt']),
     });
   }
   buildDynamicControls();
@@ -426,15 +428,18 @@ const triggerBtn = document.createElement('button');
 
   function updateFormVisibility() {
     // Show/hide video upload
-    const needsVideo = selectedModel.hasVideo;
+    // FLUX 3 Avatar lists its inputs (image_url, video_url, audio_url) but has no hasVideo/hasAudio flags.
+    const inputs = selectedModel.inputs || {};
+    const needsVideo = Boolean(selectedModel.hasVideo || inputs.video_url || inputs.image_url);
     videoUploadGroup.classList.toggle('hidden', !needsVideo);
 
     // Show/hide audio upload
-    const needsAudio = selectedModel.hasAudio;
+    const needsAudio = Boolean(selectedModel.hasAudio || inputs.audio_url);
     audioUploadGroup.classList.toggle('hidden', !needsAudio);
 
     // Show/hide prompt
-    const needsPrompt = selectedModel.hasPrompt;
+    // Show the prompt for any model that accepts one (FLUX 3 Avatar has inputs.prompt but no hasPrompt flag).
+    const needsPrompt = selectedModel.hasPrompt === true || Boolean(selectedModel.inputs?.prompt);
     promptGroup.classList.toggle('hidden', !needsPrompt);
 
     // Show/hide native audio toggle based on model
@@ -446,11 +451,12 @@ const triggerBtn = document.createElement('button');
   // Generate button handler
   genBtn.onclick = async () => {
     if (!(await requireEntitlement())) return;
-    if (!uploadedVideoUrl && selectedModel.hasVideo) {
+    const needsSource = Boolean(selectedModel.hasVideo || selectedModel.inputs?.video_url || selectedModel.inputs?.image_url);
+    if (!uploadedVideoUrl && needsSource) {
       showToast('Upload a source video or image first', 'error');
       return;
     }
-    if (selectedModel.hasPrompt && (!prompt || !prompt.trim())) {
+    if (selectedModel.hasPrompt === true && (!prompt || !prompt.trim())) {
       showToast('Please enter a prompt for this avatar model.', 'error');
       return;
     }
@@ -473,6 +479,23 @@ const triggerBtn = document.createElement('button');
         signal: avatarAbortController.signal,
       };
 
+      // Route by the media type the picker reported; only guess from the URL
+      // when it didn't say (e.g. an old history entry without a type).
+      const sourceType = uploadedSourceType
+        || (/\.(mp4|webm|mov|m4v|m3u8)(?:[?#]|$)/i.test(uploadedVideoUrl || '') ? 'video'
+          : /\.(png|jpe?g|webp|gif|avif|heic)(?:[?#]|$)/i.test(uploadedVideoUrl || '') ? 'image'
+            // Still unknown: a portrait-only model can only mean an image.
+            : (selectedModel.inputs?.image_url && !selectedModel.hasVideo && !selectedModel.inputs?.video_url) ? 'image' : null);
+      if (sourceType === 'image' && uploadedVideoUrl) {
+        // A still is never a video source; models that take a portrait get it as image_url.
+        delete params.video_url;
+        if (selectedModel.inputs?.image_url) params.image_url = uploadedVideoUrl;
+        else if (needsSource) throw new Error('This model needs a source video, not an image.');
+      } else if (sourceType === 'video' && uploadedVideoUrl && selectedModel.inputs?.image_url
+        && !selectedModel.hasVideo && !selectedModel.inputs?.video_url) {
+        // Portrait-only models (e.g. Kling Avatar, InfiniteTalk Image to Video) reject a video source.
+        throw new Error('This model needs a still portrait image, not a video.');
+      }
       if (uploadedAudioUrl) params.audio_url = uploadedAudioUrl;
       if (prompt) params.prompt = replaceTokensInPrompt(prompt, activeProfile);
       if (dynamicControls) {
@@ -483,7 +506,7 @@ const triggerBtn = document.createElement('button');
       if (result?.url) {
         resultArea.classList.remove('hidden');
         resultArea.innerHTML = `
-          <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
+          <div class="bg-card-bg/80 border border-white/10 rounded-2xl p-4">
             <video controls class="w-full rounded-xl mb-3" src="${result.url}"></video>
             <a href="${result.url}" download class="block w-full btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Video</a>
             <button type="button" class="publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>

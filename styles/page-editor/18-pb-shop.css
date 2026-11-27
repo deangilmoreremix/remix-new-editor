@@ -1,0 +1,9 @@
+.pk-d-pb-shop { --pk-bg-grad: linear-gradient(180deg,#f6f4ee 0%,#ffffff 100%); --pk-h1: none; --pk-h1-color: transparent; --pk-h1-fill: transparent; --pk-h1-accent: #fff; --pk-form-bg: #ffffff; --pk-form-text: #1d2b21; --pk-bar: linear-gradient(90deg,#2f9e44,#7dc82a); --pk-bar-text: #fff; --pk-cta: #ffffff; --pk-cta-text: #1d2b21; --pk-tile: #1d2b21; }
+.pk-d-pb-shop .pk-hero--duo .pk-headline { -webkit-text-fill-color: currentColor; background: none; color: inherit; }
+.pk-d-pb-shop .pk-hero--duo .pk-form-sub { display: none; }
+.pk-d-pb-shop .pk-hero--duo .pk-headline { white-space: pre-line; }
+.pk-d-pb-shop .pk-hero--duo .pk-video video { object-position: 60% 30%; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 22%); mask-image: linear-gradient(90deg, transparent 0, #000 22%); }
+.pk-d-pb-shop .pk-logo-word { color: #1d2b21; opacity: .8; }
+.pk-d-pb-shop { font-family: "Plus Jakarta Sans Variable", "Inter Variable", system-ui, sans-serif; }
+.pk-d-pb-shop .pk-hero--duo .pk-headline { font-size: clamp(32px, 8vw, 56px); font-weight: 800; }
+.pk-d-pb-shop .pk-brand img { width: 30px; height: 30px; object-fit: cover; border-radius: 6px; }

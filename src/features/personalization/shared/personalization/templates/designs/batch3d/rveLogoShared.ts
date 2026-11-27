@@ -13,7 +13,7 @@
 
 import type { RemotionDesignComponentProps } from '../../types'
 import { lightenColor, withAlpha } from '../rveSharedDesign'
-import { pickColor, slotText, slotValue, truncateText } from '../shared'
+import { darkenColor, pickColor, slotText, slotValue, truncateText } from '../shared'
 import { britoFitChars, britoMonogram } from './britoShared'
 
 /** The upstream's 16 px `rem` base. */
@@ -84,7 +84,8 @@ export function rveLogoBrand(props: RemotionDesignComponentProps): RveLogoBrand 
     accent,
     textColor: pickColor([props.color, props.colors?.text], '#ffffff'),
     taglineColor: lightenColor(primary, 0.45),
-    badgeBackground: logo ? '#ffffff' : gradient,
+    // A real logo sits on a white tile, unless it is itself white / pale (it would vanish): then a dark brand tile.
+    badgeBackground: logo ? (props.logoIsLight ? `linear-gradient(135deg, ${darkenColor(primary, 0.35)}, ${darkenColor(primary, 0.18)})` : '#ffffff') : gradient,
     gradient,
     logo,
     monogram: britoMonogram(name),

@@ -15,12 +15,18 @@
  *   { action: 'submit', kind: 'tts', text, voice, speed, pitch? }               (MiniMax)
  *   { action: 'submit', kind: 'tts', provider: 'openai', text, voice, speed, instructions? }
  *   { action: 'submit', kind: 'music', prompt, genre, mood, duration }
+ *   { action: 'submit', kind: 'voice-clone', audioUrl, voiceId, consent: true, sampleText? }
+ *     Clones the caller's own voice from a recorded sample (MiniMax through MuAPI).
+ *     consent must be true: the speaker confirms the sample is their own voice.
+ *     voiceId is the id the clone is saved under; use it later as cloneVoiceId.
+ *   { action: 'submit', kind: 'tts', cloneVoiceId, text }   (speak with a cloned voice)
  *     → { ok, requestId } | { ok, status: 'done', url }
- *   { action: 'status', requestId }
+ *   { action: 'status', requestId, kind? }
  *     → { ok, status: 'pending' | 'done' | 'failed', url?, error? }
+ *     For kind 'voice-clone' a finished job reports done even without an audio URL.
  */
 import { withClerkAuth } from './_shared/clerkAuth.js';
-import { muapiPost, extractRealUrl, musicPayload } from './cinegenProviders.js';
+import { muapiPost, muapiResult, extractRealUrl, musicPayload } from './cinegenProviders.js';
 import { userMuapiKey, userOpenAIKey, NEED_MUAPI_KEY, NEED_OPENAI_KEY, BAD_OPENAI_KEY, BAD_MUAPI_KEY, OPENAI_NO_CREDIT } from './_shared/byok.js';
 
 export const VOICES = [
@@ -29,6 +35,19 @@ export const VOICES = [
   'Imposing_Manner', 'Elegant_Man', 'Abbess', 'Sweet_Girl_2', 'Exuberant_Girl',
 ];
 const TTS_MODEL = process.env.MUAPI_TTS_MODEL || 'minimax-speech-2.6-hd';
+
+// Ids of cloned voices. Conservative: starts with a letter, 8-64 safe characters.
+export const LANGUAGE_BOOST = ['auto', 'English', 'Spanish', 'French', 'German', 'Portuguese', 'Italian', 'Dutch', 'Japanese', 'Korean', 'Chinese', 'Hindi', 'Arabic', 'Russian', 'Turkish', 'Polish', 'Indonesian', 'Vietnamese', 'Thai', 'Ukrainian'];
+const CLONE_VOICE_ID = /^[A-Za-z][A-Za-z0-9_-]{7,63}$/;
+const CLONE_SAMPLE_TEXT = 'Hello, this is a preview of my cloned voice.';
+
+/** The sample must be a public https URL (never data:, http, or a bare host). */
+function isHttpsUrl(value) {
+  try {
+    const u = new URL(String(value));
+    return u.protocol === 'https:' && !!u.hostname && u.hostname.includes('.');
+  } catch { return false; }
+}
 
 // OpenAI speech (https://platform.openai.com/docs/guides/text-to-speech).
 // OpenAI's usage policy requires telling listeners the voice is AI-generated;
@@ -71,10 +90,33 @@ export function buildRequest(body) {
     const text = String(body.text || '').trim();
     if (!text) return { error: 'text is required' };
     if (text.length > 3000) return { error: 'text is too long (max 3000 characters)' };
-    const voice = VOICES.includes(body.voice) ? body.voice : 'Wise_Woman';
+    const cloned = typeof body.cloneVoiceId === 'string' && CLONE_VOICE_ID.test(body.cloneVoiceId) ? body.cloneVoiceId : null;
+    if (body.cloneVoiceId && !cloned) return { error: 'cloneVoiceId is not a valid voice id' };
+    const voice = cloned || (VOICES.includes(body.voice) ? body.voice : 'Wise_Woman');
     const speed = Math.max(0.5, Math.min(2, Number(body.speed) || 1));
     const pitch = Math.max(-12, Math.min(12, Math.round(Number(body.pitch) || 0)));
-    return { endpoint: `/${TTS_MODEL}`, payload: { prompt: text, text, voice_id: voice, voice, speed, ...(pitch ? { pitch } : {}) } };
+    // The spoken language (MiniMax language_boost), e.g. a greeting in Spanish in a cloned voice.
+    const language = LANGUAGE_BOOST.includes(body.languageBoost) ? body.languageBoost : null;
+    return { endpoint: `/${TTS_MODEL}`, payload: { prompt: text, text, voice_id: voice, voice, speed, ...(pitch ? { pitch } : {}), ...(language ? { language_boost: language } : {}) } };
+  }
+  if (body.kind === 'voice-clone') {
+    if (body.consent !== true) return { error: 'Confirm that the recording is your own voice before cloning it.' };
+    if (!isHttpsUrl(body.audioUrl)) return { error: 'audioUrl must be a public https URL' };
+    if (typeof body.voiceId !== 'string' || !CLONE_VOICE_ID.test(body.voiceId)) {
+      return { error: 'voiceId must start with a letter and be 8-64 letters, numbers, _ or -' };
+    }
+    const sample = String(body.sampleText || CLONE_SAMPLE_TEXT).trim().slice(0, 300) || CLONE_SAMPLE_TEXT;
+    return {
+      endpoint: '/minimax-voice-clone',
+      payload: {
+        prompt: sample,
+        audio_url: String(body.audioUrl),
+        custom_voice_id: body.voiceId,
+        model: 'speech-2.6-hd',
+        need_noise_reduction: true,
+        need_volume_normalization: true,
+      },
+    };
   }
   if (body.kind === 'music') {
     if (!body.prompt && !body.genre && !body.mood) return { error: 'prompt, genre or mood is required' };
@@ -86,7 +128,7 @@ export function buildRequest(body) {
       }),
     };
   }
-  return { error: 'kind must be tts or music' };
+  return { error: 'kind must be tts, music or voice-clone' };
 }
 
 /** OpenAI speech → data: URL (mp3). */
@@ -138,10 +180,12 @@ export async function handle(body, userId, { fetchImpl = fetch, keys = {} } = {}
     const id = String(body.requestId || '');
     if (!/^[A-Za-z0-9_-]{4,128}$/.test(id)) return fail(400, 'bad_request', 'Invalid requestId');
     try {
-      const data = await muapiPost(`/predictions/${encodeURIComponent(id)}/result`, {}, undefined, keys.muapi);
+      const data = await muapiResult(id, undefined, keys.muapi);
       const status = String(data.status || '').toLowerCase();
       if (['completed', 'succeeded', 'success'].includes(status)) {
         const url = extractRealUrl(data);
+        // A finished clone is a saved voice, so it may come back with no audio file.
+        if (body.kind === 'voice-clone') return json(200, { ok: true, status: 'done', ...(url ? { url } : {}) });
         return url ? json(200, { ok: true, status: 'done', url }) : json(200, { ok: true, status: 'failed', error: 'No audio was produced.' });
       }
       if (['failed', 'error'].includes(status)) return json(200, { ok: true, status: 'failed', error: 'Generation failed.' });

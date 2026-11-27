@@ -272,7 +272,9 @@ describe('restore recommended placement', () => {
     // little where the template position itself collides with the logo
     expect(bn.x).toBeCloseTo(intended.x, 6)
     expect(Math.abs(bn.y - intended.y)).toBeLessThan(0.06)
-    expect(bn.y).toBeLessThan(0.5)
+    // the Business Introduction template is a bottom-left lower third (not where the customer dragged it, y .9)
+    expect(bn.y).toBeLessThan(0.8)
+    expect(bn.y).toBeGreaterThan(0.5)
     expect(r.proposals.find((p) => p.layerId === 'headline')).toBeUndefined() // locked
     expect(r.skipped.find((k) => k.layerId === 'headline')?.reason).toBe('locked')
   })

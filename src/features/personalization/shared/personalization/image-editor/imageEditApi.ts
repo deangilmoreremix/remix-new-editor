@@ -1,13 +1,17 @@
 import type { ImageFormat, ImageQuality, ImageResult, ImageSize } from '@ohb/shared/api/openaiImage'
 import type { EditorOperationId } from './imageEditRegistry'
 
+export type ImageEditModel = 'gpt-image-2.6-flare' | 'gpt-image-2.6-sunburst' | 'gpt-image-2.5-flare' | 'gpt-image-2.5-sunburst'
+
 export type SmartVideoGoImageEditRequest = {
   operation: EditorOperationId
   prompt: string
   image: Blob
   mask?: Blob | null
-  model: 'gpt-image-2.5-flare' | 'gpt-image-2.5-sunburst'
+  model: ImageEditModel
   quality: ImageQuality
+  /** Composition planning; only sent for Images 2.6 models (the server ignores it otherwise). */
+  complexity?: 'low' | 'medium' | 'high'
   size: ImageSize
   outputFormat: ImageFormat
   outputCompression?: number
@@ -22,6 +26,7 @@ export async function editSmartVideoGoImage(params: SmartVideoGoImageEditRequest
   form.append('model', params.model)
   form.append('quality', params.quality)
   form.append('size', params.size)
+  if (params.complexity) form.append('complexity', params.complexity)
   form.append('output_format', params.outputFormat)
   if (params.outputCompression !== undefined) form.append('output_compression', String(params.outputCompression))
   form.append('background', params.background)

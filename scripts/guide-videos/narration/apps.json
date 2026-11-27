@@ -1,0 +1,11 @@
+{
+  "slug": "apps",
+  "name": "Apps",
+  "intro": "Apps is the home screen of SmartVideo, a searchable grid of every creative tool. Pick the one you need, and it opens straight away.",
+  "features": {
+    "search-apps": "Type in the search box to filter the cards by name and description. Sections with no matches disappear, so you can find a tool like upscale in seconds.",
+    "section-groups": "Tools are grouped into Image apps, Video apps, Agents apps and My Work. Start from the kind of output you want, and pick the section that fits.",
+    "recently-used": "After you open a tool from this page, it appears as a chip in the Recently Used row. That gives you a one click way back to the tools you use most."
+  },
+  "outro": "That's the Apps hub. Search or browse, open a card, and you're in the studio you need."
+}

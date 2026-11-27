@@ -1,8 +1,7 @@
 import { createStudioHeader } from '../lib/thumbnails.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { loadGenerationHistory, confirmDeleteGeneration } from '../lib/generationHistory.js';
-import { showToast } from '../lib/loading.js';
-import { createSafeImage, createSafeVideo, safeSetText } from '../lib/security.js';
+import { showToast } from '../lib/loading.js';import { createSafeImage, createSafeVideo, safeSetText } from '../lib/security.js';
 import { MediaDetailView } from './MediaDetailView.js';
 import { queueAssetForStudio } from './UploadPicker.js';
 
@@ -50,6 +49,7 @@ export function LibraryPage() {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.dataset.libraryFilter = f;
+    btn.dataset.help = f === 'uploads' ? 'library uploads' : 'library filter';
     btn.className = 'px-4 py-2 rounded-full text-xs font-bold transition-all';
     btn.dataset.label = label;
     btn.textContent = label;
@@ -58,9 +58,18 @@ export function LibraryPage() {
     controls.appendChild(btn);
   });
 
+  const pagesLink = document.createElement('button');
+  pagesLink.type = 'button';
+  pagesLink.dataset.testid = 'library-video-pages';
+  pagesLink.className = 'px-4 py-2 rounded-full text-xs font-bold border border-white/10 text-secondary hover:text-white hover:border-primary/60 transition-colors';
+  pagesLink.textContent = 'My Video Pages';
+  pagesLink.onclick = async () => { const { openMyVideoPages } = await import('./modals/MyVideoPagesModal.js'); openMyVideoPages(); };
+  controls.appendChild(pagesLink);
+
   const right = document.createElement('div');
   right.className = 'ml-auto flex items-center gap-2';
   const sortSelect = document.createElement('select');
+  sortSelect.dataset.help = 'library sort';
   sortSelect.className = 'bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none';
   sortSelect.innerHTML = '<option value="newest">Newest first</option><option value="oldest">Oldest first</option>';
   sortSelect.onchange = () => { sortOrder = sortSelect.value; renderGrid(); };
@@ -437,6 +446,18 @@ export function LibraryPage() {
           label: 'Download',
           onClick: () => downloadItem(item),
         },
+        // Any generated video can become a landing page (public link, CTA, lead form, analytics).
+        ...(item.type === 'video' || item.type === 'image' ? [{
+          id: 'landing-page',
+          label: 'Create landing page',
+          onClick: async () => {
+            // Opens the landing page picker (all designs, full view + editor) with this video attached.
+            const { openLandingPagePicker, toPickerVideo } = await import('../lib/landingPages/pickerModal.js');
+            if (!toPickerVideo(item)) { showToast('This video has no shareable link yet.', 'warning', 3000); return; }
+            detailView.hide();
+            openLandingPagePicker({ video: item });
+          },
+        }] : []),
       ],
     });
     detailView.show();

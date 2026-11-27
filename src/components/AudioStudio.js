@@ -4,6 +4,7 @@ import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.j
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { audioModels } from '../lib/models.js';
+import { modelHasField, deliveryParams, hardcodedAudioKeys, DELIVERY_HINT } from '../lib/audioStudioFields.js';
 import { AuthModal } from './AuthModal.js';
 import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
@@ -19,7 +20,6 @@ import ExampleGallery from './studios/ExampleGallery.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { createActionRow, arrangeActionRow, styleThumbnailButton, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 
@@ -230,8 +230,7 @@ function renderSchemaControls(selectedModel, schemaParams, setSchemaParams, cont
 
   Object.entries(selectedModel.inputs).forEach(([key, schema]) => {
     if (key === 'model') return;
-    const hardcodedKeys = ['prompt', 'style', 'duration', 'voice', 'tone', 'emotion', 'speed', 'pitch'];
-    if (hardcodedKeys.includes(key)) return;
+    if (hardcodedAudioKeys(selectedModel).includes(key)) return;
 
     if (schema.type === 'string' && schema.field === 'audio') {
       const uploader = createAudioFileUploader(schema.title || key, schemaParams[key] || '', (url) => {
@@ -308,6 +307,7 @@ function renderSchemaControls(selectedModel, schemaParams, setSchemaParams, cont
         optionBtn.type = 'button';
         optionBtn.className = `w-full text-left px-4 py-2.5 rounded text-xs font-bold transition-all border ${schemaParams[key] === optionValue ? 'text-primary bg-primary/10 border-primary/20' : 'text-zinc-200 border-transparent hover:bg-zinc-900 hover:text-white'}`;
         optionBtn.textContent = optionLabel;
+        optionBtn.dataset.help = 'option';
         optionBtn.addEventListener('click', () => {
           setSchemaParams(prev => ({ ...prev, [key]: optionValue }));
           optionsList.classList.add('hidden');
@@ -425,6 +425,7 @@ function renderSchemaControls(selectedModel, schemaParams, setSchemaParams, cont
           chip.type = 'button';
           chip.className = 'text-[11px] px-3 py-1 bg-zinc-800/80 border border-zinc-700 hover:bg-primary/20 hover:border-primary/45 hover:text-white rounded-full transition-all font-semibold text-zinc-100';
           chip.textContent = `"${ex.slice(0, 35)}${ex.length > 35 ? '...' : ''}"`;
+          chip.dataset.help = 'example prompt';
           chip.addEventListener('click', () => {
             setSchemaParams(prev => ({ ...prev, [key]: ex }));
             textarea.value = ex;
@@ -600,6 +601,7 @@ export function AudioStudio() {
   // Model selector
   const modelWrapper = document.createElement('div');
   modelWrapper.className = 'w-full mb-6 animate-fade-in-up';
+  modelWrapper.dataset.help = 'model';
   modelWrapper.style.animationDelay = '0.1s';
   container.appendChild(modelWrapper);
 
@@ -638,7 +640,7 @@ export function AudioStudio() {
 
   // Form card
   const formCard = document.createElement('div');
-  formCard.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
+  formCard.className = 'w-full bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
   formCard.style.animationDelay = '0.2s';
 
   // Prompt input
@@ -727,7 +729,6 @@ export function AudioStudio() {
     <div class="overflow-menu__panel">
       <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
       <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
-      <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
       <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
     </div>
   `;
@@ -757,9 +758,7 @@ export function AudioStudio() {
           }, { basePrompt: promptInput.value });
         }).catch((err) => console.error('[AudioStudio] GTM Boost failed:', err));
       } else if (action === 'recipe') {
-        openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
-      } else if (action === 'monetize') {
-        openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+        openRecipeModal({ studio: 'audio' }).catch((err) => console.error('[Recipe] open failed:', err));
       } else if (action === 'prompts') {
         openPromptGallery({
           appTheme: 'audio-studio',
@@ -827,6 +826,7 @@ export function AudioStudio() {
   durationGroup.appendChild(durationLabel);
   const durationRow = document.createElement('div');
   durationRow.className = 'flex gap-2';
+  durationRow.dataset.help = 'duration';
   ['15', '30', '60', '120'].forEach(d => {
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -853,6 +853,7 @@ export function AudioStudio() {
   voiceGroup.appendChild(voiceLabel);
   const voiceSelect = document.createElement('select');
   voiceSelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-primary focus:outline-none';
+  voiceSelect.dataset.help = 'voice';
   voiceSelect.innerHTML = `
     <option value="female-1">Female 1</option>
     <option value="male-qn-qingse">Male Qingse</option>
@@ -958,6 +959,12 @@ export function AudioStudio() {
   pitchGroup.appendChild(pitchRow);
   formCard.appendChild(pitchGroup);
 
+  // Shown instead of Tone / Emotion / Pitch when the selected speech model has no such field.
+  const deliveryHint = document.createElement('p');
+  deliveryHint.className = 'hidden text-xs text-secondary leading-relaxed';
+  deliveryHint.textContent = DELIVERY_HINT;
+  formCard.appendChild(deliveryHint);
+
   // Thumbnail studio button
   const thumbBtn = document.createElement('button');
   thumbBtn.type = 'button';
@@ -1017,7 +1024,7 @@ export function AudioStudio() {
   editorControls.className = 'w-full mt-4 hidden';
   editorControls.id = 'audio-editor-controls';
   editorControls.innerHTML = `
-    <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 flex flex-col gap-4">
+    <div class="bg-card-bg/80 border border-white/10 rounded-2xl p-4 flex flex-col gap-4">
       <div class="text-xs font-bold text-secondary uppercase tracking-wider">Audio Editor</div>
       <div class="flex flex-col gap-3">
         <div class="flex items-center gap-3">
@@ -1092,9 +1099,16 @@ export function AudioStudio() {
     const supportsVoice = modelType === 'tts';
     voiceGroup.classList.toggle('hidden', !supportsVoice);
 
-    const supportsSpeedPitch = modelType === 'tts';
-    speedGroup.classList.toggle('hidden', !supportsSpeedPitch);
-    pitchGroup.classList.toggle('hidden', !supportsSpeedPitch);
+    // Speed is a speech-model control. Tone, Emotion and Pitch only appear when this
+    // model's schema has the field (so they are really sent); otherwise show the hint.
+    speedGroup.classList.toggle('hidden', modelType !== 'tts');
+    const hasTone = modelHasField(selectedModel, 'tone');
+    const hasEmotion = modelHasField(selectedModel, 'emotion');
+    const hasPitch = modelHasField(selectedModel, 'pitch');
+    toneGroup.classList.toggle('hidden', !hasTone);
+    emotionGroup.classList.toggle('hidden', !hasEmotion);
+    pitchGroup.classList.toggle('hidden', !hasPitch);
+    deliveryHint.classList.toggle('hidden', modelType !== 'tts' || hasTone || hasEmotion || hasPitch);
 
     renderSchemaControlsSection();
   }
@@ -1118,7 +1132,7 @@ export function AudioStudio() {
     cleanupResult();
     resultArea.classList.remove('hidden');
     resultArea.innerHTML = `
-      <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
+      <div class="bg-card-bg/80 border border-white/10 rounded-2xl p-4">
         <div id="waveform-container" class="w-full h-24 mb-3 rounded-xl overflow-hidden bg-white/5"></div>
         <div class="flex items-center gap-3 mb-3">
           <button id="waveform-play-btn" aria-label="Play" class="w-12 h-12 bg-primary hover:bg-primary/80 text-black rounded-full flex items-center justify-center transition-all">
@@ -1135,7 +1149,7 @@ export function AudioStudio() {
         <audio id="waveform-audio" class="hidden" src="${url}" type="audio/mpeg"></audio>
         <a href="${url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Audio</a>
       </div>
-      <div id="audio-editor-controls" class="mt-4 bg-[#111]/80 border border-white/10 rounded-2xl p-4 flex flex-col gap-4">
+      <div id="audio-editor-controls" class="mt-4 bg-card-bg/80 border border-white/10 rounded-2xl p-4 flex flex-col gap-4">
         <div class="text-xs font-bold text-secondary uppercase tracking-wider">Audio Editor</div>
         <div class="flex flex-col gap-3">
           <div class="flex items-center gap-3">
@@ -1442,6 +1456,9 @@ export function AudioStudio() {
         mergedSchemaParams.reference_videos = resolvedVideos;
       }
 
+      // Tone / Emotion / Pitch go out only for models whose schema has those fields.
+      Object.assign(mergedSchemaParams, deliveryParams(selectedModel, { tone: toneValue, emotion: emotionValue, pitch }));
+
       if (modelType === 'music') {
         result = await muapi.generateMusic({
           model: selectedModel.id,
@@ -1453,6 +1470,7 @@ export function AudioStudio() {
       } else if (modelType === 'tts') {
         result = await muapi.generateAudio({
           model: selectedModel.id,
+          prompt: processedPrompt, // generateAudio sends `prompt`; `text` was silently dropped
           text: processedPrompt,
           speed: speed,
           voice: selectedVoice,

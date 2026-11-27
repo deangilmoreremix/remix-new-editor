@@ -10,6 +10,7 @@
 import { readHandoff } from '../shared/crossStudio'
 import { stageStudioPrefill } from '../../../lib/studioPrefill.js'
 import { navigate as shellNavigate } from '../../../lib/router.js'
+import { buildUrl } from '../../../lib/routeUrl.js'
 
 const STUDIO_ROUTE: Record<string, string> = {
   image: 'image',
@@ -111,7 +112,7 @@ export function navigate(href: string): void {
     void shellNavigate(route, Object.fromEntries(new URLSearchParams(query)))
     return
   }
-  window.location.hash = target.slice(1)
+  window.location.assign(buildUrl(route, Object.fromEntries(new URLSearchParams(query))))
 }
 
 const router = {

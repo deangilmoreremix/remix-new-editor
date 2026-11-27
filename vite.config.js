@@ -91,6 +91,13 @@ const BROKEN_LEGACY_MATCHERS = [
   'lib/constants/timeline',
 ];
 
+let declaredCache = null;
+const declaredDependencies = () => {
+  if (declaredCache) return declaredCache;
+  try { declaredCache = new Set(Object.keys(JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8')).dependencies || {})); } catch { declaredCache = new Set(); } // only used for a hint: never break resolution over it
+  return declaredCache;
+};
+
 const stubLegacy = () => ({
   name: 'stub-legacy-unresolved',
   enforce: 'pre',
@@ -111,6 +118,9 @@ const stubLegacy = () => ({
       const pkgDir = path.resolve('node_modules', pkgName);
       if (!fs.existsSync(pkgDir)) {
         console.warn('[STUB]', source, '<-', importer.replace(process.cwd() + '/', ''));
+        // A package that package.json DECLARES but node_modules lacks is not legacy code: the stand-in is empty and features fail in odd ways.
+        const fullName = source.startsWith('@') ? source.split('/').slice(0, 2).join('/') : pkgName; // @scope/name, not just @scope
+        if (declaredDependencies().has(fullName)) console.error(`[STUB] "${fullName}" is declared in package.json but not installed, so it was replaced by an empty module. Run "npm install" and restart.`);
         if (process.env.STRICT_IMPORTS) {
           throw new Error(`Unresolved import "${source}" from ${importer.replace(process.cwd() + '/', '')}`);
         }
@@ -420,7 +430,8 @@ function securityHeaders() {
         configureServer(server) {
             server.middlewares.use((req, res, next) => {
                 const url = req.url || '';
-                if (url.startsWith('/ai-vfx')) {
+                // The bare /ai-vfx path is the in-app studio route (the SPA); only /ai-vfx/* is the vendored sub-app.
+                if (url.startsWith('/ai-vfx/')) {
                     return next();
                 }
                 // The Remotion export runner sets its own (stricter) CSP via
@@ -445,21 +456,28 @@ function securityHeaders() {
 
                 const isProduction = process.env.NODE_ENV === 'production';
                 const devConnectSrc = !isProduction ? ' http://localhost:5173 ws://localhost:5173 http://localhost:3000' : '';
-                const devFrameSrc = !isProduction ? ' http://localhost:5173 http://localhost:3000 https://ai-vfx.smartvid.app' : '';
+                // Booking sites a landing page may embed under its video (Video Pages, src/lib/landingPages/templates.js CALENDAR_HOSTS).
+                // Dev only: production sends no frame-src restriction.
+                const bookingFrameSrc = ' https://calendly.com https://*.calendly.com https://cal.com https://*.cal.com https://*.hubspot.com https://tidycal.com https://*.tidycal.com https://youcanbook.me https://*.youcanbook.me https://savvycal.com https://*.savvycal.com https://calendar.google.com https://calendar.app.google https://zcal.co https://*.zcal.co https://chilipiper.com https://*.chilipiper.com https://*.acuityscheduling.com https://outlook.office365.com https://outlook.office.com';
+                const devFrameSrc = !isProduction ? ` http://localhost:5173 http://localhost:3000 https://ai-vfx.smartvid.app${bookingFrameSrc}` : '';
 
                 const csp = [
                   "default-src 'self'",
                   // 'wasm-unsafe-eval': Remotion's Player/media decoders compile WebAssembly.
-                  `script-src 'self' 'wasm-unsafe-eval' ${reactPreambleHash}${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com blob:`,
+                  // cdn.jsdelivr.net: Transformers.js loads its ONNX Runtime WASM loader
+                  // (ort-wasm-*.mjs) from there; on-device background removal (BG0,
+                  // @bg0/browser) cannot load its model without it. Production sets no
+                  // script-src, so this only brings dev in line with it.
+                  `script-src 'self' 'wasm-unsafe-eval' ${reactPreambleHash}${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com https://cdn.jsdelivr.net blob:`,
                   `worker-src 'self' blob:${clerkHostSrc} https://clerk.smartvid.app`,
                   `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com${clerkHostSrc}`,
                   `img-src 'self' data: https: blob:${clerkHostSrc}`,
                   `font-src 'self' data: https://fonts.gstatic.com${clerkHostSrc}`,
                   // https: so the Remotion Player (@remotion/media) can fetch clip
                   // media from stock/storage CDNs, as production (no CSP) allows.
-                  "connect-src 'self' https: blob: data: ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com https://raw.githubusercontent.com http://localhost:8787" + (process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : '') + clerkHostSrc,
-                  `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com http://localhost:5173 http://localhost:3000 http://localhost:5199 http://localhost:5174 http://localhost:8787 https://ai-vfx.smartvid.app https://video-agent.smartvid.app${process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : ''}`,
-                  "media-src 'self' https: blob:",
+                  "connect-src 'self' https: blob: data: ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co wss://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com https://raw.githubusercontent.com http://localhost:8787" + (process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : '') + clerkHostSrc,
+                  `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com http://localhost:5173 http://localhost:3000 http://localhost:5199 http://localhost:5174 http://localhost:8787 https://ai-vfx.smartvid.app https://video-agent.smartvid.app${process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : ''}${bookingFrameSrc}`,
+                  "media-src 'self' https: blob: data:", // data: so a video picked while storage is unavailable (stored in the project as a data URL) plays, as in production (no CSP)
                 ].join('; ');
                 res.setHeader('Content-Security-Policy', csp);
                 
@@ -483,9 +501,10 @@ function securityHeaders() {
                 
                 // Permissions Policy
                 // [remix] microphone=(self): the timeline's voice-over recorder and Voice Director use the mic (same origin only)
+                // camera=(self): the Video Outreach studio and the recorders record the webcam (same origin only)
                 res.setHeader(
                     'Permissions-Policy',
-                    'camera=(), microphone=(self)'
+                    'camera=(self), microphone=(self)'
                 );
                 
                 next();
@@ -871,6 +890,22 @@ function gtmBoostDevPlugin() {
  * file removes a 404 path and matches the production behavior (Netlify
  * serves the same file as a static rewrite).
  */
+// Dev server: client-side routes of the embedded SmartWarmupAI dashboard (built to public/smartwarmupai-app) serve its own index.html,
+// and Help pages (public/smartwarmupai-help/**/index.html) resolve their directory URLs.
+function smartwarmupaiFallbackPlugin() {
+  return {
+    name: 'smartwarmupai-spa-fallback',
+    configureServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        const url = (req.url || '').split('?')[0];
+        if (url.startsWith('/smartwarmupai-app/') && !/\.[a-z0-9]+$/i.test(url)) req.url = '/smartwarmupai-app/index.html';
+        else if (url.startsWith('/smartwarmupai-help/') && url.endsWith('/')) req.url = `${url}index.html`;
+        next();
+      });
+    },
+  };
+}
+
 function modelCatalogDevPlugin() {
   const CATALOG_PATH = path.join(PROJECT_ROOT, 'public', 'api', 'model-catalog.json');
   return {
@@ -1036,6 +1071,7 @@ export default defineConfig({
         },
     },
     plugins: [
+      smartwarmupaiFallbackPlugin(),
         // [remix] OpenChatCut's dev-only plugin (config/vite.config.ts `serveOrtWasmLoader`): serve the prebuilt onnxruntime loader
         // module from public/models/silero-vad verbatim, since Vite refuses to import JS from /public.
         {
@@ -1134,7 +1170,7 @@ export default defineConfig({
 
             server.middlewares.use((req, res, next) => {
               const url = req.url || '';
-              if (url.startsWith('/ai-vfx/') || url === '/ai-vfx') {
+              if (url.startsWith('/ai-vfx/')) {
                 const relativePath = url.replace('/ai-vfx', '').replace(/^\//, '') || 'index.html';
                 const filePath = path.join(aiVfxOutDir, relativePath);
                 if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
@@ -1253,10 +1289,13 @@ export default defineConfig({
         // parses them with the plain js loader and fails with
         // "The JSX syntax extension is not currently enabled".
         esbuildOptions: { loader: { '.js': 'jsx' } },
+        // @ffmpeg/ffmpeg starts its own module worker via `new URL('./worker.js', import.meta.url)`.
+        // Pre-bundling moves the package into .vite/deps where that relative worker file no longer exists,
+        // so the Zack D final cut hung on "Loading encoder…". Serve both packages as source instead.
         // kokoro-js / phonemizer (free on-device voiceover) ship emscripten
         // asm.js; the jsx loader above misparses it ("(0 | n) is not a
         // function"). Serve them untouched.
-        exclude: ['kokoro-js', 'phonemizer'],
+        exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util', 'kokoro-js', 'phonemizer'],
     },
     // Many legacy modules under components/ are authored as .js files that
     // nevertheless contain JSX. @vitejs/plugin-react only reliably transforms
@@ -1272,6 +1311,8 @@ export default defineConfig({
         exclude: [/\.tsx?$/, /node_modules[\\/](kokoro-js|phonemizer)[\\/]/],
         jsx: 'automatic',
         tsconfigRaw: { compilerOptions: { experimentalDecorators: true } },
+        // Replaces terser's `drop_debugger` now that the build minifies with esbuild.
+        drop: ['debugger'],
     },
     // Worker bundles are built by a separate pipeline that does not include plugin-react (which strips the types of .ts/.tsx here: the
     // esbuild option above only covers .js/.jsx). Without this, a TypeScript worker such as
@@ -1305,10 +1346,16 @@ export default defineConfig({
             ignored: ['**/.playwright-mcp/**', '**/.kilo/**'],
         },
         proxy: {
+            // Media Hub: vendored VidBee, gated by the Express backend (see backend/services/vidbeeProxy.js).
+            '/vidbee': { target: process.env.VITE_BACKEND_PROXY || 'http://localhost:3001', changeOrigin: true },
+            '/api/vidbee': { target: process.env.VITE_BACKEND_PROXY || 'http://localhost:3001', changeOrigin: true },
+            // `/ai-vfx` is also a studio route of the SPA (/ai-vfx?public=1 on the landing page): a
+            // page load of the bare path belongs to the SPA; everything under /ai-vfx/ is the sub-app.
             '/ai-vfx': {
                 target: 'http://localhost:3000',
                 changeOrigin: true,
                 ws: true,
+                bypass: (req) => (/^\/ai-vfx\/?(\?|$)/.test(req.url || '') && (req.headers.accept || '').includes('text/html') ? '/index.html' : undefined),
             },
             '/_next/static': {
                 target: 'http://localhost:3000',
@@ -1373,6 +1420,11 @@ export default defineConfig({
             // Netlify functions CLI on :8888 if available; otherwise fall back to
             // a same-origin placeholder so the dev server doesn't crash.
             // Template Generator AI functions (same Netlify functions server as below).
+            // Ask SmartVideo (streaming v2 function, serves /api/ask-smartvideo itself).
+            '/api/ask-smartvideo': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
             '/api/timeline-script': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
@@ -1395,15 +1447,36 @@ export default defineConfig({
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
             },
+            '/api/brand-kit': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
             '/api/demo/discover': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
+            },
+            // Public image proxy used by signed-out background removal (netlify/functions/personalization-api.mts).
+            '/api/demo/download-image': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+                // The route refuses a browser Origin that differs from its own host (cross-site guard). In dev the
+                // page is on :5173 and the function on :8888, so present the target as the origin, as a same-origin
+                // deployed call would. Dev server only: production never goes through this proxy.
+                configure: (proxy, options) => {
+                    proxy.on('proxyReq', (proxyReq) => {
+                        if (proxyReq.getHeader('origin')) proxyReq.setHeader('origin', String(options.target))
+                    })
+                },
             },
             '/api/video/record': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
             },
             '/api/proxy/openai-enhance': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            '/api/proxy/thumbnail-generate': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
             },
@@ -1428,6 +1501,11 @@ export default defineConfig({
             },
             // Motion Director: director chat + page capture (netlify/functions/personalization-api.mts).
             '/api/motion-studio/': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            // Video Outreach: website screenshots for backgrounds (netlify/functions/personalization-api.mts).
+            '/api/outreach/': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
             },
@@ -1468,19 +1546,15 @@ export default defineConfig({
     },
     build: {
         target: 'esnext',
-        minify: 'terser',
+        // esbuild instead of terser: terser runs last, over every chunk, and was a main cause of the
+        // Netlify build being OOM-killed (exit 137) while rendering chunks.
+        minify: 'esbuild',
     esbuild: {
         jsx: 'automatic',
         loader: 'tsx',
         include: /\.(jsx|tsx|ts)$/,
         tsconfigRaw: { compilerOptions: { experimentalDecorators: true } },
     },
-        terserOptions: {
-            compress: {
-                drop_console: false,
-                drop_debugger: true
-            }
-        },
         rollupOptions: {
             // Second HTML entry: the sandboxed Remotion export runner.
             input: {
@@ -1504,8 +1578,11 @@ export default defineConfig({
                 assetFileNames: 'assets/[name]-[hash].[ext]'
             }
         },
-        sourcemap: process.env.NODE_ENV !== 'production',
-        chunkSizeWarningLimit: 1000
+        sourcemap: false,
+        chunkSizeWarningLimit: 1000,
+        // Gzipping every multi-MB chunk just to print sizes pushed the Netlify build past its
+        // memory limit (OOM-killed, exit 137, right after "computing gzip size...").
+        reportCompressedSize: false
     },
     preview: {
         port: 3000,

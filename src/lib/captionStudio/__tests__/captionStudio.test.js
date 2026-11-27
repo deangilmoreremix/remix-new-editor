@@ -1,0 +1,326 @@
+import { describe, it, expect } from 'vitest';
+import { captionLines, setLineText, removeLine, setLineTiming } from '../lines.js';
+import { spreadWords } from '../live.js';
+import { layoutWords, paintCaptions, captionAnimation } from '../painter.js';
+import { ENGINES, detectCapabilities, recommendEngine } from '../engines.js';
+import { defaultCaptionStyle } from '../../editor/remotion/captions.js';
+
+const words = (...t) => t.map((text, i) => ({ text: (i ? ' ' : '') + text, startMs: i * 400, endMs: i * 400 + 400, timestampMs: i * 400 + 200, confidence: null }));
+const style = { ...defaultCaptionStyle('tiktok'), combineMs: 5000 };
+
+/** Canvas 2D stub that records what is drawn. Text is 10px per character. */
+const mockCtx = () => {
+  const calls = [];
+  const rec = (name) => (...a) => { calls.push([name, ...a]); };
+  const ctx = {
+    calls, font: '', fillStyle: '', measureText: (t) => ({ width: t.length * 10 }),
+    save: rec('save'), restore: rec('restore'), translate: rec('translate'), scale: rec('scale'), clip: rec('clip'), rect: rec('rect'),
+    beginPath: rec('beginPath'), fill: rec('fill'), strokeText: rec('strokeText'),
+    fillText(t, x, y) { calls.push(['fillText', t, x, y, this.fillStyle]); },
+  };
+  return ctx;
+};
+
+describe('line editing', () => {
+  const caps = words('hello', 'brave', 'new', 'world');
+  it('groups words into lines the viewer sees', () => {
+    const lines = captionLines(caps, style);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toMatchObject({ from: 0, to: 4, text: 'hello brave new world' });
+  });
+  it('keeps word timing when the word count is unchanged', () => {
+    const [line] = captionLines(caps, style);
+    const out = setLineText(caps, line, 'hullo brave new World');
+    expect(out.map((c) => c.text.trim())).toEqual(['hullo', 'brave', 'new', 'World']);
+    expect(out.map((c) => c.startMs)).toEqual(caps.map((c) => c.startMs));
+    expect(out[0].text.startsWith(' ')).toBe(false);
+    expect(out[1].text.startsWith(' ')).toBe(true);
+  });
+  it('spreads new words across the old span when the count changes', () => {
+    const [line] = captionLines(caps, style);
+    const out = setLineText(caps, line, 'a b');
+    expect(out).toHaveLength(2);
+    expect(out[0].startMs).toBe(0);
+    expect(out[1].endMs).toBe(1600);
+  });
+  it('removes a line when its text is cleared', () => {
+    const [line] = captionLines(caps, style);
+    expect(setLineText(caps, line, '  ')).toEqual([]);
+    expect(removeLine(caps, line)).toEqual([]);
+  });
+  it('retimes a whole line proportionally', () => {
+    const [line] = captionLines(caps, style);
+    const out = setLineTiming(caps, line, 1000, 2600);
+    expect(out[0].startMs).toBe(1000);
+    expect(out[3].endMs).toBe(2600);
+  });
+});
+
+describe('live speech word spreading', () => {
+  it('gives every word a slot inside the phrase and no leading space on the first word', () => {
+    const out = spreadWords('one three', 1000, 3000, true);
+    expect(out.map((c) => c.text)).toEqual(['one', ' three']);
+    expect(out[0].startMs).toBe(1000);
+    expect(out[1].endMs).toBe(3000);
+    expect(out[0].endMs).toBe(out[1].startMs);
+  });
+  it('returns nothing for empty text', () => expect(spreadWords('  ', 0, 100)).toEqual([]));
+});
+
+describe('layout + painting', () => {
+  it('wraps words to the max width', () => {
+    const toks = words('aaaa', 'bbbb', 'cccc').map((w) => ({ text: w.text }));
+    const { lines } = layoutWords(toks, (t) => t.length * 10, 100, false);
+    expect(lines.map((l) => l.words.map((w) => w.text))).toEqual([['aaaa', 'bbbb'], ['cccc']]);
+  });
+  it('draws nothing when no caption is showing', () => {
+    const ctx = mockCtx();
+    expect(paintCaptions(ctx, 1000, 1000, words('hi'), style, 60000)).toBe(false);
+    expect(ctx.calls.some((c) => c[0] === 'fillText')).toBe(false);
+  });
+  it('draws each word, highlighting the spoken one', () => {
+    const ctx = mockCtx();
+    const st = { ...style, color: '#ffffff', highlightColor: '#ff0000', uppercase: false };
+    expect(paintCaptions(ctx, 1000, 1000, words('hello', 'world'), st, 500)).toBe(true);
+    const fills = ctx.calls.filter((c) => c[0] === 'fillText');
+    expect(fills.map((f) => f[1])).toEqual(['hello', 'world']);
+    expect(fills[0][4]).toBe('#ffffff');
+    expect(fills[1][4]).toBe('#ff0000');
+  });
+  it('places the block by position and keeps it on the frame', () => {
+    const y = (position) => { const ctx = mockCtx(); paintCaptions(ctx, 1000, 1000, words('hi'), { ...style, position }, 100); return ctx.calls.find((c) => c[0] === 'translate')[2]; };
+    expect(y('top')).toBeLessThan(y('middle'));
+    expect(y('middle')).toBeLessThan(y('bottom'));
+    expect(y('bottom')).toBeLessThan(1000);
+  });
+  it('wipes karaoke words with a clip', () => {
+    const ctx = mockCtx();
+    paintCaptions(ctx, 1000, 1000, words('sing', 'along'), { ...style, preset: 'karaoke', karaoke: true }, 600);
+    expect(ctx.calls.some((c) => c[0] === 'clip')).toBe(true);
+  });
+  it('maps Capite looks to their motion', () => {
+    expect(captionAnimation({ preset: 'capite-bounce' })).toBe('bounce');
+    expect(captionAnimation({ preset: 'capite-crimson-pop' })).toBe('box');
+    expect(captionAnimation({ preset: 'tiktok' })).toBe('highlight');
+    expect(captionAnimation({ preset: 'karaoke' })).toBe('karaoke');
+  });
+});
+
+describe('engines', () => {
+  it('lists only free on-device engines', () => {
+    expect(ENGINES.map((e) => e.id)).toEqual(['whisper-webgpu', 'whisper-wasm', 'webspeech']);
+  });
+  it('detects capabilities without throwing outside a browser', async () => {
+    const caps = await detectCapabilities();
+    expect(caps).toHaveProperty('webgpu');
+    expect(recommendEngine({ webgpu: false })).toBe('whisper-wasm');
+    expect(recommendEngine({ webgpu: true })).toBe('whisper-webgpu');
+  });
+});
+
+// ---- the portable core must not drift from the copies it was made from, and must not import from the host app
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+import * as core from '../model.js';
+import * as timeline from '../../editor/remotion/captions.js';
+import { CAPITE_CAPTION_STYLES } from '../styles.js';
+import { CAPITE_CAPTION_STYLES as shared } from '../../../features/personalization/shared/personalization/captions/capiteStyles';
+
+describe('portable core', () => {
+  it('has the same Capite looks as the shared personalization data', () => {
+    expect(CAPITE_CAPTION_STYLES).toEqual(shared);
+  });
+  it('builds the same style presets and caption pages as the Timeline editor', () => {
+    expect(Object.keys(core.CAPITE_PRESETS)).toEqual(Object.keys(timeline.CAPITE_PRESETS));
+    ['tiktok', 'classic', 'box', 'karaoke', 'minimal', ...Object.keys(core.CAPITE_PRESETS)].forEach((k) => expect(core.defaultCaptionStyle(k)).toEqual(timeline.defaultCaptionStyle(k)));
+    const caps = words('one', 'two', 'three', 'four', 'five', 'six');
+    expect(core.captionPages(caps, { combineMs: 900 })).toEqual(timeline.captionPages(caps, { combineMs: 900 }));
+    expect(core.captionsToSrt(caps)).toBe(timeline.captionsToSrt(caps));
+  });
+  it('imports only npm packages and its own files, so the folder can be copied between repos', () => {
+    const dir = join(__dirname, '..');
+    readdirSync(dir).filter((f) => f.endsWith('.js')).forEach((f) => {
+      const specs = [...readFileSync(join(dir, f), 'utf8').matchAll(/(?:^|\n)\s*import[^'"]*?from\s*['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)|new URL\(\s*['"]([^'"]+)['"]/g)].map((m) => m[1] || m[2] || m[3]);
+      specs.forEach((s) => expect(s.startsWith('./') || ['@remotion/captions', '@huggingface/transformers', 'mediabunny'].includes(s), `${f} imports ${s}`).toBe(true));
+    });
+  });
+});
+
+// ---- features added from the Capite / ai-video-captions comparison
+import { nudgeLine, findReplace, changeCase, captionsToPlain } from '../lines.js';
+import { captionsToTxt, captionsToAss, assColor } from '../exports.js';
+import { CAPTION_LANGUAGES } from '../engines.js';
+import { scriptFontsFor, captionFont } from '../painter.js';
+
+describe('transcript tools', () => {
+  const caps = words('hello', 'brave', 'new', 'world');
+  it('nudges a line by 100 ms without going negative', () => {
+    const [line] = captionLines(caps, style);
+    const out = nudgeLine(caps, line, 100);
+    expect(out[0].startMs).toBe(100);
+    expect(nudgeLine(caps, line, -5000)[0].startMs).toBe(0);
+  });
+  it('finds and replaces, including a phrase that spans two words', () => {
+    const r = findReplace(caps, 'brave new', 'bold');
+    expect(r.count).toBe(1);
+    expect(captionsToPlain(r.captions)).toBe('hello bold world');
+    expect(findReplace(caps, 'HELLO', 'bye', { matchCase: true }).count).toBe(0);
+    expect(findReplace(caps, 'HELLO', 'bye').count).toBe(1);
+    expect(findReplace(caps, '', 'x').count).toBe(0);
+    expect(findReplace(caps, '(', 'x').count).toBe(0); // regex characters are literal
+  });
+  it('changes case and keeps timing and spacing', () => {
+    const up = changeCase(caps, 'upper');
+    expect(up.map((c) => c.text)).toEqual(['HELLO', ' BRAVE', ' NEW', ' WORLD']);
+    expect(changeCase(caps, 'title').map((c) => c.text.trim())).toEqual(['Hello', 'Brave', 'New', 'World']);
+    expect(changeCase(up, 'lower')[1].text).toBe(' brave');
+    expect(up.map((c) => c.startMs)).toEqual(caps.map((c) => c.startMs));
+  });
+});
+
+describe('file exports', () => {
+  const caps = words('hello', 'brave', 'new', 'world');
+  it('writes a plain transcript', () => expect(captionsToTxt(caps, { combineMs: 5000 })).toBe('hello brave new world\n'));
+  it('writes ASS with a style, karaoke word timing and a position', () => {
+    const ass = captionsToAss(caps, { ...style, fontFamily: 'Montserrat', uppercase: true, color: '#ffffff', highlightColor: '#ff0000', position: 'bottom', stroke: true }, { width: 1080, height: 1920 });
+    expect(ass).toContain('PlayResX: 1080');
+    expect(ass).toContain('Style: Default,Montserrat,');
+    expect(ass).toContain('&H000000FF'); // red highlight, ASS is BGR
+    expect(ass).toMatch(/Dialogue: 0,0:00:00\.00,0:00:01\.\d\d,Default,,0,0,0,,\{\\an8\\pos\(540,\d+\)\}\{\\k40\}HELLO\{\\k40\} BRAVE/);
+    expect(ass.split('\n').filter((l) => l.startsWith('Dialogue')).length).toBe(1);
+  });
+  it('converts colours to ASS order and alpha', () => {
+    expect(assColor('#ff8000')).toBe('&H000080FF');
+    expect(assColor('rgba(0,0,0,0.6)')).toBe('&H66000000');
+  });
+});
+
+describe('languages, free position, script fonts', () => {
+  it('offers every Whisper language, English first after auto-detect', () => {
+    expect(CAPTION_LANGUAGES).toHaveLength(100);
+    expect(CAPTION_LANGUAGES[0][0]).toBe('auto');
+    expect(CAPTION_LANGUAGES[1][0]).toBe('en');
+    expect(new Set(CAPTION_LANGUAGES.map((l) => l[0])).size).toBe(100);
+  });
+  it('honours a dragged vertical position over the named position', () => {
+    const y = (st) => { const ctx = mockCtx(); paintCaptions(ctx, 1000, 1000, words('hi'), st, 100); return ctx.calls.find((c) => c[0] === 'translate')[2]; };
+    expect(y({ ...style, position: 'bottom', positionY: 0.3 })).toBeCloseTo(300, -1);
+    expect(y({ ...style, positionY: 2 })).toBeLessThan(1000); // clamped on the frame
+  });
+  it('picks fallback fonts for the script of the text', () => {
+    expect(scriptFontsFor('hello')).toEqual([]);
+    expect(scriptFontsFor('こんにちは')).toEqual(['Noto Sans JP']);
+    expect(scriptFontsFor('مرحبا')).toEqual(['Noto Sans Arabic']);
+    expect(scriptFontsFor('नमस्ते')).toEqual(['Noto Sans Devanagari']);
+    expect(captionFont({ fontFamily: 'Inter' }, 40)).toContain('"Noto Sans SC"');
+  });
+});
+
+// ---- layout core + hand-off payload (used by the personalization editor)
+import { layoutCaptionFrame, activePageAt } from '../layout.js';
+import { studioPayload, captionsFromPages } from '../studioData.js';
+import { pageAt as modelPageAt, captionPages as modelPages } from '../model.js';
+
+describe('layout core', () => {
+  const caps = words('hello', 'brave', 'new', 'world');
+  const meas = (t) => t.length * 10;
+  const frameAt = (ms, st = {}, W = 1000, H = 1000) => {
+    const page = activePageAt(modelPages(caps, { combineMs: 5000 }), ms);
+    return layoutCaptionFrame({ page, style: { fontSize: 6, ...st }, ms, width: W, height: H, measure: meas });
+  };
+  it('is pure data: no canvas or DOM needed', () => {
+    const f = frameAt(500);
+    expect(f.words.map((w) => w.text)).toEqual(['hello', 'brave', 'new', 'world']);
+    expect(f.fontPx).toBe(60);
+    expect(f.words.every((w) => Number.isFinite(w.cx) && Number.isFinite(w.cy))).toBe(true);
+  });
+  it('picks the same page as the Timeline rule', () => {
+    const pages = modelPages(caps, { combineMs: 900 });
+    [0, 300, 450, 900, 1500, 2500, 9000].forEach((ms) => expect(activePageAt(pages, ms)).toEqual(modelPageAt(pages, ms)));
+  });
+  it('highlights the spoken word and leaves the others', () => {
+    const f = frameAt(500, { color: '#ffffff', highlightColor: '#ff0000' });
+    expect(f.words.map((w) => w.color)).toEqual(['#ffffff', '#ff0000', '#ffffff', '#ffffff']);
+  });
+  it('centres the block on the height and clamps it to the frame', () => {
+    expect(frameAt(500, { positionY: 0.3 }).words[0].cy).toBeCloseTo(300, -1);
+    expect(frameAt(500, { positionY: 5 }).words[0].cy).toBeLessThan(1000);
+    expect(frameAt(500, { position: 'top' }).words[0].cy).toBeLessThan(frameAt(500, { position: 'bottom' }).words[0].cy);
+  });
+  it('describes outline, boxes and wipes as data', () => {
+    expect(frameAt(500, { stroke: true }).words[0].outlinePx).toBeCloseTo(3.6);
+    expect(frameAt(500, { animation: 'box' }).words[1].box).toMatchObject({ color: expect.any(String) });
+    expect(frameAt(500, { animation: 'karaoke' }).words[1].wipe.fraction).toBeGreaterThan(0);
+    expect(frameAt(500, { background: true }).lineBoxes).toHaveLength(1);
+    expect(frameAt(500, { background: true, stroke: true }).words[0].outlinePx).toBe(0); // a line box replaces the outline
+  });
+  it('lays right-to-left lines out from the right, so Arabic and Hebrew read in order', () => {
+    const rtl = words('שלום', 'עולם', 'יפה');
+    const page = activePageAt(modelPages(rtl, { combineMs: 5000 }), 500);
+    const f = layoutCaptionFrame({ page, style: { fontSize: 6 }, ms: 500, width: 1000, height: 1000, measure: meas });
+    expect(f.words.map((w) => w.text)).toEqual(['שלום', 'עולם', 'יפה']);
+    expect(f.words.every((w) => w.rtl)).toBe(true);
+    expect(f.words[0].cx).toBeGreaterThan(f.words[1].cx);
+    expect(f.words[1].cx).toBeGreaterThan(f.words[2].cx);
+    const left = Math.min(...f.words.map((w) => w.cx - w.width / 2));
+    const right = Math.max(...f.words.map((w) => w.cx + w.width / 2));
+    expect((left + right) / 2).toBeCloseTo(500, 0); // still centred
+  });
+  it('keeps left-to-right lines as they were, and decides per line by the majority script', () => {
+    const f = frameAt(500);
+    expect(f.words.every((w) => !w.rtl)).toBe(true);
+    expect(f.words[0].cx).toBeLessThan(f.words[1].cx);
+    const mixed = layoutCaptionFrame({ page: activePageAt(modelPages(words('שלום', 'עולם', 'ok'), { combineMs: 5000 }), 500), style: { fontSize: 6 }, ms: 500, width: 1000, height: 1000, measure: meas });
+    expect(mixed.words.every((w) => w.rtl)).toBe(true); // 2 of 3 words are Hebrew
+  });
+  it('returns nothing when there is no page', () => {
+    expect(layoutCaptionFrame({ page: null, style: {}, ms: 0, width: 100, height: 100, measure: meas })).toBeNull();
+  });
+});
+
+describe('studio hand-off payload', () => {
+  const caps = words('hello', 'brave', 'new', 'world');
+  it('carries pages, a whitelisted style and the resolved motion', () => {
+    const p = studioPayload(caps, { ...defaultCaptionStyle('capite-bounce'), secret: 'x', combineMs: 5000 });
+    expect(p.pages).toHaveLength(1);
+    expect(p.pages[0].tokens.map((t) => t.text.trim())).toEqual(['hello', 'brave', 'new', 'world']);
+    expect(p.style.animation).toBe('bounce');
+    expect(p.style.secret).toBeUndefined();
+    expect(p.style.fontFamily).toBeTruthy();
+  });
+  it('round-trips back to word captions', () => {
+    const p = studioPayload(caps, { combineMs: 5000 });
+    const back = captionsFromPages(p.pages);
+    expect(back.map((c) => [c.text, c.startMs, c.endMs])).toEqual(caps.map((c) => [c.text, c.startMs, c.endMs]));
+  });
+});
+
+// ---- the modal enforces a host's font list (so what the Studio shows is what the host draws)
+describe('host font list', () => {
+  it('forces every look onto an allowed font', async () => {
+    const { CaptionStudioModal } = await import('../modal.js');
+    const m = new CaptionStudioModal({ fonts: ['Inter'], style: { preset: 'capite-hormozi', fontFamily: 'Montserrat' } });
+    expect(m.style.fontFamily).toBe('Inter');
+    expect(m.fontList()).toEqual(['Inter']);
+    expect(m.coerceFont({ fontFamily: 'Orbitron' }).fontFamily).toBe('Inter');
+    expect(m.coerceFont({ fontFamily: 'Inter', x: 1 })).toEqual({ fontFamily: 'Inter', x: 1 });
+  });
+  it('leaves every font available when the host gives no list', async () => {
+    const { CaptionStudioModal } = await import('../modal.js');
+    const m = new CaptionStudioModal({ style: { fontFamily: 'Orbitron' } });
+    expect(m.style.fontFamily).toBe('Orbitron');
+    expect(m.fontList().length).toBeGreaterThan(10);
+  });
+});
+
+describe('WebVTT import without parseVtt', () => {
+  it('reads cues with settings, tags, notes, short timestamps and CRLF', async () => {
+    const { captionsFromFile } = await import('../model.js');
+    const vtt = 'WEBVTT\r\n\r\nNOTE hidden\r\n\r\nintro\r\n00:01.000 --> 00:02.500 align:start\r\n<v Ann>Hello <b>there</b>\r\n\r\n01:00:03.000 --> 01:00:04.000\r\nSecond\r\n';
+    const caps = captionsFromFile(vtt, 'a.vtt');
+    expect(caps.map((c) => [c.text.trim(), c.startMs, c.endMs])).toEqual([
+      ['Hello there', 1000, 2500],
+      ['Second', 3603000, 3604000],
+    ]);
+  });
+});
