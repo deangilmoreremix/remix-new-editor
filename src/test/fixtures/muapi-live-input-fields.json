@@ -1,0 +1,53 @@
+{
+  "_note": "Settings each Edit Studio app model declares in the live catalog (GET https://api.muapi.ai/api/v1/models, input_fields), read 2026-11-27. Refresh with that call; src/test/muapi-app-model-controls.test.js checks every app setting against it.",
+  "models": {
+    "ai-image-face-swap": [
+      "image_url",
+      "swap_url",
+      "target_index"
+    ],
+    "ai-skin-enhancer": [
+      "image_url"
+    ],
+    "ai-video-face-swap": [
+      "image_url",
+      "video_url",
+      "target_gender",
+      "target_index"
+    ],
+    "bytedance-seedream-5.0-pro-edit": [
+      "prompt",
+      "images_list",
+      "aspect_ratio",
+      "resolution"
+    ],
+    "minimax-h3-image-to-video": [
+      "prompt",
+      "image_url",
+      "last_image_url",
+      "resolution",
+      "duration"
+    ],
+    "seedance-2-image-to-video": [
+      "prompt",
+      "images_list",
+      "aspect_ratio",
+      "duration"
+    ],
+    "video-background-remover": [
+      "video_url",
+      "preserve_audio",
+      "background_color",
+      "output_container_and_codec"
+    ],
+    "wan2.2-image-to-video": [
+      "prompt",
+      "image_url",
+      "last_image",
+      "aspect_ratio",
+      "resolution",
+      "quality",
+      "duration"
+    ]
+  }
+}

@@ -3,6 +3,7 @@ import { describe, test, expect } from 'vitest';
 import modelControls from '../data/muapiAppModelControls.json';
 import live from '../lib/muapi/liveModels.json';
 import { EDIT_APPS } from '../lib/muapiEditApps.js';
+import liveInputs from './fixtures/muapi-live-input-fields.json';
 
 const liveByName = new Map(live.models.map((m) => [m.name, m]));
 const entries = Object.entries(modelControls).filter(([k]) => !k.startsWith('_'));
@@ -29,14 +30,14 @@ describe('the apps show those settings', () => {
   const byModel = (m) => EDIT_APPS.filter((a) => a.model === m);
   const control = (app, key) => app.controls.find((c) => c.key === key);
 
-  test('every Seedance 2 video app has resolution, high bitrate and the full 4-15 second range', () => {
+  test('Seedance 2 apps do not offer Resolution or High bitrate: the live endpoint does not declare them', () => {
     const apps = byModel('seedance-2-image-to-video');
     expect(apps.length).toBeGreaterThan(20);
     for (const a of apps) {
-      expect(control(a, 'resolution').options, a.slug).toEqual(['720p', '1080p', '4k']);
-      expect(control(a, 'resolution').default).toBe('720p');
-      expect(control(a, 'high_bitrate').default).toBe(false);
-      expect(control(a, 'duration').options, a.slug).toEqual([4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
+      const keys = a.controls.map((c) => c.key);
+      expect(keys, a.slug).toEqual(expect.arrayContaining(['aspect_ratio', 'duration']));
+      expect(keys, a.slug).not.toContain('resolution');
+      expect(keys, a.slug).not.toContain('high_bitrate');
     }
   });
 
@@ -56,5 +57,17 @@ describe('the apps show those settings', () => {
   test('image apps are untouched', () => {
     const a = EDIT_APPS.find((x) => x.slug === 'app-angles');
     expect(a.controls.map((c) => c.key)).not.toContain('high_bitrate');
+  });
+});
+
+describe('every setting an app sends is declared by the live catalog', () => {
+  test('each model\'s select settings are in its live input_fields', () => {
+    for (const app of EDIT_APPS) {
+      const declared = liveInputs.models[app.model];
+      expect(declared, `${app.model} is in the live fixture`).toBeTruthy();
+      for (const c of app.controls.filter((x) => x.type === 'select')) {
+        expect(declared, `${app.slug}: ${app.model} declares ${c.key}`).toContain(c.key);
+      }
+    }
   });
 });

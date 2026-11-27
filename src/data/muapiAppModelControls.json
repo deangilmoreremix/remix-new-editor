@@ -1,40 +1,5 @@
 {
-  "_note": "Settings each model's live API accepts that muapi's Studio app definitions leave out or cut short. Keyed by the model an app runs on. A key already in the app is widened (same default when still allowed); a new key is added after the app's own settings. src/test/muapi-app-model-controls.test.js checks every entry against src/lib/muapi/liveModels.json so this cannot drift from the API. Seed, negative prompt and audio are not here on purpose: none of these models accepts them.",
-  "seedance-2-image-to-video": {
-    "duration": {
-      "options": [
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15
-      ]
-    },
-    "resolution": {
-      "label": "Resolution",
-      "options": [
-        "720p",
-        "1080p",
-        "4k"
-      ],
-      "default": "720p"
-    },
-    "high_bitrate": {
-      "label": "High bitrate",
-      "options": [
-        false,
-        true
-      ],
-      "default": false
-    }
-  },
+  "_note": "Settings each model's live API accepts that muapi's Studio app definitions leave out or cut short. Keyed by the model an app runs on. A key already in the app is widened (same default when still allowed); a new key is added after the app's own settings. src/test/muapi-app-model-controls.test.js checks every entry against src/lib/muapi/liveModels.json and every app setting against the live catalog's declared fields. Left out on purpose: seed, negative prompt and audio (none of these models declares them), and Seedance 2 Resolution / High bitrate / the 4-15 s duration range (the live seedance-2-image-to-video endpoint declares only aspect_ratio and duration; higher resolutions are separate -1080p / -4k endpoints at a higher price).",
   "minimax-h3-image-to-video": {
     "duration": {
       "options": [
