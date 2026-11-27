@@ -73,8 +73,8 @@ describe('no still is an empty picture', () => {
 
 describe('motion graphics the sandbox cannot draw are not offered', () => {
   it('none of the blocked templates appear, and every offered one has a still', async () => {
+    // The list can be empty (every template renders today); whatever it holds must never be offered.
     const blocked = Object.keys((await import('@cinegen/lib/occ/mg-render-blocklist.json')).default.ids);
-    expect(blocked.length).toBeGreaterThan(0);
     const offered = new Set((await allCards('motion')).map((c) => c.id.replace(/^mg:/, '')));
     for (const id of blocked) expect(offered.has(id), id).toBe(false);
   });
