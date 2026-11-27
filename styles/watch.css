@@ -3,12 +3,24 @@ html.watch-root, html.watch-root body { margin: 0; background: #0b0c10; color: #
 html.watch-embed, html.watch-embed body { background: #000; }
 /* The app shell caps #app at one screen; a long watch page (calendar, transcript) grows on one background. */
 html.watch-root #app { height: auto; min-height: 100vh; background: transparent; }
-.watch { min-height: 100vh; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 24px 16px; box-sizing: border-box; }
+.watch { min-height: 100vh; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 28px 20px 40px; box-sizing: border-box; background: radial-gradient(900px 420px at 50% -80px, rgba(217,255,0,.07), transparent 70%); }
+.watch-page { width: min(1100px, 100%); display: flex; flex-direction: column; gap: 28px; }
+.watch-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
+.watch-layout--side { grid-template-columns: minmax(0, 1fr) 340px; }
+.watch-main { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.watch-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; position: sticky; top: 20px; }
+@media (max-width: 900px) { .watch-layout--side { grid-template-columns: minmax(0, 1fr); } .watch-side { position: static; } }
+.watch-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.watch-brand-logo { height: 32px; max-width: 160px; object-fit: contain; }
+.watch-brand-mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: #d9ff00; color: #0b0c10; font-weight: 800; font-size: 16px; }
+.watch-brand-name { font-weight: 600; font-size: 15px; letter-spacing: .01em; }
+.watch-foot { text-align: center; font-size: 13px; color: #a1a1aa; padding-top: 8px; }
+.watch-foot strong { color: #e4e4e7; font-weight: 600; }
 .watch-embed .watch { padding: 0; min-height: 100vh; justify-content: center; }
-.watch-head { width: min(1100px, 100%); }
-.watch-head h1 { margin: 0; font-size: clamp(18px, 2.4vw, 26px); font-weight: 700; }
+.watch-head { width: 100%; }
+.watch-head h1 { margin: 0; font-size: clamp(26px, 4.2vw, 44px); line-height: 1.12; letter-spacing: -.02em; font-weight: 800; text-wrap: balance; }
 /* flex: none: in a long page (calendar, transcript) the clipped player must never shrink to nothing. */
-.watch-player { flex: none; width: min(1100px, 100%); background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
+.watch-player { flex: none; width: 100%; background: #000; border-radius: 24px; overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.07); }
 .watch-embed .watch-player { width: 100%; border-radius: 0; box-shadow: none; }
 /* Embedded: the picture fills the iframe and the controls float over its bottom edge (no black side
    bars). While playing they fade out, and come back on hover or keyboard focus. */
@@ -26,14 +38,15 @@ html.watch-root #app { height: auto; min-height: 100vh; background: transparent;
 .watch-btn { min-width: 36px; height: 36px; border: 0; border-radius: 8px; background: rgba(255,255,255,.08); color: #fff; font-size: 15px; cursor: pointer; }
 .watch-btn:hover, .watch-btn:focus-visible { background: rgba(255,255,255,.18); outline: none; }
 .watch-time { font-variant-numeric: tabular-nums; font-size: 13px; color: #d4d4d8; min-width: 38px; }
-.watch-seek { flex: 1; accent-color: #eb5054; min-width: 0; }
+.watch-seek { flex: 1; accent-color: #d9ff00; min-width: 0; }
 .watch--message { justify-content: center; }
 .watch-msg { text-align: center; max-width: 420px; }
 .watch-msg h1 { font-size: 22px; margin: 0 0 8px; }
 .watch-msg p { color: #a1a1aa; margin: 0; }
 .watch-spinner { width: 36px; height: 36px; margin: 0 auto 12px; border-radius: 50%; border: 3px solid rgba(255,255,255,.15); border-top-color: #eb5054; animation: watch-spin 0.9s linear infinite; }
 @keyframes watch-spin { to { transform: rotate(360deg); } }
-@media (max-width: 640px) { .watch { padding: 12px 0; } .watch-player { border-radius: 0; } .watch-head { padding: 0 16px; } }
+@media (max-width: 640px) { .watch { padding: 18px 16px 32px; } .watch-page { gap: 20px; } .watch-player { border-radius: 18px; } }
+.watch-embed .watch-player { border-radius: 0; }
 
 /* Interactive layer */
 .wf-layer { position: absolute; inset: 0; z-index: 5; pointer-events: none; display: flex; justify-content: center; }
@@ -66,32 +79,34 @@ html.watch-root #app { height: auto; min-height: 100vh; background: transparent;
 @media (max-width: 520px) { .wf-card--fields-4 .wf-fields, .wf-card--fields-5 .wf-fields { grid-template-columns: 1fr; } }
 /* OpenAI's usage policy: tell viewers the voice is AI-generated. */
 .watch-ai-voice { position: absolute; top: 10px; right: 10px; z-index: 4; padding: 3px 8px; border-radius: 999px; background: rgba(0,0,0,.55); color: rgba(255,255,255,.85); font-size: 11px; pointer-events: none; }
-/* Video Outreach landing text under the player (project.landing). */
-.watch-landing { width: min(1100px, 100%); display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
-.watch-landing-msg { margin: 0; max-width: 720px; font-size: 16px; line-height: 1.5; opacity: .85; white-space: pre-line; }
-.watch-landing-cta { display: inline-block; padding: 12px 28px; border-radius: 999px; background: #4f46e5; color: #fff; font-weight: 700; text-decoration: none; }
-.watch-landing-cta:hover { filter: brightness(1.08); }
+/* Video Outreach landing text (project.landing): intro under the headline, actions row under the player. */
+.watch-landing-msg { margin: 14px 0 0; max-width: 720px; font-size: 17px; line-height: 1.55; color: #a1a1aa; white-space: pre-line; }
+.watch-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 4px 4px 0; }
+.watch-landing-cta { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 30px; border-radius: 999px; background: #d9ff00; color: #0b0c10; font-weight: 800; font-size: 16px; text-decoration: none; box-shadow: 0 8px 24px rgba(217,255,0,.18); }
+.watch-landing-cta:hover { filter: brightness(1.06); }
 .watch-landing-cta:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
-.watch-landing-calendar { display: block; width: 100%; height: 680px; margin-top: 20px; border: 0; border-radius: 16px; background: #fff; }
-@media (max-width: 640px) { .watch-landing { padding: 0 16px; } }
-/* Transcript (Video Outreach captions) under the video. */
-.watch-transcript { flex: none; width: min(1100px, 100%); margin-top: 28px; text-align: left; }
-.watch-transcript-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
-.watch-transcript-head h2 { margin: 0; font-size: 18px; }
-.watch-transcript-head select { border: 1px solid rgba(127,127,127,.35); border-radius: 8px; padding: 6px 10px; background: transparent; color: inherit; }
-.watch-transcript-lines { list-style: none; margin: 0; padding: 0; max-height: 360px; overflow-y: auto; border: 1px solid rgba(127,127,127,.25); border-radius: 14px; }
-.watch-transcript-line { display: flex; gap: 14px; width: 100%; padding: 10px 16px; border: 0; background: transparent; color: inherit; font: inherit; font-size: 15px; line-height: 1.45; text-align: left; cursor: pointer; }
-.watch-transcript-line:hover { background: rgba(127,127,127,.1); }
-.watch-transcript-line[aria-current="true"] { background: rgba(79,70,229,.14); }
-.watch-transcript-line:focus-visible { outline: 2px solid #4f46e5; outline-offset: -2px; }
+.watch-calendar { background: #14161c; border: 1px solid rgba(255,255,255,.08); border-radius: 24px; padding: 20px; }
+.watch-calendar h2 { margin: 0 0 14px; font-size: 20px; font-weight: 700; }
+.watch-landing-calendar { display: block; width: 100%; height: 680px; border: 0; border-radius: 16px; background: #fff; }
+@media (max-width: 640px) { .watch-calendar { padding: 14px; border-radius: 18px; } .watch-landing-calendar { height: 620px; } .watch-actions > * { flex: 1 1 100%; } }
+/* Transcript (Video Outreach captions): a card beside the video on wide screens, under it on narrow ones. */
+.watch-transcript { flex: none; width: 100%; text-align: left; background: #14161c; border: 1px solid rgba(255,255,255,.08); border-radius: 24px; padding: 16px 8px 8px; box-sizing: border-box; }
+.watch-transcript-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 12px 8px; }
+.watch-transcript-head h2 { margin: 0; font-size: 18px; font-weight: 700; }
+.watch-transcript-head select { border: 1px solid rgba(255,255,255,.2); border-radius: 8px; padding: 6px 10px; background: #0b0c10; color: inherit; }
+.watch-transcript-lines { list-style: none; margin: 0; padding: 0; max-height: 440px; overflow-y: auto; }
+.watch-transcript-line { display: flex; gap: 12px; width: 100%; padding: 9px 12px; border: 0; border-radius: 12px; background: transparent; color: inherit; font: inherit; font-size: 14.5px; line-height: 1.45; text-align: left; cursor: pointer; }
+.watch-transcript-line:hover { background: rgba(255,255,255,.06); }
+.watch-transcript-line[aria-current="true"] { background: rgba(217,255,0,.12); }
+.watch-transcript-line:focus-visible { outline: 2px solid #d9ff00; outline-offset: -2px; }
 .watch-transcript-time { flex: none; min-width: 3.2em; opacity: .55; font-variant-numeric: tabular-nums; }
-@media (max-width: 640px) { .watch-transcript { padding: 0 16px; } }
+@media (max-width: 900px) { .watch-transcript-lines { max-height: 320px; } }
 
 /* Chapters under the video (Video Outreach editor). */
-.watch-chapters { flex: none; width: min(1100px, 100%); margin-top: 18px; text-align: left; }
-.watch-chapters h2 { margin: 0 0 8px; font-size: 16px; }
+.watch-chapters { flex: none; width: 100%; text-align: left; background: #14161c; border: 1px solid rgba(255,255,255,.08); border-radius: 24px; padding: 16px; box-sizing: border-box; }
+.watch-chapters h2 { margin: 0 0 10px; font-size: 16px; font-weight: 700; }
 .watch-chapters ol { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
-.watch-chapter { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(127,127,127,.3); border-radius: 999px; padding: 6px 12px; background: transparent; color: inherit; font: inherit; font-size: 14px; cursor: pointer; }
+.watch-chapter { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; padding: 6px 12px; background: transparent; color: inherit; font: inherit; font-size: 14px; cursor: pointer; }
 .watch-chapter:hover { border-color: rgba(217,255,0,.55); }
 
 /* A Play pressed before the player has loaded is queued by the preview engine (data-play-pending on the stage): show a spinner meanwhile. */
@@ -99,7 +114,7 @@ html.watch-root #app { height: auto; min-height: 100vh; background: transparent;
 @keyframes watch-pending-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .watch-stage[data-play-pending]::after { animation: none; } }
 /* Talk live (Video Outreach): shown while the sender is available. */
-.watch-landing .watch-live-btn { display: inline-flex; align-items: center; gap: 10px; margin: 0 12px 12px 0; padding: 11px 24px; border: 2px solid #2fb344; border-radius: 999px; background: transparent; color: #6ee787; font: inherit; font-weight: 700; cursor: pointer; }
+.watch-landing .watch-live-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; box-sizing: border-box; padding: 0 24px; border: 2px solid #2fb344; border-radius: 999px; background: transparent; color: #6ee787; font: inherit; font-weight: 700; cursor: pointer; }
 .watch-landing .watch-live-btn:hover { border-color: #6ee787; color: #a7f3b5; }
 .watch-landing .watch-live-btn[hidden] { display: none; }
 .watch-landing .watch-live-btn:disabled { opacity: .6; cursor: default; }

@@ -99,9 +99,14 @@ function variableChips(input, { onInsert, only } = {}) {
   return row;
 }
 
-function card(title, sub) {
+function card(title, sub, n) {
   const c = el('section', 'rounded-3xl border border-white/10 bg-panel-bg p-6 flex flex-col gap-5 shadow-[0_24px_60px_-28px_rgba(0,0,0,0.9)]');
-  if (title) c.appendChild(el('h2', 'text-lg font-semibold text-white', title));
+  if (title) {
+    const h = el('h2', 'flex items-center gap-3 text-lg font-semibold text-white');
+    if (n) h.appendChild(el('span', 'grid h-7 w-7 shrink-0 place-items-center rounded-full border border-primary/40 bg-primary/10 text-xs font-bold text-primary', String(n)));
+    h.appendChild(el('span', '', title));
+    c.appendChild(h);
+  }
   if (sub) c.appendChild(el('p', 'rounded-2xl bg-white/[0.04] px-4 py-2.5 text-sm text-white/60 -mt-2', sub));
   return c;
 }
@@ -1868,7 +1873,7 @@ export function OutreachStudio() {
 
   function renderContacts() {
     const grid = el('div', 'grid gap-5 lg:grid-cols-[1fr_380px]');
-    const main = card('Add contacts', 'Upload a CSV, or add people one at a time. Each contact gets their own link.');
+    const main = card('Add contacts', 'Upload a CSV, or add people one at a time. Each contact gets their own link.', 1);
     const nameInput = textInput(draft.name, 'Campaign name, e.g. Cold outreach November');
     nameInput.addEventListener('input', () => { draft.name = nameInput.value; persist(); });
     main.appendChild(field('Campaign name', nameInput));
@@ -1950,10 +1955,19 @@ export function OutreachStudio() {
     main.appendChild(field('Or add one', one));
 
     // The list.
-    const side = card(`Contacts (${draft.contacts.length})`, draft.contacts.length ? 'Contacts without a first name hear the fallback greeting.' : 'No contacts yet.');
+    const side = card(`Prospects (${draft.contacts.length})`, draft.contacts.length ? 'Contacts without a first name hear the fallback greeting.' : 'No contacts yet.', 2);
+    let searchBox = null;
+    if (draft.contacts.length > 1) {
+      searchBox = el('input', 'w-full rounded-full border border-white/10 bg-white/[0.04] px-5 py-2.5 text-sm text-white placeholder:text-white/35 outline-none focus:border-primary/60');
+      searchBox.type = 'search'; searchBox.placeholder = 'Search prospect by name, email or company'; searchBox.setAttribute('aria-label', 'Search prospects');
+      searchBox.setAttribute('data-outreach-contact-search', '');
+      side.appendChild(searchBox);
+    }
     const list = el('div', 'flex flex-col divide-y divide-white/5 max-h-[460px] overflow-y-auto');
-    draft.contacts.forEach((c) => {
-      const row = el('div', `flex ${draft.background.mode === 'website' ? 'items-start' : 'items-center'} gap-3 py-2 text-sm`);
+    draft.contacts.forEach((c, idx) => {
+      const row = el('div', `flex ${draft.background.mode === 'website' ? 'items-start' : 'items-center'} gap-3 py-2.5 text-sm`);
+      row.setAttribute('data-contact-row', [c.firstName, c.lastName, c.email, c.company].filter(Boolean).join(' ').toLowerCase());
+      row.appendChild(el('span', 'w-6 shrink-0 text-xs tabular-nums text-white/40', String(idx + 1).padStart(2, '0')));
       const who = el('div', 'min-w-0 flex-1');
       who.append(el('div', 'truncate font-semibold', [c.firstName, c.lastName].filter(Boolean).join(' ') || '(no name)'),
         el('div', 'truncate text-xs text-white/50', [c.email, c.company].filter(Boolean).join(' · ')));
@@ -1964,12 +1978,27 @@ export function OutreachStudio() {
       row.append(who, rm);
       list.appendChild(row);
     });
+    searchBox?.addEventListener('input', () => {
+      const q = searchBox.value.trim().toLowerCase();
+      list.querySelectorAll('[data-contact-row]').forEach((r) => { r.hidden = !!q && !r.getAttribute('data-contact-row').includes(q); });
+    });
     side.appendChild(list);
     if (draft.background.mode === 'website' && draft.contacts.length) side.appendChild(renderSiteCheck());
     if (draft.contacts.length) {
+      const foot = el('div', 'flex flex-wrap items-center gap-2 border-t border-white/10 pt-4');
+      const more = button('Add more contacts', { small: true });
+      more.setAttribute('data-outreach-add-more', '');
+      more.addEventListener('click', () => file.click());
+      const dl = button('Download .CSV', { small: true });
+      dl.setAttribute('data-outreach-contacts-csv', '');
+      dl.addEventListener('click', () => {
+        const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+        downloadText(`${(draft.name || 'contacts').replace(/[^\w-]+/g, '_')}-contacts.csv`, [CONTACT_FIELDS.map(([f]) => f).join(','), ...draft.contacts.map((c) => CONTACT_FIELDS.map(([f]) => q(c[f])).join(','))].join('\n'));
+      });
       const clear = button('Remove all', { small: true });
       clear.addEventListener('click', () => { if (window.confirm('Remove every contact from this campaign?')) { draft.contacts = []; draft.campaign = null; persist(); render(); } });
-      side.appendChild(clear);
+      foot.append(more, dl, clear);
+      side.appendChild(foot);
     }
     grid.append(main, side);
     return grid;
@@ -2230,10 +2259,10 @@ export function OutreachStudio() {
 
   function renderGenerate() {
     const wrap = el('div', 'flex flex-col gap-5');
-    const top = card(draft.campaign ? 'Your campaign is live' : 'Generate the campaign',
+    const top = card(draft.campaign ? 'Your campaign is live' : 'Generate videos',
       draft.campaign
         ? 'Send each contact their own link. It opens your video with their greeting and your booking button.'
-        : 'Each contact’s greeting is voiced, the video is published, and every contact gets a personal link.');
+        : 'Each contact’s greeting is voiced, the video is published, and every contact gets a personal link.', 1);
     const facts = el('div', 'grid grid-cols-2 md:grid-cols-4 gap-3');
     const personal = draft.kind !== 'same' && tokensIn(draft.greeting).length > 0;
     const named = draft.contacts.filter((c) => c.firstName).length;
@@ -2277,7 +2306,14 @@ export function OutreachStudio() {
       });
       const open = button('Open landing page');
       open.addEventListener('click', () => window.open(draft.campaign.links[0] ? linkOf(draft.campaign.links[0]) : draft.campaign.url, '_blank', 'noopener'));
-      actions.append(csv, open);
+      const engage = button('See engagement');
+      engage.setAttribute('data-outreach-see-engagement', '');
+      engage.addEventListener('click', () => container.querySelector('[data-outreach-prospects]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      const shareAll = button('Share campaign', { primary: true });
+      shareAll.setAttribute('data-outreach-share-campaign', '');
+      shareAll.disabled = !draft.campaign.links[0];
+      shareAll.addEventListener('click', () => { if (draft.campaign.links[0]) openShare(draft.campaign.links[0]); });
+      actions.append(csv, open, engage, shareAll);
     }
     top.appendChild(actions);
     wrap.appendChild(top);
@@ -2286,7 +2322,8 @@ export function OutreachStudio() {
     if (draft.campaign) {
       if (linkStats.id !== draft.campaign.id && !linkStats.loading) setTimeout(loadLinkStats, 0);
       // The prospect table (src/components/outreach/ProspectTable.js), like Sendspark's dynamic-video prospect list.
-      const list = card('Prospects', 'Each prospect\u2019s own video, thumbnail and page. Share or send it from their row; you\u2019ll see who watched and how much.');
+      const list = card('Generated videos', 'Each prospect\u2019s own video, thumbnail and page. Share or send it from their row; you\u2019ll see who watched and how much.', 2);
+      list.setAttribute('data-outreach-prospects', '');
       const contactOfLink = (l) => draft.contacts.find((c) => c.id === l.contactId) || {};
       const links = draft.campaign.links.map((l) => ({ ...l, heard: l.voiced ? fillTemplate(draft.greeting, contactValues(contactOfLink(l)), draft.fallbacks).trim() : '' }));
       list.appendChild(renderProspectTable({
@@ -2973,8 +3010,10 @@ export function OutreachStudio() {
   }
 
   // The Videos home: your dynamic videos as cards (like Sendspark's library), then the results table.
+  let librarySort = 'new';
   function renderLibrary() {
-    const lib = listLibrary();
+    const statsFor = (id) => summarize(campaigns.stats[id]);
+    const lib = [...listLibrary()].sort((a, b) => (librarySort === 'name' ? String(a.name).localeCompare(String(b.name)) : librarySort === 'watched' ? statsFor(b.id).watched - statsFor(a.id).watched : new Date(b.savedAt) - new Date(a.savedAt)));
     const box = el('div', 'flex flex-col gap-4');
     box.setAttribute('data-outreach-library', '');
     // Like Sendspark's Dynamic Videos page: who you are, what it does, and Create Dynamic Video.
@@ -2992,6 +3031,26 @@ export function OutreachStudio() {
     fresh.addEventListener('click', () => openCreateDynamic());
     head.append(face, title, fresh);
     box.appendChild(head);
+    let filterRow = null;
+    if (lib.length) {
+      // Search and sort your campaigns (like Sendspark's filter row).
+      filterRow = el('div', 'flex flex-wrap items-center justify-end gap-2');
+      filterRow.setAttribute('data-library-filters', '');
+      const q = el('input', 'min-w-[220px] flex-1 rounded-full border border-white/10 bg-white/[0.04] px-5 py-2 text-sm text-white placeholder:text-white/35 outline-none focus:border-primary/60 sm:flex-none');
+      q.type = 'search'; q.placeholder = 'Search your videos'; q.setAttribute('aria-label', 'Search your videos');
+      const sort = el('select', 'rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-white outline-none focus:border-primary/60');
+      sort.setAttribute('aria-label', 'Sort');
+      [['new', 'Newest first'], ['name', 'Name A to Z'], ['watched', 'Most watched']].forEach(([v, l]) => { const o = el('option', 'bg-neutral-900', l); o.value = v; o.selected = v === librarySort; sort.appendChild(o); });
+      sort.addEventListener('change', () => { librarySort = sort.value; render(); });
+      const clearF = button('Clear filters', { small: true });
+      clearF.addEventListener('click', () => { librarySort = 'new'; render(); });
+      q.addEventListener('input', () => {
+        const t = q.value.trim().toLowerCase();
+        box.querySelectorAll('[data-library-item]').forEach((c) => { c.hidden = !!t && !String(c.getAttribute('data-library-name') || '').includes(t); });
+      });
+      filterRow.append(q, sort, clearF);
+      box.appendChild(filterRow);
+    }
 
     const grid = el('div', 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3');
     // The one being set up (not generated yet).
@@ -3009,6 +3068,7 @@ export function OutreachStudio() {
     lib.forEach((e) => {
       const c = el('div', 'flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-panel-bg');
       c.setAttribute('data-library-item', e.id);
+      c.setAttribute('data-library-name', String(e.name || '').toLowerCase());
       const media = el('div', 'relative aspect-video bg-black');
       if (e.thumbnailUrl) { const im = el('img', 'h-full w-full object-cover'); im.src = e.thumbnailUrl; im.alt = ''; media.appendChild(im); } else if (e.video) { const v = el('video', 'h-full w-full object-cover'); v.src = `${e.video}#t=1`; v.muted = true; v.preload = 'metadata'; media.appendChild(v); }
       if (draft.campaign?.id === e.id) media.appendChild(el('span', 'absolute bottom-2 right-2 rounded-full border border-primary/40 bg-black/70 px-2 py-0.5 text-[10px] font-bold text-primary', 'Open now'));

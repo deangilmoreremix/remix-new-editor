@@ -32,52 +32,43 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
   const contacts = (draft.contacts || []).length ? draft.contacts : [SAMPLE];
   let who = contacts[0];
 
-  const overlay = el('div', 'fixed inset-0 z-[1000] flex items-center justify-center overflow-y-auto bg-black/70 p-4 text-white');
-  const modal = el('div', 'flex max-h-[92vh] w-full max-w-5xl flex-col overflow-y-auto rounded-3xl border border-white/10 bg-[#0b0c10] shadow-2xl');
+  const overlay = el('div', 'fixed inset-0 z-[1000] flex justify-center overflow-y-auto bg-black/70 p-3 text-white sm:p-4');
+  const modal = el('div', 'my-auto flex w-full max-w-[480px] flex-col rounded-3xl border border-white/10 bg-[#0b0c10] p-4 shadow-2xl sm:p-6');
   overlay.setAttribute('data-thumb-designer', '');
   overlay.setAttribute('role', 'dialog');
   overlay.setAttribute('aria-modal', 'true');
-  overlay.setAttribute('aria-label', 'Thumbnail');
-  const head = el('div', 'flex flex-wrap items-center gap-3 px-6 pb-2 pt-5');
-  const titles = el('div', 'mr-auto min-w-0');
-  titles.append(el('h2', 'text-lg font-extrabold', 'Edit Thumbnail'), el('p', 'text-xs text-white/55', 'The picture in your emails. Each prospect gets their own: their name, their website and their logo.'));
-  const done = el('button', PLAIN, 'Done');
-  done.classList.add('rounded-full');
+  overlay.setAttribute('aria-label', 'Edit Thumbnail');
+  const head = el('div', 'relative mb-4 flex items-center justify-center');
+  const closeX = el('button', 'absolute right-0 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-xl leading-none text-white/60 hover:bg-white/10 hover:text-white', '×');
+  closeX.type = 'button'; closeX.setAttribute('aria-label', 'Close'); closeX.setAttribute('data-thumb-close', '');
+  head.append(el('h2', 'text-base font-extrabold', 'Edit Thumbnail'), closeX);
+  const done = el('button', 'rounded-full bg-primary px-5 py-2 text-sm font-bold text-black hover:brightness-110', 'Done');
   done.type = 'button';
   done.setAttribute('data-thumb-done', '');
-  head.appendChild(titles);
   let make = null;
   if (onMake) {
-    make = el('button', MAIN, makeLabel);
-    make.classList.add('rounded-full');
+    make = el('button', `${MAIN} rounded-full`, makeLabel);
     make.type = 'button';
     make.setAttribute('data-thumb-make', '');
-    head.appendChild(make);
   }
-  head.appendChild(done);
 
-  const body = el('div', 'grid flex-1 gap-6 p-6 lg:grid-cols-[1fr_400px]');
-  // ---- Left: the live picture.
-  const left = el('div', 'flex min-w-0 flex-col gap-3');
-  const canvas = el('canvas', 'w-full rounded-2xl border border-white/10 bg-black');
+  const body = el('div', 'flex min-w-0 flex-col gap-5');
+  // ---- The live picture, with the logo's remove badge on its corner.
+  const stage = el('div', 'relative');
+  const canvas = el('canvas', 'block w-full rounded-2xl border border-white/10 bg-black');
   canvas.width = T.THUMB_W; canvas.height = T.THUMB_H;
   canvas.setAttribute('data-thumb-canvas', '');
-  const under = el('div', 'flex flex-wrap items-center gap-3 text-xs text-white/60');
-  const whoSel = el('select', 'rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1.5 text-xs text-white');
-  whoSel.setAttribute('aria-label', 'Preview for');
-  whoSel.setAttribute('data-thumb-who', '');
-  contacts.slice(0, 200).forEach((c) => { const o = el('option', 'bg-neutral-900', [c.firstName, c.lastName].filter(Boolean).join(' ') || c.email || 'Prospect'); o.value = c.id; whoSel.appendChild(o); });
-  const download = el('button', PLAIN, 'Download this picture');
-  download.type = 'button';
-  download.setAttribute('data-thumb-download', '');
-  under.append(el('span', '', 'Preview for'), whoSel, el('span', 'flex-1'), download);
+  const removeLogo = el('button', 'absolute right-[2%] top-[3%] flex h-5 w-5 items-center justify-center rounded-full bg-black text-[11px] font-bold leading-none text-white ring-1 ring-white/60 hover:bg-neutral-800', '×');
+  removeLogo.type = 'button'; removeLogo.hidden = true;
+  removeLogo.setAttribute('aria-label', 'Remove the logo'); removeLogo.setAttribute('data-thumb-logo-remove', '');
+  removeLogo.addEventListener('click', () => { setThumb({ logoMode: 'none' }); paintControls(); loadImages(); });
+  stage.append(canvas, removeLogo);
   const note = el('p', 'text-[11px] text-white/45', contacts[0] === SAMPLE ? 'This preview uses a sample prospect (Mike at Acme). Add your prospects to see theirs.' : 'GIFs play 3 seconds of your video in a loop. Most email apps show them; Outlook on Windows shows the first frame.');
-  left.append(canvas, under, note);
 
-  // ---- Right: what goes on it.
-  const right = el('div', 'flex flex-col gap-5');
   const section = (label, ...kids) => { const s = el('div', 'flex flex-col gap-2'); s.appendChild(el('div', 'text-xs font-bold uppercase tracking-wider text-white/50', label)); s.append(...kids); return s; };
   const row = () => el('div', 'flex flex-wrap items-center gap-2');
+  const LINE = 'w-full border-0 border-b border-white/25 bg-transparent px-0 py-2 text-sm text-white outline-none placeholder:text-white/35 focus:border-primary';
+  const field = (label, ...kids) => { const f = el('div', 'flex flex-col'); f.appendChild(el('span', 'text-[11px] text-white/50', label)); f.append(...kids); return f; };
 
   const typeRow = row();
   const types = [['gif', 'Animated GIF'], ['static', 'Still image']].map(([type, label]) => {
@@ -86,13 +77,16 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
     typeRow.appendChild(b); return [type, b];
   });
 
-  const start = el('input', 'flex-1 accent-[#d9ff00]');
+  // Select preview: the scrubber under the picture.
+  const start = el('input', 'min-w-0 flex-1 accent-[#d9ff00]');
   start.type = 'range'; start.min = '0'; start.step = '0.1';
-  start.setAttribute('aria-label', 'Moment from your video');
+  start.setAttribute('aria-label', 'Select preview: the moment from your video');
   start.setAttribute('data-thumb-start', '');
   const startLabel = el('span', 'w-12 text-right text-xs tabular-nums text-white/60');
   start.addEventListener('input', () => { setThumb({ start: Number(start.value) }); startLabel.textContent = `${Number(start.value).toFixed(1)}s`; seekPreview(); });
-  const startRow = row(); startRow.append(start, startLabel);
+  const startRow = el('div', 'flex items-center gap-3'); startRow.append(start, startLabel);
+  const scrub = el('div', 'flex flex-col gap-1');
+  scrub.append(el('span', 'text-[11px] text-white/50', 'Select preview'), startRow);
 
   const bgRow = row();
   const bgs = [['auto', 'As in the video'], ['video', 'Just my video'], ['image', 'An image']].map(([bg, label]) => {
@@ -110,15 +104,30 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
     try { const url = await upload(f); setThumb({ background: 'image', image: url }); imageNote.textContent = ''; paintControls(); loadImages(); }
     catch (err) { imageNote.textContent = err?.message || 'The image could not be uploaded.'; }
   });
-  const changeImg = el('button', 'text-xs font-semibold text-primary hover:underline', 'Choose another image');
+  const changeImg = el('button', 'self-start text-xs font-semibold text-primary hover:underline', 'Choose another image');
   changeImg.type = 'button'; changeImg.addEventListener('click', () => file.click());
   const bgHelp = el('p', 'text-[11px] text-white/45');
 
-  const text = el('input', 'w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none focus:border-primary/60');
+  // Show Timestamp: an on/off switch on the duration badge.
+  const durOn = el('input', 'peer sr-only'); durOn.type = 'checkbox'; durOn.setAttribute('data-thumb-duration', '');
+  const durLbl = el('label', 'flex cursor-pointer items-center justify-between gap-3 text-sm');
+  const track = el('span', 'relative h-6 w-11 rounded-full bg-white/20 transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-transform peer-checked:bg-primary peer-checked:after:translate-x-5 peer-checked:after:bg-black peer-focus-visible:ring-2 peer-focus-visible:ring-primary/60');
+  const trackBox = el('span', 'flex items-center'); trackBox.append(durOn, track);
+  durLbl.append(el('span', '', 'Show Timestamp'), trackBox);
+  const durColor = el('input', 'h-7 w-10 rounded border border-white/10 bg-transparent'); durColor.type = 'color'; durColor.setAttribute('aria-label', 'Duration badge colour');
+  const durOpacity = el('input', 'w-24 accent-[#d9ff00]'); durOpacity.type = 'range'; durOpacity.min = '0.2'; durOpacity.max = '1'; durOpacity.step = '0.05';
+  durOpacity.setAttribute('aria-label', 'Duration badge opacity');
+  const syncDur = () => { setThumb({ duration: { show: durOn.checked, color: durColor.value, opacity: Number(durOpacity.value) } }); draw(); };
+  [durColor, durOpacity].forEach((i) => i.addEventListener('input', syncDur));
+  durOn.addEventListener('change', syncDur);
+  const durRow = row(); durRow.append(durColor, el('span', 'text-xs text-white/50', 'Opacity'), durOpacity);
+
+  // Caption: the words, with variables and fallbacks.
+  const text = el('input', LINE);
   text.value = draft.email?.thumbText ?? 'Hi {{firstname}}, this is for you';
   text.placeholder = 'Hi {{firstname}}, this is for you';
   text.maxLength = 80;
-  text.setAttribute('aria-label', 'Words on the picture');
+  text.setAttribute('aria-label', 'Caption: the words on the picture');
   text.setAttribute('data-thumb-text', '');
   text.addEventListener('input', () => { draft.email = { ...draft.email, thumbText: text.value }; save(); draw(); });
   const chips = row();
@@ -150,7 +159,7 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
   const fallbacks = el('div', 'grid gap-2 sm:grid-cols-3');
   [['firstname', 'First name', 'there'], ['company', 'Company', 'your company'], ['jobtitle', 'Job title', 'your team']].forEach(([key, label, ph]) => {
     const w = el('label', 'flex flex-col gap-1 text-[11px] text-white/50');
-    const i = el('input', 'rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1.5 text-xs text-white outline-none focus:border-primary/50');
+    const i = el('input', 'border-0 border-b border-white/25 bg-transparent px-0 py-1.5 text-xs text-white outline-none focus:border-primary');
     i.value = draft.fallbacks?.[key] ?? ''; i.placeholder = ph; i.maxLength = 40;
     i.setAttribute('data-thumb-fallback', key);
     i.addEventListener('input', () => { draft.fallbacks = { ...(draft.fallbacks || {}), [key]: i.value }; save(); draw(); });
@@ -158,9 +167,9 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
     fallbacks.appendChild(w);
   });
 
-  // Logo overlay: each prospect's own logo (found on their website), one logo for everyone, or none.
+  // Logo: search a company, upload one, or pick each prospect's / one / none.
   const logoRow = row();
-  const oneBox = el('div', 'flex flex-col gap-2 rounded-xl border border-white/10 p-3');
+  const oneBox = el('div', 'flex flex-col gap-2');
   oneBox.setAttribute('data-thumb-one-logo', '');
   const paintLogo = (mode) => logos.forEach(([m, b]) => { b.className = PILL(m === mode); b.setAttribute('aria-pressed', String(m === mode)); });
   const logos = [['prospect', 'Each prospect’s logo'], ['one', 'One logo'], ['none', 'No logo']].map(([mode, label]) => {
@@ -171,38 +180,49 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
     });
     logoRow.appendChild(b); return [mode, b];
   });
-  const findRow = row();
-  const domain = el('input', 'min-w-0 flex-1 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1.5 text-xs text-white outline-none focus:border-primary/50');
-  domain.placeholder = 'Company website, e.g. acme.com'; domain.setAttribute('aria-label', 'Find a logo by website');
+  const domain = el('input', 'min-w-0 flex-1 border-0 border-b border-white/25 bg-transparent px-0 py-2 text-sm text-white outline-none placeholder:text-white/35 focus:border-primary');
+  domain.placeholder = 'Search a company, e.g. acme.com'; domain.setAttribute('aria-label', 'Logo Search');
   domain.setAttribute('data-thumb-logo-domain', '');
-  const find = el('button', 'rounded-[10px] border border-white/10 bg-transparent px-3 py-1.5 text-xs font-bold text-white/80 hover:border-white/20 hover:text-white disabled:opacity-40', 'Find logo');
+  const find = el('button', 'rounded-full border border-white/15 bg-transparent px-3 py-1 text-xs font-bold text-white/80 hover:border-white/30 hover:text-white disabled:opacity-40', 'Find logo');
   find.type = 'button'; find.setAttribute('data-thumb-logo-find', '');
+  const findRow = el('div', 'flex items-end gap-2'); findRow.append(domain, find);
   const logoFile = el('input'); logoFile.type = 'file'; logoFile.accept = 'image/*'; logoFile.hidden = true;
   logoFile.setAttribute('data-thumb-logo-file', '');
   const uploadLogo = el('button', 'self-start text-xs font-semibold text-primary hover:underline', 'Upload a logo');
   uploadLogo.type = 'button'; uploadLogo.addEventListener('click', () => logoFile.click());
   const logoNote = el('p', 'text-[11px] text-white/50');
   logoNote.setAttribute('data-thumb-logo-note', '');
+  // The result row: the logo in use, its name and domain; click to use it again.
+  let foundDomain = '';
+  const result = el('button', 'flex w-full items-center gap-3 rounded-xl border border-white/10 px-3 py-2 text-left hover:border-primary/40 hover:bg-white/[0.04]');
+  result.type = 'button'; result.hidden = true; result.setAttribute('data-thumb-logo-result', '');
+  const resultImg = el('img', 'h-7 w-7 rounded bg-white object-contain p-0.5'); resultImg.alt = '';
+  const resultName = el('span', 'text-sm font-semibold');
+  const resultDomain = el('span', 'ml-auto truncate text-xs text-white/50');
+  result.append(resultImg, resultName, resultDomain);
+  result.addEventListener('click', () => { if (t().logoUrl) useLogo(t().logoUrl); });
+  oneBox.append(result, el('p', 'text-[11px] text-white/45', 'This one logo goes on every prospect’s thumbnail. Search above or upload your own.'));
+  const prettyName = (d) => { const h = d.replace(/^https?:\/\//i, '').replace(/^www\./i, '').split('/')[0]; const n = h.split('.')[0] || h; return n.charAt(0).toUpperCase() + n.slice(1); };
   const useLogo = (url) => { setThumb({ logoMode: 'one', logoUrl: url }); logoNote.textContent = 'This logo goes on every prospect’s thumbnail.'; paintControls(); loadImages(); };
-  find.addEventListener('click', async () => {
+  const searchLogo = async () => {
     const d = domain.value.trim();
     if (!d) { domain.focus(); return; }
     if (!findLogo) { logoNote.textContent = 'Search is not available here. Upload a logo instead.'; return; }
     find.disabled = true; logoNote.textContent = 'Looking for the logo on that website…';
-    try { const url = await findLogo(d); if (url) useLogo(url); else logoNote.textContent = 'No logo found on that website. Upload one instead.'; }
+    try { const url = await findLogo(d); if (url) { foundDomain = d.replace(/^https?:\/\//i, '').replace(/^www\./i, '').split('/')[0]; useLogo(url); } else logoNote.textContent = 'No logo found on that website. Upload one instead.'; }
     catch (err) { logoNote.textContent = err?.message || 'The website could not be checked. Upload a logo instead.'; }
     find.disabled = false;
-  });
+  };
+  find.addEventListener('click', searchLogo);
+  domain.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); searchLogo(); } });
   logoFile.addEventListener('change', async () => {
     const f = logoFile.files?.[0]; logoFile.value = '';
     if (!f || !upload) return;
     logoNote.textContent = 'Uploading your logo…';
-    try { useLogo(await upload(f)); } catch (err) { logoNote.textContent = err?.message || 'The logo could not be uploaded.'; }
+    try { foundDomain = ''; useLogo(await upload(f)); } catch (err) { logoNote.textContent = err?.message || 'The logo could not be uploaded.'; }
   });
-  findRow.append(domain, find);
-  oneBox.append(findRow, uploadLogo, logoNote, logoFile);
 
-  // Edit Styles: colours and the duration badge.
+  // Edit Styles: colours.
   const colour = (label, key) => {
     const w = el('label', 'flex items-center gap-2 text-xs text-white/75');
     const i = el('input', 'h-7 w-10 rounded border border-white/10 bg-transparent'); i.type = 'color';
@@ -214,18 +234,20 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
   const textColor = colour('Text colour', 'textColor');
   const bannerColor = colour('Banner colour', 'bannerColor');
   const colourRow = row(); colourRow.append(textColor.w, bannerColor.w);
-  const durOn = el('input'); durOn.type = 'checkbox'; durOn.setAttribute('data-thumb-duration', '');
-  const durColor = el('input', 'h-7 w-10 rounded border border-white/10 bg-transparent'); durColor.type = 'color'; durColor.setAttribute('aria-label', 'Duration badge colour');
-  const durOpacity = el('input', 'w-24 accent-[#d9ff00]'); durOpacity.type = 'range'; durOpacity.min = '0.2'; durOpacity.max = '1'; durOpacity.step = '0.05';
-  durOpacity.setAttribute('aria-label', 'Duration badge opacity');
-  const syncDur = () => { setThumb({ duration: { show: durOn.checked, color: durColor.value, opacity: Number(durOpacity.value) } }); draw(); };
-  [durColor, durOpacity].forEach((i) => i.addEventListener('input', syncDur));
-  durOn.addEventListener('change', syncDur);
-  const durLbl = el('label', 'flex items-center gap-1.5 text-xs'); durLbl.append(durOn, el('span', '', 'Show'));
-  const durRow = row(); durRow.append(durLbl, durColor, el('span', 'text-xs text-white/50', 'Opacity'), durOpacity);
 
-  // Sendspark's three tabs.
-  const tabs = el('div', 'flex gap-1 rounded-xl border border-white/10 p-1');
+  // Prospect preview + download.
+  const whoSel = el('select', 'min-w-0 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1.5 text-xs text-white');
+  whoSel.setAttribute('aria-label', 'Preview for');
+  whoSel.setAttribute('data-thumb-who', '');
+  contacts.slice(0, 200).forEach((c) => { const o = el('option', 'bg-neutral-900', [c.firstName, c.lastName].filter(Boolean).join(' ') || c.email || 'Prospect'); o.value = c.id; whoSel.appendChild(o); });
+  const download = el('button', `${PLAIN} rounded-full`, 'Download this picture');
+  download.type = 'button';
+  download.setAttribute('data-thumb-download', '');
+  const under = el('div', 'flex flex-wrap items-center gap-2 text-xs text-white/60');
+  under.append(el('span', '', 'Preview for'), whoSel, el('span', 'flex-1'), download);
+
+  // More thumbnail options: Sendspark's tabs. "Thumbnail" is the main pane above; Edit Preview and Edit Styles hold the rest.
+  const tabs = el('div', 'flex gap-1 rounded-full border border-white/10 p-1');
   tabs.setAttribute('role', 'tablist');
   const panes = { main: el('div', 'flex flex-col gap-5'), preview: el('div', 'flex flex-col gap-5'), styles: el('div', 'flex flex-col gap-5') };
   const tabButtons = [['main', 'Thumbnail'], ['preview', 'Edit Preview'], ['styles', 'Edit Styles']].map(([key, label]) => {
@@ -234,25 +256,37 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
     tabs.appendChild(b); return [key, b];
   });
   function showTab(key) {
-    tabButtons.forEach(([k, b]) => { const on = k === key; b.className = `flex-1 rounded-lg px-3 py-2 text-xs font-bold transition-colors ${on ? 'bg-primary/[0.1] text-white ring-1 ring-primary/40' : 'text-white/60 hover:text-white'}`; b.setAttribute('aria-selected', String(on)); });
+    tabButtons.forEach(([k, b]) => { const on = k === key; b.className = `flex-1 rounded-full px-2 py-1.5 text-xs font-bold transition-colors ${on ? 'bg-primary/[0.12] text-white ring-1 ring-primary/40' : 'text-white/60 hover:text-white'}`; b.setAttribute('aria-selected', String(on)); });
     Object.entries(panes).forEach(([k, pane]) => { pane.hidden = k !== key; });
   }
   panes.main.append(
-    section('Text overlay', text, chips, el('p', 'text-[11px] text-white/45', 'About 5 words reads best.'), fallbacks),
-    section('Logo overlay', logoRow, oneBox),
+    durLbl,
+    field('Caption', text),
+    chips,
+    fallbacks,
+    field('Logo Search', findRow),
+    logoNote,
+    oneBox,
+    uploadLogo,
+    logoFile,
+    section('Logo on the thumbnail', logoRow),
   );
   panes.preview.append(
-    section('Thumbnail type', typeRow),
-    section('Select preview', startRow, el('p', 'text-[11px] text-white/45', 'An animated GIF plays 3 seconds from here.')),
+    section('Thumbnail type', typeRow, el('p', 'text-[11px] text-white/45', 'An animated GIF plays 3 seconds from the moment you picked.')),
     section('Behind your camera bubble', bgRow, changeImg, imageNote, bgHelp, file),
   );
   panes.styles.append(
-    section('Colours', colourRow),
+    section('Text and banner colours', colourRow),
     section('Play button', playRow),
-    section('Duration', durRow),
+    section('Timestamp badge', durRow),
   );
-  right.append(tabs, panes.main, panes.preview, panes.styles);
-  body.append(left, right);
+  const more = el('div', 'flex flex-col gap-4');
+  more.setAttribute('data-thumb-more', '');
+  more.append(el('div', 'text-xs font-bold uppercase tracking-wider text-white/50', 'More thumbnail options'), tabs, panes.main, panes.preview, panes.styles);
+  const foot = el('div', 'flex flex-wrap items-center justify-end gap-2 border-t border-white/10 pt-4');
+  if (make) foot.appendChild(make);
+  foot.appendChild(done);
+  body.append(stage, scrub, more, under, note, foot);
   modal.append(head, body);
   overlay.appendChild(modal);
   overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) close(); });
@@ -271,6 +305,8 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
     playOn.checked = p.show; playStyle.value = p.style; playColor.value = p.color; playOpacity.value = String(p.opacity);
     paintLogo(s.logoMode);
     oneBox.hidden = s.logoMode !== 'one';
+    result.hidden = !s.logoUrl;
+    if (s.logoUrl) { resultImg.src = s.logoUrl; resultName.textContent = prettyName(foundDomain || domain.value.trim() || 'your logo'); resultDomain.textContent = foundDomain || ''; }
     textColor.i.value = s.textColor; bannerColor.i.value = s.bannerColor;
     durOn.checked = s.duration.show; durColor.value = s.duration.color; durOpacity.value = String(s.duration.opacity);
   }
@@ -280,6 +316,7 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
   const draw = () => {
     if (gone) return;
     const s = T.thumbSettings(t());
+    removeLogo.hidden = !(s.logo && logoImg);
     const progress = s.type === 'gif' && video ? Math.max(0, Math.min(1, (video.currentTime - loopStart) / T.GIF_SECONDS)) : 0;
     T.drawThumbnail(canvas.getContext('2d'), { frame: video && video.readyState >= 2 ? video : null, site: siteImg, logo: s.logo ? logoImg : null, text: T.thumbnailText(draft.email?.thumbText, who, draft.fallbacks || {}), play: s.play, progress, textColor: s.textColor, bannerColor: s.bannerColor, duration: s.duration, seconds: draft.video?.duration || 0 });
   };
@@ -334,6 +371,7 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
     onClose();
   }
   done.addEventListener('click', close);
+  closeX.addEventListener('click', close);
   make?.addEventListener('click', () => { close(); onMake(); });
   document.addEventListener('keydown', onKey, true);
   document.body.appendChild(overlay);
