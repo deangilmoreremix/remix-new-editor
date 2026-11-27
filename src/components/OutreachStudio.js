@@ -51,7 +51,7 @@ const BTN_LOOK = {
 };
 function button(label, { primary = false, selected = false, small = false } = {}) {
   const b = el('button', [
-    'inline-flex items-center justify-center gap-2 rounded-[10px] font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed',
+    'inline-flex items-center justify-center gap-2 rounded-full font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed',
     small ? 'px-3 py-1.5 text-xs' : 'px-4 py-2.5 text-sm',
     BTN_LOOK[selected ? 'selected' : primary ? 'primary' : 'plain'],
   ].join(' '), label);
@@ -68,7 +68,7 @@ function field(labelText, input, hint) {
 }
 
 function textInput(value, placeholder = '') {
-  const i = el('input', 'w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:border-primary/60 outline-none');
+  const i = el('input', 'w-full rounded-full border border-white/10 bg-white/[0.04] px-5 py-3 text-sm text-white placeholder:text-white/35 focus:border-primary/60 outline-none');
   i.value = value ?? '';
   i.placeholder = placeholder;
   return i;
@@ -100,9 +100,9 @@ function variableChips(input, { onInsert, only } = {}) {
 }
 
 function card(title, sub) {
-  const c = el('section', 'rounded-2xl border border-white/10 bg-panel-bg p-5 flex flex-col gap-4');
-  if (title) c.appendChild(el('h2', 'text-base font-extrabold text-white', title));
-  if (sub) c.appendChild(el('p', 'text-sm text-secondary -mt-3', sub));
+  const c = el('section', 'rounded-3xl border border-white/10 bg-panel-bg p-6 flex flex-col gap-5 shadow-[0_24px_60px_-28px_rgba(0,0,0,0.9)]');
+  if (title) c.appendChild(el('h2', 'text-lg font-semibold text-white', title));
+  if (sub) c.appendChild(el('p', 'rounded-2xl bg-white/[0.04] px-4 py-2.5 text-sm text-white/60 -mt-2', sub));
   return c;
 }
 
@@ -1180,9 +1180,9 @@ export function OutreachStudio() {
     const grid = el('div', 'grid gap-5 lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)]');
     const left = el('div', 'flex min-w-0 flex-col gap-4');
     const sectionCard = (title, attr) => {
-      const c = el('div', 'flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-5');
+      const c = el('div', 'flex flex-col gap-3 rounded-3xl border border-white/10 bg-white/[0.02] p-6');
       c.setAttribute(attr, '');
-      c.appendChild(el('div', 'text-xs font-extrabold uppercase tracking-[0.14em] text-primary', title));
+      c.appendChild(el('div', 'text-lg font-semibold text-white', title));
       return c;
     };
 
@@ -1419,7 +1419,7 @@ export function OutreachStudio() {
     // Background: the recording as it is, or each contact's own website behind a round camera bubble.
     const bg = el('div', 'flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-5');
     bg.setAttribute('data-outreach-background-card', '');
-    bg.appendChild(el('div', 'text-xs font-extrabold uppercase tracking-[0.14em] text-primary', 'Background'));
+    bg.appendChild(el('div', 'text-lg font-semibold text-white', 'Background'));
     const bgModes = el('div', 'flex flex-wrap gap-2');
     for (const [mode, label] of [['website', 'Website'], ['profile', 'Profile card'], ['map', 'Maps'], ['image', 'Image'], ['recording', 'None']]) {
       const b = button(label, { selected: draft.background.mode === mode, small: true });
@@ -3128,9 +3128,8 @@ export function OutreachStudio() {
     syncHostLine();
     renderStepper();
     // Like Sendspark, the editor and the videos page have no hero banner: the page itself is the header.
-    banner.hidden = step === 1 || step === STEPS.length;
-    stepper.classList.toggle('pt-5', !banner.hidden);
-    stepper.classList.toggle('pt-4', banner.hidden);
+    banner.hidden = true;
+    stepper.classList.add('pt-4');
     inner.replaceChildren();
     const elsewhere = !guard.active();
     stepper.inert = elsewhere;
