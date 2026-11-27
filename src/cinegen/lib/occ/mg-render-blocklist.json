@@ -16,11 +16,9 @@
     "b30d07d4-30ba-4db6-8970-093b1cfcecf7": "computed property names built from strings are not allowed",
     "c206d9e8-7cc6-428f-a030-65f5758641a5": "computed property names built from strings are not allowed",
     "dde936b2-bdc0-411d-800e-9fbfc34e3827": "computed property names built from strings are not allowed",
-    "ec6ac23d-85e8-4b16-9135-7665f5a03aa8": "browser globals are not allowed",
     "f52a0891-8de8-4fdd-a383-3e62a8793a0f": "browser globals are not allowed",
     "kb-beige-grid": "browser globals are not allowed",
     "kb-chalkboard": "browser globals are not allowed",
-    "kb-kraft-corner": "browser globals are not allowed",
     "kb-latte-lines": "browser globals are not allowed",
     "kb-parchment": "browser globals are not allowed"
   }
