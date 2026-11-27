@@ -17,6 +17,8 @@
  */
 
 export const STOCK_CACHE_MS = 24 * 60 * 60 * 1000;
+// Pixabay's file links expire, so its results are only reused briefly (a cached link that has expired cannot be added or shown).
+export const PIXABAY_CACHE_MS = 20 * 60 * 1000;
 
 /** [id, label] */
 export const STOCK_SOURCES = [['pixabay', 'Pixabay'], ['pexels', 'Pexels']];
@@ -50,6 +52,8 @@ export function normalizePixabayVideo(hit) {
     source: 'pixabay',
     name: tagName(hit.tags, `Pixabay ${hit.id}`),
     src: play.url,
+    // A smaller file to fall back on when the full one cannot be copied (e.g. too large to keep without cloud storage).
+    fallbackSrc: preview && preview.url !== play.url ? preview.url : undefined,
     preview: preview?.url || play.url,
     thumbnail: play.thumbnail || preview?.thumbnail || '',
     duration: Number(hit.duration) || 0,
@@ -115,12 +119,12 @@ export function normalizePexelsPhoto(photo) {
 
 // ---------------------------------------------------------------- search
 
-function cacheGet(storage, key) {
+function cacheGet(storage, key, maxAge = STOCK_CACHE_MS) {
   try {
     const raw = storage?.getItem(key);
     if (!raw) return null;
     const { at, items } = JSON.parse(raw);
-    return Date.now() - at < STOCK_CACHE_MS ? items : null;
+    return Date.now() - at < maxAge ? items : null;
   } catch {
     return null;
   }
@@ -143,7 +147,7 @@ export function createStockSearch(clients = {}, { storage = globalThis.localStor
     if (!q) return { ok: true, items: [] };
     const pg = Math.max(1, Math.floor(Number(page)) || 1);
     const key = `stock:${source}:${kind}:${q.toLowerCase()}${pg > 1 ? `:p${pg}` : ''}`;
-    const cached = cacheGet(storage, key);
+    const cached = cacheGet(storage, key, source === 'pixabay' ? PIXABAY_CACHE_MS : STOCK_CACHE_MS);
     if (cached) return { ok: true, items: cached, cached: true };
     try {
       let items;

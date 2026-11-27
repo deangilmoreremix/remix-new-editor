@@ -10,7 +10,18 @@ import { runTimelineMuapi as runMuapi } from '../../../lib/editor/ai/timelineMua
 import type { StockItem, StockKind, AiAspect } from './stock-media-popup';
 import { fluxSize, DEFAULT_AI_OPTIONS, type AiOptions } from './stock-categories';
 
+/** Largest inlined (data:) copy kept in a project when no cloud storage is available (about 15 MB of file). */
+const MAX_INLINE_CHARS = 20_000_000;
 // The JS helper's JSDoc only lists pollMs/timeoutMs; onProgress is supported at runtime.
+/** The page's CSP allows data: images but not data: media, so a signed-out video copy is played from a blob: URL instead (lasts until reload). */
+function dataUrlToBlobUrl(dataUrl: string): string {
+  const comma = dataUrl.indexOf(',');
+  const meta = dataUrl.slice(5, comma);
+  const bin = atob(dataUrl.slice(comma + 1));
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i += 1) bytes[i] = bin.charCodeAt(i);
+  return URL.createObjectURL(new Blob([bytes], { type: meta.split(';')[0] || 'video/mp4' }));
+}
 const runTimelineMuapi = runMuapi as (tool: string, params: Record<string, unknown>, opts?: { signal?: AbortSignal; timeoutMs?: number; onProgress?: (p: { stage: string; elapsedSec?: number }) => void }) => Promise<{ url: string; model?: string }>;
 
 interface Options {
@@ -50,14 +61,18 @@ export function useMediaBrowser({ timeline, currentTime, projectId, dispatch }: 
   const ingestRemote = useCallback(async (base: Asset, remoteUrl: string, opts: { required?: string } = {}): Promise<Asset> => {
     try {
       const r = await window.electronAPI.media.persistGeneratedAsset({ projectId, assetId: base.id, assetType: base.type, remoteUrl });
-      // Only a durable (https storage) copy counts: a session-only blob: URL would be dead after a reload.
-      if (r && 'path' in r && r.path && r.downloaded && /^https:\/\//i.test(r.path)) {
+      // Only a copy that survives a reload counts: an https storage URL (signed in) or the file inlined as a data: URL (signed out).
+      // A session-only blob: URL would be dead after a reload, and a remote link is not a copy.
+      if (r && 'path' in r && r.path && r.downloaded && (/^https:\/\//i.test(r.path) || (/^data:/i.test(r.path) && r.path.length <= MAX_INLINE_CHARS))) {
+        const inline = /^data:/i.test(r.path);
+        const sessionOnly = inline && base.type === 'video';
+        const copy = sessionOnly ? dataUrlToBlobUrl(r.path) : r.path;
         const jobs = base.type === 'video' ? [...(base.thumbnailUrl ? [] : ['generate_thumbnail']), 'compute_waveform', 'generate_filmstrip'] : [];
         return {
           // Online right away (the provider gave us the duration): the derive jobs below are tracked through processingJobs and the
           // missing artifacts, and nothing here runs the metadata job that would otherwise flip a 'processing' status back.
-          ...base, url: r.path, fileRef: r.path, sourceUrl: remoteUrl, status: 'online',
-          metadata: { ...(base.metadata ?? {}), localPersistStatus: 'ready', localPersistDownloaded: true, ...(jobs.length ? { processingJobs: jobs } : {}) },
+          ...base, url: copy, fileRef: copy, sourceUrl: remoteUrl, status: 'online',
+          metadata: { ...(base.metadata ?? {}), localPersistStatus: 'ready', localPersistDownloaded: true, ...(sessionOnly ? { sessionOnlyCopy: true } : {}), ...(jobs.length ? { processingJobs: jobs } : {}) },
         };
       }
     } catch { /* cross-origin / offline / not signed in */ }
@@ -86,11 +101,19 @@ export function useMediaBrowser({ timeline, currentTime, projectId, dispatch }: 
       duration, width: item.width, height: item.height, createdAt: new Date().toISOString(), status: 'online', sourceUrl: item.src,
       metadata: { source: `stock-${item.source}`, credit: { user: item.user, pageURL: item.pageURL } },
     };
-    asset = await ingestRemote(asset, item.src, { required: mustCopy ? "Pixabay doesn't allow linking to its files, and a copy couldn't be saved to your storage. Sign in and try again." : undefined });
+    const copyError = "Pixabay doesn't allow linking to its files, and a copy couldn't be saved. The link may have expired: search again, or try a smaller file.";
+    try {
+      asset = await ingestRemote(asset, item.src, { required: mustCopy ? copyError : undefined });
+    } catch (err) {
+      if (!item.fallbackSrc) throw err;
+      asset = await ingestRemote({ ...asset, url: item.fallbackSrc }, item.fallbackSrc, { required: copyError }); // smaller rendition
+    }
     if (!isVideo && asset.fileRef) asset = { ...asset, thumbnailUrl: asset.url }; // don't keep hotlinking the provider's preview
     dispatch({ type: 'ADD_ASSET', asset });
     placeAtPlayhead(asset, at);
     startDeriveJobs(asset);
+    return (asset.metadata as Record<string, unknown> | undefined)?.sessionOnlyCopy
+      ? 'Added for this session only. Sign in to keep stock videos after you reload.' : undefined;
   }, [dispatch, placeAtPlayhead, ingestRemote, startDeriveJobs]);
 
   // [remix] AI media from a prompt (MuAPI via /api/timeline-ai, the same path Fill Gap / the Director use): FLUX for images, Seedance for video.
@@ -127,7 +150,8 @@ export function useMediaBrowser({ timeline, currentTime, projectId, dispatch }: 
     startDeriveJobs(asset);
     // Provider links expire: if no durable copy could be saved (e.g. not signed in), say so instead of reporting a clean success.
     const durable = Boolean(asset.fileRef);
-    return durable ? undefined : "Added to the timeline, but a copy couldn't be saved to your storage, so this link may expire. Sign in to keep AI media.";
+    if ((asset.metadata as Record<string, unknown> | undefined)?.sessionOnlyCopy) return 'Added for this session only. Sign in to keep AI videos after you reload.';
+    return durable ? undefined : "Added to the timeline, but a copy couldn't be saved, so this link may expire. Try again, or sign in to keep AI media in your storage.";
   }, [dispatch, placeAtPlayhead, ingestRemote, startDeriveJobs]);
 
   return { open, setOpen, handleAddStock, handleGenerateAi, placeAtPlayhead };

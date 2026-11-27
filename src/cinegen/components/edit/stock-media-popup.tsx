@@ -19,6 +19,8 @@ export interface StockItem {
   source: 'pixabay' | 'pexels';
   name: string;
   src: string;
+  /** Smaller rendition to retry with when the full file cannot be copied. */
+  fallbackSrc?: string;
   preview?: string;
   thumbnail?: string;
   duration?: number;
@@ -52,7 +54,8 @@ export const isAiAsset = (a: Asset): boolean => {
 interface Props {
   onClose: () => void;
   /** Add a Pixabay / Pexels result to the timeline at the playhead. */
-  onAdd: (item: StockItem, kind: StockKind) => Promise<void> | void;
+  /** May resolve with a note to show (e.g. the copy only lasts for this session). */
+  onAdd: (item: StockItem, kind: StockKind) => Promise<void | string> | void | string;
   /** Generate AI media from a prompt and add it at the playhead. */
   /** Resolves with an optional warning to show instead of the plain success message (e.g. no durable copy could be saved). */
   onGenerate: (prompt: string, kind: StockKind, aspect: AiAspect, onProgress: (msg: string) => void, opts: AiOptions) => Promise<void | string>;
@@ -102,6 +105,7 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
   const [ai, setAi] = useState<AiOptions>(DEFAULT_AI_OPTIONS);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [added, setAdded] = useState<string | null>(null);
+  const [addNote, setAddNote] = useState<string | null>(null);
   const [addError, setAddError] = useState<string | null>(null);
   const [prompt, setPrompt] = useState('');
   const [aspect, setAspect] = useState<AiAspect>('16:9');
@@ -162,7 +166,7 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
   const pickGroup = (id: string) => { setGroupId(id); if (cat && id !== 'all' && cat.group !== id) { setCatId(null); setTopic(null); } };
   /** One main tab per source and media type, so it is always clear whether you are browsing videos or images. */
   const openTab = (s: MediaSource, k: StockKind) => {
-    setAddError(null);
+    setAddError(null); setAddNote(null);
     setSource(s);
     setKind(k);
     if (s === 'ai') { if (topic) setPrompt(aiPrompt(topic, k)); return; }
@@ -172,7 +176,8 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
     if (busyId) return;
     setBusyId(item.id);
     setAddError(null);
-    try { await onAdd(item, state.for.endsWith(':images') ? 'images' : 'videos'); setAdded(item.id); }
+    setAddNote(null);
+    try { const note = await onAdd(item, state.for.endsWith(':images') ? 'images' : 'videos'); setAdded(item.id); if (typeof note === 'string') setAddNote(note); }
     catch (e) { setAddError(e instanceof Error ? e.message : 'Could not add this to the timeline.'); }
     finally { setBusyId(null); }
   };
@@ -297,6 +302,7 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
               {gen.error && <span role="alert" style={{ fontSize: 12, color: '#f87171' }}>{gen.error}</span>}
             </div>
           )}
+          {addNote && <div role="status" data-testid="add-note" style={{ fontSize: 12, color: '#fbbf24', margin: '4px 0' }}>{addNote}</div>}
           {addError && <div role="alert" data-testid="add-error" style={{ fontSize: 12, color: '#f87171', margin: '4px 0' }}>{addError}</div>}
           <div style={{ fontSize: 12, opacity: 0.6, margin: '6px 0 10px' }}>
             {source === 'ai' ? `Your AI ${noun} in this project: ${shown}` : state.loading ? 'Loading…' : state.error ? '' : `Showing ${shown} ${noun} from ${sourceLabel}`}
