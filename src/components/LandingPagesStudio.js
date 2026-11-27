@@ -6,6 +6,7 @@
 // src/pages/VideoPage.jsx.
 
 import { mountStudioChrome } from '../lib/studioChrome.js';
+import { createEditorBanner, demoteBannerHeading } from '../lib/thumbnails.js';
 import { showToast } from '../lib/loading.js';
 import { supabase, primeSupabaseIdentity, getClerkUserId, isSupabaseConfigured } from '../lib/supabase.js';
 import { listBrands } from '../lib/brandStore.js';
@@ -55,9 +56,10 @@ async function copy(text, label) {
   }
 }
 
-export function LandingPagesStudio() {
-  const container = el('div', 'w-full h-full flex flex-col overflow-hidden bg-app-bg text-white');
-  mountStudioChrome(container, { title: 'My Video Pages', currentRoute: 'library' });
+/** My saved pages (list, edit, publish, share, analytics). It lives in a modal (components/modals/MyVideoPagesModal.js), not on a page of its own. */
+export function LandingPagesStudio({ embedded = false } = {}) {
+  const container = el('div', `w-full h-full flex flex-col overflow-hidden text-white ${embedded ? 'bg-panel-bg' : 'bg-app-bg'}`);
+  if (!embedded) mountStudioChrome(container, { title: 'My Video Pages', currentRoute: 'library' });
   const scroll = el('div', 'flex-1 overflow-y-auto');
   const inner = el('div', 'max-w-6xl mx-auto w-full px-4 md:px-8 py-8 flex flex-col gap-6');
   scroll.appendChild(inner);
@@ -66,9 +68,28 @@ export function LandingPagesStudio() {
   const state = { pages: [], sources: null };
 
   const signedIn = () => !!getClerkUserId();
+  // No separate sign-in here: wait for the SmartVid account (Clerk) to load, then carry on automatically.
+  // One-shot, with a bounded retry if Clerk is unavailable; removed when the page closes (container.cleanup).
+  let cancelWait = null;
+  let closed = false;
+  const waitForAccount = async () => {
+    if (cancelWait || closed) return;
+    try {
+      const { whenClerkUser } = await import('../lib/clerkInit.js');
+      // Closed (or already waiting) while the import was pending: register nothing.
+      if (cancelWait || closed) return;
+      cancelWait = whenClerkUser(() => { if (inner.isConnected) showList(); });
+    } catch { /* Clerk unavailable: stay on the connecting message */ }
+  };
+  const prevCleanup = container.cleanup;
+  container.cleanup = () => { closed = true; if (cancelWait) cancelWait(); if (typeof prevCleanup === 'function') prevCleanup(); };
   const guard = () => {
     if (!isSupabaseConfigured()) { inner.replaceChildren(el('p', 'text-sm text-secondary', 'Video pages need the Supabase connection, which is not configured here.')); return false; }
-    if (!signedIn()) { inner.replaceChildren(el('p', 'text-sm text-secondary', 'Sign in to create and manage video landing pages.')); return false; }
+    if (!signedIn()) {
+      inner.replaceChildren(el('p', 'text-sm text-secondary', 'Connecting your SmartVid account…'));
+      waitForAccount();
+      return false;
+    }
     return true;
   };
 
@@ -95,7 +116,7 @@ export function LandingPagesStudio() {
     // Pages are made from a video: the shared picker lets you upload one, pick one you made, or paste a link.
     newBtn.addEventListener('click', async () => {
       const { openLandingPagePicker } = await import('../lib/landingPages/pickerModal.js');
-      openLandingPagePicker({});
+      openLandingPagePicker({ zIndex: 2200 });   // above this window
     });
     head.append(titleWrap, newBtn);
 

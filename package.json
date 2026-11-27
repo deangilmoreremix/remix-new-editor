@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "dev": "vite --port 3100",
+    "dev:ui-check": "node scripts/dev-ui-check.mjs",
     "dev:all": "concurrently -n root,video-agent-studio -c magenta,cyan \"npm run dev\" \"npm run dev:video-agent-studio\"",
     "build": "npm run build:openthorn && npm run build:workbench && npm run build:smartwarmupai && npm run build:motion-agent && rm -rf dist && node scripts/build-studio-guides.mjs --index-only && npm run gen:motion-sources && npm run sync:mg-thumbs && node --max-old-space-size=6144 node_modules/vite/bin/vite.js build && node scripts/build-studio-guides.mjs",
     "build:ai-vfx": "npm run build --workspace apps/ai-vfx",
@@ -21,7 +22,7 @@
     "build:ask-index": "node scripts/build-ask-index.mjs",
     "check:ask-index": "node scripts/build-ask-index.mjs --check",
     "test": "vitest",
-    "test:vidbee-gate": "node --test backend/services/vidbeeProxy.nodetest.mjs apps/vidbee/apps/desktop/host/access-token.nodetest.mjs apps/vidbee/apps/desktop/host/media-access.nodetest.mjs apps/vidbee/apps/desktop/host/net-fetch.nodetest.mjs apps/vidbee/apps/desktop/host/export-path.nodetest.mjs apps/vidbee/apps/desktop/host/ipc-binary.nodetest.mjs apps/vidbee/apps/desktop/host/pdf-export.nodetest.mjs apps/vidbee/apps/desktop/host/hub-routing.nodetest.mjs",
+    "test:vidbee-gate": "node --test backend/services/vidbeeProxy.nodetest.mjs apps/vidbee/apps/web/user-apis.nodetest.mjs apps/vidbee/apps/web/server.peruser.nodetest.mjs apps/vidbee/apps/desktop/host/access-token.nodetest.mjs apps/vidbee/apps/desktop/host/media-access.nodetest.mjs apps/vidbee/apps/desktop/host/net-fetch.nodetest.mjs apps/vidbee/apps/desktop/host/export-path.nodetest.mjs apps/vidbee/apps/desktop/host/ipc-binary.nodetest.mjs apps/vidbee/apps/desktop/host/pdf-export.nodetest.mjs apps/vidbee/apps/desktop/host/hub-routing.nodetest.mjs",
     "vidbee:install": "cd apps/vidbee && npm run install:vidbee",
     "vidbee:setup": "cd apps/vidbee && npm run setup",
     "vidbee:build": "cd apps/vidbee && npm run build",
@@ -48,7 +49,7 @@
     "cinegen:start": "NODE_ENV=production npm --prefix apps/cinegen/web run start",
     "build:workbench": "npm --prefix apps/shotcraft/workbench ci --no-audit --no-fund && cd apps/shotcraft/workbench && node scripts/gen-index.mjs && npx vite build --base=/workbench-app/ && rm -rf ../../../public/workbench-app && cp -rL dist ../../../public/workbench-app",
     "build:smartwarmupai": "npm run build:smartwarmupai-app && npm run build:smartwarmupai-help",
-    "build:smartwarmupai-app": "npx --yes pnpm@10.28.0 --dir apps/warmbly-web install --frozen-lockfile && cd apps/warmbly-web && VITE_DEMO=1 VITE_BASE=/smartwarmupai-app/ npx --yes pnpm@10.28.0 exec vite build && rm -rf ../../public/smartwarmupai-app && cp -r dist ../../public/smartwarmupai-app && rm -f ../../public/smartwarmupai-app/_headers ../../public/smartwarmupai-app/_redirects ../../public/smartwarmupai-app/404.html",
+    "build:smartwarmupai-app": "npx --yes pnpm@10.28.0 --dir apps/warmbly-web install --frozen-lockfile && cd apps/warmbly-web && VITE_DEMO=1 VITE_BASE=/smartwarmupai-app/ npx --yes pnpm@10.28.0 exec vite build && rm -rf ../../public/smartwarmupai-app && cp -r dist ../../public/smartwarmupai-app && rm -f ../../public/smartwarmupai-app/_headers ../../public/smartwarmupai-app/_redirects ../../public/smartwarmupai-app/404.html && cp ../smartwarmupai-brand/live-config.js ../../public/smartwarmupai-app/config.js",
     "build:smartwarmupai-help": "npm --prefix apps/smartwarmupai-help ci --no-audit --no-fund && node apps/smartwarmupai-help/build.mjs public/smartwarmupai-help",
     "test:smartwarmupai-help": "npm --prefix apps/smartwarmupai-help test",
     "server:build": "cd apps/warmbly-server && go build -o ../../bin/ ./cmd/backend ./cmd/consumer ./cmd/worker ./cmd/migrate ./cmd/seed ./cmd/warmblyctl ./cmd/forms ./cmd/sandbox",
@@ -59,6 +60,9 @@
     "sync:mg-thumbs": "node scripts/sync-mg-thumbs.mjs",
     "predev": "npm run gen:motion-sources && npm run sync:mg-thumbs",
     "build:studio-guides": "node scripts/build-studio-guides.mjs",
+    "capture:videos": "playwright test --config=playwright.guide-videos.config.js --trace off --output=node_modules/.cache/guide-video-capture",
+    "assemble:videos": "node scripts/guide-videos/assemble.mjs",
+    "check:narration": "node scripts/guide-videos/validate-narration.mjs",
     "capture:guides": "playwright test tests/e2e/guide-screenshots.spec.js --config=playwright.screenshots.config.js --trace off --output=node_modules/.cache/guide-capture"
   },
   "devDependencies": {

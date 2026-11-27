@@ -1,3 +1,4 @@
+import { goTo } from '../lib/routeUrl.js';
 // src/components/OutreachStudio.js
 //
 // Video Outreach studio (route: #/outreach), a standalone studio: record one
@@ -9,20 +10,28 @@
 // each contact's link (?c=<id>&firstName=…) picks their voiced greeting and
 // fills the landing text. The logic lives in src/lib/outreach/draft.js.
 
+import { createEditorBanner, demoteBannerHeading } from '../lib/thumbnails.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { emailFor, mailtoUrl, mailMergeCsv, gmailUrl, linkedinMessage } from '../lib/outreach/email.js';
+import { emailFor, mailtoUrl, mailMergeCsv, gmailUrl, outlookUrl, linkedinMessage } from '../lib/outreach/email.js';
 import { WRITER_LANGUAGES } from '../lib/outreach/aiWriter.js';
+import { renderProspectTable } from './outreach/ProspectTable.js';
 import { hasPaidAccess } from '../lib/clerkEntitlements.js';
+import { createTabGuard } from '../lib/outreach/tabGuard.js';
+import { onOwnerNotification, isOutreachAlertFor } from '../lib/liveAlerts.js';
+import { createHostLine, liveCallSupported } from '../lib/outreach/liveCall.js';
+import { createCallWindow, showIncomingCall } from './outreach/LiveCallPanel.js';
 
 // Caption translation languages (src/lib/editor/ml/modelRegistry.js TRANSLATE_LANGUAGES).
 const TRANSLATE_LANGS = [['es', 'Spanish'], ['fr', 'French'], ['de', 'German'], ['it', 'Italian'], ['pt', 'Portuguese'], ['nl', 'Dutch'], ['pl', 'Polish'], ['ru', 'Russian'], ['tr', 'Turkish'], ['ar', 'Arabic'], ['hi', 'Hindi'], ['ja', 'Japanese'], ['ko', 'Korean'], ['zh', 'Chinese'], ['vi', 'Vietnamese'], ['id', 'Indonesian'], ['sv', 'Swedish'], ['en', 'English']];
 import {
   STEPS, SETUP_STEPS, STOCK_VOICES, FIRST_NAME_FALLBACKS, CONTACT_FIELDS, CSV_TEMPLATE, MAX_CONTACTS,
-  loadDraft, saveDraft, stepErrors, fillTemplate, speakRequest, tokensIn,
+  loadDraft, saveDraft, contactPickerSupported, contactsFromPicker, liveCampaigns, stepErrors, fillTemplate, speakRequest, tokensIn,
   parseCsv, guessMapping, contactsFromRows, contactsFromLeads, makeContact, mergeContacts, contactProfile, contactValues,
   buildCampaignProject, campaignLinks, siteKey, sitesToCapture, calendarEmbedUrl,
+  SITE_ERROR, siteErrorFor, MISSING_MODES, onMissingOf, siteStatus, backgroundProblems,
   usesBackground, fallbackShotFor, backgroundShotFor, contactProfileFor, addressesToCapture, mapKey,
   saveToLibrary, listLibrary, libraryDraft, newDynamicVideo, cleanPage, DYNAMIC_KINDS,
+  BUBBLE_CORNERS, bubbleOf, cardSide,
 } from '../lib/outreach/draft.js';
 
 function el(tag, className, text) {
@@ -123,9 +132,22 @@ function videoMeta(url) {
   });
 }
 
+function ensureStepTransitionStyle(doc = globalThis.document) {
+  if (!doc || doc.getElementById('outreach-step-transition')) return;
+  const style = doc.createElement('style');
+  style.id = 'outreach-step-transition';
+  style.textContent = `
+::view-transition-old(outreach-step) { animation: 160ms ease-in both outreach-step-out; }
+::view-transition-new(outreach-step) { animation: 220ms ease-out both outreach-step-in; }
+@keyframes outreach-step-out { to { opacity: 0; transform: translateY(-6px); } }
+@keyframes outreach-step-in { from { opacity: 0; transform: translateY(10px); } }
+@media (prefers-reduced-motion: reduce) { ::view-transition-old(outreach-step), ::view-transition-new(outreach-step) { animation: none; } }`;
+  doc.head.appendChild(style);
+}
+
 export function OutreachStudio() {
   const container = el('div', 'relative w-full h-full flex flex-col overflow-hidden bg-app-bg text-white');
-  mountStudioChrome(container, { title: 'Video Outreach', currentRoute: 'outreach' });
+  mountStudioChrome(container, { currentRoute: 'outreach' });
 
   const draft = loadDraft();
   // The last recording stays in memory so its sound can become the voice sample.
@@ -134,12 +156,27 @@ export function OutreachStudio() {
   let notice = '';
   // Like Sendspark, the studio opens on the Videos library; a draft in progress is one click away.
   let step = STEPS.length;
+  // Change step. Each change is a history entry, so the browser's Back and Forward move between
+  // steps (popstate below); user clicks animate with a View Transition where the browser has it.
+  function goStep(n, msg = '', { push = true, animate = false } = {}) {
+    const changed = n !== step;
+    if (changed && step === 5) stopListeningLiveAlerts();
+    step = n; notice = msg;
+    if (changed && push) { try { globalThis.history.pushState({ ...(globalThis.history.state || {}), outreachStep: n }, '', location.href); } catch { /* sandboxed */ } }
+    const motion = animate && changed && typeof document.startViewTransition === 'function' && container.isConnected
+      && !globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (!motion) { render(); return; }
+    // A quick second click skips the running transition; that's fine (the page still updates).
+    const t = document.startViewTransition(() => render());
+    t.ready?.catch?.(() => {}); t.finished?.catch?.(() => {}); t.updateCallbackDone?.catch?.(() => {});
+  }
   const resumeStep = () => { for (let s = 1; s <= SETUP_STEPS + 1; s++) if (stepErrors(draft, s).length) return s; return SETUP_STEPS + 1; };
   // Generation progress per prospect: { total, done, phase }.
   let progress = null;
   // CSV waiting for its columns to be matched, the running generation, and the campaigns list.
   let pendingCsv = null;
   let pendingLeads = null; // { loading, error, leads, picked:Set }
+  let captureTab = null; // "Capture with my browser": the tab we opened, waiting for Start capturing
   // Who opened, watched and clicked, per contact, for the links list: { id, loading, byContact }.
   let linkStats = { id: null, loading: false, byContact: null };
   let abort = null;
@@ -150,12 +187,74 @@ export function OutreachStudio() {
   // Bottom padding keeps the footer buttons clear of the floating Ask SmartVideo button.
   const inner = el('div', 'max-w-6xl mx-auto w-full px-4 md:px-8 pt-6 pb-28 flex flex-col gap-5');
   scroll.appendChild(inner);
-  container.append(stepper, scroll);
+  container.append(demoteBannerHeading(createEditorBanner('outreach', 'Video Outreach', 'Personalized videos for every prospect')), stepper, scroll);
+  // The step's content slides in when the step changes (View Transitions; see goStep).
+  inner.style.viewTransitionName = 'outreach-step';
+  ensureStepTransitionStyle();
 
   // A generated campaign is also kept in the Videos library, so it can be opened again later.
   // The edit recipe (src/lib/outreach/editTools.js) is saved with the draft; clips added before/after are local files,
   // kept for this session only.
-  const persist = () => { draft.edit = { ...edit, before: null, after: null }; saveDraft(draft); if (draft.campaign) saveToLibrary(draft); };
+  const persist = () => {
+    if (!guard.active()) return; // another tab is editing this campaign: don't overwrite its work
+    draft.edit = { ...edit, before: null, after: null }; saveDraft(draft); if (draft.campaign) saveToLibrary(draft);
+    guard.saved();
+  };
+  // Load the draft another tab saved (without saving it back).
+  const reloadDraft = () => {
+    const fresh = loadDraft();
+    for (const k of Object.keys(draft)) delete draft[k];
+    Object.assign(draft, fresh);
+    edit = startEdit(draft.edit); stopPreview(); pendingCsv = null; pendingLeads = null;
+  };
+  // One tab edits at a time (src/lib/outreach/tabGuard.js). The other shows a banner and follows the
+  // editing tab's saves; "Edit here instead" takes over.
+  let changedElsewhere = false;
+  const guard = createTabGuard({
+    onChange: (on) => { if (on) reloadDraft(); render(); }, // may arrive before the studio is on the page
+    onRemoteSave: () => {
+      if (!guard.supported) { changedElsewhere = true; render(); return; }
+      if (!guard.active()) { reloadDraft(); if (!busy) render(); }
+    },
+  });
+  // Run when the studio is left (src/lib/router.js calls container.cleanup).
+  const cleanups = [() => guard.destroy()];
+  container.cleanup = () => { while (cleanups.length) { try { cleanups.pop()(); } catch { /* keep going */ } } };
+
+  // "Talk live" (src/lib/outreach/liveCall.js): while "Available for live calls" is on, this tab answers
+  // calls from the pages of campaigns that allow them. Only the editing tab answers.
+  const LIVE_KEY = 'outreach-live-available';
+  let liveAvailable = (() => { try { return globalThis.localStorage?.getItem(LIVE_KEY) === '1'; } catch { return false; } })();
+  let hostLine = null; let hostKey = ''; let ringBox = null; let callWin = null; let callWho = '';
+  const liveList = () => { try { return liveCampaigns(globalThis.localStorage, draft); } catch { return []; } };
+  function onHostUpdate(st) {
+    if (st.incoming && !ringBox) {
+      const camp = liveList().find((c) => c.videoId === st.incoming.videoId);
+      callWho = st.incoming.name;
+      ringBox = showIncomingCall({
+        name: st.incoming.name, campaign: camp?.name || '',
+        onAccept: () => { ringBox = null; hostLine?.accept(); },
+        onDecline: () => { ringBox = null; hostLine?.decline(); },
+      });
+      globalThis.dispatchEvent?.(new CustomEvent('remix:notifications-changed'));
+    }
+    if (!st.incoming && ringBox) { ringBox.close(); ringBox = null; } // they hung up, or answered in another tab
+    if (!callWin && (st.phase === 'connecting' || st.phase === 'live')) {
+      callWin = createCallWindow({ who: callWho, onHangup: () => hostLine?.hangup(), onClose: () => { callWin = null; } });
+    }
+    callWin?.update(st);
+    if (st.error && container.isConnected) { notice = st.error; render(); }
+  }
+  function syncHostLine() {
+    const list = liveAvailable && guard.active() && liveCallSupported() ? liveList() : [];
+    const key = list.map((c) => c.videoId).join(',');
+    if (key === hostKey) return;
+    hostKey = key;
+    hostLine?.destroy(); hostLine = null;
+    ringBox?.close(); ringBox = null;
+    if (list.length) hostLine = createHostLine({ campaigns: list, hostName: String(draft.sender?.name || '').trim().split(/\s+/)[0], onUpdate: onHostUpdate });
+  }
+  cleanups.push(() => { hostKey = ''; hostLine?.destroy(); hostLine = null; ringBox?.close(); ringBox = null; callWin?.destroy(); callWin = null; });
   const replaceDraft = (next) => { for (const k of Object.keys(draft)) delete draft[k]; Object.assign(draft, next); edit = startEdit(draft.edit); stopPreview(); linkStats = { id: null, loading: false, byContact: null }; pendingCsv = null; pendingLeads = null; persist(); };
   const setBusy = (label) => { busy = label; render(); };
   const fail = (err) => { busy = ''; notice = err?.message || String(err); render(); };
@@ -442,6 +541,14 @@ export function OutreachStudio() {
     persist();
     notice = blob ? 'Edits applied. Check the voice step: the voice sample comes from the new video.' : 'Back to your original recording.';
     render();
+  }
+
+  // What a preview can't show: the per-prospect greeting (and lips) are made when you generate.
+  function finalNotice({ light = false } = {}) {
+    if (draft.kind === 'same' || !tokensIn(draft.greeting || '').length) return null;
+    const p = el('p', `text-[11px] ${light ? 'text-black/50' : 'text-white/50'}`, `Preview: in the final videos each prospect hears their own greeting in your voice${draft.voice.lipsync ? ', and your lips move with it' : ''}.`);
+    p.setAttribute('data-outreach-final-notice', '');
+    return p;
   }
 
   // ---- The editor's other tools (src/components/outreach/EditorTools.js) -------------------------
@@ -796,14 +903,14 @@ export function OutreachStudio() {
       try { await navigator.clipboard.writeText(live.pageLink || live.link); notice = 'Link copied.'; } catch { notice = 'Copy failed.'; }
       render();
     }, { disabled: !live });
-    tool('preview', 'eye', 'Preview the prospect page', () => { step = 3; notice = ''; render(); });
+    tool('preview', 'eye', 'Preview the prospect page', () => { goStep(3, ''); });
     const share = button('Share video', { primary: true, small: true });
     share.setAttribute('data-editor-share', '');
     share.disabled = !has || !!busy;
-    share.addEventListener('click', () => { step = draft.kind === 'same' ? 3 : 2; notice = ''; render(); });
+    share.addEventListener('click', () => { goStep(draft.kind === 'same' ? 3 : 2, ''); });
     const close = button('Close', { small: true });
     close.setAttribute('data-editor-close', '');
-    close.addEventListener('click', () => { step = STEPS.length; notice = ''; render(); });
+    close.addEventListener('click', () => { goStep(STEPS.length, ''); });
     bar.append(share, close);
 
     // ---- Left: the video, the template and what the page says.
@@ -879,6 +986,8 @@ export function OutreachStudio() {
     ctaSw.setAttribute('data-editor-cta', '');
     const calSw = toggle(!!draft.cta.embed, (on) => setCta({ embed: on, enabled: on ? true : draft.cta.enabled }), { label: 'Calendar embed' });
     calSw.setAttribute('data-editor-calendar', '');
+    const liveSw = toggle(!!draft.cta.live, (on) => setCta({ live: on }), { label: 'Talk live' });
+    liveSw.setAttribute('data-editor-live', '');
     const hasCaptions = !!draft.captions?.lines?.length;
     const trSw = toggle(hasCaptions && draft.showTranscript !== false, (on) => { draft.showTranscript = on; persist(); render(); }, { label: 'Transcript', disabled: !hasCaptions });
     trSw.setAttribute('data-editor-transcript', '');
@@ -886,6 +995,7 @@ export function OutreachStudio() {
     cz.append(
       row('megaphone', 'Call-to-action', 'Give your prospects their next step.', ctaSw, ctaFields),
       row('calendar', 'Calendar embed', 'Show your booking calendar with your video (plain video page).', calSw),
+      row('megaphone', 'Talk live', 'Prospects can video-call you from the page while you\u2019re available in Video Outreach (plain video page). Regenerate to apply.', liveSw),
       row('lines', 'Transcript', 'Show a transcript on the page.', trSw, trNote),
     );
     side.append(addBlock, tpl, cz);
@@ -916,6 +1026,8 @@ export function OutreachStudio() {
       const t = el('span', 'tabular-nums', fmtS(previewTime())); t.setAttribute('data-edit-time', '');
       ctl.append(pp, t, el('span', 'text-white/40', '· preview of your edits (personal text shows for your first prospect)'));
       main.appendChild(ctl);
+      const fin = finalNotice();
+      if (fin) main.appendChild(fin);
     }
     if (has) main.appendChild(el('p', 'text-xs text-white/45', `${fmtTime(draft.video.duration)} · ${draft.video.hasAudio ? 'with sound' : 'no sound'}${draft.kind !== 'same' ? ' · the greeting plays over the first seconds' : ''}`));
     const brand = el('p', 'flex items-center gap-1.5 text-xs text-white/40');
@@ -1040,128 +1152,272 @@ export function OutreachStudio() {
       box.appendChild(row);
       return box;
     }
-    const grid = el('div', 'grid gap-5 lg:grid-cols-[1fr_400px]');
-    const main = card('Choose the voice', 'Each contact hears their own greeting. Clone your voice so it sounds like you, or use a stock voice.');
+    // The dynamic-video editor (Sendspark's Script / Voice / Background, with a live preview per prospect).
+    const page = el('div', 'flex flex-col gap-5');
+    page.setAttribute('data-outreach-dynamic-editor', '');
+    // Header: where you are, Preview and Generate Videos.
+    const head = el('div', 'flex flex-wrap items-center gap-3');
+    const crumbs = el('div', 'mr-auto flex min-w-0 items-center gap-2 text-sm');
+    crumbs.append(el('span', 'text-white/45', 'Dynamic Videos'), el('span', 'text-white/30', '/'), el('span', 'truncate font-bold text-white', draft.name || 'Untitled dynamic video'));
+    const prev = button('Preview', { small: true });
+    prev.setAttribute('data-editor-preview-page', '');
+    prev.title = draft.campaign ? 'Open this prospect\u2019s page' : 'Generate first: each prospect\u2019s page is made then';
+    prev.addEventListener('click', () => {
+      const c = previewContact();
+      const l = draft.campaign?.links?.find((x) => x.contactId === c?.id) || draft.campaign?.links?.[0];
+      if (l) window.open(linkOf(l), '_blank', 'noopener'); else { notice = 'Generate first: each prospect\u2019s page is made then.'; render(); }
+    });
+    const genBtn = button('Generate Videos', { primary: true, small: true });
+    genBtn.setAttribute('data-editor-generate', '');
+    genBtn.disabled = !!busy;
+    genBtn.addEventListener('click', goGenerate);
+    head.append(crumbs, prev, genBtn);
+
+    const grid = el('div', 'grid gap-5 lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)]');
+    const left = el('div', 'flex min-w-0 flex-col gap-4');
+    const sectionCard = (title, attr) => {
+      const c = el('div', 'flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-5');
+      c.setAttribute(attr, '');
+      c.appendChild(el('div', 'text-xs font-extrabold uppercase tracking-[0.14em] text-primary', title));
+      return c;
+    };
+
+    // SCRIPT: what each prospect hears, with the variables shown as chips.
+    const script = sectionCard('Script', 'data-editor-script');
+    const shown = el('p', 'text-[15px] leading-relaxed text-white/90');
+    shown.setAttribute('data-editor-script-text', '');
+    String(draft.greeting || '').split(/(\{\{\s*\w+\s*\}\})/).forEach((part) => {
+      if (/^\{\{\s*\w+\s*\}\}$/.test(part)) shown.appendChild(el('span', 'mx-0.5 rounded-md bg-primary/15 px-1.5 py-0.5 text-sm font-bold text-primary', part.replace(/\{\{\s*(\w+)\s*\}\}/, '{$1}')));
+      else if (part) shown.appendChild(document.createTextNode(part));
+    });
+    const g = textInput(draft.greeting, 'Hi {{firstname}}!');
+    g.setAttribute('data-editor-greeting', '');
+    g.addEventListener('change', () => { draft.greeting = g.value; draft.voice.fallbackUrl = ''; persist(); render(); });
+    const fb = el('div', 'flex flex-wrap items-center gap-2');
+    fb.appendChild(el('span', 'text-xs text-white/50', 'No first name? Say'));
+    for (const word of FIRST_NAME_FALLBACKS) {
+      const b = button(word, { selected: draft.fallbacks.firstname === word, small: true });
+      b.addEventListener('click', () => { draft.fallbacks.firstname = word; draft.voice.fallbackUrl = ''; persist(); render(); });
+      fb.appendChild(b);
+    }
+    script.append(shown, g, variableChips(g, { onInsert: () => g.dispatchEvent(new Event('change')), only: ['{{firstname}}', '{{company}}', '{{jobtitle}}'] }), el('p', 'text-[11px] text-white/45', 'Spoken at the start of your video, up to 70 characters. Use more than one variable if you like.'), fb);
+
+    // VOICE: whose voice, ready or not, lip sync, language, and a preview.
+    const voice = sectionCard('Voice', 'data-editor-voice');
     const modes = el('div', 'flex gap-2');
     for (const [mode, label] of [['clone', 'My cloned voice'], ['stock', 'Stock voice']]) {
       const b = button(label, { selected: draft.voice.mode === mode, small: true });
+      b.setAttribute('data-voice-mode', mode);
       b.addEventListener('click', () => { draft.voice = { ...draft.voice, mode, fallbackUrl: '', fallbackDuration: 0 }; persist(); render(); });
       modes.appendChild(b);
     }
-    main.appendChild(modes);
-
-    if (draft.voice.mode === 'clone') {
+    const cloneReady = !!(draft.voice.cloneVoiceId && draft.voice.consent);
+    const ready = draft.voice.mode === 'stock' || cloneReady;
+    const who = draft.voice.mode === 'clone' ? `${(draft.sender?.name || 'Your').split(' ')[0]}${draft.sender?.name ? '\u2019s' : ''} cloned voice` : `${draft.voice.stockVoice.replace(/_/g, ' ')} (stock voice)`;
+    const vrow = el('div', 'flex items-center gap-2.5 text-[15px]');
+    vrow.setAttribute('data-voice-status', ready ? 'ready' : 'needs-sample');
+    vrow.append(el('span', `h-2.5 w-2.5 rounded-full ${ready ? 'bg-emerald-400' : 'bg-amber-400'}`), el('span', 'flex-1', who), el('span', 'text-xs text-white/45', ready ? 'Ready' : 'Needs a voice sample'));
+    voice.append(modes, vrow);
+    if (draft.voice.mode === 'clone' && !cloneReady) {
       const consent = el('label', 'flex items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3 text-sm');
       const box = el('input', 'mt-0.5'); box.type = 'checkbox'; box.checked = !!draft.voice.consentChecked;
       box.addEventListener('change', () => { draft.voice.consentChecked = box.checked; persist(); });
       const text = el('span', 'text-white/80');
       text.innerHTML = '<b class="text-white">This is my own voice.</b> I am the person speaking in the sample and I agree to it being cloned for my own outreach. Pages using it are labelled “AI-personalized voice”.';
       consent.append(box, text);
-      main.appendChild(consent);
-
-      const status = el('p', 'text-sm', draft.voice.cloneVoiceId && draft.voice.consent
-        ? `✓ Cloned voice ready (${draft.voice.cloneVoiceId}).` : 'Not cloned yet.');
-      status.className = draft.voice.cloneVoiceId && draft.voice.consent ? 'text-sm text-emerald-300' : 'text-sm text-secondary';
       const sampleActions = el('div', 'flex flex-wrap gap-2');
-      const fromRec = button('Clone from my recording', { primary: !draft.voice.cloneVoiceId });
+      const fromRec = button('Clone from my recording', { primary: true, small: true });
       fromRec.disabled = !recordingBlob || draft.video?.hasAudio === false;
       fromRec.title = recordingBlob ? '' : 'Record or upload in step 1 during this visit, or record a separate sample.';
       fromRec.addEventListener('click', () => voiceSampleFrom(recordingBlob));
-      const sample = button('Record a voice sample');
+      const sample = button('Record a voice sample', { small: true });
       sample.addEventListener('click', () => (draft.voice.consentChecked ? openRecorder('audio') : (notice = 'Tick “this is my own voice” first.', render())));
       sampleActions.append(fromRec, sample);
-      main.append(status, sampleActions, el('p', 'text-[11px] text-white/45', 'Uses 10–60 seconds of your speech. Cloning and speech run on your own MuAPI key (Settings → API keys).'));
-    } else {
-      const sel = el('select', 'w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white');
-      for (const v of STOCK_VOICES) { const o = el('option', '', v.replace(/_/g, ' ')); o.value = v; o.selected = draft.voice.stockVoice === v; sel.appendChild(o); }
-      sel.addEventListener('change', () => { draft.voice = { ...draft.voice, stockVoice: sel.value, fallbackUrl: '', fallbackDuration: 0 }; persist(); render(); });
-      main.appendChild(field('Voice', sel));
+      voice.append(consent, sampleActions, el('p', 'text-[11px] text-white/45', 'Uses 10–60 seconds of your speech. Cloning and speech run on your own MuAPI key (Settings → API keys).'));
     }
-
-    const greet = card('The greeting', 'Spoken at the start of the video. Use {{firstname}}, {{company}} or {{jobtitle}} (more than one is fine: "Hi {{firstname}}, a quick idea for {{company}}").');
-    const g = textInput(draft.greeting, 'Hi {{firstname}}!');
-    g.addEventListener('change', () => { draft.greeting = g.value; draft.voice.fallbackUrl = ''; persist(); render(); });
-    greet.append(field('Greeting', g, 'Up to 70 characters.'), variableChips(g, { onInsert: () => g.dispatchEvent(new Event('change')), only: ['{{firstname}}', '{{company}}', '{{jobtitle}}'] }));
-    // Output language: the greeting is spoken in it; Translate rewrites the campaign's texts into it.
-    const langRow = el('div', 'flex flex-wrap items-center gap-2');
+    if (draft.voice.mode === 'stock') {
+      const sel = el('select', 'w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white');
+      for (const v of STOCK_VOICES) { const o = el('option', 'bg-neutral-900', v.replace(/_/g, ' ')); o.value = v; o.selected = draft.voice.stockVoice === v; sel.appendChild(o); }
+      sel.addEventListener('change', () => { draft.voice = { ...draft.voice, stockVoice: sel.value, fallbackUrl: '', fallbackDuration: 0 }; persist(); render(); });
+      voice.appendChild(sel);
+    }
+    const lipRow = el('div', 'flex items-center gap-3 text-[15px]');
+    const lipSw = toggle(!!draft.voice.lipsync, (on) => { draft.voice = { ...draft.voice, lipsync: on }; persist(); render(); }, { label: 'Lip sync' });
+    lipSw.setAttribute('data-editor-lipsync', '');
+    lipRow.append(el('span', 'flex-1', 'Lip sync'), lipSw);
+    voice.appendChild(lipRow);
+    if (draft.voice.lipsync) voice.appendChild(el('p', 'text-[11px] text-white/45', 'Your mouth says each prospect\u2019s name: one paid MuAPI lip-sync request per different greeting (about $0.05). Leave a pause at the start of your recording.'));
+    const langRow = el('div', 'flex flex-wrap items-center gap-2 text-[15px]');
+    langRow.appendChild(el('span', 'flex-1', 'Language'));
     const lang = el('select', 'rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-sm text-white');
     lang.setAttribute('data-outreach-language', '');
-    for (const [l] of WRITER_LANGUAGES) { const o = el('option', 'bg-neutral-900', l); o.value = l; o.selected = (draft.language || 'English') === l; lang.appendChild(o); }
+    for (const [l] of WRITER_LANGUAGES) { const o = el('option', 'bg-neutral-900', l === 'English' ? 'English (source)' : l); o.value = l; o.selected = (draft.language || 'English') === l; lang.appendChild(o); }
     lang.addEventListener('change', () => { draft.language = lang.value; draft.voice = { ...draft.voice, fallbackUrl: '', fallbackDuration: 0 }; draft.campaign = null; persist(); render(); });
-    const tr = button('Translate greeting, page and email', { small: true });
-    tr.setAttribute('data-outreach-translate', '');
-    tr.disabled = !!busy || (draft.language || 'English') === 'English';
-    tr.addEventListener('click', translateCampaign);
-    langRow.append(lang, tr);
-    greet.appendChild(field('Output language', langRow, 'The greeting is spoken in this language, in your cloned or stock voice. Translate rewrites your greeting, landing page text and email into it (one small text request on your MuAPI key).'));
-    const fb = el('div', 'flex flex-wrap gap-2');
-    for (const word of FIRST_NAME_FALLBACKS) {
-      const b = button(word, { selected: draft.fallbacks.firstname === word, small: true });
-      b.addEventListener('click', () => { draft.fallbacks.firstname = word; draft.voice.fallbackUrl = ''; persist(); render(); });
-      fb.appendChild(b);
+    langRow.appendChild(lang);
+    voice.appendChild(langRow);
+    if ((draft.language || 'English') !== 'English') {
+      const tr = button('Translate greeting, page and email', { small: true });
+      tr.setAttribute('data-outreach-translate', '');
+      tr.disabled = !!busy;
+      tr.addEventListener('click', translateCampaign);
+      voice.append(tr, el('p', 'text-[11px] text-white/45', 'The greeting is spoken in this language. Your recording stays as you recorded it.'));
     }
-    greet.appendChild(field('If a first name is missing, say', fb));
-    const gen = button(draft.voice.fallbackUrl ? 'Regenerate greeting' : 'Generate greeting', { primary: !draft.voice.fallbackUrl });
+    // AI voice preview for the prospect being previewed, and the greeting itself (needed before generating).
+    const pv = el('div', 'flex flex-wrap items-center gap-2 rounded-xl border border-white/10 px-3 py-2.5 text-sm');
+    pv.setAttribute('data-editor-voice-preview', '');
+    const pc = previewContact();
+    const line = fillTemplate(draft.greeting, contactValues(pc || {}), draft.fallbacks);
+    pv.appendChild(el('span', 'flex-1 min-w-0 truncate', `AI voice preview: “${line}”`));
+    const tryAudio = el('audio', 'hidden');
+    const play = button('▶ Play', { small: true });
+    play.setAttribute('data-editor-voice-play', '');
+    play.addEventListener('click', async () => {
+      try {
+        play.disabled = true; play.textContent = 'Making…';
+        tryAudio.src = await speak(line);
+        await tryAudio.play().catch(() => {});
+      } catch (err) { notice = err.message; render(); return; } finally { play.disabled = false; play.textContent = '▶ Play'; }
+    });
+    const dislike = el('button', 'text-xs font-semibold text-white/50 hover:text-primary', 'Don\u2019t like it?');
+    dislike.type = 'button';
+    dislike.addEventListener('click', () => { draft.voice = { ...draft.voice, mode: draft.voice.mode === 'clone' ? 'stock' : 'clone', fallbackUrl: '', fallbackDuration: 0 }; persist(); render(); });
+    pv.append(dislike, play, tryAudio);
+    voice.append(pv, el('p', 'text-[11px] text-white/45', 'Each preview is one small paid speech request.'));
+    const gen = button(draft.voice.fallbackUrl ? 'Regenerate the fallback greeting' : 'Make the fallback greeting', { primary: !draft.voice.fallbackUrl, small: true });
+    gen.setAttribute('data-editor-make-greeting', '');
     gen.addEventListener('click', generateGreeting);
-    greet.appendChild(gen);
+    voice.appendChild(gen);
     if (draft.voice.fallbackUrl) {
       const a = el('audio', 'w-full'); a.controls = true; a.src = draft.voice.fallbackUrl;
-      greet.append(el('p', 'text-xs text-secondary', `Fallback: “${fillTemplate(draft.greeting, {}, draft.fallbacks)}”`), a);
+      voice.append(el('p', 'text-xs text-secondary', `For anyone without a name: “${fillTemplate(draft.greeting, {}, draft.fallbacks)}”`), a);
     }
-    const tryName = textInput('', 'Type a name to hear it, e.g. Mike');
-    const tryBtn = button('Preview', { small: true });
-    const tryAudio = el('audio', 'w-full'); tryAudio.controls = true; tryAudio.hidden = true;
-    tryBtn.addEventListener('click', async () => {
-      if (!tryName.value.trim()) return;
-      try {
-        tryBtn.disabled = true; tryBtn.textContent = 'Generating…';
-        tryAudio.src = await speak(fillTemplate(draft.greeting, { firstname: tryName.value.trim() }, draft.fallbacks));
-        tryAudio.hidden = false; tryAudio.play().catch(() => {});
-      } catch (err) { notice = err.message; render(); return; } finally { tryBtn.disabled = false; tryBtn.textContent = 'Preview'; }
-    });
-    const tryRow = el('div', 'flex gap-2'); tryRow.append(tryName, tryBtn);
-    greet.append(field('Hear it for one contact', tryRow, 'Each preview is one paid speech request.'), tryAudio);
 
-    grid.append(main, greet);
-    return grid;
+    left.append(script, voice, renderBackgroundCard());
+    grid.append(left, renderLivePreview());
+    page.append(head, grid);
+    return page;
   }
 
-  // ---- Step 3: Customize -------------------------------------------------
-  function renderCustomize() {
-    const grid = el('div', 'grid gap-5 lg:grid-cols-[1fr_440px]');
-    const main = card('Your prospect page', 'Each prospect gets their own page with their video. Use {{firstname}} and {{company}}; fallbacks fill in when a value is missing.');
-    main.style.minWidth = '0'; // long page names truncate instead of widening the column
-    // Which page prospects land on (like Sendspark, it belongs to this video): the plain video page, or one of
-    // your landing page designs, edited here with your recording in it.
-    main.appendChild(field('Landing page', pagePicker(),
-      'Your page belongs to this video. Choose one of your landing pages, then Edit page to change its words, pictures and sections. Each prospect sees it with their own personal video, and changes reach every link.'));
-    const header = textInput(draft.header);
-    const message = el('textarea', 'w-full min-h-[90px] rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none focus:border-primary/60');
-    message.value = draft.message;
-    const company = textInput(draft.fallbacks.company, 'your company');
-    const ctaOn = el('input'); ctaOn.type = 'checkbox'; ctaOn.checked = !!draft.cta.enabled;
-    const ctaLabel = textInput(draft.cta.label, 'Schedule a demo');
-    const ctaUrl = textInput(draft.cta.url, 'https://cal.com/you/intro');
-    const calOn = el('input'); calOn.type = 'checkbox'; calOn.checked = !!draft.cta.embed; calOn.setAttribute('data-outreach-calendar', '');
-    const sync = () => {
-      draft.header = header.value; draft.message = message.value; draft.fallbacks.company = company.value;
-      draft.cta = { enabled: ctaOn.checked, label: ctaLabel.value, url: ctaUrl.value.trim(), embed: calOn.checked };
-      persist(); updatePreview();
-    };
-    [header, message, company, ctaLabel, ctaUrl].forEach((i) => i.addEventListener('input', sync));
-    ctaOn.addEventListener('change', sync);
-    calOn.addEventListener('change', sync);
-    const ctaRow = el('label', 'flex items-center gap-3 text-sm font-bold'); ctaRow.append(ctaOn, el('span', '', 'Call-to-action button'));
-    const calRow = el('label', 'flex items-center gap-3 text-sm'); calRow.append(calOn, el('span', '', 'Plain video page only: show the calendar under the video so contacts can book without leaving the page'));
-    main.append(field('Header', header, draft.page ? 'For the plain video page. Your landing page keeps its own words; change them with Edit page.' : ''), variableChips(header), field('Message', message), variableChips(message), field('If the company is missing, say', company), ctaRow,
-      field('Button label', ctaLabel), field('Booking link', ctaUrl, 'Your Cal.com, Calendly or other booking page (https).'), calRow);
+  // ---- Live preview of one prospect's video (AI intro step) ------------------------------
+  let previewContactId = null;
+  const previewContact = () => draft.contacts.find((c) => c.id === previewContactId) || draft.contacts[0] || null;
+  const initialsOf = (name) => { const p = String(name || '').trim().split(/\s+/).filter(Boolean); return ((p[0]?.[0] || '') + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase() || '?'; };
+  const AVATAR_COLORS = ['#6366f1', '#f97316', '#eab308', '#10b981', '#ec4899', '#06b6d4', '#8b5cf6', '#ef4444'];
+  const avatarColor = (s) => AVATAR_COLORS[[...String(s || '')].reduce((n, ch) => (n * 31 + ch.charCodeAt(0)) >>> 0, 7) % AVATAR_COLORS.length];
+  function avatar(name, size = 'h-9 w-9 text-xs') {
+    const a = el('span', `grid ${size} shrink-0 place-items-center rounded-full font-extrabold text-white`, initialsOf(name));
+    a.style.background = avatarColor(name);
+    return a;
+  }
 
+  // Where the camera bubble sits in a 16:9 box, as CSS (the same places the published player uses).
+  function bubbleCss() {
+    const b = bubbleOf(draft);
+    if (b.mode === 'spotlight') return { width: '40%', left: '30%', bottom: '5.4%' };
+    const h = b.corner.startsWith('top') ? { top: '5.4%' } : { bottom: '5.4%' };
+    const w = b.corner.endsWith('left') ? { left: '3%' } : { right: '3%' };
+    return { width: '26%', ...h, ...w };
+  }
 
+  function renderLivePreview() {
+    // Stays in view while you scroll the cards (bubble, scrolling and cursor changes show straight away).
+    const wrap = el('div', 'flex min-w-0 flex-col gap-3 self-start lg:sticky lg:top-2');
+    wrap.setAttribute('data-editor-live-preview', '');
+    const c = previewContact();
+    const values = contactValues(c || {});
+    const frame = el('div', 'overflow-hidden rounded-2xl border border-white/10 bg-[#0f1115]');
+    // A browser bar with their company, like their own site.
+    const bar = el('div', 'flex items-center gap-3 border-b border-white/10 bg-white/[0.04] px-4 py-2.5');
+    bar.append(el('span', 'h-6 w-6 rounded-md bg-white/80'), el('span', 'truncate text-sm font-bold', c?.company || draft.fallbacks.company || 'Their company'), el('span', 'ml-auto truncate text-xs text-white/40', c?.website ? String(c.website).replace(/^https?:\/\//, '') : ''));
+    const media = el('div', 'relative aspect-video w-full overflow-hidden bg-black');
+    media.setAttribute('data-editor-preview-media', '');
+    const camVideo = () => { const v = el('video', 'h-full w-full object-cover'); v.src = draft.video?.url || ''; v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true; return v; };
+    if (usesBackground(draft)) {
+      const shot = (c && backgroundShotFor(draft, c)) || fallbackShotFor(draft);
+      const bgEl = el('div', 'absolute inset-0');
+      bgEl.setAttribute('data-preview-background', shot ? 'image' : 'placeholder');
+      if (shot) {
+        Object.assign(bgEl.style, { backgroundImage: `url(${JSON.stringify(shot)})`, backgroundSize: 'cover', backgroundPosition: 'top center' });
+        // Scroll the page (and back up), like the finished video.
+        if (draft.background.mode === 'website' && draft.background.scroll !== false) bgEl.animate([{ backgroundPosition: 'center 0%' }, { backgroundPosition: 'center 100%' }, ...(draft.background.scrollBack ? [{ backgroundPosition: 'center 0%' }] : [])], { duration: 12000, iterations: Infinity, easing: 'linear' });
+      } else {
+        bgEl.className = 'absolute inset-0 flex flex-col gap-3 bg-gradient-to-br from-slate-100 to-slate-200 p-[6%]';
+        bgEl.append(el('div', 'h-[7%] w-2/5 rounded bg-slate-300'), el('div', 'h-[6%] w-1/3 rounded bg-slate-300'), el('div', 'mt-2 h-[3%] w-1/2 rounded bg-slate-300/80'), el('div', 'h-[3%] w-2/5 rounded bg-slate-300/80'));
+        bgEl.appendChild(el('div', 'absolute right-[4%] top-[6%] max-w-[45%] text-right text-[11px] text-slate-500', draft.background.mode === 'website' ? 'Their website appears here (captured when you generate)' : 'Their picture appears here (made when you generate)'));
+      }
+      const bubble = el('div', 'absolute aspect-square overflow-hidden rounded-full border-[3px] border-white shadow-2xl');
+      bubble.setAttribute('data-preview-bubble', bubbleOf(draft).mode === 'spotlight' ? 'spotlight' : bubbleOf(draft).corner);
+      Object.assign(bubble.style, bubbleCss());
+      if (draft.video?.url) bubble.appendChild(camVideo()); else bubble.classList.add('bg-slate-700');
+      media.append(bgEl, bubble);
+    } else if (draft.video?.url) media.appendChild(camVideo());
+    else media.appendChild(el('div', 'grid h-full place-items-center text-sm text-white/40', 'Record your video first'));
+    // What they hear, as a caption bubble.
+    if (draft.kind !== 'same') {
+      const cap = el('div', 'absolute left-[4%] top-[6%] flex max-w-[60%] items-center gap-2.5 rounded-xl bg-[#14161c]/90 px-3.5 py-2.5 text-[13px] text-white shadow-xl');
+      cap.setAttribute('data-preview-caption', '');
+      const playDot = el('span', 'grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary text-xs text-black', '▶');
+      cap.append(playDot, el('span', '', `“${fillTemplate(draft.greeting, values, draft.fallbacks)}”`));
+      media.appendChild(cap);
+    }
+    frame.append(bar, media);
+    wrap.appendChild(frame);
+    wrap.appendChild(finalNotice() || el('span'));
+    // Prospect switcher.
+    const list = draft.contacts.slice(0, 6);
+    const chips = el('div', 'grid gap-2 sm:grid-cols-3');
+    chips.setAttribute('data-editor-prospects', '');
+    if (!list.length) chips.appendChild(el('p', 'text-xs text-white/45 sm:col-span-3', `No prospects yet: the preview uses your fallbacks (“${draft.fallbacks.firstname}”, “${draft.fallbacks.company}”). Add prospects in step 4.`));
+    list.forEach((p) => {
+      const on = p.id === c?.id;
+      const chip = el('button', `flex min-w-0 items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-colors ${on ? 'border-primary/40 bg-primary/[0.08]' : 'border-white/10 hover:border-white/25'}`);
+      chip.type = 'button';
+      chip.setAttribute('data-preview-prospect', p.id);
+      if (on) chip.setAttribute('aria-pressed', 'true');
+      const name = [p.firstName, p.lastName].filter(Boolean).join(' ') || p.email || 'Prospect';
+      const words = el('div', 'min-w-0 flex-1');
+      words.append(el('div', 'truncate text-sm font-bold', name), el('div', 'truncate text-xs text-white/50', p.company || ''));
+      chip.append(avatar(name), words, ...(on ? [el('span', 'text-[11px] font-bold text-primary', 'Previewing')] : []));
+      chip.addEventListener('click', () => { previewContactId = p.id; render(); });
+      chips.appendChild(chip);
+    });
+    wrap.appendChild(chips);
+    return wrap;
+  }
+
+  // Generate Videos (editor header): straight to Generate & share when everything is set, else to what is missing.
+  function goGenerate() {
+    for (let s2 = 1; s2 <= SETUP_STEPS; s2 += 1) {
+      const errs = stepErrors(draft, s2);
+      if (errs.length) { goStep(s2, errs[0]); return; }
+    }
+    goStep(SETUP_STEPS + 1, '');
+  }
+
+  // Error handling (Sendspark's settings wheel): a prospect without a working website gets the fallback, or stops Generate.
+  function renderErrorHandling() {
+    const box = el('div', 'flex flex-col gap-1.5');
+    box.setAttribute('data-bg-on-missing', '');
+    box.appendChild(el('div', 'text-xs font-semibold text-white/70', 'Error handling'));
+    MISSING_MODES.forEach(([k, label]) => {
+      const row = el('label', 'flex items-center gap-2 text-sm text-white/80');
+      const r = el('input'); r.type = 'radio'; r.name = 'outreach-on-missing'; r.value = k; r.checked = onMissingOf(draft) === k;
+      r.setAttribute('data-on-missing', k);
+      r.addEventListener('change', () => { draft.background = { ...draft.background, onMissing: k }; persist(); render(); });
+      row.append(r, el('span', '', label));
+      box.appendChild(row);
+    });
+    box.appendChild(el('p', 'text-[11px] text-white/45', 'When a prospect has no website, or theirs can\u2019t be loaded.'));
+    return box;
+  }
+
+  function renderBackgroundCard() {
     // Background: the recording as it is, or each contact's own website behind a round camera bubble.
-    const bg = el('div', 'flex flex-col gap-3 rounded-xl border border-white/10 p-4');
-    bg.appendChild(el('div', 'text-sm font-bold', 'Video background'));
+    const bg = el('div', 'flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-5');
+    bg.setAttribute('data-outreach-background-card', '');
+    bg.appendChild(el('div', 'text-xs font-extrabold uppercase tracking-[0.14em] text-primary', 'Background'));
     const bgModes = el('div', 'flex flex-wrap gap-2');
-    for (const [mode, label] of [['recording', 'My recording'], ['website', 'Each contact\u2019s website'], ['image', 'An image'], ['map', 'A map of their address']]) {
+    for (const [mode, label] of [['website', 'Website'], ['profile', 'Profile card'], ['map', 'Maps'], ['image', 'Image'], ['recording', 'None']]) {
       const b = button(label, { selected: draft.background.mode === mode, small: true });
       b.setAttribute('data-bg-mode', mode);
       b.addEventListener('click', () => { draft.background = { ...draft.background, mode }; draft.campaign = null; persist(); render(); });
@@ -1169,15 +1425,20 @@ export function OutreachStudio() {
     }
     bg.appendChild(bgModes);
     if (draft.background.mode === 'website') {
-      bg.appendChild(el('p', 'text-xs text-secondary', 'Your camera appears in a round bubble over a screenshot of each contact\u2019s website (from the Website column). Screenshots are taken when you generate the campaign. Record in Camera mode for this.'));
+      bg.appendChild(el('p', 'text-xs text-secondary', 'Your camera appears in a round bubble over a screenshot of each contact\u2019s website or social page (the Website or social page column). Screenshots are taken when you generate the campaign. Record in Camera mode for this.'));
+      const social = el('p', 'text-[11px] text-white/45', 'Social pages: YouTube channels and TikTok profiles work. Facebook, Instagram and X usually show a login page to visitors, so those prospects get the error below. LinkedIn isn\u2019t captured: use Profile card.');
+      social.setAttribute('data-bg-social-note', '');
+      bg.appendChild(social);
       const fallback = textInput(draft.background.fallbackSite, 'yourcompany.com');
       fallback.addEventListener('input', () => { draft.background = { ...draft.background, fallbackSite: fallback.value.trim() }; draft.campaign = null; persist(); });
       fallback.addEventListener('change', () => render());
-      bg.appendChild(field('Fallback website', fallback, 'Shown for contacts without a website, or whose site could not be captured.'));
-      const curOn = el('input'); curOn.type = 'checkbox'; curOn.checked = draft.background.cursor !== false;
-      curOn.addEventListener('change', () => { draft.background = { ...draft.background, cursor: curOn.checked }; draft.campaign = null; persist(); });
-      const curRow = el('label', 'flex items-center gap-2 text-xs'); curRow.append(curOn, el('span', '', 'Show a pointer moving over their website, as if you were pointing things out'));
-      bg.appendChild(curRow);
+      bg.appendChild(field('Fallback URL', fallback, 'Shown for contacts without a website, or whose site could not be captured.'));
+      bg.appendChild(renderErrorHandling());
+    }
+    if (draft.background.mode === 'profile') {
+      const p = el('p', 'text-xs text-secondary', 'Your camera appears in a round bubble over a card with each contact\u2019s name, job title, company, their logo (or initials) and their LinkedIn address, from your prospect list. Cards are drawn when you generate the campaign. (LinkedIn pages themselves can\u2019t be captured: they need a login.)');
+      p.setAttribute('data-bg-profile-note', '');
+      bg.appendChild(p);
     }
     if (draft.background.mode === 'image' || draft.background.mode === 'map') {
       bg.appendChild(el('p', 'text-xs text-secondary', draft.background.mode === 'image'
@@ -1201,7 +1462,92 @@ export function OutreachStudio() {
       img.append(up, f);
       bg.appendChild(field(draft.background.mode === 'image' ? 'Background image (and fallback)' : 'Fallback image', img, draft.background.mode === 'image' ? 'For contacts without their own background image.' : 'For contacts without an address, or whose address could not be found.'));
     }
-    main.appendChild(bg);
+    if (usesBackground(draft)) {
+      // Where your camera sits over their background.
+      const b = bubbleOf(draft);
+      const setBubble = (patch) => { draft.background = { ...draft.background, bubble: { ...b, ...patch } }; draft.campaign = null; persist(); render(); };
+      const bubbleRow = el('div', 'flex flex-wrap items-center gap-2 text-sm');
+      bubbleRow.setAttribute('data-bg-bubble', '');
+      bubbleRow.appendChild(el('span', 'mr-2 font-semibold', 'Camera bubble'));
+      const spot = button('Spotlight', { selected: b.mode === 'spotlight', small: true });
+      spot.setAttribute('data-bubble-mode', 'spotlight');
+      spot.title = 'A bigger bubble at the bottom centre: you are the focus';
+      spot.addEventListener('click', () => setBubble({ mode: 'spotlight' }));
+      const fixed = button('Fixed', { selected: b.mode === 'fixed', small: true });
+      fixed.setAttribute('data-bubble-mode', 'fixed');
+      fixed.addEventListener('click', () => setBubble({ mode: 'fixed' }));
+      const corner = el('select', 'rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-sm text-white disabled:opacity-40');
+      corner.setAttribute('data-bubble-corner', ''); corner.setAttribute('aria-label', 'Bubble corner');
+      corner.disabled = b.mode !== 'fixed';
+      for (const [k, label] of BUBBLE_CORNERS) { const o = el('option', 'bg-neutral-900', label); o.value = k; o.selected = b.corner === k; corner.appendChild(o); }
+      corner.addEventListener('change', () => setBubble({ mode: 'fixed', corner: corner.value }));
+      bubbleRow.append(spot, fixed, corner);
+      bg.appendChild(bubbleRow);
+    }
+    if (draft.background.mode === 'website') {
+      const set = (patch) => { draft.background = { ...draft.background, ...patch }; draft.campaign = null; persist(); render(); };
+      const line = (label, attr, on, onChange, extra = null) => {
+        const r = el('div', 'flex items-center gap-3 text-sm');
+        const sw = toggle(on, onChange, { label });
+        sw.setAttribute(attr, '');
+        r.append(el('span', 'flex-1 font-semibold', label), ...(extra ? [extra] : []), sw);
+        return r;
+      };
+      const back = el('label', 'flex items-center gap-1.5 text-xs text-white/70');
+      const backBox = el('input'); backBox.type = 'checkbox'; backBox.checked = !!draft.background.scrollBack; backBox.disabled = draft.background.scroll === false;
+      backBox.setAttribute('data-bg-scroll-back', '');
+      backBox.addEventListener('change', () => set({ scrollBack: backBox.checked }));
+      back.append(backBox, el('span', '', 'Scroll back up'));
+      bg.append(
+        line('Scroll the page', 'data-bg-scroll', draft.background.scroll !== false, (on) => set({ scroll: on }), back),
+        line('Mouse cursor', 'data-bg-cursor', draft.background.cursor !== false, (on) => set({ cursor: on })),
+      );
+    }
+    return bg;
+  }
+
+  // ---- Step 3: Customize -------------------------------------------------
+  function renderCustomize() {
+    const grid = el('div', 'grid gap-5 lg:grid-cols-[1fr_440px]');
+    const main = card('Your prospect page', 'Each prospect gets their own page with their video. Use {{firstname}} and {{company}}; fallbacks fill in when a value is missing.');
+    main.style.minWidth = '0'; // long page names truncate instead of widening the column
+    // Which page prospects land on (like Sendspark, it belongs to this video): the plain video page, or one of
+    // your landing page designs, edited here with your recording in it.
+    main.appendChild(field('Landing page', pagePicker(),
+      'Your page belongs to this video. Choose one of your landing pages, then Edit page to change its words, pictures and sections. Each prospect sees it with their own personal video, and changes reach every link.'));
+    const header = textInput(draft.header);
+    const message = el('textarea', 'w-full min-h-[90px] rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none focus:border-primary/60');
+    message.value = draft.message;
+    const company = textInput(draft.fallbacks.company, 'your company');
+    const ctaOn = el('input'); ctaOn.type = 'checkbox'; ctaOn.checked = !!draft.cta.enabled;
+    const ctaLabel = textInput(draft.cta.label, 'Schedule a demo');
+    const ctaUrl = textInput(draft.cta.url, 'https://cal.com/you/intro');
+    const calOn = el('input'); calOn.type = 'checkbox'; calOn.checked = !!draft.cta.embed; calOn.setAttribute('data-outreach-calendar', '');
+    const liveOn = el('input'); liveOn.type = 'checkbox'; liveOn.checked = !!draft.cta.live; liveOn.setAttribute('data-outreach-live', '');
+    const sync = () => {
+      draft.header = header.value; draft.message = message.value; draft.fallbacks.company = company.value;
+      draft.cta = { ...draft.cta, enabled: ctaOn.checked, label: ctaLabel.value, url: ctaUrl.value.trim(), embed: calOn.checked, live: liveOn.checked };
+      persist(); updatePreview();
+    };
+    [header, message, company, ctaLabel, ctaUrl].forEach((i) => i.addEventListener('input', sync));
+    ctaOn.addEventListener('change', sync);
+    calOn.addEventListener('change', sync);
+    liveOn.addEventListener('change', sync);
+    const ctaRow = el('label', 'flex items-center gap-3 text-sm font-bold'); ctaRow.append(ctaOn, el('span', '', 'Call-to-action button'));
+    const calRow = el('label', 'flex items-center gap-3 text-sm'); calRow.append(calOn, el('span', '', 'Plain video page only: show the calendar under the video so contacts can book without leaving the page'));
+    const liveRow = el('label', 'flex items-center gap-3 text-sm'); liveRow.append(liveOn, el('span', '', 'Let prospects call me live: a \u201cTalk live\u201d button shows on their page (plain video page) whenever you switch on \u201cAvailable for live calls\u201d here'));
+    main.append(field('Header', header, draft.page ? 'For the plain video page. Your landing page keeps its own words; change them with Edit page.' : ''), variableChips(header), field('Message', message), variableChips(message), field('If the company is missing, say', company), ctaRow,
+      field('Button label', ctaLabel), field('Booking link', ctaUrl, 'Your Cal.com, Calendly or other booking page (https).'), calRow, liveRow);
+
+
+    // Video background: on the AI intro step for AI voices; here for Same audio (which has no AI intro step).
+    if (draft.kind === 'same') main.appendChild(renderBackgroundCard());
+    else {
+      const note = el('p', 'text-xs text-white/50', 'Video background, camera bubble and scrolling are on the AI intro step.');
+      note.setAttribute('data-outreach-bg-moved', '');
+      main.appendChild(note);
+    }
+
 
     const preview = el('div', 'rounded-2xl bg-[#f7f4ee] p-6 text-center text-[#1a1a1a] flex flex-col gap-3 self-start');
     const sample = { firstname: 'Mike', company: 'Acme' };
@@ -1232,7 +1578,7 @@ export function OutreachStudio() {
           page.append(el('div', 'h-3 w-1/3 rounded bg-white/80'), el('div', 'mt-2 h-2 w-3/4 rounded bg-white/70'), el('div', 'h-2 w-2/3 rounded bg-white/70'), el('div', 'mt-auto text-left text-[10px] text-black/40', 'acme.com'));
         }
         const bubble = el('div', 'absolute overflow-hidden rounded-full border-[3px] border-white shadow-lg');
-        Object.assign(bubble.style, { left: '3%', bottom: '5.4%', width: '26%', aspectRatio: '1 / 1' });
+        Object.assign(bubble.style, { ...bubbleCss(), aspectRatio: '1 / 1' });
         if (draft.video?.url) bubble.appendChild(camVideo()); else bubble.classList.add('bg-slate-700');
         media.append(page, bubble);
       } else if (draft.video?.url) media.appendChild(camVideo());
@@ -1244,6 +1590,8 @@ export function OutreachStudio() {
         preview.appendChild(cal);
       }
       if (draft.voice.mode === 'clone') preview.appendChild(el('p', 'text-[11px] text-black/45', 'AI-personalized voice'));
+      const fin = finalNotice({ light: true });
+      if (fin) preview.appendChild(fin);
     };
     updatePreview();
     grid.append(main, preview);
@@ -1297,7 +1645,7 @@ export function OutreachStudio() {
       box.appendChild(el('p', 'text-sm text-secondary', pendingLeads.error || 'No saved leads yet. Find businesses in Lead Finder and save them first.'));
       const row = el('div', 'flex gap-2');
       const go = button('Open Lead Finder', { small: true });
-      go.addEventListener('click', () => { window.location.hash = '#/leadfinder'; });
+      go.addEventListener('click', () => { goTo('leadfinder'); });
       const cancel = button('Close', { small: true });
       cancel.addEventListener('click', close);
       row.append(go, cancel); box.appendChild(row);
@@ -1331,6 +1679,162 @@ export function OutreachStudio() {
     return box;
   }
 
+  // Website backgrounds on the Prospects step: each prospect's status, and a free check of every website.
+  function siteBadge(c) {
+    const st = siteStatus(draft, c);
+    const then = onMissingOf(draft) === 'error' ? 'Fix or remove before generating.' : 'Their video uses the fallback.';
+    const [cls, text] = {
+      uploaded: ['text-emerald-300', '\u2713 Screenshot uploaded'],
+      own: ['text-emerald-300', '\u2713 Website ready'],
+      error: ['text-orange-300', `${siteErrorFor(draft, c)} ${then}`],
+      none: ['text-orange-300', `No website. ${then}`],
+      pending: ['text-white/40', 'Website not checked yet'],
+    }[st];
+    const b = el('div', `text-[11px] ${cls}`, text);
+    b.setAttribute('data-outreach-site-status', st);
+    return b;
+  }
+
+  // The screenshot behind this prospect's bubble, small (so a wrong capture is easy to spot and replace).
+  function shotPreview(c) {
+    const shot = backgroundShotFor(draft, c);
+    const box = el('div', 'h-9 w-16 shrink-0 overflow-hidden rounded-md border border-white/10 bg-white/[0.03]');
+    box.setAttribute('data-outreach-shot-preview', shot ? 'yes' : 'no');
+    if (shot) { const img = el('img', 'h-full w-full object-cover object-top'); img.src = shot; img.alt = ''; img.loading = 'lazy'; box.appendChild(img); }
+    return box;
+  }
+
+  // Upload screenshot: the user's own picture of this prospect's page (any page, no capture needed).
+  function uploadShotButton(c) {
+    const wrap = el('div', 'mt-1 flex flex-wrap items-center gap-x-3 gap-y-1');
+    const f = el('input'); f.type = 'file'; f.accept = 'image/png,image/jpeg,image/webp'; f.hidden = true;
+    const up = el('button', 'text-[11px] font-semibold text-primary hover:underline disabled:opacity-40', c.backgroundShot ? 'Replace screenshot' : 'Upload screenshot');
+    up.type = 'button';
+    up.setAttribute('data-outreach-upload-shot', c.id);
+    up.disabled = !!busy;
+    up.addEventListener('click', () => f.click());
+    f.addEventListener('change', async () => {
+      const file = f.files?.[0]; f.value = '';
+      if (!file) return;
+      if (!/^image\//.test(file.type) || file.size > 10 * 1024 * 1024) { notice = 'Choose a PNG, JPEG or WebP picture under 10 MB.'; render(); return; }
+      if (!(await gate('screenshots for your prospects'))) return;
+      setBusy(`Uploading the screenshot for ${c.firstName || c.email || 'this prospect'}…`);
+      try {
+        const url = await uploadToStorage(file);
+        draft.contacts = draft.contacts.map((x) => (x.id === c.id ? { ...x, backgroundShot: url } : x));
+        draft.campaign = null; busy = ''; notice = ''; persist();
+      } catch (err) { busy = ''; notice = err.message; }
+      render();
+    });
+    wrap.append(up, f);
+    if (c.backgroundShot) {
+      const clear = el('button', 'text-[11px] text-white/45 hover:text-white', 'Use their link instead');
+      clear.type = 'button';
+      clear.setAttribute('data-outreach-clear-shot', c.id);
+      clear.addEventListener('click', () => { draft.contacts = draft.contacts.map((x) => (x.id === c.id ? { ...x, backgroundShot: '' } : x)); draft.campaign = null; persist(); render(); });
+      wrap.appendChild(clear);
+    }
+    return wrap;
+  }
+
+  // Capture with my browser: pages the user can see signed in (Facebook, Instagram, X…), shot in their own
+  // browser through Chrome's tab sharing (src/lib/outreach/browserCapture.js). LinkedIn is never captured.
+  const browserTodo = () => sitesToCapture(draft).filter((k) => !draft.siteShots[k] && !/linkedin\.com/i.test(k));
+  function renderBrowserCapture() {
+    const box = el('div', 'flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.02] p-3');
+    box.setAttribute('data-outreach-browser-capture', '');
+    const todo = browserTodo();
+    box.appendChild(el('div', 'text-xs font-semibold text-white/80', 'Capture with my browser'));
+    if (!globalThis.navigator?.mediaDevices?.getDisplayMedia) {
+      box.appendChild(el('p', 'text-[11px] text-white/45', 'Needs Chrome or Edge on a computer. Or upload a screenshot on each prospect.'));
+      return box;
+    }
+    if (!captureTab || captureTab.closed) {
+      captureTab = null;
+      box.appendChild(el('p', 'text-[11px] text-white/45', 'For pages that need you signed in (Facebook, Instagram, X): they\u2019re captured in your own browser, where you\u2019re already signed in. We never see your password. Your own name and photo at the top of the page are cut off. About 6 seconds a page; keep the tab open.'));
+      const open = button(todo.length ? `Capture with my browser (${todo.length})` : 'Nothing left to capture', { small: true });
+      open.setAttribute('data-outreach-browser-open', '');
+      open.disabled = !todo.length || !!busy;
+      open.addEventListener('click', async () => {
+        if (!(await gate('screenshots for your prospects'))) return;
+        try {
+          const { openCaptureTab } = await import('../lib/outreach/browserCapture.js');
+          captureTab = openCaptureTab(); notice = '';
+        } catch (err) { notice = err.message; }
+        render();
+      });
+      box.appendChild(open);
+      return box;
+    }
+    box.appendChild(el('p', 'text-[11px] text-white/70', 'A tab named \u201cSmartVideo capture tab\u201d is open. Click Start capturing, then choose that tab in Chrome\u2019s window and click Share.'));
+    const row = el('div', 'flex flex-wrap gap-2');
+    const start = button(`Start capturing (${todo.length})`, { primary: true, small: true });
+    start.setAttribute('data-outreach-browser-start', '');
+    start.disabled = !!busy || !todo.length;
+    start.addEventListener('click', () => runBrowserCapture(todo));
+    const cancel = button('Cancel', { small: true });
+    cancel.addEventListener('click', () => { try { captureTab?.close(); } catch { /* gone */ } captureTab = null; render(); });
+    row.append(start, cancel);
+    box.appendChild(row);
+    return box;
+  }
+
+  async function runBrowserCapture(urls) {
+    const bc = await import('../lib/outreach/browserCapture.js');
+    let share = null;
+    abort = new AbortController();
+    try {
+      share = await bc.startTabShare(captureTab);
+      const { shots, failed } = await bc.captureInTab({
+        tab: captureTab, share, urls, signal: abort.signal,
+        upload: (blob, i) => uploadToStorage(new File([blob], `prospect-page-${i + 1}.jpg`, { type: 'image/jpeg' })),
+        onShot: (url, imageUrl) => {
+          draft.siteShots = { ...draft.siteShots, [url]: imageUrl };
+          if (draft.siteErrors?.[url]) { const { [url]: _gone, ...rest } = draft.siteErrors; draft.siteErrors = rest; }
+          draft.campaign = null; persist();
+        },
+        onProgress: (i, n, url) => setBusy(i < n ? `Capturing in your browser: ${i + 1} of ${n} (${url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')})\u2026 Keep the capture tab open.` : 'Saving\u2026'),
+      });
+      draft.siteErrors = { ...draft.siteErrors, ...Object.fromEntries(failed.map((k) => [k, SITE_ERROR])) };
+      persist();
+      const n = Object.keys(shots).length;
+      notice = `${n} page${n === 1 ? '' : 's'} captured in your browser.${failed.length ? ` ${failed.length} did not load.` : ''} Check the small pictures: if one shows a login or the wrong page, upload a screenshot for that prospect.`;
+    } catch (err) {
+      notice = err?.name === 'AbortError' ? 'Stopped. Pages captured so far are kept.' : err?.name === 'NotAllowedError' ? 'Tab sharing was cancelled. Click Start capturing and choose the SmartVideo capture tab.' : err.message;
+    } finally {
+      share?.stop();
+      if (!/wasn\u2019t the SmartVideo capture tab|cancelled/.test(notice)) { try { captureTab?.close(); } catch { /* gone */ } captureTab = null; }
+      busy = ''; abort = null;
+      render();
+    }
+  }
+
+  function renderSiteCheck() {
+    const box = el('div', 'flex flex-wrap items-center gap-2');
+    // A LinkedIn link already refused is not checked again (it never can be captured).
+    const todo = sitesToCapture(draft).filter((s) => !draft.siteShots[s] && !(/linkedin\.com/i.test(s) && draft.siteErrors?.[s])).length;
+    const check = button(todo ? `Check websites (${todo})` : 'Websites checked', { small: true });
+    check.setAttribute('data-outreach-check-sites', '');
+    check.disabled = !todo || !!busy;
+    check.addEventListener('click', async () => {
+      abort = new AbortController();
+      try { await captureSites({ requireFallback: false }); busy = ''; notice = ''; } catch (err) { busy = ''; if (err?.name !== 'AbortError') notice = err.message; }
+      render();
+    });
+    const bad = draft.contacts.filter((c) => ['error', 'none'].includes(siteStatus(draft, c))).length;
+    box.append(check, el('span', 'text-[11px] text-white/45', bad ? `${bad} without a working website (${onMissingOf(draft) === 'error' ? 'they stop Generate' : 'they get the fallback'}).` : 'Screenshots are taken now and reused when you generate.'));
+    const wrap = el('div', 'flex flex-col gap-3 border-t border-white/5 pt-3');
+    wrap.append(box);
+    if (busy && abort && /^Capturing in your browser/.test(busy)) {
+      const stop = button('Stop capturing', { small: true });
+      stop.setAttribute('data-outreach-browser-stop', '');
+      stop.addEventListener('click', () => abort?.abort());
+      wrap.append(el('p', 'text-[11px] text-primary', busy), stop);
+    }
+    wrap.append(renderBrowserCapture(), renderErrorHandling());
+    return wrap;
+  }
+
   function renderContacts() {
     const grid = el('div', 'grid gap-5 lg:grid-cols-[1fr_380px]');
     const main = card('Add contacts', 'Upload a CSV, or add people one at a time. Each contact gets their own link.');
@@ -1356,6 +1860,22 @@ export function OutreachStudio() {
     fromLeads.setAttribute('data-outreach-leads', '');
     fromLeads.addEventListener('click', loadLeads);
     csvRow.append(upload, template, fromLeads, file);
+    // On phones that support it (Android Chrome): pick people from the phone's contacts.
+    if (contactPickerSupported()) {
+      const fromPhone = button('Add from my contacts');
+      fromPhone.setAttribute('data-outreach-phone-contacts', '');
+      fromPhone.addEventListener('click', async () => {
+        try {
+          const picked = await navigator.contacts.select(['name', 'email'], { multiple: true });
+          if (!picked?.length) return;
+          const { contacts, skipped } = contactsFromPicker(picked);
+          if (!contacts.length) { notice = `None of the ${picked.length} picked had an email address, so none were added.`; render(); return; }
+          addContacts(contacts);
+          if (skipped) { notice += ` ${skipped} skipped (no email).`; render(); }
+        } catch (err) { if (err?.name !== 'AbortError') fail(err); }
+      });
+      csvRow.insertBefore(fromPhone, file);
+    }
     main.appendChild(csvRow);
 
     if (pendingLeads) main.appendChild(renderLeadPicker());
@@ -1402,16 +1922,19 @@ export function OutreachStudio() {
     const side = card(`Contacts (${draft.contacts.length})`, draft.contacts.length ? 'Contacts without a first name hear the fallback greeting.' : 'No contacts yet.');
     const list = el('div', 'flex flex-col divide-y divide-white/5 max-h-[460px] overflow-y-auto');
     draft.contacts.forEach((c) => {
-      const row = el('div', 'flex items-center gap-3 py-2 text-sm');
+      const row = el('div', `flex ${draft.background.mode === 'website' ? 'items-start' : 'items-center'} gap-3 py-2 text-sm`);
       const who = el('div', 'min-w-0 flex-1');
       who.append(el('div', 'truncate font-semibold', [c.firstName, c.lastName].filter(Boolean).join(' ') || '(no name)'),
         el('div', 'truncate text-xs text-white/50', [c.email, c.company].filter(Boolean).join(' · ')));
+      if (draft.background.mode === 'website') who.appendChild(siteBadge(c));
       const rm = button('Remove', { small: true });
       rm.addEventListener('click', () => { draft.contacts = draft.contacts.filter((x) => x.id !== c.id); draft.campaign = null; persist(); render(); });
+      if (draft.background.mode === 'website') { row.appendChild(shotPreview(c)); who.appendChild(uploadShotButton(c)); }
       row.append(who, rm);
       list.appendChild(row);
     });
     side.appendChild(list);
+    if (draft.background.mode === 'website' && draft.contacts.length) side.appendChild(renderSiteCheck());
     if (draft.contacts.length) {
       const clear = button('Remove all', { small: true });
       clear.addEventListener('click', () => { if (window.confirm('Remove every contact from this campaign?')) { draft.contacts = []; draft.campaign = null; persist(); render(); } });
@@ -1447,13 +1970,17 @@ export function OutreachStudio() {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: todo[i] }), signal: abort?.signal,
         });
         const body = await res.json().catch(() => ({}));
-        if (!res.ok || !body.imageUrl) throw new Error(body.error || `HTTP ${res.status}`);
+        if (!res.ok || !body.imageUrl) throw Object.assign(new Error(body.error || `HTTP ${res.status}`), { code: body.code });
         draft.siteShots = { ...draft.siteShots, [todo[i]]: body.imageUrl };
+        if (draft.siteErrors?.[todo[i]]) { const { [todo[i]]: _gone, ...rest } = draft.siteErrors; draft.siteErrors = rest; }
         if (body.logoUrl) draft.siteLogos = { ...draft.siteLogos, [todo[i]]: body.logoUrl };
         persist();
       } catch (err) {
         if (err?.name === 'AbortError') throw err;
         failed.push(todo[i]);
+        // A login wall (most social networks) and LinkedIn get the server's own message; anything else Sendspark's.
+        draft.siteErrors = { ...draft.siteErrors, [todo[i]]: ['CONTENT_RESTRICTED', 'LINKEDIN_NOT_SUPPORTED'].includes(err?.code) ? err.message : SITE_ERROR };
+        persist();
       }
     }
     const fallback = siteKey(draft.background.fallbackSite);
@@ -1479,6 +2006,31 @@ export function OutreachStudio() {
     }
   }
 
+  // Profile-card backgrounds: one card per prospect (and one for the fallbacks), drawn in the browser and stored.
+  async function captureProfiles() {
+    const { cardDetails, cardKey, renderProfileCard } = await import('../lib/outreach/profileCard.js');
+    const side = cardSide(draft);
+    const people = [...draft.contacts, {}];
+    const todo = [];
+    const seen = new Set();
+    for (const c of people) {
+      const d = cardDetails(c, draft.fallbacks);
+      const k = cardKey(d, side);
+      if (seen.has(k) || draft.profileShots?.[k]) continue;
+      seen.add(k); todo.push({ c, d, k });
+    }
+    for (let i = 0; i < todo.length; i++) {
+      if (abort?.signal.aborted) throw Object.assign(new Error('Stopped'), { name: 'AbortError' });
+      setBusy(`Drawing profile cards: ${i + 1} of ${todo.length}…`);
+      const { c, d, k } = todo[i];
+      const logoUrl = c.website ? draft.siteLogos?.[siteKey(c.website)] || '' : '';
+      const blob = await renderProfileCard(d, { logoUrl, side });
+      const url = await uploadToStorage(new File([blob], 'profile-card.jpg', { type: 'image/jpeg' }));
+      draft.profileShots = { ...(draft.profileShots || {}), [k]: url };
+      persist();
+    }
+  }
+
   // Returns true when the campaign is published. `confirmed` skips the cost question (the caller asked already);
   // onStage(stage, part) follows the real work, part = 0..1 of that stage: 'site' (website screenshots), 'voice'
   // (greetings), 'render' (publishing the personal videos and rendering their thumbnails), 'page' (the landing
@@ -1489,7 +2041,7 @@ export function OutreachStudio() {
     const n = draft.contacts.length;
     const wantSync = personal && !!draft.voice.lipsync;
     // Lip-sync is cut from the uploaded video: edits not applied yet would not be in the lips.
-    if (wantSync && editModule && !editSegmentsInfo().unchanged) {
+    if (wantSync && editModule && tools && editSegmentsInfo().changed) {
       notice = 'Apply your edits first (Trim, then Apply edits): lip-sync uses the finished video.';
       render();
       return false;
@@ -1501,7 +2053,16 @@ export function OutreachStudio() {
     try {
       onStage('site');
       if (draft.background.mode === 'website') await captureSites({ onProgress: (part) => onStage('site', part) });
+      // Error handling "show an error": nothing is made (or paid for) until every prospect has a working website.
+      const problems = backgroundProblems(draft);
+      if (problems.length) {
+        busy = ''; progress = null;
+        notice = `${problems.length} prospect${problems.length === 1 ? ' has' : 's have'} no working website: ${problems.slice(0, 5).map((c) => [c.firstName, c.lastName].filter(Boolean).join(' ') || c.email).join(', ')}${problems.length > 5 ? '…' : ''}. Fix or remove them on Prospects, or set Error handling to use the fallback. Nothing was generated.`;
+        render();
+        return false;
+      }
       if (draft.background.mode === 'map') await captureMaps();
+      if (draft.background.mode === 'profile') await captureProfiles();
       let variants = {};
       if (personal) {
         const [{ voiceForContacts }, audio] = await Promise.all([
@@ -1572,6 +2133,9 @@ export function OutreachStudio() {
       const project = preparePublishProject(built, { title: built.title });
       const id = draft.campaign?.id || makeSlug();
       await publishVideo(await ownerClient(), { id, project });
+      // Who each link belongs to, kept in your own account, so a "watched" alert can name them.
+      saveProspects(id).catch(() => {});
+      alerts.loaded = false;
       const url = watchUrl(id);
       // A landing page chosen earlier keeps showing the campaign; its contact links are rebuilt.
       const page = draft.campaign?.id === id ? draft.campaign.page : null;
@@ -1689,68 +2253,53 @@ export function OutreachStudio() {
     if (busy && progress) wrap.appendChild(renderProgress());
 
     if (draft.campaign) {
-      const list = card('Personal links');
-      const rows = el('div', 'flex flex-col divide-y divide-white/5');
       if (linkStats.id !== draft.campaign.id && !linkStats.loading) setTimeout(loadLinkStats, 0);
-      draft.campaign.links.forEach((l, i) => {
-        const row = el('div', 'flex flex-wrap items-center gap-3 py-2.5 text-sm');
-        row.append(el('span', 'w-8 text-white/40 tabular-nums', String(i + 1).padStart(2, '0')));
-        const who = el('div', 'min-w-0 flex-1');
-        who.append(el('div', 'truncate font-semibold', l.name || '(no name)'), el('div', 'truncate text-xs text-white/50', l.email || ''));
-        const state = el('span', `text-xs ${l.voiced ? 'text-emerald-300' : 'text-white/50'}`, l.voiced ? (l.lipsynced ? '● Greeted by name, lip-synced' : l.lipsyncError ? `● Greeted by name (no lip-sync: ${l.lipsyncError})` : '● Greeted by name') : '● Fallback greeting');
-        const siteState = l.site ? el('span', `text-xs ${l.site === 'own' ? 'text-emerald-300' : 'text-white/50'}`, l.site === 'own' ? '● Their website' : '● Fallback website') : null;
-        const copy = button('Copy link', { small: true });
-        copy.addEventListener('click', async () => {
-          try { await navigator.clipboard.writeText(linkOf(l)); copy.textContent = 'Copied'; } catch { window.prompt('Copy this link:', linkOf(l)); }
-        });
-        const mailBtn = button('Copy email', { small: true });
-        mailBtn.setAttribute('data-outreach-copy-email', '');
-        mailBtn.addEventListener('click', () => copyEmail(l, mailBtn));
-        const mp4 = button('MP4', { small: true });
-        mp4.setAttribute('data-outreach-mp4', '');
-        mp4.title = 'Download this contact\u2019s video as a file';
-        mp4.disabled = !!busy;
-        mp4.addEventListener('click', () => downloadContactVideo(l));
-        const mailto = el('a', 'text-xs font-bold text-white/70 hover:text-white', 'Email');
-        if (l.email) { mailto.href = mailtoUrl(emailOf(l)); } else { mailto.classList.add('hidden'); }
-        const gmail = el('a', 'text-xs font-bold text-white/70 hover:text-white', 'Gmail');
-        gmail.setAttribute('data-outreach-gmail', '');
-        gmail.href = gmailUrl(emailOf(l)); gmail.target = '_blank'; gmail.rel = 'noopener noreferrer';
-        const li = button('LinkedIn', { small: true });
-        li.setAttribute('data-outreach-linkedin', '');
-        li.title = 'Copies a short message with their link and opens LinkedIn so you can paste it';
-        li.addEventListener('click', async () => {
-          const c = contactOf(l);
-          const msg = linkedinMessage({ contact: c, link: linkOf(l), fallbacks: draft.fallbacks });
-          window.open(c.linkedin || 'https://www.linkedin.com/messaging/', '_blank', 'noopener');
-          try { await navigator.clipboard.writeText(msg); li.textContent = 'Message copied'; } catch { window.prompt('Copy this message:', msg); }
-        });
-        const extra = [];
-        if (l.thumbnailUrl) {
-          const gifBtn = button(/\.gif(\?|$)/i.test(l.thumbnailUrl) ? 'Copy GIF' : 'Copy thumbnail', { small: true });
-          gifBtn.setAttribute('data-outreach-copy-gif', '');
-          gifBtn.addEventListener('click', () => copyGif(l, gifBtn));
-          // Download it (Sendspark's Share -> Download GIF), to attach or upload in any email tool.
-          const isGif = /\.gif(\?|$)/i.test(l.thumbnailUrl);
-          const dl = button(isGif ? 'Download GIF' : 'Download image', { small: true });
-          dl.setAttribute('data-outreach-download-gif', '');
-          dl.addEventListener('click', () => downloadThumbnail(l, dl, isGif));
-          const embed = button('Embed', { small: true });
-          embed.setAttribute('data-outreach-embed', '');
-          embed.addEventListener('click', () => copyEmbed(l, embed));
-          extra.push(gifBtn, dl, embed);
-        }
-        const st = linkStats.byContact ? (linkStats.byContact[l.contactId] || { views: 0, plays: 0, ctaClicks: 0 }) : null;
-        const watch = st ? el('span', `text-xs ${st.ctaClicks ? 'text-primary' : st.plays ? 'text-emerald-300' : 'text-white/40'}`, st.ctaClicks ? '● Clicked' : st.plays ? '● Watched' : st.views ? '● Opened' : '● Not opened') : null;
-        row.append(who, state, ...(siteState ? [siteState] : []), ...(watch ? [watch] : []), copy, mailBtn, li, ...extra, mp4, mailto, gmail);
-        rows.appendChild(row);
-      });
-      list.appendChild(rows);
+      // The prospect table (src/components/outreach/ProspectTable.js), like Sendspark's dynamic-video prospect list.
+      const list = card('Prospects', 'Each prospect\u2019s own video, thumbnail and page. Share or send it from their row; you\u2019ll see who watched and how much.');
+      const contactOfLink = (l) => draft.contacts.find((c) => c.id === l.contactId) || {};
+      const links = draft.campaign.links.map((l) => ({ ...l, heard: l.voiced ? fillTemplate(draft.greeting, contactValues(contactOfLink(l)), draft.fallbacks).trim() : '' }));
+      list.appendChild(renderProspectTable({
+        links, contacts: draft.contacts, total: draft.contacts.length,
+        stats: linkStats.byContact, filter: prospectFilter,
+        setFilter: (k) => { prospectFilter = k; render(); },
+        onAddProspects: () => { goStep(4, ''); },
+        share: (l) => openShare(l),
+        remove: (l) => removeProspect(l),
+        menu: (l) => {
+          const c = contactOfLink(l);
+          const sent = () => markSent(l);
+          return [
+            { label: 'Copy link', attr: 'data-outreach-copy-link', onClick: async (_e, item) => { try { await navigator.clipboard.writeText(linkOf(l)); item.textContent = 'Copied'; } catch { window.prompt('Copy this link:', linkOf(l)); } sent(); } },
+            { label: 'Copy email', attr: 'data-outreach-copy-email', onClick: (_e, item) => { copyEmail(l, item); sent(); } },
+            { label: 'Gmail', attr: 'data-outreach-gmail', href: gmailUrl(emailOf(l)), onClick: sent },
+            { label: 'Outlook', attr: 'data-outreach-outlook', href: outlookUrl(emailOf(l)), onClick: sent },
+            ...(l.email ? [{ label: 'Email app', attr: 'data-outreach-mailto', href: mailtoUrl(emailOf(l)), onClick: sent }] : []),
+            { label: 'LinkedIn', attr: 'data-outreach-linkedin', onClick: async (_e, item) => {
+              const msg = linkedinMessage({ contact: c, link: linkOf(l), fallbacks: draft.fallbacks });
+              window.open(c.linkedin || 'https://www.linkedin.com/messaging/', '_blank', 'noopener');
+              try { await navigator.clipboard.writeText(msg); item.textContent = 'Message copied'; } catch { window.prompt('Copy this message:', msg); }
+              sent();
+            } },
+            { label: 'Download MP4', attr: 'data-outreach-mp4', disabled: !!busy, onClick: () => downloadContactVideo(l) },
+          ];
+        },
+      }));
       wrap.appendChild(list);
       wrap.appendChild(renderLandingCard());
       wrap.appendChild(renderEmailCard());
+      wrap.appendChild(renderAlertsCard());
     }
     return wrap;
+  }
+
+  // Delete a prospect from a generated campaign (a test or sample contact): their row, link and thumbnail go.
+  function removeProspect(l) {
+    if (!window.confirm(`Delete ${l.name || 'this prospect'} from this campaign? Their row and link are removed here.`)) return;
+    draft.contacts = draft.contacts.filter((c) => c.id !== l.contactId);
+    draft.campaign = { ...draft.campaign, links: draft.campaign.links.filter((x) => x.contactId !== l.contactId) };
+    persist();
+    notice = `${l.name || 'Prospect'} deleted.`;
+    render();
   }
 
   async function loadLinkStats() {
@@ -1993,6 +2542,16 @@ export function OutreachStudio() {
   const contactOf = (l) => draft.contacts.find((c) => c.id === l.contactId) || { email: l.email, company: l.company };
   const emailOf = (l) => emailFor({ email: draft.email, fallbacks: draft.fallbacks, contact: contactOf(l), link: linkOf(l), thumbnailUrl: l.thumbnailUrl });
 
+  let prospectFilter = 'all';
+  // "Sent" (prospect table): you sent this prospect their video (copied their email or link, opened Gmail…).
+  function markSent(l) {
+    const link = draft.campaign?.links?.find((x) => x.contactId === l.contactId);
+    if (!link || link.sentAt) return;
+    link.sentAt = new Date().toISOString();
+    persist();
+    setTimeout(() => { if (step === 5 && !busy) render(); }, 400);
+  }
+
   async function copyEmail(l, btn) {
     const e = emailOf(l);
     try {
@@ -2042,7 +2601,7 @@ export function OutreachStudio() {
         if (!made.has(key)) {
           setBusy(`Making ${still ? 'thumbnails' : 'GIF thumbnails'} ${i + 1} of ${links.length}…`);
           // A GIF also gets its first frame as a still, for Outlook on Windows (which shows only that frame).
-          const set = await T.renderThumbnailSet({ frames, siteUrl: site, logoUrl: logo, text, settings, seconds: duration });
+          const set = await T.renderThumbnailSet({ frames, siteUrl: site, logoUrl: logo, text, settings, seconds: duration, signal });
           const stamp = `${Date.now()}-${made.size}`;
           const mainUrl = await uploadToStorage(new File([set.main], `thumb-${stamp}.${still ? 'jpg' : 'gif'}`, { type: set.main.type }));
           const stillUrl = set.still ? await uploadToStorage(new File([set.still], `thumb-${stamp}-still.jpg`, { type: 'image/jpeg' })) : mainUrl;
@@ -2061,37 +2620,34 @@ export function OutreachStudio() {
     }
   }
 
-  async function downloadThumbnail(l, btn, isGif) {
+  async function downloadThumbnail(l, btn, isGif, url = l.thumbnailUrl, suffix = 'thumbnail') {
     const label = btn.textContent;
     btn.disabled = true; btn.textContent = 'Downloading\u2026';
     try {
-      const res = await fetch(l.thumbnailUrl);
+      const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const name = `${String(l.name || 'prospect').replace(/[^\w-]+/g, '_')}-thumbnail.${isGif ? 'gif' : 'jpg'}`;
+      const name = `${String(l.name || 'prospect').replace(/[^\w-]+/g, '_')}-${suffix}.${isGif ? 'gif' : 'jpg'}`;
       const { downloadBlob } = await import('../lib/editor/remotion/exportClient.js');
       downloadBlob(await res.blob(), name);
       btn.textContent = label;
-    } catch { window.open(l.thumbnailUrl, '_blank', 'noopener'); btn.textContent = label; }
+    } catch { window.open(url, '_blank', 'noopener'); btn.textContent = label; }
     btn.disabled = false;
   }
 
-  async function copyGif(l, btn) {
-    const { thumbnailHtml } = await import('../lib/outreach/email.js');
-    try {
-      await navigator.clipboard.write([new ClipboardItem({
-        'text/html': new Blob([thumbnailHtml({ link: linkOf(l), thumbnailUrl: l.thumbnailUrl })], { type: 'text/html' }),
-        'text/plain': new Blob([l.thumbnailUrl], { type: 'text/plain' }),
-      })]);
-      btn.textContent = 'Copied: paste into your email';
-    } catch {
-      window.prompt('Copy this thumbnail address:', l.thumbnailUrl);
-    }
-  }
-
-  async function copyEmbed(l, btn) {
-    const { embedSnippet } = await import('../lib/outreach/email.js');
-    const code = embedSnippet({ link: linkOf(l), thumbnailUrl: l.thumbnailUrl, name: l.name });
-    try { await navigator.clipboard.writeText(code); btn.textContent = 'Copied'; } catch { window.prompt('Copy this embed code:', code); }
+  // Share one prospect's video: Link, GIF and Embed (src/components/outreach/ShareModal.js).
+  async function openShare(l, tab = 'link') {
+    const { openShareModal } = await import('./outreach/ShareModal.js');
+    openShareModal({
+      name: l.name || '', link: linkOf(l), thumbnailUrl: l.thumbnailUrl || '', stillUrl: l.stillUrl || '', tab,
+      // The embed's muted preview: the campaign video (the GIF stays the poster and the fallback).
+      videoUrl: draft.video?.url || '',
+      actions: {
+        sent: () => markSent(l),
+        download: (kind, btn) => (kind === 'still'
+          ? downloadThumbnail(l, btn, false, l.stillUrl, 'outlook-still')
+          : downloadThumbnail(l, btn, /\.gif(\?|$)/i.test(l.thumbnailUrl))),
+      },
+    });
   }
 
   // The thumbnail designer (src/components/outreach/ThumbnailDesigner.js): from the editor toolbar and the Email card.
@@ -2118,6 +2674,110 @@ export function OutreachStudio() {
       makeLabel: links.some((l) => l.thumbnailUrl) ? 'Remake thumbnails' : `Make thumbnails for ${links.length} prospect${links.length === 1 ? '' : 's'}`,
       onClose: () => render(),
     });
+  }
+
+  async function saveProspects(videoId) {
+    const db = await ownerClient();
+    const rows = draft.contacts.map((c) => ({
+      video_id: videoId, contact_id: String(c.id),
+      name: [c.firstName, c.lastName].filter(Boolean).join(' ').slice(0, 120) || null,
+      company: String(c.company || '').slice(0, 120) || null, email: String(c.email || '').slice(0, 200) || null,
+    })).filter((r) => /^[A-Za-z0-9_-]{1,80}$/.test(r.contact_id));
+    for (let i = 0; i < rows.length; i += 200) {
+      const { error } = await db.from('outreach_prospects').upsert(rows.slice(i, i + 200), { onConflict: 'video_id,contact_id' });
+      if (error) throw error;
+    }
+  }
+
+  // Alerts when a prospect watches or clicks (supabase/functions/outreach-alerts): always in the notification bell,
+  // and by email and Slack when set here.
+  const alerts = { loaded: false, loading: false, row: null, error: '', saved: false, activity: [], live: null };
+  // While Generate & share is open, a prospect watching or clicking shows here at once (src/lib/liveAlerts.js).
+  let stopLiveAlerts = null;
+  function listenLiveAlerts() {
+    if (stopLiveAlerts || !draft.campaign?.id) return;
+    stopLiveAlerts = onOwnerNotification((row) => {
+      if (!isOutreachAlertFor(row, draft.campaign?.id)) return;
+      alerts.live = { title: row.title, at: Date.now() };
+      alerts.activity = [row, ...(alerts.activity || []).filter((a) => a.id !== row.id)].slice(0, 10);
+      if (step === 5 && !busy && container.isConnected) render();
+    });
+  }
+  function stopListeningLiveAlerts() { stopLiveAlerts?.(); stopLiveAlerts = null; }
+  cleanups.push(stopListeningLiveAlerts);
+  async function loadAlerts() {
+    alerts.loading = true;
+    try {
+      const db = await ownerClient();
+      // Recent activity on this campaign (the same alerts the bell counts).
+      if (draft.campaign?.id) {
+        const act = await db.from('owner_notifications').select('id, title, created_at, read_at').eq('video_id', draft.campaign.id)
+          .eq('type', 'followup_opportunity').like('dedupe_key', 'outreach:%').order('created_at', { ascending: false }).limit(10);
+        alerts.activity = act.error ? [] : act.data || [];
+      }
+      const { data, error } = await db.from('outreach_alert_settings').select('enabled, on_watch, on_click, email, slack_webhook').maybeSingle();
+      if (error) throw error;
+      alerts.row = data || null; alerts.error = '';
+    } catch (err) { alerts.error = err?.message || 'Could not load your alert settings.'; }
+    alerts.loaded = true; alerts.loading = false;
+    if (step === 5 && !busy) render();
+  }
+
+  function renderAlertsCard() {
+    const box = card('Alerts', 'Know the moment a prospect watches or clicks. Alerts always show in the bell at the top; add your email or a Slack channel to get them there too.');
+    box.setAttribute('data-outreach-alerts', '');
+    if (!alerts.loaded && !alerts.loading) setTimeout(loadAlerts, 0);
+    listenLiveAlerts();
+    if (alerts.live && Date.now() - alerts.live.at < 5 * 60 * 1000) {
+      const now = el('div', 'flex items-center gap-2 rounded-lg border border-emerald-400/40 bg-emerald-400/10 px-3 py-2 text-sm text-emerald-100');
+      now.setAttribute('data-alerts-live', '');
+      const dot = el('span', 'h-2 w-2 shrink-0 animate-pulse rounded-full bg-emerald-400');
+      const mins = Math.floor((Date.now() - alerts.live.at) / 60000);
+      now.append(dot, el('span', 'flex-1', alerts.live.title), el('span', 'text-xs text-emerald-200/70', mins < 1 ? 'just now' : `${mins} min ago`));
+      box.appendChild(now);
+    }
+    if (!alerts.loaded) { box.appendChild(el('p', 'text-xs text-white/50', 'Loading…')); return box; }
+    const r = alerts.row || { enabled: true, on_watch: true, on_click: true, email: '', slack_webhook: '' };
+    const on = el('input'); on.type = 'checkbox'; on.checked = r.enabled !== false; on.setAttribute('data-alerts-enabled', '');
+    const onRow = el('label', 'flex items-center gap-2 text-sm'); onRow.append(on, el('span', '', 'Send alerts by email or Slack'));
+    const watch = el('input'); watch.type = 'checkbox'; watch.checked = r.on_watch !== false;
+    const click = el('input'); click.type = 'checkbox'; click.checked = r.on_click !== false;
+    const which = el('div', 'flex flex-wrap gap-4 text-xs text-white/75');
+    const lab = (i, t) => { const l = el('label', 'flex items-center gap-2'); l.append(i, el('span', '', t)); return l; };
+    which.append(lab(watch, 'When they watch (starts, and 75%)'), lab(click, 'When they click your button'));
+    const email = textInput(r.email || '', 'you@company.com'); email.type = 'email'; email.setAttribute('data-alerts-email', '');
+    const slack = textInput(r.slack_webhook || '', 'https://hooks.slack.com/services/…'); slack.setAttribute('data-alerts-slack', '');
+    const save = button(alerts.saved ? 'Saved' : 'Save alerts', { primary: true, small: true });
+    save.setAttribute('data-alerts-save', '');
+    const msg = el('p', 'text-xs text-amber-300');
+    if (alerts.error) msg.textContent = /outreach_alert_settings|relation|schema cache/i.test(alerts.error) ? 'Email and Slack alerts aren\u2019t switched on for this account yet. The bell still shows who watched.' : alerts.error;
+    save.addEventListener('click', async () => {
+      const e = email.value.trim(); const sl = slack.value.trim();
+      if (e && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) { msg.textContent = 'That email address doesn\u2019t look right.'; return; }
+      if (sl && !/^https:\/\/hooks\.slack\.com\/services\/[A-Za-z0-9/_-]{10,200}$/.test(sl)) { msg.textContent = 'Paste a Slack incoming-webhook link (https://hooks.slack.com/services/…).'; return; }
+      save.disabled = true; msg.textContent = '';
+      try {
+        const db = await ownerClient();
+        const row = { clerk_user_id: globalThis.window?.Clerk?.user?.id, enabled: on.checked, on_watch: watch.checked, on_click: click.checked, email: e || null, slack_webhook: sl || null, updated_at: new Date().toISOString() };
+        const { error } = await db.from('outreach_alert_settings').upsert(row, { onConflict: 'clerk_user_id' });
+        if (error) throw error;
+        alerts.row = row; alerts.saved = true; alerts.error = '';
+        render();
+        setTimeout(() => { alerts.saved = false; }, 2000);
+      } catch (err) { save.disabled = false; msg.textContent = /outreach_alert_settings|relation|schema cache/i.test(err?.message || '') ? 'Email and Slack alerts aren\u2019t switched on for this account yet.' : (err?.message || 'Could not save.'); }
+    });
+    box.append(onRow, which, field('Email me at', email), field('Slack', slack, 'In Slack: Apps → Incoming Webhooks → add to a channel, then paste the link here.'), save, msg);
+    if (alerts.activity?.length) {
+      const list = el('div', 'flex flex-col gap-1 border-t border-white/10 pt-3');
+      list.setAttribute('data-alerts-activity', '');
+      list.appendChild(el('div', 'text-xs font-bold text-white/70', 'Recent activity'));
+      alerts.activity.forEach((a) => {
+        const when = new Date(a.created_at);
+        list.appendChild(el('div', `text-xs ${a.read_at ? 'text-white/50' : 'text-white/85'}`, `${a.title} · ${when.toLocaleDateString()} ${when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`));
+      });
+      box.appendChild(list);
+    }
+    return box;
   }
 
   function renderEmailCard() {
@@ -2229,7 +2889,7 @@ export function OutreachStudio() {
       downloadText(`${(draft.name || 'campaign').replace(/[^\w-]+/g, '_')}-emails.csv`, mailMergeCsv(rows));
     });
     actions.appendChild(merge);
-    box.append(actions, el('p', 'text-[11px] text-white/45', 'Copy email puts the finished email (with the thumbnail) on your clipboard to paste into Gmail or Outlook. Copy GIF copies just the clickable thumbnail; Download GIF saves it; Embed gives HTML for email tools. GIFs play in Gmail, Apple Mail and Outlook on the web and Mac; Outlook on Windows shows the first frame, so for Outlook-heavy lists use Still image or the .csv\u2019s Outlook still URL. The .csv works with mail-merge tools.'));
+    box.append(actions, el('p', 'text-[11px] text-white/45', 'Copy email puts the finished email (with the thumbnail) on your clipboard to paste into Gmail or Outlook. Share opens each prospect\u2019s Link, GIF (Copy GIF, Download GIF, Outlook still) and Embed code for email tools. GIFs play in Gmail, Apple Mail and Outlook on the web and Mac; Outlook on Windows shows the first frame, so for Outlook-heavy lists use Still image or the .csv\u2019s Outlook still URL. The .csv works with mail-merge tools.'));
     return box;
   }
 
@@ -2271,14 +2931,14 @@ export function OutreachStudio() {
     const inProgress = !draft.campaign && (draft.video || draft.contacts.length);
     if (inProgress && from === draft && !keepVideo && !window.confirm('Start a new dynamic video? The one you are setting up (not generated yet) will be replaced.')) return;
     replaceDraft(newDynamicVideo(from, { keepVideo }));
-    step = keepVideo ? 4 : 1; notice = keepVideo ? 'Same video, new prospects: add them below.' : ''; render();
+    goStep(keepVideo ? 4 : 1, keepVideo ? 'Same video, new prospects: add them below.' : '');
   }
 
   function openFromLibrary(id) {
     const saved = libraryDraft(id);
     if (!saved) return;
     replaceDraft(saved);
-    step = SETUP_STEPS + 1; notice = ''; render();
+    goStep(SETUP_STEPS + 1, '');
   }
 
   // The Videos home: your dynamic videos as cards (like Sendspark's library), then the results table.
@@ -2309,7 +2969,7 @@ export function OutreachStudio() {
       c.append(el('div', 'text-xs font-bold uppercase tracking-wider text-primary', 'In progress'), el('div', 'text-lg font-extrabold truncate', draft.name || 'Untitled dynamic video'),
         el('p', 'text-xs text-secondary', `${draft.video ? 'Video recorded' : 'No video yet'} \u00b7 ${draft.contacts.length} prospect${draft.contacts.length === 1 ? '' : 's'}`));
       const go = button('Continue', { primary: true, small: true });
-      go.addEventListener('click', () => { step = resumeStep(); notice = ''; render(); });
+      go.addEventListener('click', () => { goStep(resumeStep(), ''); });
       c.appendChild(go);
       grid.appendChild(c);
     }
@@ -2433,17 +3093,52 @@ export function OutreachStudio() {
       pill.disabled = !open || !!busy;
       pill.title = open ? name : `${name}: finish the earlier steps first.`;
       pill.append(el('span', 'grid h-5 w-5 place-items-center rounded-full bg-black/20 text-[10px]', n === STEPS.length ? '\u25a6' : done ? '✓' : String(n)), el('span', '', name));
-      pill.addEventListener('click', () => { step = n; notice = ''; render(); });
+      pill.addEventListener('click', () => goStep(n, '', { animate: true }));
       stepper.appendChild(pill);
     });
+    // Available for live calls: shown once a campaign lets prospects call (Page step → Talk live).
+    if (liveCallSupported() && (draft.cta?.live || liveList().length)) {
+      const chip = el('button', `ml-auto flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${liveAvailable ? 'border-emerald-400/50 bg-emerald-400/10 text-emerald-100' : 'border-white/10 text-white/60'}`);
+      chip.type = 'button';
+      chip.setAttribute('data-outreach-live-available', liveAvailable ? 'on' : 'off');
+      chip.setAttribute('aria-pressed', String(liveAvailable));
+      chip.title = liveAvailable
+        ? 'Prospects on your pages see \u201cTalk live\u201d and can video-call you while this tab is open. Click to stop.'
+        : 'Let prospects on your pages video-call you while this tab is open.';
+      chip.append(el('span', `h-2 w-2 rounded-full ${liveAvailable ? 'bg-emerald-400 animate-pulse' : 'bg-white/30'}`), el('span', '', liveAvailable ? 'Available for live calls' : 'Live calls off'));
+      chip.addEventListener('click', () => {
+        liveAvailable = !liveAvailable;
+        try { globalThis.localStorage?.setItem(LIVE_KEY, liveAvailable ? '1' : '0'); } catch { /* private mode */ }
+        notice = liveAvailable ? (liveList().length ? 'You\u2019re available: prospects on your pages can call you while this tab is open.' : 'You\u2019re available. Generate a campaign with Talk live on so prospects can call you.') : 'Live calls are off.';
+        render();
+      });
+      stepper.appendChild(chip);
+    }
   }
 
   const VIEWS = { 1: () => renderRecord(), 2: () => renderVoice(), 3: () => renderCustomize(), 4: () => renderContacts(), 5: () => renderGenerate(), 6: () => renderCampaigns() };
 
   function render() {
     dropPreviewHandles();
+    syncHostLine();
     renderStepper();
     inner.replaceChildren();
+    const elsewhere = !guard.active();
+    stepper.inert = elsewhere;
+    if (elsewhere || changedElsewhere) {
+      const bar = el('div', 'sticky top-0 z-20 flex flex-wrap items-center gap-3 rounded-xl border border-amber-300/40 bg-[#2a2410] px-4 py-3 text-sm shadow-lg');
+      bar.setAttribute('data-outreach-other-tab', elsewhere ? 'blocked' : 'changed');
+      const btn = button(elsewhere ? 'Edit here instead' : 'Load the latest', { primary: true, small: true });
+      btn.setAttribute('data-outreach-take-over', '');
+      btn.addEventListener('click', () => {
+        if (elsewhere) { guard.takeOver(); return; }
+        changedElsewhere = false; reloadDraft(); render();
+      });
+      bar.append(el('span', 'flex-1 text-amber-100', elsewhere
+        ? 'This campaign is open in another tab. You can look here; changes are made in the other tab.'
+        : 'This campaign was changed in another tab.'), btn);
+      inner.appendChild(bar);
+    }
     if (!paid()) {
       // Preview: everything can be seen; recording, generating and sharing ask for the upgrade.
       const bar = el('div', 'flex flex-wrap items-center gap-3 rounded-xl border border-primary/25 bg-primary/[0.06] px-4 py-3 text-sm');
@@ -2454,7 +3149,9 @@ export function OutreachStudio() {
       bar.append(el('span', 'flex-1 text-white/85', 'You\u2019re previewing Video Outreach. Upgrade to SmartVideo full access to record, generate and share.'), up);
       inner.appendChild(bar);
     }
-    inner.appendChild(VIEWS[step]());
+    const view = VIEWS[step]();
+    if (elsewhere) view.inert = true; // read-only while another tab edits
+    inner.appendChild(view);
 
     const footer = el('div', 'flex flex-wrap items-center gap-3');
     const errors = step <= SETUP_STEPS + 1 ? stepErrors(draft, step) : [];
@@ -2464,16 +3161,26 @@ export function OutreachStudio() {
     // Buttons sit on the left so the floating Ask SmartVideo button (bottom right) never covers them.
     if (step > 1 && step < STEPS.length) {
       const back = button('Back'); back.disabled = !!busy;
-      back.addEventListener('click', () => { step -= 1; notice = ''; render(); });
+      back.addEventListener('click', () => goStep(step - 1, '', { animate: true }));
       footer.appendChild(back);
     }
     if (step < STEPS.length) {
-      const next = button(step === SETUP_STEPS + 1 ? 'Back to my videos' : 'Next', { primary: true });
+      const next = button(step === SETUP_STEPS + 1 ? 'Back to my videos' : 'Continue', { primary: true });
+      next.setAttribute('data-outreach-continue-step', '');
       next.disabled = !!busy || errors.length > 0;
-      next.addEventListener('click', () => { step += 1; notice = ''; render(); });
+      next.addEventListener('click', () => goStep(step + 1, '', { animate: true }));
       footer.appendChild(next);
     }
+    if (step <= SETUP_STEPS) {
+      // Everything is already saved as you go; this just takes you back to your videos.
+      const close = button('Save & Close');
+      close.setAttribute('data-outreach-save-close', '');
+      close.disabled = !!busy;
+      close.addEventListener('click', () => { persist(); goStep(STEPS.length, 'Saved. Pick it up any time from your videos.'); });
+      footer.appendChild(close);
+    }
     footer.appendChild(status);
+    if (elsewhere) footer.inert = true;
     inner.appendChild(footer);
   }
 
@@ -2508,7 +3215,7 @@ export function OutreachStudio() {
       name: String(user?.firstName || '').trim().slice(0, 40),
       initial: best,
       onChange: (a) => { ob.saveLocalOnboarding(uid, a); clearTimeout(timer); timer = setTimeout(() => saveWelcome(a), 500); },
-      onAcademy: () => { globalThis.location.hash = '#/academy'; },
+      onAcademy: () => { goTo('academy'); },
       onFinish: (a) => {
         clearTimeout(timer);
         saveWelcome(a);
@@ -2544,7 +3251,7 @@ export function OutreachStudio() {
   // What the person picked first: personal videos open the recorder; dynamic videos the library.
   function openChoice(goal) {
     if (goal === 'personal') { startNew(); if (step === 1) openRecorder('both'); return; }
-    step = STEPS.length; notice = ''; render();
+    goStep(STEPS.length, '');
   }
   async function makeSample(d, presenter, onStage) {
     const keep = !draft.campaign && (draft.video || draft.contacts.length) ? JSON.parse(JSON.stringify(draft)) : null;
@@ -2562,7 +3269,7 @@ export function OutreachStudio() {
       fallbacks: { ...next.fallbacks, firstname: 'there' },
       header: 'Hi {{firstname}}, I made this for you',
       message: 'A personal video for {{company}}, made with SmartVideo.',
-      cta: { enabled: true, label: 'Make my first campaign', url: `${origin}/#/outreach`, embed: false },
+      cta: { enabled: true, label: 'Make my first campaign', url: `${origin}/outreach`, embed: false },
       contacts: [me],
       background: { ...next.background, mode: 'website', fallbackSite: d.website, cursor: true },
       page: { template: SAMPLE_PAGE, editor: null },
@@ -2591,7 +3298,7 @@ export function OutreachStudio() {
       // Same audio has no greeting at all.
       Object.assign(next, { name, kind, language: lang, greeting: k ? k.greeting : next.greeting });
       replaceDraft(next);
-      step = 1; notice = ''; render();
+      goStep(1, '');
     };
     openGuidelines({
       kind,
@@ -2675,6 +3382,21 @@ export function OutreachStudio() {
   }
 
   render();
+  // Back and Forward move between the studio's steps (each step change is a history entry).
+  try { globalThis.history.replaceState({ ...(globalThis.history.state || {}), outreachStep: step }, '', location.href); } catch { /* sandboxed */ }
+  const onPopState = (e) => {
+    const n = e.state?.outreachStep;
+    if (!container.isConnected || !Number.isInteger(n) || n < 1 || n > STEPS.length || n === step) return;
+    if (busy || !reachable(n)) {
+      // Generating or capturing: stay here (and put the entry back) rather than leave work half done.
+      try { globalThis.history.pushState({ ...(e.state || {}), outreachStep: step }, '', location.href); } catch { /* sandboxed */ }
+      if (busy) { notice = ''; render(); }
+      return;
+    }
+    goStep(n, '', { push: false, animate: true });
+  };
+  window.addEventListener('popstate', onPopState);
+  cleanups.push(() => window.removeEventListener('popstate', onPopState));
   // Draw again when sign-in or the plan changes (the preview banner and locks follow it).
   let wasPaid = paid();
   try { globalThis.window?.Clerk?.addListener?.(() => { if (paid() !== wasPaid && container.isConnected) { wasPaid = paid(); render(); } }); } catch { /* Clerk not ready */ }

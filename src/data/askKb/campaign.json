@@ -178,7 +178,7 @@
       "useCase": "Producing a ready-to-edit creative set."
     }
   ],
-  "modelCapabilities": "Concept and copy writing use the app's text call, which defaults to the 'gpt-5-nano' model. Asset pictures use 'nano-banana-edit' with your logo as a reference when the logo is a PNG, JPG or WebP image, and 'nano-banana' text-to-image otherwise (or if the logo request fails). Pictures follow the platform aspect ratio (1:1, 9:16 or 16:9). No resolution, price or speed is set in Campaign Studio's code.",
+  "modelCapabilities": "Concept and copy writing use the app's text call, which defaults to the 'gpt-6-luna' model (OpenAI GPT-6 Luna through MuAPI). Asset pictures use 'nano-banana-edit' with your logo as a reference when the logo is a PNG, JPG or WebP image, and 'nano-banana' text-to-image otherwise (or if the logo request fails). Pictures follow the platform aspect ratio (1:1, 9:16 or 16:9). No resolution, price or speed is set in Campaign Studio's code.",
   "outputs": [
     "A saved campaign (goal, direction, 4 concepts)",
     "One asset per selected platform: picture, headline, body, CTA and an editable layout",

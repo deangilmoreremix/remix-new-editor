@@ -32,7 +32,7 @@
         "slug": "edit-studio",
         "name": "Edit Studio",
         "route": "edit",
-        "shortDescription": "16 AI photo tools: remove objects and backgrounds, extend, reframe, effects, face swap and more.",
+        "shortDescription": "16 AI photo tools plus 72 one-click apps: remove objects and backgrounds, reframe, ad shots, video effects and more.",
         "features": 16,
         "thumbnail": "/guides/edit-studio/overview.webp"
       },
@@ -51,6 +51,14 @@
         "shortDescription": "Studio-quality product photos from a single image",
         "features": 10,
         "thumbnail": "/guides/product-shot-studio/overview.webp"
+      },
+      {
+        "slug": "smartvid-studio",
+        "name": "SmartVid Studio",
+        "route": "muapi-studio",
+        "shortDescription": "One workspace for hundreds of AI models across image, video, audio, avatar and 3D, using your own MuAPI key.",
+        "features": 11,
+        "thumbnail": "/guides/smartvid-studio/overview.webp"
       },
       {
         "slug": "upscale-suite",
@@ -137,7 +145,7 @@
         "route": "media-hub",
         "shortDescription": "Download videos and audio from links, then transcribe them and ask AI about them.",
         "features": 18,
-        "thumbnail": "/thumbnails/pages/placeholder.webp"
+        "thumbnail": "/guides/smartviddownloader/overview.webp"
       },
       {
         "slug": "storyboard-studio",
@@ -265,6 +273,14 @@
     "blurb": "Agents and tools that plan, build, personalize and send video for you.",
     "guides": [
       {
+        "slug": "animation-agent",
+        "name": "Animation Agent",
+        "route": "video-agent",
+        "shortDescription": "Describe an animation and the agent writes, previews and renders it as an MP4.",
+        "features": 8,
+        "thumbnail": "/thumbnails/heroes/videoagent.webp.png"
+      },
+      {
         "slug": "director",
         "name": "Director",
         "route": "director",
@@ -316,7 +332,7 @@
         "slug": "smart-video-scheduler",
         "name": "Smart Video Scheduler",
         "route": "smart-video-scheduler",
-        "shortDescription": "Content calendar page with Calendar, Schedule and Analytics tabs (preview).",
+        "shortDescription": "Content calendar page with Calendar, Schedule and Analytics tabs (preview). The Schedule tab opens Publish to Social.",
         "features": 3,
         "thumbnail": "/guides/smart-video-scheduler/overview.webp"
       },
@@ -329,6 +345,14 @@
         "thumbnail": "/guides/smart-video-viral/overview.webp"
       },
       {
+        "slug": "smartwarmupai",
+        "name": "SmartWarmupAI",
+        "route": "smartwarmupai",
+        "shortDescription": "Warm up mailboxes, send cold email sequences and handle replies.",
+        "features": 15,
+        "thumbnail": "/guides/smartwarmupai/overview.webp"
+      },
+      {
         "slug": "timeline-editor",
         "name": "Timeline Editor",
         "route": "timeline",
@@ -337,20 +361,20 @@
         "thumbnail": "/guides/timeline-editor/overview.webp"
       },
       {
-        "slug": "video-agent",
-        "name": "Video Agent",
-        "route": "video-agent",
-        "shortDescription": "Describe an animation and the agent writes, previews and renders it as an MP4.",
-        "features": 8,
-        "thumbnail": "/guides/video-agent/overview.webp"
-      },
-      {
         "slug": "video-outreach",
         "name": "Video Outreach",
         "route": "outreach",
         "shortDescription": "Record once, greet every contact by name in your own voice, and add a booking button.",
-        "features": 24,
+        "features": 30,
         "thumbnail": "/guides/video-outreach/overview.webp"
+      },
+      {
+        "slug": "video-pages",
+        "name": "Video Pages",
+        "route": "video-pages",
+        "shortDescription": "Turn any video into a branded landing page with a CTA, lead form and analytics.",
+        "features": 3,
+        "thumbnail": "/thumbnails/pages/placeholder.webp"
       },
       {
         "slug": "video-render",
@@ -445,14 +469,6 @@
         "shortDescription": "Everything you generated and uploaded, in one place.",
         "features": 5,
         "thumbnail": "/guides/library/overview.webp"
-      },
-      {
-        "slug": "video-pages",
-        "name": "Video Pages",
-        "route": "video-pages",
-        "shortDescription": "Turn any video into a branded landing page with a CTA, lead form and analytics.",
-        "features": 3,
-        "thumbnail": "/thumbnails/pages/placeholder.webp"
       }
     ]
   }

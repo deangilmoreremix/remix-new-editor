@@ -13,7 +13,7 @@ vi.mock('@cinegen/lib/leads/overview-deps', () => ({ OPEN_PROJECT_EVENT: 'remix:
 import { cinegenSource, openCinegenFollowup } from '@cinegen/lib/leads/followup-project';
 import { OPEN_PROJECT_EVENT } from '@cinegen/lib/leads/overview-deps';
 import { linkedProjectId } from '@cinegen/lib/leads/project-link';
-import { buildPublishState } from '@cinegen/lib/leads/publish-state';
+import { buildPublishState, countScenes } from '@cinegen/lib/leads/publish-state';
 
 const original = { id: 'row-orig', name: 'Roof promo — Timeline 1', settings: { source: 'cinegen', cinegenProjectId: 'cloud_orig', timelineId: 'tl-1', interestMap: [{ id: 's1' }] } };
 const saved = {
@@ -85,6 +85,40 @@ describe('Create follow-up in CineGen', () => {
   });
 });
 
+describe('Create follow-up for a video made elsewhere', () => {
+  const external = { id: 'row-ext', name: 'Webinar', settings: { source: 'external' }, data: { timelineSeconds: 90, tracks: [{ id: 'v', items: [{ src: 'https://cdn/webinar.mp4' }] }] } };
+  const fresh = () => ({ project: { id: 'cloud_new' }, assets: [], timelines: [{ id: 'tl-new', project_id: 'cloud_new', clips: [], duration: 0, tracks: [{ id: 'trk-a', kind: 'audio' }, { id: 'trk-v', kind: 'video' }] }] });
+  beforeEach(() => {
+    vi.clearAllMocks();
+    projects.createAvailableProject.mockResolvedValue({ project: { id: 'cloud_new' } });
+    projects.loadAvailableProject.mockResolvedValue(fresh());
+    projects.saveAvailableProject.mockResolvedValue(undefined);
+    store.createFollowupProject.mockResolvedValue({ id: 'row-new' });
+  });
+
+  it('starts a new project with the original video as one clip, and links the follow-up to it as a normal CineGen video', async () => {
+    const opened = vi.fn();
+    window.addEventListener(OPEN_PROJECT_EVENT, opened as EventListener);
+    const out = await openCinegenFollowup({ client: {}, original: external, followup: { interest: 'Pricing' } });
+    window.removeEventListener(OPEN_PROJECT_EVENT, opened as EventListener);
+    expect(out).toEqual({ id: 'cloud_new' });
+    const [, state] = projects.saveAvailableProject.mock.calls[0];
+    expect(state.assets[0]).toMatchObject({ type: 'video', url: 'https://cdn/webinar.mp4', duration: 90 });
+    expect(state.timelines[0].duration).toBe(90);
+    expect(state.timelines[0].clips[0]).toMatchObject({ assetId: state.assets[0].id, trackId: 'trk-v', startTime: 0, duration: 90, trimStart: 0, trimEnd: 0, speed: 1 });
+    expect(store.createFollowupProject).toHaveBeenCalledWith({}, 'row-ext', { interest: 'Pricing' }, {
+      id: await linkedProjectId('cloud_new', 'tl-new'),
+      settings: { source: 'cinegen', cinegenProjectId: 'cloud_new', timelineId: 'tl-new' },
+    });
+    expect(opened).toHaveBeenCalledTimes(1);
+  });
+
+  it('says so when the stored video has no media, and creates nothing', async () => {
+    await expect(openCinegenFollowup({ client: {}, original: { ...external, data: { timelineSeconds: 0, tracks: [] } }, followup: { interest: 'Pricing' } })).rejects.toThrow(/no media/);
+    expect(projects.createAvailableProject).not.toHaveBeenCalled();
+  });
+});
+
 describe('interest-map sections for a CineGen video', () => {
   it('carry the clip names, so the mapping reads "Opening" and "Offer" instead of Scene 1 and Scene 2', () => {
     const clip = (id: string, name: string, startTime: number) => ({ id, assetId: 'a', trackId: 'tv', name, startTime, duration: 5, trimStart: 0, trimEnd: 0, speed: 1, opacity: 1, volume: 1, flipH: false, flipV: false, keyframes: [] });
@@ -93,5 +127,14 @@ describe('interest-map sections for a CineGen video', () => {
     const items = built.tracks[0].items as Array<{ name?: string; start: number }>;
     expect(items.map((i) => i.name)).toEqual(['Opening', 'Offer']);
     expect(items.map((i) => i.start)).toEqual([0, 5]);
+  });
+});
+
+describe('countScenes', () => {
+  const tl = (clips: Array<{ id: string; trackId: string }>) => ({ tracks: [{ id: 'tv', kind: 'video' }, { id: 'ta', kind: 'audio' }], clips }) as never;
+  it('counts video clips only', () => {
+    expect(countScenes(tl([{ id: 'a', trackId: 'tv' }, { id: 'b', trackId: 'tv' }, { id: 'c', trackId: 'ta' }]))).toBe(2);
+    expect(countScenes(tl([]))).toBe(0);
+    expect(countScenes(undefined)).toBe(0);
   });
 });

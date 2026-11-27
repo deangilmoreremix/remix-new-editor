@@ -1,0 +1,16 @@
+{
+  "slug": "storyboard-studio",
+  "name": "Storyboard Studio",
+  "intro": "Storyboard Studio in SmartVideo turns a short description into a plan of shots, draws each one as an image frame, and lets you edit and export the result.",
+  "features": {
+    "describe-and-generate-a-storyboard": "Type your idea in the main box, like a launch ad for a running shoe, then press Generate storyboard to get a full shot plan.",
+    "customize-panel": "The Customize panel offers optional fields like title, video type and tone, which steer the story and help keep the same look in every frame.",
+    "also-generate-frame-images": "Next to the Generate button, a checkbox is ticked by default so every frame is drawn right after planning and you get pictures straight away.",
+    "frame-cards": "Each frame card lets you move, duplicate or delete the shot, and set its shot type, so you keep fine control over every shot.",
+    "start-from-shot-preset": "Start from shot preset fills the description with a starter for the chosen shot type, which helps when you are staring at a blank page.",
+    "generate-all-frames-retry-failed": "Generate all frames draws every frame with a description and shows progress as it goes. You can stop it, or retry any that failed.",
+    "save-load-and-export": "Name your project and save it, then load it later. The Export menu lets you share your plan, for example as a PDF shot sheet.",
+    "send-to-video-studio-and-animate": "When the plan feels right, send your frames to the video studio, or animate a single frame, to turn the plan into video."
+  },
+  "outro": "Describe an idea, refine your frames, and Storyboard Studio gives you a plan you can take straight into video."
+}

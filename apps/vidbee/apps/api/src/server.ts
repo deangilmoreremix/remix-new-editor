@@ -25,6 +25,7 @@ import { failInterruptedTranslations } from './lib/translate-host'
 import { translateRouter } from './lib/translate-router'
 import { failInterruptedAiRuns } from './lib/ai-host'
 import { projectTaskForApi } from './lib/projection'
+import { withClientAi } from './lib/byok'
 import { rpcRouter } from './lib/rpc-router'
 import { SseHub } from './lib/sse'
 import {
@@ -142,6 +143,11 @@ export const createApiServer = async () => {
     methods: ['GET', 'POST', 'OPTIONS'],
     // Lets a cross-origin page read the size and range of media it streams.
     exposedHeaders: ['Content-Range', 'Content-Length', 'Accept-Ranges']
+  })
+
+  // Bring-your-own-key mode: make the visitor's key (from the request headers) available to this request's handlers.
+  fastify.addHook('onRequest', (request, _reply, done) => {
+    withClientAi(request.headers, done)
   })
 
   const rpcHandler = new RPCHandler(rpcRouter)

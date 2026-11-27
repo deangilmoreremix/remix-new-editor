@@ -18,6 +18,7 @@ import { sampleSections } from './sampleContent.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from './ingest.js';
 import { updatePage, pageUrl, addContacts, personalUrl } from './client.js';
 import { createAiRewritePanel } from './aiRewritePanel.js';
+import { lockScroll, unlockScroll } from './scrollLock.js';
 import { normalizeItems, routeContent, listSlots, slotsFor, setSlot, resolveSlot, persistTrayMedia, typeOfItem } from './contentTray.js';
 import { useTrayItem } from './trayUse.js';
 import { exportLinksCsv } from './csv.js';
@@ -105,7 +106,6 @@ const brandDefaults = () => {
 };
 
 const MAX_IMAGE_MB = 15;
-let openCount = 0;
 
 /** `zIndex`: where the picker stacks (default 2000); a caller that is itself a full-screen window (the Template Generator, 9999) passes a higher one. */
 export function openLandingPagePicker({ video = null, items = [], template = null, data: startData = null, onEdit = null, saveLabel = 'Save page', customers = [], preselect = 'active', onPick, onClose, doneLabel = '', zIndex = 2000, deps = {} } = {}) {
@@ -116,9 +116,7 @@ export function openLandingPagePicker({ video = null, items = [], template = nul
   // the item the studio asked for stays the main one, even a local file (blob:) that the tray (https only) does not hold
   let src = asked && /^blob:/i.test(asked.url) ? asked : (routed.main || asked);      // a local file (blob:) is not https, so it is not in the tray but still the main item
   let tray = routed.all.length ? routed.all : (src ? [src] : []);
-  const prevOverflow = document.body.style.overflow;
-  document.body.style.overflow = 'hidden';
-  openCount += 1;
+  lockScroll();
 
   const overlay = el('div', 'fixed inset-0 flex items-center justify-center bg-black/80 backdrop-blur-xl p-2 md:p-6');
   overlay.style.zIndex = String(zIndex);
@@ -167,8 +165,7 @@ export function openLandingPagePicker({ video = null, items = [], template = nul
     clearPreviews();
     overlay.remove();
     document.removeEventListener('keydown', onKey, true);
-    document.body.style.overflow = openCount > 1 ? 'hidden' : prevOverflow;
-    openCount -= 1;
+    unlockScroll();
     try { onClose?.(); } catch { /* caller bug must not leave the page locked */ }
   };
   const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select,textarea';
@@ -202,6 +199,13 @@ export function openLandingPagePicker({ video = null, items = [], template = nul
     }
     head.appendChild(el('h2', 'text-sm font-black uppercase tracking-widest', title));
     head.appendChild(el('div', 'flex-1'));
+    if (view === 'grid' && !onEdit) {
+      const mine = el('button', BTN, 'My pages');
+      mine.type = 'button';
+      mine.dataset.myPages = '';
+      mine.addEventListener('click', async () => { const { openMyVideoPages } = await import('../../components/modals/MyVideoPagesModal.js'); openMyVideoPages({ zIndex: zIndex + 100 }); });
+      head.appendChild(mine);
+    }
     extras.forEach((x) => head.appendChild(x));
     const x = el('button', BTN, '✕');
     x.type = 'button';
@@ -604,7 +608,7 @@ export function openLandingPagePicker({ video = null, items = [], template = nul
     open.type = 'button';
     open.addEventListener('click', async () => {
       close();
-      try { const { navigate } = await import('../router.js'); navigate('video-pages'); } catch { showToast('Open Video Pages from the menu.', 'info', 3000); }
+      try { const { openMyVideoPages } = await import('../../components/modals/MyVideoPagesModal.js'); openMyVideoPages({ zIndex: zIndex + 100 }); } catch { showToast('Open My Video Pages from the Library.', 'info', 3000); }
     });
     const done = el('button', doneLabel ? BTN_PRIMARY : BTN, doneLabel || 'Done');
     done.type = 'button';
@@ -625,7 +629,7 @@ export function openLandingPagePicker({ video = null, items = [], template = nul
     Promise.race([loaded, limit]).then(() => { clearTimeout(timer); if (overlay.isConnected) showEdit(template); });
   } else {
     if (!onEdit) void cp.load();
-    if (!src) { back = () => showGrid(); showVideos(); } else showGrid();
+    showGrid();   // designs first; with no video yet the bar above them says "Choose a video", and picking a design asks for one
   }
   dialog.focus();
   return { close, element: overlay };

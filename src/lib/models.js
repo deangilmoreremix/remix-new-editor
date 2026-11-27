@@ -32819,6 +32819,14 @@ export const avatarModels = [
     "hasVideo": true,
     "hasAudio": true,
     "hasPrompt": false,
+    "inputs": {
+      "image_url": {
+        "type": "string",
+        "title": "Image URL",
+        "name": "image_url",
+        "description": "URL of the source portrait image."
+      }
+    },
     "description": "Real-time lip sync from audio"
   },
   {
@@ -32832,6 +32840,14 @@ export const avatarModels = [
     "hasVideo": true,
     "hasAudio": true,
     "hasPrompt": false,
+    "inputs": {
+      "image_url": {
+        "type": "string",
+        "title": "Image URL",
+        "name": "image_url",
+        "description": "URL of the source portrait image."
+      }
+    },
     "description": "High-quality lip sync with 19B model"
   },
   {
@@ -32881,9 +32897,18 @@ export const avatarModels = [
     "endpoint": "kling-v2-avatar-pro",
     "family": "avatar",
     "subtype": "avatar",
-    "hasVideo": true,
+    "hasVideo": false,
     "hasAudio": true,
     "hasPrompt": false,
+    "inputs": {
+      "image_url": {
+        "type": "string",
+        "title": "Image URL",
+        "name": "image_url",
+        "description": "URL of the source portrait image.",
+        "required": true
+      }
+    },
     "description": "Professional AI avatar generation"
   },
   {
@@ -32894,9 +32919,18 @@ export const avatarModels = [
     "endpoint": "kling-v2-avatar-standard",
     "family": "avatar",
     "subtype": "avatar",
-    "hasVideo": true,
+    "hasVideo": false,
     "hasAudio": true,
     "hasPrompt": false,
+    "inputs": {
+      "image_url": {
+        "type": "string",
+        "title": "Image URL",
+        "name": "image_url",
+        "description": "URL of the source portrait image.",
+        "required": true
+      }
+    },
     "description": "Standard AI avatar generation"
   },
   {
@@ -32907,9 +32941,18 @@ export const avatarModels = [
     "endpoint": "kling-v1-avatar-pro",
     "family": "avatar",
     "subtype": "avatar",
-    "hasVideo": true,
+    "hasVideo": false,
     "hasAudio": true,
     "hasPrompt": false,
+    "inputs": {
+      "image_url": {
+        "type": "string",
+        "title": "Image URL",
+        "name": "image_url",
+        "description": "URL of the source portrait image.",
+        "required": true
+      }
+    },
     "description": "Professional AI avatar v1"
   },
   {
@@ -32920,9 +32963,18 @@ export const avatarModels = [
     "endpoint": "kling-v1-avatar-standard",
     "family": "avatar",
     "subtype": "avatar",
-    "hasVideo": true,
+    "hasVideo": false,
     "hasAudio": true,
     "hasPrompt": false,
+    "inputs": {
+      "image_url": {
+        "type": "string",
+        "title": "Image URL",
+        "name": "image_url",
+        "description": "URL of the source portrait image.",
+        "required": true
+      }
+    },
     "description": "Standard AI avatar v1"
   },
   {
@@ -32933,9 +32985,18 @@ export const avatarModels = [
     "endpoint": "wan2.2-speech-to-video",
     "family": "avatar",
     "subtype": "speech-to-video",
-    "hasVideo": true,
+    "hasVideo": false,
     "hasAudio": true,
     "hasPrompt": false,
+    "inputs": {
+      "image_url": {
+        "type": "string",
+        "title": "Image URL",
+        "name": "image_url",
+        "description": "URL of the source portrait image.",
+        "required": true
+      }
+    },
     "description": "Animate image from audio speech"
   },
   {
@@ -32946,9 +33007,18 @@ export const avatarModels = [
     "endpoint": "infinitetalk-image-to-video",
     "family": "avatar",
     "subtype": "talking-image",
-    "hasVideo": true,
+    "hasVideo": false,
     "hasAudio": true,
     "hasPrompt": false,
+    "inputs": {
+      "image_url": {
+        "type": "string",
+        "title": "Image URL",
+        "name": "image_url",
+        "description": "URL of the source portrait image.",
+        "required": true
+      }
+    },
     "description": "Create talking video from still image"
   },
   {
@@ -33250,6 +33320,28 @@ export const getVideoToolById = (id) => videoToolsModels.find(m => m.id === id);
 
 // ─── Text-to-Text models (LLM) ─────────────────────────────────
 export const textModels = [
+  {
+    "id": "gpt-6-1-sol",
+    "name": "GPT-6.1 Sol",
+    "provider": "openai",
+    "provider_name": "OpenAI",
+    "endpoint": "gpt-6-1-sol",
+    "family": "llm",
+    "type": "chat",
+    "hasPrompt": true,
+    "description": "Default GPT-6 model for chat, planning and vision"
+  },
+  {
+    "id": "gpt-6-luna",
+    "name": "GPT-6 Luna",
+    "provider": "openai",
+    "provider_name": "OpenAI",
+    "endpoint": "gpt-6-luna",
+    "family": "llm",
+    "type": "chat",
+    "hasPrompt": true,
+    "description": "Fast, low-cost GPT-6 for simple text tasks"
+  },
   {
     "id": "gpt-5-mini",
     "name": "GPT-5 Mini",

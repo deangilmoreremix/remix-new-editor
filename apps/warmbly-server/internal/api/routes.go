@@ -461,6 +461,8 @@ func Run(
 		auth.GET("/providers", h.AuthProviders)
 		auth.POST("/apple", h.AppleTokenLogin)
 		auth.POST("/google", h.GoogleTokenLogin)
+		// The host app's Clerk session, exchanged for a session here (one login).
+		auth.POST("/clerk", h.ClerkTokenLogin)
 
 		// Browser sign-in: begin hands the SPA an authorization URL, the
 		// provider returns the browser to the callback, and the single-use

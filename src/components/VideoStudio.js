@@ -40,7 +40,6 @@ import { downloadMedia } from '../lib/resultActions/download.js';
 import { createResultBar } from './studio/resultBar.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { getCharacterReference, saveCharacterReference } from '../lib/characterConsistency.js';
 import { openLandingPageFor } from './studio/landingPageAction.js';
 
@@ -51,7 +50,11 @@ export function VideoStudio() {
 
     // --- State ---
     // A model picked on the Text to Video page wins (key is always cleared; unknown names -> default).
-    const defaultModel = resolvePrefillModel(t2vModels, takePrefillModelName()) || t2vModels[0];
+    // The Watermark Remover page sends video-to-video tools (e.g. the watermark remover); open those in v2v mode.
+    const prefillName = takePrefillModelName();
+    const prefillT2V = resolvePrefillModel(t2vModels, prefillName);
+    const prefillV2V = prefillT2V ? null : resolvePrefillModel(v2vModels, prefillName);
+    const defaultModel = prefillT2V || prefillV2V || t2vModels[0];
     let selectedModel = defaultModel.id;
     let selectedModelName = defaultModel.name;
     let selectedAr = defaultModel.inputs?.aspect_ratio?.default || '16:9';
@@ -80,7 +83,7 @@ export function VideoStudio() {
     let uploadedEndImageUrl = null;
     let imageMode = false; // false = t2v models, true = i2v models
     let refreshVideoCost = () => {};
-    let v2vMode = false;   // true = video-to-video tools mode
+    let v2vMode = !!prefillV2V;   // true = video-to-video tools mode
     let uploadedVideoUrl = null;
     let customThumbnailUrl = getCustomThumbnailFromCache('video-studio');
     // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
@@ -665,7 +668,7 @@ export function VideoStudio() {
       },
     });
 
-    // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
+    // Enhancement tools overflow menu (GTM Boost, Recipes, Prompts)
     const enhanceMenu = document.createElement('div');
     enhanceMenu.className = 'overflow-menu shrink-0';
     enhanceMenu.innerHTML = `
@@ -675,7 +678,6 @@ export function VideoStudio() {
       <div class="overflow-menu__panel">
         <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
         <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
-        <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
         <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
       </div>
     `;
@@ -707,9 +709,7 @@ export function VideoStudio() {
             }, { basePrompt: textarea.value });
           }).catch(() => {});
         } else if (action === 'recipe') {
-          openRecipeModal().catch(() => {});
-        } else if (action === 'monetize') {
-          openMonetizationHub().catch(() => {});
+          openRecipeModal({ studio: 'video' }).catch(() => {});
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'video-studio',
@@ -896,6 +896,7 @@ export function VideoStudio() {
           generationHistory,
         });
       },
+      getResult: () => { const el = document.querySelector('#v-result-video'); return el ? (el.currentSrc || el.src || '') : ''; },
       getProject: () => ({}),
       getPersonalizableFields: () => {
         const textarea = document.getElementById('v-v-prompt-textarea');
@@ -1288,6 +1289,11 @@ generateBtn.type = 'button';
         }
     };
 
+    // Opened straight into a v2v tool (prefill): the "Initial visibility" block
+    // above assumed t2v and showed a bogus duration (getDurationsForModel → [5]
+    // for unknown ids). Run the same v2v path a mode switch would.
+    if (v2vMode) updateControlsForModel(selectedModel);
+
     // ---- Upstream split-pane video model picker integration ----------------
     let videoPickerController = null;
 
@@ -1666,7 +1672,7 @@ generateBtn.type = 'button';
             appTheme: 'video-studio',
             onComplete: (captionedUrl) => {
                 resultVideo.src = captionedUrl;
-                resultBar.setUrl(captionedUrl);
+                resultBar.setUrl(captionedUrl, { filenameSuffix: '-captioned' });
                 showToast('Preview updated with captions');
             },
         });
@@ -1678,7 +1684,11 @@ generateBtn.type = 'button';
     container.appendChild(canvas);
 
     // --- Helper: Show video in canvas ---
+    // Bumped by every show and by reset, so a slow video that finishes loading
+    // after the user hit New (or picked another) can't reopen the canvas.
+    let canvasLoadToken = 0;
     const showVideoInCanvas = (videoUrl, genModel) => {
+        const token = ++canvasLoadToken;
         hero.classList.add('hidden');
         promptWrapper.classList.add('hidden');
 
@@ -1689,18 +1699,20 @@ generateBtn.type = 'button';
         extendBtn.classList.toggle('hidden', continuationTargets.length === 0);
         extendBtn.textContent = continuationTargets.length === 1 ? `↗ ${continuationLabel(continuationTargets[0])}` : '↗ Extend / 4K';
 
-        resultVideo.src = videoUrl;
         resultVideo.onloadeddata = () => {
+            if (token !== canvasLoadToken) return;
             canvas.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
+            container.classList.add('studio-result-showing'); // hides the example gallery under the result
             canvas.classList.add('opacity-100', 'translate-y-0', 'scale-100');
             canvasControls.classList.remove('opacity-0');
             canvasControls.classList.add('opacity-100');
         };
+        resultVideo.src = videoUrl; // after onloadeddata is attached (load-token guard)
         captionSourceUrl = videoUrl;
         const shownEntry = generationHistory.find((e) => e.url === videoUrl);
         resultBar.setUrl(videoUrl, {
             filename: `video-${shownEntry?.id || lastGenerationId || 'clip'}`,
-            title: String(shownEntry?.prompt || '').replace(/\s+/g, ' ').trim().slice(0, 80) || 'AI video',
+            title: 'AI video', // never the prompt: the title is public (page title and /v/<business>/<slug> address)
         });
     };
 
@@ -1785,9 +1797,15 @@ generateBtn.type = 'button';
     };
 
     // --- Helper: Download file ---
+    const downloadsRunning = new Set();
     const downloadFile = async (url, filename) => {
-        const result = await downloadMedia(url, { filename: String(filename || 'video').replace(/\.[a-z0-9]+$/i, ''), kind: 'video' });
-        if (!result.ok || result.method === 'tab') showToast(result.message);
+        if (downloadsRunning.has(url)) return; // a double click would start two full downloads
+        downloadsRunning.add(url);
+        try {
+            const result = await downloadMedia(url, { filename: String(filename || 'video').replace(/\.[a-z0-9]+$/i, ''), kind: 'video' });
+            if (result.method === 'manual') showToast('The browser would not save this video directly. Click the video to open it, then use Download MP4 there.');
+            else if (!result.ok || result.method === 'tab') showToast(result.message);
+        } finally { downloadsRunning.delete(url); }
     };
 
     // --- Load history from localStorage ---
@@ -1832,7 +1850,9 @@ generateBtn.type = 'button';
     };
 
     const resetToPromptBar = () => {
+        canvasLoadToken++; // drop any still-loading result
         canvas.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
+        container.classList.remove('studio-result-showing');
         canvas.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
         canvasControls.classList.add('opacity-0');
         canvasControls.classList.remove('opacity-100');

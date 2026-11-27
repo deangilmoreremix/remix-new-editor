@@ -1,0 +1,14 @@
+{
+  "slug": "lead-finder",
+  "name": "Lead Finder",
+  "intro": "Lead Finder helps you find local businesses that may need video. Search a niche and a place, review the prospects, and keep the good ones as leads.",
+  "features": {
+    "find-businesses": "The Find businesses button opens the search window. Pick a niche, type a location, and run the search to build a prospect list in moments.",
+    "niches": "The niche dropdown narrows your search to the right kind of business, from restaurants and salons to home contractors and pet services.",
+    "search-radius": "Search Radius buttons let you widen or narrow the area, from five miles up to fifty, so you can cover just your town or the whole region.",
+    "find-my-brand-button": "Find My Brand lets you paste a business website to pull in its logo, photos and branding for free, giving you real assets for a personalized demo.",
+    "saved-leads": "The Saved leads list keeps every prospect you save, with a count and a Refresh button, so your whole pipeline stays in one place.",
+    "pipeline-stages": "Every lead has a stage, from New to Converted. Update it as you go, so you always know who to follow up with next."
+  },
+  "outro": "That's Lead Finder. Search, save, and track your prospects, then turn each one into a personalized video pitch."
+}

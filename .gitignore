@@ -139,6 +139,8 @@ debug_signin.cjs
 !/public/media/promptfeed/previews/*.jpg
 # poster still for the Video Outreach sample presenter video (extracted from public/media/outreach-sample/presenter.mp4)
 !/public/media/outreach-sample/presenter.jpg
+# thumbnails of the Analytics DEMO videos (made by scripts/generate-analytics-demo-media.sh; the demo mock uses them)
+!/public/analytics-demo/*.jpg
 
 # Logs
 logs
@@ -179,6 +181,7 @@ package-lock.json
 # ...except lockfiles that `npm ci` needs in vendored apps
 !apps/smartwarmupai-help/package-lock.json
 !apps/warmbly-server/**/package-lock.json
+!backend/beam-gate/package-lock.json
 test-results/
 playwright-report/
 

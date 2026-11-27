@@ -8,6 +8,7 @@ import { usePublished, getClient } from '@cinegen/components/leads/use-publish';
 import { buildPublishState } from '@cinegen/lib/leads/publish-state';
 import { PublishedOverview } from '@cinegen/components/overview/published-overview';
 import { SampleAnalytics } from './sample-analytics';
+import { AccountAlerts } from './account-alerts';
 import { DemoVideos, DemoRestore, useDemosHidden } from './demo-videos';
 import { captureRowThumbnail } from '@cinegen/lib/leads/thumbnail';
 import { ensureProjectRow, linkVideoToProject, linkedProjectId, rowName } from '@cinegen/lib/leads/project-link';
@@ -158,6 +159,8 @@ export function AnalyticsTab() {
         <button type="button" className="cg-analytics__btn" onClick={() => dispatch({ type: 'SET_TAB', tab: 'leads' })}>Open Publish &amp; Leads</button></div>
       {/* Nothing to measure yet: show what this tab will look like, clearly labelled as sample data. */}
       {sample && <SampleAnalytics />}
+      {/* Alert preferences and push belong to the account: reachable before anything is published. */}
+      {pub.signedIn && <AccountAlerts />}
       {/* Not published yet: still show how all your published videos are doing. */}
       {pub.signedIn && <PublishedOverview onPublish={() => dispatch({ type: 'SET_TAB', tab: 'leads' })} />}
     </>
@@ -177,7 +180,7 @@ export function AnalyticsTab() {
             : !pub.info ? empty('Publish this video first', 'Viewer data is collected on the published video page. Publish it, share the link, and plays, watch time, clicks and forms show up here. No account needed.', true)
               : <GuestAnalytics pub={pub} onPublish={() => dispatch({ type: 'SET_TAB', tab: 'leads' })} />
         )
-        : !pub.signedIn ? empty('Sign in to see analytics', 'Viewer data belongs to your account.')
+        : !pub.signedIn ? empty('Sign in to see analytics for your own videos', 'Viewer data belongs to your account. Until then, open a demo video above or look at the sample below to see what Analytics and Heatmaps show.', true)
         : !pub.loaded || linked === 'checking' ? <div className="cg-analytics__empty" aria-busy="true"><p>Loading…</p></div>
         : !pub.info ? empty('Publish this video first', 'Viewer data is collected on the published video page. Publish it, share the link, and plays, watch time, clicks and forms show up here.', true)
         : linked === 'unavailable' ? failed(toast || 'This project could not be linked to its published video.')

@@ -95,6 +95,8 @@ export function AdvancedStepBar({
             type="button"
             role="tab"
             id={`pz-tab-${tab.id}`}
+            data-help-name={tab.label}
+            data-help-text={tab.hint}
             aria-selected={isActive}
             aria-controls={`pz-tabpanel-${tab.id}`}
             data-testid={`pz-tab-${tab.id}`}

@@ -11,7 +11,7 @@ export const chatRouter = os.router({
   get: os.get.handler(async ({ input }) => getChat(input.downloadId)),
   send: os.send.handler(async ({ input }) => {
     try {
-      return sendChat(input.downloadId, input.message)
+      return sendChat(input.downloadId, input.message, input.webSearch === true)
     } catch (error) {
       throw new ORPCError('BAD_REQUEST', {
         message: error instanceof Error ? error.message : 'Failed to send the message.'

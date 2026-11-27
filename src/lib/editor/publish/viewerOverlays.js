@@ -65,7 +65,8 @@ export function showLeadForm(layer, clip, { profile, onSubmit, onSkip, onEditTex
       return '';
     },
   });
-  setTimeout(() => wrap.querySelector('input, textarea')?.focus({ preventScroll: true }), 50);
+  // A real viewer lands in the first box. The editor's preview must not: it re-draws on every edit, and would pull the keyboard out of the settings panel the creator is typing in.
+  if (!preview) setTimeout(() => wrap.querySelector('input, textarea')?.focus({ preventScroll: true }), 50);
   return wrap;
 }
 

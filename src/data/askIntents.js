@@ -4,6 +4,7 @@
 
 export const STUDIO_INTENTS = {
   'media-hub': ['download a video from a link', 'save just the audio from a video as mp3', 'download a whole youtube playlist', 'automatically download new videos from a channel', 'get a transcript of a video with who said what', 'make subtitles (srt) for a downloaded video'],
+  'muapi-studio': ['try many different AI models in one place', 'compare two image models on the same prompt', 'use a model that has no page of its own', 'generate images, video and audio with my own MuAPI key', 'connect my MuAPI key to start generating', 'browse every model in the MuAPI catalog', 'compare many AI models in one place', 'see what a generation will cost before I run it', 'use my own MuAPI key', 'upload a reference image by dragging it in', 'run several versions at once', 'use a ready-made app like camera angles or face swap', 'generate a 3D model from a picture', 'find an earlier result and run it again'],
   'smartwarmupai': ['warm up my email inbox', 'connect my Gmail or Outlook mailbox for cold email', 'send a cold email sequence with follow-ups', 'see all my prospect replies in one inbox', 'check if my emails are landing in spam', 'automate what happens when a prospect books a meeting'],
   'asset-edit': ['edit the text on my campaign image', 'move the headline on my ad', 'change font on my campaign asset', 'replace the background image of my asset', 'make a clean background without text', 'save changes to my campaign creative'],
   'brand-dna': ['edit my brand details', 'change my brand colors', 'fix my brand tone of voice', 'update my brand logo', 'add key messages for my brand', 'my brand info is wrong after analysis'],
@@ -54,7 +55,7 @@ export const STUDIO_INTENTS = {
   library: ['find the image I made earlier', 'where did my video go', 'download something I generated', 'see my history', 'reuse a past generation', 'see all my past creations'],
   'content-library': ['find my saved content', 'reuse my saved assets', 'keep my favourites in one place', 'browse the things I saved', 'find the media I stored', 'pick an asset I saved before'],
   apps: ['where do I start', 'see all the tools', 'what can this app do', 'find the right tool for my idea', 'show me every studio', 'browse by what I want to make'],
-  explore: ['show me examples', 'get ideas of what to make', 'see what other people made', 'browse inspiration', 'find a style I like', 'see example videos and images for ideas'],
+  explore: ['show me examples', 'get ideas of what to make', 'see what other people made', 'browse inspiration', 'find a style I like', 'see example videos and images for ideas', 'see every studio'],
   templates: ['start from a template', 'make something without writing a prompt', 'quick start with a ready-made design', 'add my own photo to a template', 'pick a template for my niche', 'see what templates are available'],
 };
 

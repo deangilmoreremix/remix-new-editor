@@ -164,7 +164,7 @@ Confirm each item before promoting to production:
 
 # Director Feature — Deployment Runbook
 
-This runbook covers the operational steps required to deploy the Director feature (director-backend + director-frontend + director-proxy on the existing node backend) to production on Render. All blocking items from the staging verification checklist must be green before deploying.
+This runbook covers the operational steps required to deploy the Director feature (director-backend + director-frontend + director-proxy on the existing node backend) to production on Beam. All blocking items from the staging verification checklist must be green before deploying.
 
 ---
 
@@ -176,7 +176,7 @@ This runbook covers the operational steps required to deploy the Director featur
 | Variable | Required | Example | Notes |
 |----------|----------|---------|-------|
 | `SERVER_ENV` | **Yes** | `production` | Activates production guards. |
-| `SERVER_SECRET_KEY` | **Yes** | `random-128-char-hex` | Session/auth signing key. Must be set in `render env set`. |
+| `SERVER_SECRET_KEY` | **Yes** | `random-128-char-hex` | Session/auth signing key. Must be set with `beam deploy --env` or a Beam secret. |
 | `VIDEO_DB_API_KEY` | **Yes** | `vdbt-...` | Used by `/proxy-videodb` to call `api.videodb.io`. Director will return 502 on all agent calls if missing. |
 | `OPENAI_API_KEY` | **Yes** | `sk-...` | OpenAI key for chat / TTS used by Director agents. |
 | `POSTGRES_DB` | **Yes** | from Render `director-db` | Auto-injected by Render database binding. |
@@ -190,14 +190,14 @@ This runbook covers the operational steps required to deploy the Director featur
 | Variable | Required | Example | Notes |
 |----------|----------|---------|-------|
 | `VITE_APP_BACKEND_URL` | **Yes** | Render-injected `RENDER_EXTERNAL_URL` for `director-backend` | Used by frontend to call `director-backend` REST API. Must match the backend region. |
-| `VITE_BACKEND_URL` | **Actually this goes on the frontend mixin from the editor app** — set on the React/Vite app that lives next to the editor | The `videoagent-backend` URL (e.g. `https://videoagent-backend.onrender.com`) | Sent by the editor shell to the Director frontend. See `render.yaml`. |
+| `VITE_BACKEND_URL` | **Actually this goes on the frontend mixin from the editor app** — set on the React/Vite app that lives next to the editor | The `videoagent-backend` URL (e.g. `https://<videoagent-backend-beam-url>`) | Sent by the editor shell to the Director frontend. See `docs/BEAM_DEPLOY.md`. |
 
 **VideoAgent Backend (Node/Express) — `backend/`**
 | Variable | Required | Example | Notes |
 |----------|----------|---------|-------|
 | `OPENAI_API_KEY` | **Yes** | `sk-...` | TTS/STT used by `agentActionsService`. |
 | `MUAPI_API_KEY` | **No longer used** | — | Removed. Users must supply their own Muapi key in Settings. The server no longer provides a fallback. |
-| `DIRECTOR_BASE_URL` | **Yes (production)** | `https://director-backend.onrender.com` | Points `directorProxy.js` at the deployed Director backend. **Must NOT be `localhost:8000` in production**. |
+| `DIRECTOR_BASE_URL` | **Yes (production)** | `https://<director-backend-beam-url>` | Points `directorProxy.js` at the deployed Director backend. **Must NOT be `localhost:8000` in production**. |
 | `VIDEO_DB_API_KEY` | **Optional** | `vdbt-...` | Server-side VideoDB key used by `directorProxy.js` chat fallback. |
 | `SUPABASE_URL` | **Conditional** | `https://xxx.supabase.co` | Required if agent actions store assets in Supabase Storage. |
 | `SUPABASE_SERVICE_KEY` | **Conditional** | `eyJ...` | Required if agent actions store assets in Supabase Storage. |
@@ -257,12 +257,12 @@ Before starting the deployment, confirm the following from your local machine:
 
 ```bash
 # VideoAgent Backend (staging or current production)
-curl -i https://staging-backend-url.onrender.com/health
+curl -i https://<staging-backend-url-beam-url>/health
 # Expected: HTTP 200, {"status":"ok","timestamp":"..."}
 P95 target: < 500ms
 
 # Director Backend (already running service — do NOT redeploy yet)
-curl -i "https://staging-director-url.onrender.com/health"
+curl -i "https://<staging-director-url-beam-url>/health"
 # Expected: HTTP 200 with Director-specific service status.
 # If 502 / 503, fix the backend service before proceeding.
 ```
@@ -287,7 +287,7 @@ PYTHONPATH=. alembic upgrade head   # if Alembic-managed
 python -c "from director.entrypoint.main import app; print('OK')"
 ```
 
-The Render service is `docker`-based. When you push to the `develop` branch, Render automatically rebuilds the Docker image using `apps/director/backend/Dockerfile`.
+The Beam service is `docker`-based. Deploy it from `apps/director/backend` with `beam deploy --dockerfile apps/director/backend/Dockerfile` after merging to `develop`.
 
 ### 2.2 Build Director Frontend
 
@@ -335,7 +335,7 @@ PYTHONPATH=. alembic upgrade head --x env=production
 If no migration framework is active, apply SQL directly:
 
 ```bash
-# Get connection string from Render dashboard for director-db
+# Get connection string from the Beam dashboard for director-db
 psql "$DATABASE_URL" \
      -f apps/director/backend/director/migrations/create_tables.sql \
      -f apps/director/backend/director/migrations/add_indexes.sql
@@ -350,7 +350,7 @@ A rollback is triggered if any metric in the rollback trigger table (see §6) is
 **Rollback the Director Backend:**
 ```bash
 # Verify what version is currently deployed
-curl -s "https://director-backend.onrender.com/health" | jq .
+curl -s "https://<director-backend-beam-url>/health" | jq .
 git log --oneline HEAD~3..HEAD     # review recent changes
 
 # Revert and redeploy the director-backend
@@ -359,8 +359,8 @@ git revert <commit-hash>            # or git checkout <last-known-good>
 git push origin staging             # or trigger Render manual deploy from UI
 
 # Confirm rollback
-curl -s "https://director-backend.onrender.com/health" | jq .
-curl -s "https://director-backend.onrender.com/health" | jq .
+curl -s "https://<director-backend-beam-url>/health" | jq .
+curl -s "https://<director-backend-beam-url>/health" | jq .
 ```
 
 **Rollback the Director Frontend:**
@@ -372,7 +372,7 @@ git revert <commit-hash>
 git push origin staging
 
 # Render automatically builds; confirm
-curl -s "https://director-frontend.onrender.com" | head
+curl -s "https://<director-frontend-beam-url>" | head
 ```
 
 **Rollback the VideoAgent Backend (if directorProxy.js is at fault):**
@@ -386,8 +386,8 @@ git push origin staging
 
 **Emergency kill-switch (disable Director feature via env):**
 ```bash
-# On director-frontend Render service
-render env set VITE_ENABLE_DIRECTOR=false   # director-frontend
+# On the director-frontend Beam deployment
+# redeploy with --env VITE_ENABLE_DIRECTOR=false   # director-frontend
 # Re-deploy; the frontend will hide the Director page
 ```
 
@@ -399,9 +399,9 @@ Run these in order after each service finishes deploying.
 
 ```bash
 # Configuration — replace with your actual staging URLs
-BACKEND="https://videoagent-backend.onrender.com"
-DIRECTOR_BE="https://director-backend.onrender.com"
-DIRECTOR_FE="https://director-frontend.onrender.com"
+BACKEND="https://<videoagent-backend-beam-url>"
+DIRECTOR_BE="https://<director-backend-beam-url>"
+DIRECTOR_FE="https://<director-frontend-beam-url>"
 
 echo "=== 1. VideoAgent Backend health ==="
 curl -s -o /dev/null -w "HTTP %{http_code} | %{time_total}s\n" "$BACKEND/health"

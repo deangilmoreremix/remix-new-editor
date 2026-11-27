@@ -1,0 +1,6 @@
+{
+  "calendar-tab": {
+    "selector": "button:text-is('Calendar')",
+    "click": true
+  }
+}

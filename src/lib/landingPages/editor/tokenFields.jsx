@@ -129,12 +129,15 @@ export function withTokenPickers(components) {
 
 const URL_KEY = /(url|link|src|href|image|photo|logo|avatar|background|video|cta)/i;
 const TEXT_KEYS = new Set(['senderName', 'senderTitle']);
+// Button texts, descriptions and captions are words, not links: they keep their {{tokens}} for the normal text renderer (a link-style fill would percent-encode them).
+const WORDS_KEY = /(label|alt|text|caption|overlay|title)$/i;
 
 /** Pure: a copy of `value` with {{tokens}} filled in every link / picture string and sender text. */
 export function fillPropTokens(value, tokens, key = '') {
   if (typeof value === 'string') {
     if (!value.includes('{{')) return value;
     if (TEXT_KEYS.has(key)) return fillTokens(value, tokens);
+    if (WORDS_KEY.test(key)) return value;
     return URL_KEY.test(key) ? fillUrlTokens(value, tokens) : value;
   }
   if (Array.isArray(value)) return value.map((v) => fillPropTokens(v, tokens, key));
@@ -179,7 +182,7 @@ export function ContactAccent({ style, children, ...rest }) {
   return <div style={{ ...style, ...accentOverride(tokens?.accent) }} {...rest}>{children}</div>;
 }
 
-const VIEWER_KEYS = ['viewerType', 'viewerAlt', 'viewerAspect', 'viewerControls', 'viewerAutoplay', 'viewerLoop', 'viewerCaption'];
+const VIEWER_KEYS = ['viewerType', 'viewerAlt', 'viewerAspect', 'viewerControls', 'viewerAutoplay', 'viewerLoop', 'viewerCaption', 'viewerStart', 'viewerEnd', 'viewerPosterAt', 'viewerSubtitles', 'viewerOverlay', 'viewerCtaAt', 'viewerCtaLabel', 'viewerCtaUrl'];
 
 function ViewerScope({ render, props }) {
   const value = {};

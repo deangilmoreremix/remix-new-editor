@@ -18,28 +18,13 @@ import { muapi } from './muapi';
 // id). muapi stores the OAuth token against it; we look accounts up by it.
 // ---------------------------------------------------------------------------
 
+// Platforms muapi lets us connect from the app (they have a connect-url route).
+// LinkedIn, Pinterest, Threads and X are connected in the muapi dashboard, so they are not offered here.
 export const SOCIAL_PLATFORMS = [
-  {
-    id: 'youtube',
-    label: 'YouTube',
-    mediaKinds: ['video'],
-    color: '#FF0000',
-    note: 'Video only',
-  },
-  {
-    id: 'tiktok',
-    label: 'TikTok',
-    mediaKinds: ['video'],
-    color: '#00F2EA',
-    note: 'Video only',
-  },
-  {
-    id: 'instagram',
-    label: 'Instagram',
-    mediaKinds: ['image', 'video'],
-    color: '#E1306C',
-    note: 'Image (feed) or video (Reel)',
-  },
+  { id: 'youtube', label: 'YouTube', mediaKinds: ['video'], color: '#FF0000', note: 'Video only' },
+  { id: 'tiktok', label: 'TikTok', mediaKinds: ['video'], color: '#00F2EA', note: 'Video only' },
+  { id: 'instagram', label: 'Instagram', mediaKinds: ['image', 'video'], color: '#E1306C', note: 'Image (feed) or video (Reel)' },
+  { id: 'facebook', label: 'Facebook', mediaKinds: ['image', 'video'], color: '#1877F2', note: 'Image or video' },
 ];
 
 export const YOUTUBE_CATEGORIES = [
@@ -152,15 +137,9 @@ function getResult(requestId, signal) {
 }
 
 // --- high level helpers ----------------------------------------------------
-async function publishAndPoll(platform, payload, { onStatus, signal, intervalMs = 2000, maxAttempts = 90 } = {}) {
-  const submit = await publish(platform, payload, signal);
-  const requestId = submit?.request_id || submit?.id;
-  if (!requestId) {
-    throw new Error('Publish did not return a request_id');
-  }
-
+async function pollResult(requestId, { onStatus, signal, intervalMs = 2000, maxAttempts = 90 } = {}) {
   let attempts = 0;
-   
+
   while (true) {
     if (signal?.aborted) throw new Error('Request cancelled by user');
     // First poll slightly sooner so quick publishes feel responsive.
@@ -180,6 +159,48 @@ async function publishAndPoll(platform, payload, { onStatus, signal, intervalMs 
   }
 }
 
+async function publishAndPoll(platform, payload, opts = {}) {
+  const submit = await publish(platform, payload, opts.signal);
+  const requestId = submit?.request_id || submit?.id;
+  if (!requestId) {
+    throw new Error('Publish did not return a request_id');
+  }
+  return pollResult(requestId, opts);
+}
+
+// Replace the thumbnail of an already-published YouTube video.
+// muapi: POST youtube-set-thumbnail { account_id, video_id, thumbnail_url } (public JPEG/PNG, under 2 MB).
+async function setYouTubeThumbnail(payload, opts = {}) {
+  if (!payload?.account_id || !payload?.video_id || !payload?.thumbnail_url) {
+    throw new Error('setYouTubeThumbnail needs account_id, video_id and thumbnail_url');
+  }
+  const submit = await muapi.proxyJson(
+    'youtube-set-thumbnail',
+    { method: 'POST', params: payload, generationType: 'social' },
+    opts.signal,
+  );
+  const requestId = submit?.request_id || submit?.id;
+  if (!requestId) {
+    throw new Error('Setting the thumbnail did not return a request_id');
+  }
+  return pollResult(requestId, opts);
+}
+
+// Change the title, description, tags, category, privacy or made-for-kids flag of an already-published video.
+// muapi: POST youtube-update-metadata { account_id, video_id, ...fields to change }.
+async function updateYouTubeMetadata(payload, opts = {}) {
+  const submit = await muapi.proxyJson(
+    'youtube-update-metadata',
+    { method: 'POST', params: payload, generationType: 'social' },
+    opts.signal,
+  );
+  const requestId = submit?.request_id || submit?.id;
+  if (!requestId) {
+    throw new Error('Updating the video did not return a request_id');
+  }
+  return pollResult(requestId, opts);
+}
+
 const socialPublishing = {
   SOCIAL_PLATFORMS,
   YOUTUBE_CATEGORIES,
@@ -193,6 +214,8 @@ const socialPublishing = {
   publish,
   getResult,
   publishAndPoll,
+  setYouTubeThumbnail,
+  updateYouTubeMetadata,
 };
 
 export default socialPublishing;

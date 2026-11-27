@@ -1,0 +1,64 @@
+{
+  "template-browser": {
+    "text": "Cinematic Short Film",
+    "exact": true,
+    "click": true,
+    "hold": 2500
+  },
+  "quick-mode-vs-advanced": {
+    "selector": "#advanced-mode-btn",
+    "click": true,
+    "hold": 1500,
+    "then": [
+      {
+        "selector": "#quick-mode-btn",
+        "hold": 1500
+      }
+    ]
+  },
+  "video-intent-panel": {
+    "selector": "#vi-videoType",
+    "click": true,
+    "hold": 1200,
+    "then": [
+      {
+        "selector": "#vi-subject",
+        "type": "A neon-lit city chase at night",
+        "hold": 2000
+      }
+    ]
+  },
+  "ai-enhancer": {
+    "selector": "#enhancerToggle",
+    "click": true,
+    "hold": 1800,
+    "then": [
+      {
+        "selector": "#enhancerToggle",
+        "hold": 1500
+      }
+    ]
+  },
+  "media-sources-and-routing": {
+    "selector": "xpath=//label[contains(translate(normalize-space(.),'abcdefghijklmnopqrstuvwxyz','ABCDEFGHIJKLMNOPQRSTUVWXYZ'),'MEDIA SOURCES')]/following::button[@title='Reference media' or @aria-label='Reference media'][1]",
+    "click": true,
+    "then": [
+      {
+        "upload": true,
+        "file": "image",
+        "hold": 3000,
+        "selector": "xpath=(//*[normalize-space(text())='Pick a file'] | //button[contains(.,'Upload new') or contains(.,'Upload files')])[1]"
+      }
+    ]
+  },
+  "scene-timeline-and-scene-builder": {
+    "selector": "#add-scene-btn",
+    "click": true,
+    "hold": 2500
+  },
+  "editable-output-tabs": {
+    "selector": "xpath=//div[@id='outputTabs']//button[2]",
+    "click": true,
+    "hold": 2500
+  }
+}

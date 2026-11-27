@@ -14,6 +14,7 @@ import {
   resolveInput,
   cleanup,
 } from './video/ffmpegTools.js';
+import { OPENAI_TEXT_MODEL, OPENAI_FAST_MODEL } from './openaiModels.js';
 
 const router = express.Router();
 
@@ -27,7 +28,7 @@ const GLOBAL_VIDEO_DB_KEY = process.env.VIDEO_DB_API_KEY || '';
 // Resolve the OpenAI key to use for a given job.
 // Users may supply their own key in the request body (`apiKey`); that takes
 // precedence over the server's global key (set via Render env). This lets the
-// backend run on Render without a global key — each user brings their own.
+// backend run on Beam without a global key — each user brings their own.
 function resolveApiKey(payload) {
   const fromBody = payload && (payload.apiKey || (payload.settings && payload.settings.apiKey));
   return (fromBody && String(fromBody).trim()) || GLOBAL_OPENAI_API_KEY || '';
@@ -163,9 +164,10 @@ async function videoDbCompileTimeline(videoDbKey, timeline, { outputFormat = 'mp
 
 // OpenAI Responses API call (https://api.openai.com/v1/responses). Used for all
 // agent reasoning/generation in the Video Agent. Honors the user's own key.
-async function callResponsesApi(apiKey, { model = 'gpt-4.1', input, tools, text, temperature = 0.4 }) {
+// GPT-6 models are reasoning models: `temperature` is not sent.
+async function callResponsesApi(apiKey, { model = OPENAI_TEXT_MODEL, input, tools, text }) {
   if (!apiKey) throw new Error('An OpenAI API key is required. Add your key in Settings → OpenAI.');
-  const body = { model, input, temperature };
+  const body = { model, input };
   if (tools) body.tools = tools;
   if (text) body.text = text;
   const res = await fetch('https://api.openai.com/v1/responses', {
@@ -178,7 +180,9 @@ async function callResponsesApi(apiKey, { model = 'gpt-4.1', input, tools, text,
     throw new Error(`OpenAI Responses API failed (${res.status}): ${t.slice(0, 200)}`);
   }
   const json = await res.json();
-  // Extract the assistant text from the Responses API output items.
+  // Extract the assistant text from the Responses API output items. Reasoning
+  // models may emit a `reasoning` item before the message, so never assume
+  // output[0] is the message: collect every `message` item's output_text parts.
   const out = json.output || [];
   const textParts = out
     .filter((o) => o.type === 'message' || o.type === 'response.output_text')
@@ -1423,12 +1427,11 @@ async function translateText(text, targetLanguage, apiKey, jobId) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: OPENAI_FAST_MODEL,
         messages: [
           { role: 'system', content: `Translate the following text to ${targetLanguage}. Return only the translation.` },
           { role: 'user', content: text },
         ],
-        temperature: 0.3,
       }),
     });
 

@@ -1,0 +1,74 @@
+{
+  "template-categories-standard": {
+    "text": "Standard",
+    "exact": true,
+    "click": true,
+    "then": [
+      {
+        "text": "Social Media",
+        "exact": true,
+        "hold": 1800
+      },
+      {
+        "text": "Style Transfer",
+        "exact": true,
+        "hold": 1500
+      }
+    ]
+  },
+  "industry-niche-templates": {
+    "selector": "button:text-is(\"Industry Specific\")",
+    "click": true,
+    "then": [
+      {
+        "selector": "button:text-is(\"Restaurant & Cafe\")",
+        "hold": 1800
+      },
+      {
+        "selector": "button:text-is(\"Gym & Fitness\")",
+        "hold": 1500
+      }
+    ]
+  },
+  "template-studio-model-and-media-sources": {
+    "click": false
+  },
+  "ai-enhancer": {
+    "selector": "#enhancerToggle",
+    "click": true,
+    "then": [
+      {
+        "selector": "#enhancerToggle",
+        "hold": 1500
+      }
+    ]
+  },
+  "advanced-controls": {
+    "steps": [],
+    "selector": "#advancedToggle",
+    "click": true,
+    "then": [
+      {
+        "selector": "#advancedControls input >> nth=0",
+        "type": "Family-run pizza restaurant",
+        "hold": 1500
+      }
+    ]
+  },
+  "output-tabs": {
+    "selector": "#outputTabs button >> nth=1",
+    "click": true,
+    "then": [
+      {
+        "text": "Voiceover",
+        "exact": true,
+        "hold": 1500
+      },
+      {
+        "text": "Negative Prompt",
+        "exact": true,
+        "hold": 1500
+      }
+    ]
+  }
+}

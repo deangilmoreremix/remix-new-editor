@@ -158,13 +158,12 @@ describe('GTMInfoModal', () => {
   it('renders model descriptions from gtmContentLibrary', () => {
     const modal = new GTMInfoModal();
     const body = modal.renderBody();
-    expect(body).toContain('GPT-4o Mini');
-    expect(body).toContain('GPT-4o');
-    expect(body).toContain('GPT-4.1');
-    expect(body).toContain('GPT-5 Mini');
-    expect(body).toContain('GPT-5 Nano');
-    expect(body).toContain('cost-effective');
-    expect(body).toContain('Balanced performance');
+    expect(body).toContain('GPT-6.1 Sol');
+    expect(body).toContain('GPT-6 Luna');
+    expect(body).toContain('GPT-6 Astra');
+    expect(body).toContain('GPT-5.6 Sol');
+    expect(body).toContain('lowest-cost');
+    expect(body).toContain('strong reasoning');
   });
 
   it('renders conversion focus descriptions', () => {

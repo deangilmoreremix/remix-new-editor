@@ -50,6 +50,7 @@ export function CameraControls(onChange) {
     const createColumn = (title, items, key, initialValue) => {
         const colWrapper = document.createElement('div');
         colWrapper.className = 'flex flex-col items-center relative w-[140px] md:w-[160px] shrink-0 snap-center group';
+        colWrapper.dataset.help = key === 'focal' ? 'focal length' : key;
 
         const viewport = document.createElement('div');
         // Responsive height: h-[50vh] on mobile, h-[320px] on desktop

@@ -1,8 +1,7 @@
 import { createStudioHeader } from '../lib/thumbnails.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { loadGenerationHistory, confirmDeleteGeneration } from '../lib/generationHistory.js';
-import { showToast } from '../lib/loading.js';
-import { createSafeImage, createSafeVideo, safeSetText } from '../lib/security.js';
+import { showToast } from '../lib/loading.js';import { createSafeImage, createSafeVideo, safeSetText } from '../lib/security.js';
 import { MediaDetailView } from './MediaDetailView.js';
 import { queueAssetForStudio } from './UploadPicker.js';
 
@@ -50,6 +49,7 @@ export function LibraryPage() {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.dataset.libraryFilter = f;
+    btn.dataset.help = f === 'uploads' ? 'library uploads' : 'library filter';
     btn.className = 'px-4 py-2 rounded-full text-xs font-bold transition-all';
     btn.dataset.label = label;
     btn.textContent = label;
@@ -63,12 +63,13 @@ export function LibraryPage() {
   pagesLink.dataset.testid = 'library-video-pages';
   pagesLink.className = 'px-4 py-2 rounded-full text-xs font-bold border border-white/10 text-secondary hover:text-white hover:border-primary/60 transition-colors';
   pagesLink.textContent = 'My Video Pages';
-  pagesLink.onclick = async () => { const { navigate } = await import('../lib/router.js'); navigate('video-pages'); };
+  pagesLink.onclick = async () => { const { openMyVideoPages } = await import('./modals/MyVideoPagesModal.js'); openMyVideoPages(); };
   controls.appendChild(pagesLink);
 
   const right = document.createElement('div');
   right.className = 'ml-auto flex items-center gap-2';
   const sortSelect = document.createElement('select');
+  sortSelect.dataset.help = 'library sort';
   sortSelect.className = 'bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none';
   sortSelect.innerHTML = '<option value="newest">Newest first</option><option value="oldest">Oldest first</option>';
   sortSelect.onchange = () => { sortOrder = sortSelect.value; renderGrid(); };

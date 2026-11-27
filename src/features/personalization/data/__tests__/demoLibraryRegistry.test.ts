@@ -29,11 +29,12 @@ describe('demo library registry', () => {
     }
   })
 
+  // Covers every local path in the registry, whatever its folder: a missing file only shows up in production as the HTML
+  // fallback page (blank poster, unplayable clip). `*.jpg` is gitignored, so a new poster folder needs an exception there.
   it('serves every local clip and poster from a real file in public/', () => {
-    for (const entry of DEMO_LIBRARY_REGISTRY.filter((e) => e.videoSrc.startsWith('/media/promptfeed/') || e.videoSrc.startsWith('/media/seedance-1/'))) {
-      expect(existsSync(join(process.cwd(), 'public', entry.videoSrc.replace(/^\//, ''))), entry.videoSrc).toBe(true)
-      expect(existsSync(join(process.cwd(), 'public', entry.posterSrc.replace(/^\//, ''))), entry.posterSrc).toBe(true)
-    }
+    const local = DEMO_LIBRARY_REGISTRY.flatMap((e) => [e.videoSrc, e.posterSrc]).filter((src) => src?.startsWith('/'))
+    expect(local.length).toBeGreaterThan(0)
+    expect(local.filter((src) => !existsSync(join(process.cwd(), 'public', src.replace(/^\//, ''))))).toEqual([])
   })
 
   it('keeps the dead seedance-prompts collection excluded', () => {

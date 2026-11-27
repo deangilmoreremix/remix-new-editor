@@ -128,8 +128,8 @@ describe('alert e-mail content', () => {
   it('has a category prefix, the title, summary and suggestion, the Open alerts link and the footer', () => {
     const m = buildAlertEmail(note);
     expect(m.subject).toBe('New lead: Ana <b>signed</b> up');
-    expect(m.text).toBe(['Ana <b>signed</b> up', 'A "new" lead & more', 'Reply today.', 'Open alerts: https://smartvid.app/?alerts=1#/timeline', FOOTER].join('\n\n'));
-    expect(m.html).toContain('href="https://smartvid.app/?alerts=1#/timeline"');
+    expect(m.text).toBe(['Ana <b>signed</b> up', 'A "new" lead & more', 'Reply today.', 'Open alerts: https://smartvid.app/timeline?alerts=1', FOOTER].join('\n\n'));
+    expect(m.html).toContain('href="https://smartvid.app/timeline?alerts=1"');
     expect(m.html).toContain('Open alerts');
     expect(m.html).toContain(FOOTER.replace('>', '&gt;'));
   });
@@ -143,8 +143,8 @@ describe('alert e-mail content', () => {
     expect(buildAlertEmail({ ...note, type }).subject.startsWith(prefix)).toBe(true);
   });
   it('APP_URL is used when it is http(s); anything else falls back to the default', () => {
-    expect(alertsUrl({ APP_URL: 'https://app.example.test/' })).toBe('https://app.example.test/?alerts=1#/timeline');
-    expect(alertsUrl({ APP_URL: 'javascript:alert(1)' })).toBe('https://smartvid.app/?alerts=1#/timeline');
-    expect(alertsUrl({})).toBe('https://smartvid.app/?alerts=1#/timeline');
+    expect(alertsUrl({ APP_URL: 'https://app.example.test/' })).toBe('https://app.example.test/timeline?alerts=1');
+    expect(alertsUrl({ APP_URL: 'javascript:alert(1)' })).toBe('https://smartvid.app/timeline?alerts=1');
+    expect(alertsUrl({})).toBe('https://smartvid.app/timeline?alerts=1');
   });
 });

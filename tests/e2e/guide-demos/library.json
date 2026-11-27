@@ -1,0 +1,34 @@
+{
+  "filters-and-counts": {
+    "selector": "[data-library-filter] >> nth=1",
+    "click": true,
+    "then": [
+      {
+        "selector": "[data-library-filter] >> nth=2",
+        "hold": 1500
+      },
+      {
+        "selector": "[data-library-filter] >> nth=3",
+        "hold": 1500
+      }
+    ]
+  },
+  "search-and-sort": {
+    "setup": "(()=>{const t=Date.now();const img=(u,p,m,i)=>({id:'guide-'+i,url:u,prompt:p,model:m,type:'image',timestamp:new Date(t-i*60000).toISOString()});localStorage.setItem('muapi_history',JSON.stringify([img('/media/minimax-h3/previews/kintsugi-sword-seamless-loop.jpg','A kintsugi katana on black velvet, molten gold seams, slow macro light sweep','flux-2-pro',0),img('/media/minimax-h3/previews/porto-francesinha-comedy-recipe.jpg','Overloaded Porto francesinha sandwich, melted cheese, cinematic food shot','nano-banana-pro',2),img('/media/minimax-h3/previews/black-and-gold-perfume-commercial.jpg','Black and gold perfume bottle, luxury studio commercial lighting','seedream-4',3),img('/media/minimax-h3/previews/bamboo-forest-wuxia-mystery.jpg','Wuxia swordsman in a misty bamboo forest at dawn','flux-2-pro',5)]));localStorage.setItem('video_history',JSON.stringify([{id:'guide-v1',url:'/media/awesome-seedance/videos/adam.mp4',prompt:'Handheld street interview, natural light, 9:16','model':'seedance-2.0',type:'video',timestamp:new Date(t-60000).toISOString()},{id:'guide-a1',url:'/media/outreach-sample/hi-there.mp3',prompt:'Friendly hello voice line','model':'elevenlabs-v3',type:'audio',timestamp:new Date(t-4*60000).toISOString()}]));return 'ok'})()",
+    "selector": "input[placeholder^=\"Search by prompt\"]",
+    "type": "perfume",
+    "click": true,
+    "then": [
+      {
+        "selector": "select",
+        "hold": 1500
+      }
+    ]
+  },
+  "uploads-and-use-in-studio": {
+    "setup": "(()=>{const t=Date.now();const img=(u,p,m,i)=>({id:'guide-'+i,url:u,prompt:p,model:m,type:'image',timestamp:new Date(t-i*60000).toISOString()});localStorage.setItem('muapi_history',JSON.stringify([img('/media/minimax-h3/previews/kintsugi-sword-seamless-loop.jpg','A kintsugi katana on black velvet, molten gold seams, slow macro light sweep','flux-2-pro',0),img('/media/minimax-h3/previews/porto-francesinha-comedy-recipe.jpg','Overloaded Porto francesinha sandwich, melted cheese, cinematic food shot','nano-banana-pro',2),img('/media/minimax-h3/previews/black-and-gold-perfume-commercial.jpg','Black and gold perfume bottle, luxury studio commercial lighting','seedream-4',3),img('/media/minimax-h3/previews/bamboo-forest-wuxia-mystery.jpg','Wuxia swordsman in a misty bamboo forest at dawn','flux-2-pro',5)]));localStorage.setItem('video_history',JSON.stringify([{id:'guide-v1',url:'/media/awesome-seedance/videos/adam.mp4',prompt:'Handheld street interview, natural light, 9:16','model':'seedance-2.0',type:'video',timestamp:new Date(t-60000).toISOString()},{id:'guide-a1',url:'/media/outreach-sample/hi-there.mp3',prompt:'Friendly hello voice line','model':'elevenlabs-v3',type:'audio',timestamp:new Date(t-4*60000).toISOString()}]));return 'ok'})()",
+    "text": "Uploads",
+    "exact": true,
+    "click": true
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "gtm-boost": {
+    "selector": "#gtm-base-prompt",
+    "click": true,
+    "type": "Before and after photo of a refreshed living room",
+    "then": [
+      {
+        "selector": "xpath=//button[contains(@class,'gtm-chip') and normalize-space(.)='Before / after']"
+      },
+      {
+        "selector": "xpath=//button[contains(@class,'gtm-chip') and normalize-space(.)='Leads']"
+      }
+    ]
+  },
+  "example-transformations": {
+    "selector": "xpath=(//button[contains(@class,'try-btn')])[1]",
+    "click": true,
+    "hold": 3000
+  },
+  "available-models": {
+    "selector": ".model-card",
+    "click": true,
+    "hold": 3000
+  }
+}

@@ -9537,6 +9537,892 @@
     }
    ],
    "motion": "animated"
+  },
+  {
+   "id": "chromatic-radial-split",
+   "type": "block",
+   "title": "Chromatic Radial Split",
+   "description": "Shader transition with chromatic aberration radial split",
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4,
+   "sourceSha256": "d328cc320397eb2109c6a2dab030bbcca7556c06c197416c288995aeef1e4d99",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "chromatic-radial-split.html",
+     "target": "compositions/chromatic-radial-split.html",
+     "sha256": "d328cc320397eb2109c6a2dab030bbcca7556c06c197416c288995aeef1e4d99"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t11",
+     "label": "Title",
+     "defaultValue": "Chromatic Radial Split",
+     "type": "text",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t13",
+     "label": "Prompt text",
+     "defaultValue": "\"use chromatic radial split shader transition\"",
+     "type": "text",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated"
+  },
+  {
+   "id": "cinematic-zoom",
+   "type": "block",
+   "title": "Cinematic Zoom",
+   "description": "Shader transition with dramatic zoom blur",
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4,
+   "sourceSha256": "72b3a83d5de6a56fd389044aa15e785dbb40d5402cea6b95684b6b9cec0e4aba",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "cinematic-zoom.html",
+     "target": "compositions/cinematic-zoom.html",
+     "sha256": "72b3a83d5de6a56fd389044aa15e785dbb40d5402cea6b95684b6b9cec0e4aba"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t6",
+     "label": "Scene A label",
+     "defaultValue": "SCENE A",
+     "type": "text",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t8",
+     "label": "Scene B label",
+     "defaultValue": "SCENE B",
+     "type": "text",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t11",
+     "label": "Title",
+     "defaultValue": "Cinematic Zoom",
+     "type": "text",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t13",
+     "label": "Prompt text",
+     "defaultValue": "\"use cinematic zoom shader transition\"",
+     "type": "text",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "code-3d-extrude",
+   "type": "block",
+   "title": "Code 3D Extrude",
+   "description": "Syntax-highlighted code on a lit, beveled 3D slab that rotates through real space and settles to a readable rest \u2014 true WebGL depth and lighting, not a 2D transform.",
+   "tags": [
+    "code",
+    "code-animation",
+    "3d",
+    "webgl",
+    "developer"
+   ],
+   "category": "code",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 8,
+   "sourceSha256": "48775b0649d260711c60c2b605f56b12fbf8bbdcdcc1324275b21cbab939fdbb",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "code-3d-extrude.html",
+     "target": "compositions/code-3d-extrude.html",
+     "sha256": "48775b0649d260711c60c2b605f56b12fbf8bbdcdcc1324275b21cbab939fdbb"
+    }
+   ],
+   "editables": [],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "code-shader-dissolve",
+   "type": "block",
+   "title": "Code Shader Dissolve",
+   "description": "The code compiles into existence: a GPU fragment shader resolves it out of seeded noise with a chromatic dissolve front and edge glow, then holds crisp.",
+   "tags": [
+    "code",
+    "code-animation",
+    "shader",
+    "webgl",
+    "developer"
+   ],
+   "category": "code",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 7,
+   "sourceSha256": "ee638e1a9b12bb8b6c935bff898ec0a21c2cce975551f9194cbaedee9de502ba",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "code-shader-dissolve.html",
+     "target": "compositions/code-shader-dissolve.html",
+     "sha256": "ee638e1a9b12bb8b6c935bff898ec0a21c2cce975551f9194cbaedee9de502ba"
+    }
+   ],
+   "editables": [],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "cross-warp-morph",
+   "type": "block",
+   "title": "Cross Warp Morph",
+   "description": "Shader transition with cross-warped morphing",
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4,
+   "sourceSha256": "fa9748f6f6059b2575d90eb98fd14a45de3c75e7dac1e925d997bc61e56ab85e",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "cross-warp-morph.html",
+     "target": "compositions/cross-warp-morph.html",
+     "sha256": "fa9748f6f6059b2575d90eb98fd14a45de3c75e7dac1e925d997bc61e56ab85e"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t6",
+     "label": "Scene A label",
+     "defaultValue": "SCENE A",
+     "type": "text",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t8",
+     "label": "Scene B label",
+     "defaultValue": "SCENE B",
+     "type": "text",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t11",
+     "label": "Title",
+     "defaultValue": "Cross-Warp Morph",
+     "type": "text",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t13",
+     "label": "Prompt text",
+     "defaultValue": "\"use cross-warp morph shader transition\"",
+     "type": "text",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "domain-warp-dissolve",
+   "type": "block",
+   "title": "Domain Warp Dissolve",
+   "description": "Shader transition with fractal noise domain warping",
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4,
+   "sourceSha256": "7d910616bf3eb799c9904a941a5edeb99a00de14bf6e0a094844978c30b2a874",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "domain-warp-dissolve.html",
+     "target": "compositions/domain-warp-dissolve.html",
+     "sha256": "7d910616bf3eb799c9904a941a5edeb99a00de14bf6e0a094844978c30b2a874"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t6",
+     "label": "Scene A label",
+     "defaultValue": "SCENE A",
+     "type": "text",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t8",
+     "label": "Scene B label",
+     "defaultValue": "SCENE B",
+     "type": "text",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t11",
+     "label": "Title",
+     "defaultValue": "Domain Warp Dissolve",
+     "type": "text",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t13",
+     "label": "Prompt text",
+     "defaultValue": "\"use domain warp dissolve shader transition\"",
+     "type": "text",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "flash-through-white",
+   "type": "block",
+   "title": "Flash Through White",
+   "description": "Shader transition with white flash crossfade",
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4,
+   "sourceSha256": "d63cdbe17d81c12ee23406dd2dacf7e6a9489121906a7a3a2f74980ece623bac",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "flash-through-white.html",
+     "target": "compositions/flash-through-white.html",
+     "sha256": "d63cdbe17d81c12ee23406dd2dacf7e6a9489121906a7a3a2f74980ece623bac"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t6",
+     "label": "Scene A label",
+     "defaultValue": "SCENE A",
+     "type": "text",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t8",
+     "label": "Scene B label",
+     "defaultValue": "SCENE B",
+     "type": "text",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t11",
+     "label": "Title",
+     "defaultValue": "Flash Through White",
+     "type": "text",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t13",
+     "label": "Prompt text",
+     "defaultValue": "\"use flash through white shader transition\"",
+     "type": "text",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "gallery-tunnel",
+   "type": "block",
+   "title": "Gallery Tunnel",
+   "description": "An infinite corridor of panels: a square tunnel receding to a vanishing point, its floor, ceiling and walls tiled with saturated colour slabs and caller-supplied images that swell toward camera and exit past you, the far end dissolving into fog.",
+   "tags": [
+    "webgl",
+    "3d",
+    "background",
+    "showcase",
+    "depth",
+    "loop"
+   ],
+   "category": "webgl",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 12,
+   "sourceSha256": "8142f6f8e79a4672e5ea7804e75142a8f8371effacc9ce511ef08587be7284d8",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "gallery-tunnel.html",
+     "target": "compositions/gallery-tunnel.html",
+     "sha256": "8142f6f8e79a4672e5ea7804e75142a8f8371effacc9ce511ef08587be7284d8"
+    }
+   ],
+   "editables": [],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "glitch",
+   "type": "block",
+   "title": "Glitch",
+   "description": "Shader transition with digital glitch artifacts",
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4,
+   "sourceSha256": "f8101d1a5b71aa0ce4eb44444ee95e6ad0d7d16eb8b38b5ac81422a01fc5240b",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "glitch.html",
+     "target": "compositions/glitch.html",
+     "sha256": "f8101d1a5b71aa0ce4eb44444ee95e6ad0d7d16eb8b38b5ac81422a01fc5240b"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t11",
+     "label": "Title",
+     "defaultValue": "Glitch",
+     "type": "text",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t13",
+     "label": "Prompt text",
+     "defaultValue": "\"use glitch shader transition\"",
+     "type": "text",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "halftone-field",
+   "type": "block",
+   "title": "Halftone Field",
+   "description": "A full-bleed halftone light field: a grid of dots whose size and colour track a slow flowing simplex-noise field, so broad bands of light sweep across a mostly-black frame like a giant LED wall showing a plasma. Built to run under type.",
+   "tags": [
+    "webgl",
+    "shader",
+    "background",
+    "texture",
+    "halftone"
+   ],
+   "category": "webgl",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 10,
+   "sourceSha256": "4b8e56dd736713db5a01274fb4fa5f96cf8ae7f4b3375772abf92d574efd3a08",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "halftone-field.html",
+     "target": "compositions/halftone-field.html",
+     "sha256": "4b8e56dd736713db5a01274fb4fa5f96cf8ae7f4b3375772abf92d574efd3a08"
+    }
+   ],
+   "editables": [],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "rack-focus",
+   "type": "block",
+   "title": "Rack Focus",
+   "description": "A focus pull with real aperture bokeh: the focal plane travels from a near subject to a far one, so one resolves as the other blows into hard-edged polygon discs that clip to a cat's eye toward the corners. A focus pull only reads against content at two clearly separated depths, so this block carries its own depth-layered night exterior and puts both subject depths on variables.",
+   "tags": [
+    "webgl",
+    "shader",
+    "camera",
+    "depth",
+    "cinematic",
+    "showcase"
+   ],
+   "category": "webgl",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 6,
+   "sourceSha256": "9abb3443c92d41cba53db5942cf33acf9f47d4040459bf7c0dfbb277ab7534bb",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "rack-focus.html",
+     "target": "compositions/rack-focus.html",
+     "sha256": "9abb3443c92d41cba53db5942cf33acf9f47d4040459bf7c0dfbb277ab7534bb"
+    }
+   ],
+   "editables": [],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "ridged-burn",
+   "type": "block",
+   "title": "Ridged Burn",
+   "description": "Shader transition with ridged turbulence burn effect",
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4,
+   "sourceSha256": "fd6309001b327eba4004e3c334a2d45525fcd5730ba6fd2d2e095e21b5ecd477",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "ridged-burn.html",
+     "target": "compositions/ridged-burn.html",
+     "sha256": "fd6309001b327eba4004e3c334a2d45525fcd5730ba6fd2d2e095e21b5ecd477"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t6",
+     "label": "Scene A label",
+     "defaultValue": "SCENE A",
+     "type": "text",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t8",
+     "label": "Scene B label",
+     "defaultValue": "SCENE B",
+     "type": "text",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t11",
+     "label": "Title",
+     "defaultValue": "Ridged Burn",
+     "type": "text",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t13",
+     "label": "Prompt text",
+     "defaultValue": "\"use ridged burn shader transition\"",
+     "type": "text",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "ripple-waves",
+   "type": "block",
+   "title": "Ripple Waves",
+   "description": "Shader transition with concentric ripple wave distortion",
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4,
+   "sourceSha256": "4b6c4df7f51c0a5fd163cf6c584876e169de3357190a6570474f6213f2d0db83",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "ripple-waves.html",
+     "target": "compositions/ripple-waves.html",
+     "sha256": "4b6c4df7f51c0a5fd163cf6c584876e169de3357190a6570474f6213f2d0db83"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t6",
+     "label": "Scene A label",
+     "defaultValue": "SCENE A",
+     "type": "text",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t8",
+     "label": "Scene B label",
+     "defaultValue": "SCENE B",
+     "type": "text",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t11",
+     "label": "Title",
+     "defaultValue": "Ripple Waves",
+     "type": "text",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t13",
+     "label": "Prompt text",
+     "defaultValue": "\"use ripple waves shader transition\"",
+     "type": "text",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "spiral-galaxy",
+   "type": "block",
+   "title": "Spiral Galaxy",
+   "description": "A spiral galaxy seen from outside, turning with real differential rotation: inner stars orbit faster than outer ones, so the arms wind up over the shot instead of spinning rigidly. 20,000 additive GPU sprites, seeded once and solved directly from time, so any frame can be rendered on its own.",
+   "tags": [
+    "hero",
+    "space",
+    "particles",
+    "webgl",
+    "background"
+   ],
+   "category": "hero",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 10,
+   "sourceSha256": "dcc2eaaf0fa496048b0a81de129555791b4587d27f4124f7a33db947a56da7b3",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "spiral-galaxy.html",
+     "target": "compositions/spiral-galaxy.html",
+     "sha256": "dcc2eaaf0fa496048b0a81de129555791b4587d27f4124f7a33db947a56da7b3"
+    }
+   ],
+   "editables": [],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "swirl-vortex",
+   "type": "block",
+   "title": "Swirl Vortex",
+   "description": "Shader transition with swirling vortex distortion",
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4,
+   "sourceSha256": "d2ec8ec40dd47e584463b82f806dbc474aed8e1a94648e7637032ecb0f9f481b",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "swirl-vortex.html",
+     "target": "compositions/swirl-vortex.html",
+     "sha256": "d2ec8ec40dd47e584463b82f806dbc474aed8e1a94648e7637032ecb0f9f481b"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t6",
+     "label": "Scene A label",
+     "defaultValue": "SCENE A",
+     "type": "text",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t8",
+     "label": "Scene B label",
+     "defaultValue": "SCENE B",
+     "type": "text",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t11",
+     "label": "Title",
+     "defaultValue": "Swirl Vortex",
+     "type": "text",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t13",
+     "label": "Prompt text",
+     "defaultValue": "\"use swirl vortex shader transition\"",
+     "type": "text",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "thermal-distortion",
+   "type": "block",
+   "title": "Thermal Distortion",
+   "description": "Shader transition with heat haze thermal distortion",
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4,
+   "sourceSha256": "cb82b1f76d6c2dcd0d555697fec0155105ba62395d555852ace032448127e276",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "thermal-distortion.html",
+     "target": "compositions/thermal-distortion.html",
+     "sha256": "cb82b1f76d6c2dcd0d555697fec0155105ba62395d555852ace032448127e276"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t11",
+     "label": "Title",
+     "defaultValue": "Thermal Distortion",
+     "type": "text",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t13",
+     "label": "Prompt text",
+     "defaultValue": "\"use thermal distortion shader transition\"",
+     "type": "text",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "whip-pan",
+   "type": "block",
+   "title": "Whip Pan",
+   "description": "Shader transition simulating a fast camera whip pan",
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4,
+   "sourceSha256": "97a690de11f6dcebd6356bea84cba1af6ae61bfe03b9b7cc75a81368c93a12c9",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "whip-pan.html",
+     "target": "compositions/whip-pan.html",
+     "sha256": "97a690de11f6dcebd6356bea84cba1af6ae61bfe03b9b7cc75a81368c93a12c9"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t6",
+     "label": "Scene A label",
+     "defaultValue": "SCENE A",
+     "type": "text",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t8",
+     "label": "Scene B label",
+     "defaultValue": "SCENE B",
+     "type": "text",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t11",
+     "label": "Title",
+     "defaultValue": "Whip Pan",
+     "type": "text",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t13",
+     "label": "Prompt text",
+     "defaultValue": "\"use whip pan shader transition\"",
+     "type": "text",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "slow": true
   }
  ]
 }

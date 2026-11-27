@@ -1,0 +1,16 @@
+{
+  "slug": "photo-studio",
+  "name": "Photo Studio",
+  "intro": "Photo Studio turns one product photo into a set of styled shots. You pick the looks you want, and your brand's logo and colors can come along.",
+  "features": {
+    "product-image": "Start with the product image. Use the button at the top to upload a photo, paste a link, or pick one from your library.",
+    "brand-selector": "The brand selector adds your logo and colors to the shoot. You can also choose no brand logo if you'd rather keep things plain.",
+    "direction": "Direction is optional. Describe the mood or any details the preset doesn't cover, and it gets added on top of the style.",
+    "resolution": "Resolution offers one k, two k or four k. Go higher for print or large banners, and lower for quick drafts.",
+    "photo-style-presets": "The presets come in six categories, such as Beauty, Fashion and Home. Each button shows its style and ratio, and hovering reads what it stages.",
+    "select-all": "Select all picks every preset in a category at once. It's a quick way to compare a whole set of looks.",
+    "generation-mode": "Generation Mode switches between the Brand API and a direct model picker. Use it if you want a different editing model.",
+    "generate-product-photos": "The Generate Product Photos button makes one photo for each preset you selected, working through them a couple at a time."
+  },
+  "outro": "That's Photo Studio. Add a product, pick your styles, and a whole photoshoot is one click away."
+}

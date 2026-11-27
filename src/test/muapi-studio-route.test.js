@@ -6,13 +6,16 @@ describe('Studio registration', () => {
     const router = fs.readFileSync('src/lib/router.js', 'utf-8');
     expect(router).toContain("'muapi-studio': () => import('../components/MuapiStudioPage.js')");
     expect(router).toContain("'Studio': 'muapi-studio'");
+    expect(router).toContain("'SmartVid Studio': 'muapi-studio'");
   });
 
-  it('is listed once in the shared side menu, with a label, icon and category', async () => {
-    const { NAV_GROUPS, STUDIO_ROUTES, getStudioIcon } = await import('../lib/studioRoutes.js');
+  it('is the same studio as Smart Video Studio: one side-menu entry, the old route is an alias', async () => {
+    const { NAV_GROUPS, STUDIO_ROUTES, getStudioIcon, getNavItemForRoute } = await import('../lib/studioRoutes.js');
     const ids = NAV_GROUPS.flatMap((g) => g.items.map((i) => i.id));
-    expect(ids.filter((id) => id === 'muapi-studio')).toHaveLength(1);
-    expect(STUDIO_ROUTES['muapi-studio']).toMatchObject({ label: 'Studio' });
+    expect(ids).not.toContain('muapi-studio');
+    expect(ids.filter((id) => id === 'smart-video-studio')).toHaveLength(1);
+    expect(getNavItemForRoute('muapi-studio')).toBe('smart-video-studio');
+    expect(STUDIO_ROUTES['muapi-studio']).toMatchObject({ label: 'SmartVid Studio' });
     expect(getStudioIcon('muapi-studio')).toContain('<svg');
   });
 

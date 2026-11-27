@@ -40,7 +40,6 @@ import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateReso
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
 
 export function ImageStudio() {
@@ -125,7 +124,7 @@ export function ImageStudio() {
             // TemplateStudio instead of rendering a blank ImageStudio.
             const imageModelIds = new Set([...t2iModels, ...i2iModels].map(m => m.id));
             if (tpl.model && !imageModelIds.has(tpl.model)) {
-              window.location.assign(`/?template=${encodeURIComponent(templateParam)}#/template/${encodeURIComponent(templateParam)}`);
+              window.location.assign(`/template/${encodeURIComponent(templateParam)}?template=${encodeURIComponent(templateParam)}`);
               return;
             }
             if (tpl.model) selectedModel = tpl.model;
@@ -307,7 +306,7 @@ export function ImageStudio() {
       const ta = document.getElementById('i-prompt-textarea') || textarea;
       openRecipeModal({
         basePrompt: ta?.value?.trim() || '',
-        onRunRecipe: () => showToast('Recipe finished — open the result from the Recipe panel.', 'success'),
+        studio: 'image',
       }).catch((err) => {
         console.error('[Recipe] open failed:', err);
         showToast('Could not open Recipes: ' + (err?.message || err), 'error');
@@ -323,17 +322,6 @@ export function ImageStudio() {
     recipeBtn.className = 'btn-ghost-modern';
     recipeBtn.addEventListener('click', () => openImageRecipes());
 
-
-    // Monetization Hub button
-    const monetizationBtn = document.createElement('button');
-    monetizationBtn.type = 'button';
-    monetizationBtn.textContent = '💼 Monetize';
-    monetizationBtn.title = 'Open Smart Video AI Monetization Hub';
-    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'btn-ghost-modern';
-    monetizationBtn.addEventListener('click', () => {
-      openMonetizationHub().catch(() => {});
-    });
 
     textarea.placeholder = 'Describe the image you want to create';
     textarea.className = 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
@@ -435,7 +423,7 @@ export function ImageStudio() {
       },
     });
 
-    // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
+    // Enhancement tools overflow menu (GTM Boost, Recipes, Prompts)
     const enhanceMenu = document.createElement('div');
     enhanceMenu.className = 'overflow-menu shrink-0';
     enhanceMenu.innerHTML = `
@@ -445,7 +433,6 @@ export function ImageStudio() {
       <div class="overflow-menu__panel">
         <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
         <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
-        <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
         <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
       </div>
     `;
@@ -478,8 +465,6 @@ export function ImageStudio() {
           }).catch(() => {});
         } else if (action === 'recipe') {
           openImageRecipes();
-        } else if (action === 'monetize') {
-      openMonetizationHub().catch(() => {});
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'image-studio',
@@ -716,6 +701,7 @@ export function ImageStudio() {
           generationHistory,
         });
       },
+      getResult: () => { const el = document.querySelector('#i-result-img'); return el ? (el.currentSrc || el.src || '') : ''; },
       getProject: () => ({}),
       getPersonalizableFields: () => {
         const textarea = document.getElementById('i-prompt-textarea');
@@ -1284,18 +1270,24 @@ generateBtn.type = 'button';
     container.appendChild(canvas);
 
     // --- Helper: Show image in canvas ---
+    // Bumped by every show and by "+ New", so a slow image that finishes
+    // loading after the user reset (or picked another) can't reopen the canvas.
+    let canvasLoadToken = 0;
     const showImageInCanvas = (imageUrl) => {
+        const token = ++canvasLoadToken;
         // Fully hide hero and prompt
         hero.classList.add('hidden');
         promptWrapper.classList.add('hidden');
 
-        resultImg.src = imageUrl;
         resultImg.onload = () => {
+            if (token !== canvasLoadToken) return;
             canvas.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
+            container.classList.add('studio-result-showing'); // hides the example gallery under the result
             canvas.classList.add('opacity-100', 'translate-y-0', 'scale-100');
             canvasControls.classList.remove('opacity-0');
             canvasControls.classList.add('opacity-100');
         };
+        resultImg.src = imageUrl;
         publishBtn.onclick = () => openSocialPublish({ mediaUrl: imageUrl, mediaType: 'image' });
         landingBtn.onclick = () => { void openLandingPageFor({ url: imageUrl, type: 'image', studio: 'image' }); };
     };
@@ -1422,8 +1414,10 @@ generateBtn.type = 'button';
     };
 
     newPromptBtn.onclick = () => {
+        canvasLoadToken++; // drop any still-loading result
         // Reset to prompt view
         canvas.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
+        container.classList.remove('studio-result-showing');
         canvas.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
         canvasControls.classList.add('opacity-0');
         canvasControls.classList.remove('opacity-100');
@@ -1617,7 +1611,7 @@ generateBtn.type = 'button';
       const showMoreBtn = document.createElement('button');
       showMoreBtn.type = 'button';
       showMoreBtn.textContent = `Show all ${galleryAssets.length} image prompts`;
-      showMoreBtn.className = 'mt-4 mb-8 px-6 py-3 rounded-xl text-sm font-bold bg-white/5 text-secondary hover:bg-white/10 hover:text-primary transition-all border border-white/5 hover:border-primary/30';
+      showMoreBtn.className = 'eg-show-more mt-4 mb-8 px-6 py-3 rounded-xl text-sm font-bold bg-white/5 text-secondary hover:bg-white/10 hover:text-primary transition-all border border-white/5 hover:border-primary/30';
       showMoreBtn.addEventListener('click', () => {
         expanded = !expanded;
         if (expanded) {

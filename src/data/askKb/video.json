@@ -30,7 +30,7 @@
     "Attachment buttons for start frame, end frame, image, video; a button to browse stock photos for the reference image, one to browse stock videos for video-to-video, and a button that pulls the last frame out of a video file for image-to-video.",
     "Advanced panel with 'Native Audio' and 'Character Lock' toggles plus extra model-specific controls such as negative prompt and seed when the model supports them.",
     "Motion & Style panel with 'Camera Speed', 'Guidance Scale' and a Style Preset row (None, Cinematic, Anime, Realistic, Watercolor, Noir).",
-    "Prompt helpers in a three-dot menu: GTM Boost, Recipes, Monetize, Prompts. Also a Personalize button and a Thumbnail button.",
+    "Prompt helpers in a three-dot menu: GTM Boost, Recipes, Prompts. Also a Personalize button and a Thumbnail button.",
     "Result screen: Regenerate, Download, Extend (or Upscale to 4K), Open in Render, + New, Publish to Social, Add AI Captions, a scrubber and a History strip.",
     "Interrupted jobs are recovered: if a generation finished while you were away, a toast says 'Recovered a generation that finished while you were away'."
   ],

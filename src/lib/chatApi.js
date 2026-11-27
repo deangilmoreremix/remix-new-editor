@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid';
 import { muapi } from './muapi.js';
 import { MessageRole } from '../types/chat.js';
+import { MUAPI_TEXT_MODEL, isOpenAIReasoningModel } from './config/openaiConfig.js';
 
 export async function sendChatMessage({
   conversationId, messages, model, systemPrompt, temperature, maxTokens,
@@ -16,13 +17,16 @@ export async function sendChatMessage({
   })));
 
   const lastUserMessage = apiMessages[apiMessages.length - 1];
+  const resolvedModel = model || MUAPI_TEXT_MODEL;
+  // GPT-5/GPT-6 reasoning models reject sampling params.
+  const samplingTemperature = isOpenAIReasoningModel(resolvedModel) ? undefined : temperature;
 
   if (onDelta) {
     await muapi.generateTextStream({
-      model: model || 'gpt-5-mini',
+      model: resolvedModel,
       prompt: lastUserMessage.content,
       system_prompt: systemPrompt,
-      temperature,
+      temperature: samplingTemperature,
       max_tokens: maxTokens,
       messages: apiMessages,
       signal,
@@ -32,10 +36,10 @@ export async function sendChatMessage({
     });
   } else {
     const response = await muapi.generateText({
-      model: model || 'gpt-5-mini',
+      model: resolvedModel,
       prompt: lastUserMessage.content,
       system_prompt: systemPrompt,
-      temperature,
+      temperature: samplingTemperature,
       max_tokens: maxTokens,
     });
     return response;
@@ -46,7 +50,7 @@ export async function createConversation() {
   return {
     id: nanoid(),
     title: 'New conversation',
-    model: 'gpt-5-mini',
+    model: MUAPI_TEXT_MODEL,
     systemPrompt: '',
     temperature: 0.7,
     maxTokens: 1024,

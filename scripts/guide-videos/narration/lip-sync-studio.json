@@ -1,0 +1,15 @@
+{
+  "slug": "lip-sync-studio",
+  "name": "Lip Sync Studio",
+  "intro": "Lip Sync Studio in SmartVideo makes a still portrait talk, or re-syncs the mouth in an existing video, to an audio file you upload.",
+  "features": {
+    "portrait-image-mode": "Portrait Image is the default mode. Use it when you only have a photo of a person or character and want it to speak your audio.",
+    "video-mode": "Switch to Video mode when you already have footage. It changes the lip movement to match your audio, which suits dubbing or replacing a voice over.",
+    "model-selector": "The model selector is grouped into Portrait Image and Video models. Switching mode picks the first model for you, and models differ in quality, speed and options.",
+    "resolution-picker": "A resolution button appears for models that offer a choice. Higher resolution looks sharper, but it is expected to take longer.",
+    "optional-prompt": "The optional prompt box lets you hint at the talking style or motion. It is only sent to models that accept a prompt.",
+    "pending-job-recovery-and-history": "Every submitted job is remembered. If you reload while one is running, the studio resumes waiting and adds it to History when it is ready.",
+    "result-actions": "When your video is ready, you can start a new one, regenerate, download, publish to social or add AI captions."
+  },
+  "outro": "Pick a mode, add your media and audio, and Lip Sync Studio gets your characters speaking."
+}

@@ -31,7 +31,7 @@
     "Reference images: upload, paste, browse Pexels stock photos, attach via the attachment toolbar, or sketch with the Draw button.",
     "Multi-image image-to-image for models that accept several reference images.",
     "Special model extras: an Effect menu for models that take a named effect, and a 'Swap face image' slot for face-swap models.",
-    "Prompt helpers: Prompts (prompt gallery), Recipes, GTM Boost, Monetize and Personalize ({{token}} replacement from a selected contact).",
+    "Prompt helpers: Prompts (prompt gallery), Recipes, GTM Boost and Personalize ({{token}} replacement from a selected contact).",
     "Thumbnail button to generate a custom thumbnail for the studio.",
     "Result canvas with Regenerate, Download, New and Publish to Social, plus a History strip with per-image download and delete.",
     "Pending-job recovery: if you reload while an image is generating, a finished result is recovered with the message 'Recovered a generation that finished while you were away'.",
@@ -490,7 +490,6 @@
     "commercial",
     "brand",
     "library",
-    "explore",
     "templates"
   ],
   "relatedStudioGuidance": [

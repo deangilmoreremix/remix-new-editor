@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
         correlationId,
       })
       return NextResponse.json(
-        { error: 'Server configuration error', correlationId },
+        { error: `Server configuration error (missing: ${envCheck.missingRequired.join(', ')})`, code: 'ENV_MISSING', missing: envCheck.missingRequired, correlationId },
         { status: 500, headers: { 'x-correlation-id': correlationId } },
       )
     }

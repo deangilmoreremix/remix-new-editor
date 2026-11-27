@@ -109,6 +109,7 @@ export function EffectsPage() {
   const startBtn = container.querySelector('.start-btn');
   if (startBtn) startBtn.onclick = () => navigate('effects');
   container.querySelector('.cta-btn').onclick = () => navigate('effects');
+  container.querySelector('.cta-btn').dataset.helpText = 'Open Effects Studio.';
 
   return container;
 }

@@ -219,7 +219,7 @@ export function goToRoute(route, params = {}) {
     return;
   }
   const query = new URLSearchParams({ ...params, public: '1' }).toString();
-  const target = query ? `/?${query}#/${route}` : `/#/${route}`;
+  const target = query ? `/${route}?${query}` : `/${route}`;
 
   // On the standalone landing page the in-app router is not mounted, so
   // we fall back to a full page load so main.js can boot the app shell
@@ -373,6 +373,25 @@ export function createStudioIcon(demo, options = {}) {
   button.textContent = label;
 
   button.addEventListener('click', async () => {
+    if (route === 'image') {
+      // Image Studio redirects `?template=` demos whose model isn't an image model
+      // to the template page. Hand the prompt over through the staged prefill
+      // instead, so it always opens Image Studio with the prompt filled in.
+      let promptText = demo.prompt || '';
+      if (!promptText && typeof loadPrompt === 'function') {
+        try { promptText = (await loadPrompt(demo.slug)) || ''; } catch { promptText = ''; }
+      }
+      const { template: _template, ...rest } = params;
+      if (promptText) {
+        const { stageStudioPrefill } = await import('../../../../lib/studioPrefill.js');
+        stageStudioPrefill({ route: 'image', prompt: promptText, params: {}, ref: params.ref || 'landing-demo' });
+        const { prompt: _prompt, ...withoutPrompt } = rest;
+        goToRoute(route, withoutPrompt);
+      } else {
+        goToRoute(route, rest);
+      }
+      return;
+    }
     if (!isPersonalize) {
       goToRoute(route, params);
       return;

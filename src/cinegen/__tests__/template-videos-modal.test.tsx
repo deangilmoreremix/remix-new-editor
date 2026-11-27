@@ -112,11 +112,13 @@ describe('TemplateVideosModal', () => {
   it('closes from the × button, the backdrop and Escape (but not from clicks inside the panel)', () => {
     fireEvent.click(within(screen.getByRole('dialog')).getByLabelText('Close library'));
     expect(onClose).toHaveBeenCalledTimes(1);
-    fireEvent.click(screen.getByRole('dialog'));
+    fireEvent.mouseDown(screen.getByRole('dialog')); // the shared shell closes on backdrop mousedown
     expect(onClose).toHaveBeenCalledTimes(2);
     fireEvent.click(screen.getByText('Template videos'));
     expect(onClose).toHaveBeenCalledTimes(2);
-    fireEvent.keyDown(window, { key: 'Escape' });
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(3);
+    fireEvent.mouseDown(screen.getByText('Template videos')); // a press inside the panel does not close
     expect(onClose).toHaveBeenCalledTimes(3);
   });
 });

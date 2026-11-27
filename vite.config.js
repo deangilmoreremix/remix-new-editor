@@ -430,7 +430,8 @@ function securityHeaders() {
         configureServer(server) {
             server.middlewares.use((req, res, next) => {
                 const url = req.url || '';
-                if (url.startsWith('/ai-vfx')) {
+                // The bare /ai-vfx path is the in-app studio route (the SPA); only /ai-vfx/* is the vendored sub-app.
+                if (url.startsWith('/ai-vfx/')) {
                     return next();
                 }
                 // The Remotion export runner sets its own (stricter) CSP via
@@ -474,7 +475,7 @@ function securityHeaders() {
                   `font-src 'self' data: https://fonts.gstatic.com${clerkHostSrc}`,
                   // https: so the Remotion Player (@remotion/media) can fetch clip
                   // media from stock/storage CDNs, as production (no CSP) allows.
-                  "connect-src 'self' https: blob: data: ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com https://raw.githubusercontent.com http://localhost:8787" + (process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : '') + clerkHostSrc,
+                  "connect-src 'self' https: blob: data: ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co wss://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com https://raw.githubusercontent.com http://localhost:8787" + (process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : '') + clerkHostSrc,
                   `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com http://localhost:5173 http://localhost:3000 http://localhost:5199 http://localhost:5174 http://localhost:8787 https://ai-vfx.smartvid.app https://video-agent.smartvid.app${process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : ''}${bookingFrameSrc}`,
                   "media-src 'self' https: blob: data:", // data: so a video picked while storage is unavailable (stored in the project as a data URL) plays, as in production (no CSP)
                 ].join('; ');
@@ -1169,7 +1170,7 @@ export default defineConfig({
 
             server.middlewares.use((req, res, next) => {
               const url = req.url || '';
-              if (url.startsWith('/ai-vfx/') || url === '/ai-vfx') {
+              if (url.startsWith('/ai-vfx/')) {
                 const relativePath = url.replace('/ai-vfx', '').replace(/^\//, '') || 'index.html';
                 const filePath = path.join(aiVfxOutDir, relativePath);
                 if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
@@ -1348,10 +1349,13 @@ export default defineConfig({
             // Media Hub: vendored VidBee, gated by the Express backend (see backend/services/vidbeeProxy.js).
             '/vidbee': { target: process.env.VITE_BACKEND_PROXY || 'http://localhost:3001', changeOrigin: true },
             '/api/vidbee': { target: process.env.VITE_BACKEND_PROXY || 'http://localhost:3001', changeOrigin: true },
+            // `/ai-vfx` is also a studio route of the SPA (/ai-vfx?public=1 on the landing page): a
+            // page load of the bare path belongs to the SPA; everything under /ai-vfx/ is the sub-app.
             '/ai-vfx': {
                 target: 'http://localhost:3000',
                 changeOrigin: true,
                 ws: true,
+                bypass: (req) => (/^\/ai-vfx\/?(\?|$)/.test(req.url || '') && (req.headers.accept || '').includes('text/html') ? '/index.html' : undefined),
             },
             '/_next/static': {
                 target: 'http://localhost:3000',

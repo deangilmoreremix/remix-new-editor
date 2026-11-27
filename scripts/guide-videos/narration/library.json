@@ -1,0 +1,13 @@
+{
+  "slug": "library",
+  "name": "Library",
+  "intro": "Library is where everything you make in SmartVideo is saved automatically, along with your uploads. Here's how to find, preview and reuse your work.",
+  "features": {
+    "filters-and-counts": "The filter buttons are All, Images, Videos, Audio and Uploads. Most show a count, so you can narrow a long history down to just the kind of file you want.",
+    "search-and-sort": "Search by prompt or model to find an item by what you typed or which model made it. The sort menu switches between newest first and oldest first.",
+    "quick-actions": "Hover over an item to reveal four small buttons: Download, Copy prompt, Save to Content, and Delete. You can act on a result without opening it.",
+    "preview": "Click an image or video to open a larger view with its prompt, model and date, plus a Download action. Audio plays right inside the card.",
+    "uploads-and-use-in-studio": "The Uploads filter lists the files you uploaded. Hover and choose Use in studio to send one to a studio like Image Studio or Cinema Studio, with no re-uploading."
+  },
+  "outro": "That's Library. Search your history, copy a prompt that worked, and save your best results to Content."
+}

@@ -6,6 +6,7 @@
 
 import { STUDIO_ROUTES } from '../lib/studioRoutes.js';
 import { STUDIO_LANDING_PAGES } from './studioLandingPages.js';
+import { buildAppsShowcase } from './editAppsShowcase.js';
 
 export const SITE_NAME = 'Smart Video AI Studio';
 
@@ -27,12 +28,13 @@ const CATEGORY_OVERRIDES = {
 };
 
 // Knowledge files that get no public guide page (the in-app assistant still uses them).
-// smart-video-studio: the page does not open yet (missing stylesheet path, React mount, /api/model-registry).
-// smartwarmupai: assistant only until its public name is cleared (see apps/smartwarmupai-brand/README.md).
-export const UNLISTED_GUIDES = new Set(['smart-video-studio', 'smartwarmupai']);
+// smart-video-studio: the same studio as the public 'smartvid-studio' guide (one side-menu entry), so it gets no second public page.
+// smartwarmupai is public (the owner chose to publish it; its brand README still notes a trademark check for the name).
+export const UNLISTED_GUIDES = new Set(['smart-video-studio']);
 
 // Slugs that should not just be the slugified studio name.
 const SLUG_OVERRIDES = {
+  'muapi-studio': 'smartvid-studio',
   'content-library': 'content-library',
   academy: 'smart-video-academy',
 };
@@ -41,6 +43,7 @@ const SLUG_OVERRIDES = {
 const FALLBACK_IMAGES = {
   image: '/thumbnails/studios/image.webp',
   edit: '/thumbnails/studios/edit.webp',
+  'muapi-studio': '/thumbnails/studios/muapi-studio.webp',
   upscale: '/thumbnails/studios/upscale.webp',
   character: '/thumbnails/studios/character.webp',
   commercial: '/thumbnails/studios/commercial.webp',
@@ -115,8 +118,9 @@ function uniqueIds(names) {
  * @param {Record<string, object>} kbByRoute  askKb JSON keyed by route (e.g. "image")
  * @param {Record<string, {overview?: string, features?: Record<string,string>}>} shots
  *        captured screenshots keyed by slug (src/data/guideScreenshots.json)
+ * @param {object|null} appsMap  src/data/muapiStudioAppsMap.json: the Edit Studio guide lists its apps
  */
-export function buildGuides(kbByRoute, shots = {}, { includeUnlisted = false } = {}) {
+export function buildGuides(kbByRoute, shots = {}, { includeUnlisted = false } = {}, videos = null, appsMap = null) {
   const routes = Object.keys(kbByRoute).filter((r) => !r.startsWith('_') && (includeUnlisted || !UNLISTED_GUIDES.has(r))).sort();
   const slugOf = {};
   for (const route of routes) slugOf[route] = SLUG_OVERRIDES[route] || slugify(kbByRoute[route].name || route);
@@ -152,12 +156,15 @@ export function buildGuides(kbByRoute, shots = {}, { includeUnlisted = false } =
       ...features.slice(0, 6).map((f) => `${f.name} AI`),
     ].filter(Boolean);
 
+    const tourInfo = videos?.studios?.[slug];
     return {
       slug,
       route,
       // No public /studios page: the assistant shows it without guide links.
       unlisted: UNLISTED_GUIDES.has(route),
       name,
+      // The studio's tour video, when one is uploaded (src/data/guideVideos.json).
+      tour: tourInfo ? { video: `${videos.base}/${slug}/tour.mp4`, captions: `${videos.base}/${slug}/captions.vtt`, poster: `${videos.base}/${slug}/poster.webp`, seconds: tourInfo.seconds } : null,
       category: CATEGORY_OVERRIDES[route] || meta.category || 'Agents',
       shortDescription: kb.shortDescription || '',
       description: kb.description || '',
@@ -182,6 +189,8 @@ export function buildGuides(kbByRoute, shots = {}, { includeUnlisted = false } =
       tips: [...strs(kb.tips), ...strs(kb.bestPractices)],
       faqs: arr(kb.faqs).filter((q) => q && q.question && q.answer),
       glossary: glossaryList(kb.glossary),
+      // The Edit Studio's muapi apps (a gallery with a live preview of each); only the edit guide has one.
+      appsShowcase: route === 'edit' && appsMap ? buildAppsShowcase(appsMap) : null,
       relatedRoutes: strs(kb.relatedStudios),
       relatedGuidance: arr(kb.relatedStudioGuidance).filter((x) => x && x.studio),
       thumbnail: shot.overview || thumbnail,

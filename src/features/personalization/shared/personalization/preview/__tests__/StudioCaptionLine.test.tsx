@@ -5,10 +5,10 @@ import { createRoot } from 'react-dom/client'
 import { StudioCaptionLine } from '../StudioCaptionLine'
 import { CaptionsLayer } from '../CaptionsLayer'
 import { cleanStudioCaptions } from '../../captions/studioCaptions'
-import type { PreviewCaptions, PersonalizationPreviewSettings } from '../types'
+import { normalizeCaptions, type CaptionSettings } from '../captions'
 
 const frame = vi.hoisted(() => ({ current: 0 }))
-vi.mock('remotion', async (orig) => ({ ...(await orig<typeof import('remotion')>()), useCurrentFrame: () => frame.current }))
+vi.mock('remotion', async (orig) => ({ ...(await orig<typeof import('remotion')>()), useCurrentFrame: () => frame.current, useVideoConfig: () => ({ fps: 30, width: 1000, height: 1000, durationInFrames: 900 }) }))
 
 beforeAll(() => {
   ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
@@ -47,11 +47,23 @@ describe('StudioCaptionLine: the Caption Studio look, drawn as DOM', () => {
     // #001122 outline (jsdom may serialise the colour as hex or as rgb(), depending on its version)
     expect(lo.querySelector('span')!.style.textShadow).toMatch(/#001122|rgb\(0, 17, 34\)/i)
   })
-  it('always draws in the composition font, whatever font the studio data names (no font that is not loaded)', () => {
-    for (const fontFamily of ['Anton', 'Orbitron', 'Inter']) {
-      expect(line(studio({ fontFamily }), 500).querySelector('span')!.style.fontFamily).toBe('Arial') // the stack the test passes as the composition's own
+  it('draws in the chosen font, as its embedded "Capite" alias with the composition font behind it', () => {
+    for (const fontFamily of ['Anton', 'Orbitron', 'Roboto', 'Inter']) {
+      const ff = line(studio({ fontFamily }), 500).querySelector('span')!.style.fontFamily
+      expect(ff, fontFamily).toContain(`Capite ${fontFamily}`)
+      expect(ff.endsWith('Arial'), fontFamily).toBe(true) // the stack the test passes as the composition's own
     }
   })
+  it('keeps the composition font for a font that is not embedded', () => {
+    expect(line(studio({ fontFamily: 'Comic Sans' }), 500).querySelector('span')!.style.fontFamily).toBe('"Comic Sans", Arial')
+  })
+  it('draws the chosen weight, or the look\'s own (bold 800, else 500)', () => {
+    expect(line(studio({ weight: 'light' }), 500).querySelector('span')!.style.fontWeight).toBe('300')
+    expect(line(studio({ weight: 'bold', bold: false }), 500).querySelector('span')!.style.fontWeight).toBe('700')
+    expect(line(studio({ bold: true }), 500).querySelector('span')!.style.fontWeight).toBe('800')
+    expect(line(studio({ bold: false }), 500).querySelector('span')!.style.fontWeight).toBe('500')
+  })
+
   it('draws karaoke wipes, boxed words and a line background with plain CSS', () => {
     const k = line(studio({ animation: 'karaoke' }), 600)
     expect(k.querySelector('div[style*="overflow: hidden"]')).not.toBeNull()
@@ -67,11 +79,10 @@ describe('StudioCaptionLine: the Caption Studio look, drawn as DOM', () => {
 })
 
 describe('CaptionsLayer chooses the Studio drawing when the project has one', () => {
-  const settings = { fps: 30, showEndCard: false, durationInFrames: 900, brandColors: { accent: '#00ff00' } } as unknown as PersonalizationPreviewSettings
-  const cues = [{ startMs: 0, endMs: 1600, text: 'legacy line' }]
-  const base: PreviewCaptions = { enabled: true, forUrl: 'https://x/v.mp4', style: 'bold', position: 'bottom', cues }
-  beforeEach(() => { frame.current = 15 }) // 500 ms
-  const layer = (c: PreviewCaptions, url = 'https://x/v.mp4') => draw(<CaptionsLayer captions={c} videoUrl={url} settings={settings} width={1000} height={1000} />)
+  const cues = [{ id: 'c1', start: 0, end: 1.6, text: 'legacy line' }]
+  const base = normalizeCaptions({ enabled: true, cues, style: {} })!
+  beforeEach(() => { frame.current = 15 }) // 0.5 s at 30 fps
+  const layer = (c: CaptionSettings) => draw(<CaptionsLayer captions={c} compH={1000} />)
 
   it('draws the studio pages', () => {
     const el = layer({ ...base, studio: studio() })
@@ -81,10 +92,9 @@ describe('CaptionsLayer chooses the Studio drawing when the project has one', ()
   it('keeps drawing the ordinary line when there is no studio data', () => {
     const el = layer(base)
     expect(el.querySelector('[data-caption-source]')).toBeNull()
-    expect(el.querySelector('[data-testid="captions-layer"]')?.getAttribute('data-caption-text')).toBe('legacy line')
+    expect(el.textContent).toContain('legacy line')
   })
-  it('still only draws over its own video, while switched on', () => {
-    expect(layer({ ...base, studio: studio() }, 'https://x/other.mp4').querySelector('[data-testid="captions-layer"]')).toBeNull()
+  it('draws nothing while switched off', () => {
     expect(layer({ ...base, enabled: false, studio: studio() }).querySelector('[data-testid="captions-layer"]')).toBeNull()
   })
 })

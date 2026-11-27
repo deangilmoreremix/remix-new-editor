@@ -101,4 +101,109 @@ describe('createResultBar', () => {
     expect(onClick).toHaveBeenCalledWith('https://cdn.x/a.mp4');
     expect(byText(bar, /Only audio/).hidden).toBe(true);
   });
+
+  describe('a result that changes while work is running', () => {
+    const deferred = () => { let resolve; let reject; const promise = new Promise((a, b) => { resolve = a; reject = b; }); return { promise, resolve, reject }; };
+
+    it('drops the old video\'s links instead of showing them under the new one', async () => {
+      const bar = createResultBar({ kind: 'video' });
+      const slow = deferred();
+      getLink.mockReturnValueOnce(slow.promise);
+      const onLink = vi.fn();
+      const withCb = createResultBar({ kind: 'video', onLink });
+      getLink.mockReset(); getLink.mockReturnValueOnce(slow.promise);
+      withCb.setUrl('https://cdn.x/A.mp4');
+      byText(withCb, /Get link/).click();
+      await tick();
+      withCb.setUrl('https://cdn.x/B.mp4');                     // captions finished / another video picked
+      slow.resolve({ fileUrl: 'https://s.co/A.mp4', watchUrl: 'https://smartvid.app/watch/vA', canonicalUrl: null, pageError: null, reused: false });
+      await tick(); await tick();
+      expect(withCb.el.querySelectorAll('input')).toHaveLength(0);
+      expect(onLink).not.toHaveBeenCalled();
+      expect(withCb.el.querySelector('[role="status"]').textContent).toBe('');
+      expect(bar.el).toBeTruthy();
+    });
+
+    it('the new result is usable straight away, and the old run cannot disable its buttons', async () => {
+      const bar = createResultBar({ kind: 'video' });
+      const slow = deferred();
+      getLink.mockReset(); getLink.mockReturnValueOnce(slow.promise);
+      bar.setUrl('https://cdn.x/A.mp4');
+      byText(bar, /Get link/).click();
+      await tick();
+      expect(byText(bar, /Download MP4/).disabled).toBe(true);
+      bar.setUrl('https://cdn.x/B.mp4');
+      expect(byText(bar, /Download MP4/).disabled).toBe(false);
+      expect(byText(bar, /Get link/).disabled).toBe(false);
+      expect(byText(bar, /Get link/).textContent).toBe('Get link');
+      slow.reject(new Error('Could not copy this file.'));
+      await tick(); await tick();
+      expect(byText(bar, /Download MP4/).disabled).toBe(false);
+      expect(bar.el.querySelector('[role="status"]').textContent).toBe('');
+    });
+
+    it('a download that finishes after the result changed does not write its status onto the new one', async () => {
+      const bar = createResultBar({ kind: 'video' });
+      const slow = deferred();
+      let onStatus;
+      downloadMedia.mockReset();
+      downloadMedia.mockImplementationOnce((url, opts) => { onStatus = opts.onStatus; return slow.promise; });
+      bar.setUrl('https://cdn.x/A.mp4');
+      byText(bar, /Download MP4/).click();
+      await tick();
+      bar.setUrl('https://cdn.x/B.mp4');
+      onStatus('Saved');
+      slow.resolve({ ok: true, method: 'blob', message: 'Saved' });
+      await tick(); await tick();
+      expect(bar.el.querySelector('[role="status"]').textContent).toBe('');
+    });
+
+    it('destroy() while work runs does not throw or call onLink', async () => {
+      const slow = deferred();
+      getLink.mockReset(); getLink.mockReturnValueOnce(slow.promise);
+      const onLink = vi.fn();
+      const bar = createResultBar({ kind: 'video', onLink });
+      bar.setUrl('https://cdn.x/A.mp4');
+      byText(bar, /Get link/).click();
+      await tick();
+      bar.destroy();
+      slow.resolve({ fileUrl: 'https://s.co/A.mp4', watchUrl: null, canonicalUrl: null, pageError: null, reused: false });
+      await tick(); await tick();
+      expect(onLink).not.toHaveBeenCalled();
+    });
+  });
+
+  it('shows an "Open file" link (and says why) when the browser would not download or open it', async () => {
+    const bar = createResultBar({ kind: 'video' });
+    downloadMedia.mockReset();
+    downloadMedia.mockResolvedValueOnce({ ok: false, method: 'manual', openUrl: 'https://cdn.x/big.mp4', message: 'This file is large (400 MB). Use the "Open file" link.' });
+    bar.setUrl('https://cdn.x/big.mp4');
+    byText(bar, /Download MP4/).click();
+    await tick(); await tick();
+    const open = bar.el.querySelector('a');
+    expect(open.textContent).toBe('Open file');
+    expect(open.href).toBe('https://cdn.x/big.mp4');
+    expect(open.rel).toContain('noopener');
+    expect(bar.el.querySelector('[role="status"]').textContent).toMatch(/large/);
+  });
+
+  it('never offers an Open file link for a non-web address', async () => {
+    const bar = createResultBar({ kind: 'video' });
+    downloadMedia.mockReset();
+    downloadMedia.mockResolvedValueOnce({ ok: false, method: 'manual', openUrl: 'javascript:alert(1)', message: 'x' });
+    bar.setUrl('https://cdn.x/a.mp4');
+    byText(bar, /Download MP4/).click();
+    await tick(); await tick();
+    expect(bar.el.querySelector('a')).toBeNull();
+  });
+
+  it('keeps the file name and adds -captioned once when the captioned video replaces the result', async () => {
+    const bar = createResultBar({ kind: 'video', filename: 'video' });
+    downloadMedia.mockReset(); downloadMedia.mockResolvedValue({ ok: true, method: 'blob', message: 'Saved' });
+    bar.setUrl('https://cdn.x/a.mp4', { filename: 'video-12' });
+    bar.setUrl('blob:cap1', { filenameSuffix: '-captioned' });
+    bar.setUrl('blob:cap2', { filenameSuffix: '-captioned' });
+    byText(bar, /Download MP4/).click(); await tick();
+    expect(downloadMedia).toHaveBeenCalledWith('blob:cap2', expect.objectContaining({ filename: 'video-12-captioned' }));
+  });
 });

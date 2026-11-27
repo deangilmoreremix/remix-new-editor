@@ -48,6 +48,10 @@
 // and an explicit element type on the `grainCells` array literal (the host
 // tsconfig is non-strict, where a bare `[]` is inferred as `never[]`).
 //
+// CHANGED (export fix): the grain is drawn as GRAIN_LEVELS (8) <path>s, one per opacity bucket, instead of one <rect> per cell
+// (14,400 nodes per 1080p frame crashed the in-browser exporter). Same cells, same pseudo-random, opacity quantised to 8 levels
+// across the same 0.02..0.08 range.
+//
 // NOT TOUCHED: the deterministic pseudo-random ((index * 1237 + f * 7919) %
 // 997) / 997, the grid maths, the SVG viewBox and preserveAspectRatio.
 // ---------------------------------------------------------------------------
@@ -92,6 +96,9 @@ export const defaultNoiseGrainProps = {
   grainOpacityRange: 0.06,
 };
 
+/** Opacity buckets the grain cells are grouped into (one SVG path each). */
+const GRAIN_LEVELS = 8;
+
 export const NoiseGrain: React.FC<NoiseGrainProps> = ({
   cellSize = defaultNoiseGrainProps.cellSize,
   background = defaultNoiseGrainProps.background,
@@ -120,15 +127,16 @@ export const NoiseGrain: React.FC<NoiseGrainProps> = ({
     return val;
   };
 
-  // Build grain cells
-  const grainCells: Array<{ col: number; row: number; opacity: number; key: number }> = [];
+  // Build grain cells, grouped into GRAIN_LEVELS opacity buckets. One <path> per bucket replaces the upstream's one <rect> per
+  // cell: at 1080p that was ~14,400 DOM nodes per frame, which made the in-browser exporter time out and then crash the tab.
+  // The opacity range is only 0.02..0.08, so 8 levels are visually indistinguishable from the continuous value.
+  const buckets: string[] = Array.from({ length: GRAIN_LEVELS }, () => "");
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
       const index = row * cols + col;
       const noise = pseudoRandom(index, frame);
-      // Opacity between 0.02 and 0.08
-      const opacity = grainMinOpacity + noise * grainOpacityRange;
-      grainCells.push({ col, row, opacity, key: index });
+      const level = Math.min(GRAIN_LEVELS - 1, Math.floor(noise * GRAIN_LEVELS));
+      buckets[level] += `M${col * cellSize} ${row * cellSize}h${cellSize}v${cellSize}h${-cellSize}z`;
     }
   }
 
@@ -192,17 +200,16 @@ export const NoiseGrain: React.FC<NoiseGrainProps> = ({
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="none"
       >
-        {grainCells.map((cell) => (
-          <rect
-            key={cell.key}
-            x={cell.col * cellSize}
-            y={cell.row * cellSize}
-            width={cellSize}
-            height={cellSize}
-            fill={grainColor}
-            opacity={cell.opacity}
-          />
-        ))}
+        {buckets.map((d, level) =>
+          d ? (
+            <path
+              key={level}
+              d={d}
+              fill={grainColor}
+              opacity={grainMinOpacity + ((level + 0.5) / GRAIN_LEVELS) * grainOpacityRange}
+            />
+          ) : null,
+        )}
       </svg>
     </div>
   );

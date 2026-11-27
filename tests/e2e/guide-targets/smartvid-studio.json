@@ -1,0 +1,95 @@
+{
+  "__overview": {
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "model-picker": {
+    "selector": "[data-studio=\"muapi-studio\"] button:has-text(\"nano-banana-pro-edit\")",
+    "click": true,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "live-price-and-batch": {
+    "selector": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")",
+    "click": false,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "form-and-json-input": {
+    "selector": "[data-studio=\"muapi-studio\"] button:has-text(\"Form\")",
+    "click": true,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "apps": {
+    "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Apps\")",
+    "click": true,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")",
+    "hashOk": true
+  },
+  "uploading-files": {
+    "steps": [
+      {
+        "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")",
+        "wait": 900
+      }
+    ],
+    "selector": "[data-studio=\"muapi-studio\"] button[aria-label=\"Upload file\"]",
+    "click": false,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")"
+  },
+  "recent-uploads": {
+    "setup": "(() => { const now = Date.now(); const rows = [{url:'/media/recast-example/character.jpg',name:'portrait-front.jpg',type:'image',at:now-60000},{url:'/media/recast-example/character.jpg?v=2',name:'product-shot.png',type:'image',at:now-3600000},{url:'/media/recast-example/character.jpg?v=3',name:'reference-pose.jpg',type:'image',at:now-86400000}]; localStorage.setItem('muapi-studio:uploads:v1:1cvf5l9dj9omz', JSON.stringify(rows)); })()",
+    "selector": "[data-studio=\"muapi-studio\"] ul[role=\"listbox\"][aria-label=\"Recent uploads\"]",
+    "steps": [
+      {
+        "selector": "[data-studio=\"muapi-studio\"] button[aria-label=\"Recent uploads\"]",
+        "wait": 700
+      }
+    ],
+    "waitFor": "[data-studio=\"muapi-studio\"] button[aria-label=\"Upload file\"]"
+  },
+  "my-generations": {
+    "steps": [
+      {
+        "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")",
+        "wait": 900
+      }
+    ],
+    "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Approved\")",
+    "click": false,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")"
+  },
+  "3d-results": {
+    "skip": true
+  },
+  "your-own-muapi-key": {
+    "steps": [
+      {
+        "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")",
+        "wait": 900
+      }
+    ],
+    "selector": "xpath=//*[@data-studio='muapi-studio']//button[@aria-label='Change your MuAPI key' or @title='Change your MuAPI key']",
+    "click": false,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")"
+  },
+  "your-own-key-and-a-secure-proxy": {
+    "steps": [
+      {
+        "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")",
+        "wait": 900
+      }
+    ],
+    "selector": "xpath=//*[@data-studio='muapi-studio']//button[@aria-label='Change your MuAPI key' or @title='Change your MuAPI key']",
+    "click": false,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")"
+  },
+  "per-account-history": {
+    "steps": [
+      {
+        "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")",
+        "wait": 900
+      }
+    ],
+    "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Unlabeled\")",
+    "click": false,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")"
+  }
+}

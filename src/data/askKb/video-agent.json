@@ -1,10 +1,10 @@
 {
   "id": "video-agent",
-  "name": "Video Agent",
+  "name": "Animation Agent",
   "route": "#/video-agent",
-  "description": "Video Agent turns a plain-language description into a motion-graphics animation. An AI writes the animation code, you preview it live, tweak it by chatting, and then render it to an MP4 in your browser.",
+  "description": "Animation Agent turns a plain-language description into a motion-graphics animation. An AI writes the animation code, you preview it live, tweak it by chatting, and then render it to an MP4 in your browser.",
   "shortDescription": "Describe an animation and the agent writes, previews and renders it as an MP4.",
-  "fullDescription": "Video Agent is a prompt-to-motion-graphics studio (a port of Remotion's prompt-to-motion-graphics template). You describe an animation such as animated text, a bar chart, chat bubbles or a logo intro. The agent first checks that your prompt really describes a visual animation, then writes Remotion code, and the result plays immediately in a live preview player. You keep chatting to change it (colors, text, timing), you can also edit the code directly, and when you are happy you click Render & Download to render an MP4 inside your own browser tab. The finished MP4 is also uploaded and saved to your library. It runs on your own OpenAI API key, so you need to add that key in Settings before it can generate. It makes designed motion graphics from code; it does not edit your footage and does not generate photorealistic AI video.",
+  "fullDescription": "Animation Agent is a prompt-to-animation studio. You describe an animation such as animated text, a bar chart, chat bubbles or a logo intro. The agent first checks that your prompt really describes a visual animation, then writes Remotion code, and the result plays immediately in a live preview player. You keep chatting to change it (colors, text, timing), you can also edit the code directly, and when you are happy you click Render & Download to render an MP4 inside your own browser tab. The finished MP4 is also uploaded and saved to your library. It runs on your own OpenAI API key, so you need to add that key in Settings before it can generate. It makes designed motion graphics from code; it does not edit your footage and does not generate photorealistic AI video.",
   "bestFor": "Creators and marketers who want animated titles, kinetic typography, simple data charts, chat or UI mockup animations, logo intros and social motion graphics from a text description, and who already have (or are willing to add) an OpenAI API key.",
   "whenToUse": [
     "You want animated text, kinetic typography or a typewriter effect from a description.",

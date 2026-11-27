@@ -50,6 +50,7 @@ import {
   type RemotionDesignCategory,
   type RemotionDesignTemplate,
 } from '../templates'
+import { designDescription } from '../templates/designDescription'
 import { buildPreviewInput } from './buildPreviewInput'
 import { C, badgeStyle, hintStyle, inputStyle, panelStyle, primaryButtonStyle, tileStyle } from './tokens'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
@@ -127,7 +128,7 @@ function buildItems(designs: RemotionDesignTemplate[], designsOnly = false): Gal
     kind: 'design' as const,
     id: design.id,
     name: design.name,
-    description: design.description,
+    description: designDescription(design),
     category: CATEGORIES.some((c) => c.key === design.category) ? design.category : 'other',
     design,
   }))

@@ -1,0 +1,90 @@
+{
+  "text-to-video": {
+    "selector": "#v-v-prompt-textarea",
+    "click": true,
+    "type": "A drone shot gliding over a neon city at night, light rain",
+    "then": [
+      {
+        "selector": "#v-model-btn",
+        "hold": 1800
+      }
+    ]
+  },
+  "animate-image-image-to-video": {
+    "route": "video",
+    "selector": "xpath=//button[@aria-label='Reference media' or @title='Reference media']",
+    "click": true,
+    "then": [
+      {
+        "text": "Pick a file",
+        "upload": true,
+        "file": "image"
+      },
+      {
+        "selector": "#v-v-prompt-textarea",
+        "type": "The camera slowly pushes in as the subject smiles"
+      }
+    ]
+  },
+  "keyframes-start-end": {
+    "click": true,
+    "then": [
+      {
+        "text": "Pick a file",
+        "upload": true,
+        "file": "image",
+        "hold": 3000
+      }
+    ]
+  },
+  "references": {
+    "click": true,
+    "then": [
+      {
+        "text": "Pick a file",
+        "upload": true,
+        "file": "image",
+        "hold": 3000
+      }
+    ]
+  },
+  "edit-video-extend-uploaded-video-motion-transfer": {
+    "click": true,
+    "then": [
+      {
+        "selector": "xpath=//button[@aria-label='Reference media' or @title='Reference media']"
+      },
+      {
+        "text": "Pick a file",
+        "upload": true,
+        "file": "video",
+        "hold": 2500
+      },
+      {
+        "selector": "#v-v-prompt-textarea",
+        "type": "Turn the scene into a snowy winter evening"
+      }
+    ]
+  },
+  "advanced-native-audio-and-character-lock": {
+    "then": [
+      {
+        "selector": "#v-native-audio-btn"
+      },
+      {
+        "selector": "#v-character-lock-btn"
+      }
+    ]
+  },
+  "motion-and-style-panel": {
+    "then": [
+      {
+        "selector": "#v-camera-speed-slider"
+      },
+      {
+        "selector": "xpath=//button[normalize-space(.)='Cinematic']",
+        "hold": 1500
+      }
+    ]
+  }
+}

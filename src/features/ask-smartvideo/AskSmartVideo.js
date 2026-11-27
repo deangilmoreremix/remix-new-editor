@@ -4,10 +4,11 @@
 // user's own OpenAI key). Source chips navigate with the SPA router, so the
 // conversation survives moving between studios; history is kept in
 // sessionStorage for the tab.
+import { onRouteChange, goTo } from '../../lib/routeUrl.js';
 import { apiKeyManager } from '../../lib/apiKeyManager.js';
 import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
 import { ENDPOINT, studioLabel, studioForRoute, renderAnswer, parseSSE, starterPrompts, pickChips, pageOf, isAcademyUrl, journeyPrompts } from './askCore.js';
-import { guideForStudio, searchGuides, guideUrl } from './askGuides.js';
+import { guideForStudio, searchGuides, guideUrl, tourVideoFor } from './askGuides.js';
 
 const STORE = 'askSmartVideo:v1';
 const MAX_LEN = 1500;
@@ -58,7 +59,8 @@ export function mountAskSmartVideo({ navigate, getPage, onGuidePage = false }) {
         </div>
       </header>
       <div data-ask="log" class="flex-1 overflow-y-auto px-4 py-3 space-y-3 custom-scrollbar" aria-live="polite"></div>
-      <div data-ask="keycard" hidden class="mx-4 mb-2 rounded-xl border border-primary/30 bg-primary/10 p-3 text-xs text-white">
+      <div data-ask="keycard" hidden class="relative mx-4 mb-2 rounded-xl border border-primary/30 bg-primary/10 p-3 pr-8 text-xs text-white">
+        <button type="button" data-ask="dismiss-key" aria-label="Dismiss" class="absolute right-1.5 top-1.5 rounded-md px-1.5 text-secondary hover:text-white hover:bg-white/10">✕</button>
         <strong>Add your OpenAI key for full AI answers.</strong> Without it, answers come from the studio guides. Ask SmartVideo uses your own OpenAI key. <button type="button" data-ask="settings" class="underline text-primary">Open API keys</button>
       </div>
       <form data-ask="form" class="flex items-end gap-2 border-t border-white/10 p-3">
@@ -72,6 +74,11 @@ export function mountAskSmartVideo({ navigate, getPage, onGuidePage = false }) {
 
   const $ = (k) => root.querySelector(`[data-ask="${k}"]`);
   const panel = $('panel'); const log = $('log'); const input = $('input'); const sendBtn = $('send'); const keycard = $('keycard');
+
+  // The key notice can be dismissed for the tab (sessionStorage), like the chat history.
+  const KEY_DISMISS = 'askSmartVideo:keycardDismissed';
+  const keyDismissed = () => { try { return sessionStorage.getItem(KEY_DISMISS) === '1'; } catch { return false; } };
+  const syncKeycard = () => { keycard.hidden = apiKeyManager.hasOpenAIKey() || keyDismissed(); };
 
   const studioId = () => studioForRoute(getPage());
   const ctx = () => (studioId() ? `Help for ${studioLabel(studioId())} and the whole app` : 'Help for every studio, the Academy and more');
@@ -145,6 +152,18 @@ export function mountAskSmartVideo({ navigate, getPage, onGuidePage = false }) {
     if (!g.unlisted) head.appendChild(all);
     box.appendChild(head);
     if (g.shortDescription) box.appendChild(el('p', 'pt-1 text-xs text-secondary', g.shortDescription));
+    // The studio's tour video (captions are burned in). It is not fetched until the viewer presses play (preload none).
+    let tour = null;
+    try { tour = await tourVideoFor(g.slug); } catch { /* no video: the guide still shows */ }
+    if (tour && into.isConnected && studioId() === id) {
+      const wrap = el('div', 'pt-2');
+      wrap.appendChild(el('div', 'pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted', `Watch the ${g.name} tour · ${Math.floor(tour.seconds / 60)}:${String(tour.seconds % 60).padStart(2, '0')}`));
+      const v = el('video', 'w-full aspect-[16/10] rounded-lg border border-white/10 bg-black');
+      v.controls = true; v.preload = 'none'; v.playsInline = true; v.poster = tour.poster; v.src = tour.video;
+      v.setAttribute('aria-label', `${g.name} tour video`);
+      wrap.appendChild(v);
+      box.appendChild(wrap);
+    }
     const list = el('div', 'flex flex-col gap-1.5 pt-2');
     g.features.forEach((f) => list.appendChild(featureCard(g, f)));
     box.appendChild(list);
@@ -165,7 +184,7 @@ export function mountAskSmartVideo({ navigate, getPage, onGuidePage = false }) {
 
   function renderAll() {
     $('context').textContent = ctx();
-    keycard.hidden = apiKeyManager.hasOpenAIKey();
+    syncKeycard();
     log.innerHTML = '';
     if (!messages.length) {
       const intro = bubble('assistant', renderAnswer('Ask how to do anything in SmartVideo. Answers come from our studio guides and Academy courses, and link to the page they came from.'));
@@ -208,7 +227,7 @@ export function mountAskSmartVideo({ navigate, getPage, onGuidePage = false }) {
     if (!text || busy) return;
     if (!apiKeyManager.hasOpenAIKey()) {
       // No key: still answer from the studio guides, and offer the key for full AI answers.
-      keycard.hidden = false;
+      syncKeycard();
       bubble('user', text);
       answerFromGuides(text);
       return;
@@ -270,8 +289,8 @@ export function mountAskSmartVideo({ navigate, getPage, onGuidePage = false }) {
       return;
     }
     // On a public guide page there is no app shell: go to the app page itself.
-    if (onGuidePage) { window.location.href = `/${String(url).startsWith('#') ? url : `#/${url}`}`; return; }
-    if (isAcademyUrl(url)) window.location.hash = url; // the Academy page parses its own hash path
+    if (onGuidePage) { window.location.href = `/${String(url).replace(/^#?\/?/, '')}`; return; }
+    if (isAcademyUrl(url)) goTo(String(url).replace(/^#?\/?/, '')); // the Academy page parses its own path
     else if (pageOf(url) === 'settings') window.dispatchEvent(new CustomEvent('navigate', { detail: { page: 'settings' } }));
     else navigate(pageOf(url));
     if (window.matchMedia('(max-width: 639px)').matches) setOpen(false);
@@ -286,6 +305,7 @@ export function mountAskSmartVideo({ navigate, getPage, onGuidePage = false }) {
     if (k === 'launcher') setOpen(panel.hidden);
     else if (k === 'close') setOpen(false);
     else if (k === 'settings') go('#/settings');
+    else if (k === 'dismiss-key') { try { sessionStorage.setItem(KEY_DISMISS, '1'); } catch { /* storage unavailable */ } keycard.hidden = true; }
     else if (k === 'clear') { abort?.abort(); messages = []; save([]); renderAll(); }
   });
   $('form').addEventListener('submit', (e) => { e.preventDefault(); const v = input.value; input.value = ''; input.style.height = ''; ask(v); });
@@ -293,5 +313,5 @@ export function mountAskSmartVideo({ navigate, getPage, onGuidePage = false }) {
   input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = `${Math.min(input.scrollHeight, 112)}px`; });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.hidden) setOpen(false); });
   // Keep "You're in <studio>" and the starters current as the user moves around.
-  window.addEventListener('hashchange', () => { if (!panel.hidden && !busy && !messages.length) renderAll(); else if (!panel.hidden) $('context').textContent = ctx(); });
+  onRouteChange(() => { if (!panel.hidden && !busy && !messages.length) renderAll(); else if (!panel.hidden) $('context').textContent = ctx(); });
 }

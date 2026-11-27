@@ -1,0 +1,16 @@
+{
+  "slug": "audio-studio",
+  "name": "Audio Studio",
+  "intro": "Audio Studio generates music, speech and sound effects from a text prompt, using the model you pick, all in one place.",
+  "features": {
+    "model-selector": "Pick your audio model at the top. Different models are built for songs, speech, sound effects or voice cloning, and your last choice is remembered.",
+    "prompt": "The prompt is your main instruction. Describe the music you want, or type the exact words for a speech model to say.",
+    "style-music": "For music models, the Style dropdown steers the genre, with choices like Pop, Jazz, Electronic and Ambient.",
+    "duration": "Duration buttons let you choose how long the track runs, from fifteen seconds up to two minutes.",
+    "voice-and-speed-speech": "For speech models you get a Voice list and a Speed slider, so you can adjust how your narrator sounds.",
+    "model-specific-controls": "Newer models show their own options right under the prompt, such as toggles and dropdowns. Read the small help text to get the most from each one.",
+    "audio-upload-and-drag-and-drop": "Some models need audio to work with. Upload a track, or drop an audio file onto the page, to remix, clone or add vocals.",
+    "waveform-player-and-audio-editor": "After generating, the waveform player lets you listen and download. The Audio Editor below adds trim and fade controls for quick tweaks."
+  },
+  "outro": "That's Audio Studio. Be specific about genre and mood, and you'll have music, voice-overs and sound effects ready for your videos."
+}

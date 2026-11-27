@@ -1,6 +1,6 @@
 import { navigate } from '../lib/router.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createStudioHeader } from '../lib/thumbnails.js';
 import { i2iModels, t2iModels } from '../lib/models.js';
 import { storePrefillModel } from '../lib/prefillModel.js';
 
@@ -51,17 +51,7 @@ export function ImageToImagePage() {
   // Hero Section
   const hero = document.createElement('div');
   hero.className = 'flex flex-col items-center animate-fade-in-up transition-all duration-700 w-full max-w-5xl';
-  const heroBanner = createHeroSection('edit', 'h-32 md:h-44 mb-4');
-  if (heroBanner) {
-    const heroContent = document.createElement('div');
-    heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
-    heroContent.innerHTML = `
-      <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight mb-1">Image to Image</h1>
-      <p class="text-white/60 text-sm font-medium">Transform, edit, and enhance your images with cutting-edge AI models</p>
-    `;
-    heroBanner.appendChild(heroContent);
-    hero.appendChild(heroBanner);
-  }
+  hero.appendChild(createStudioHeader('edit', 'Image to Image', `Transform, edit, and enhance your images with cutting-edge AI models`, 'mb-4'));
   container.appendChild(hero);
 
   // Content wrapper
@@ -141,7 +131,9 @@ export function ImageToImagePage() {
 
   // Event Listeners
   container.querySelector('.start-btn').onclick = () => navigate('edit');
+  container.querySelector('.start-btn').dataset.helpText = 'Open Edit Studio.';
   container.querySelector('.cta-btn').onclick = () => navigate('edit');
+  container.querySelector('.cta-btn').dataset.helpText = 'Open Edit Studio.';
 
   const gtmBoostBtn = contentWrapper.querySelector('.gtm-boost-btn');
   if (gtmBoostBtn) {

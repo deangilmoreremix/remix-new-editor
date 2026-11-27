@@ -1,0 +1,31 @@
+{
+  "canvas": { "selector": "#asset-canvas", "click": true, "hold": 1500 },
+  "headline-body-and-cta-tabs": {
+    "selector": "button[data-tab=\"body\"]",
+    "click": true,
+    "then": [{ "selector": "button[data-tab=\"cta\"]", "hold": 800 }, { "selector": "button[data-tab=\"headline\"]", "hold": 1000 }]
+  },
+  "text": { "selector": "xpath=//aside//textarea", "click": true, "type": " this holiday" },
+  "position": {
+    "selector": "button[data-choice=\"bottom-center\"]",
+    "click": true,
+    "then": [{ "selector": "button[data-choice=\"top-center\"]", "hold": 1200 }]
+  },
+  "size": {
+    "selector": "button[data-choice=\"huge\"]",
+    "click": true,
+    "then": [{ "selector": "button[data-choice=\"large\"]", "hold": 1200 }]
+  },
+  "color": {
+    "selector": "xpath=(//aside//button[@title=\"#c9a24a\"])[1]",
+    "click": true,
+    "then": [{ "selector": "xpath=(//aside//button[@title=\"#f5ecd7\"])[1]", "hold": 1200 }]
+  },
+  "background": {
+    "selector": "xpath=(//aside//button[@title=\"#111111\"])[2]",
+    "click": true,
+    "then": [{ "selector": "xpath=(//aside//button[@title=\"#c9a24a\"])[2]", "hold": 1200 }]
+  },
+  "font": { "selector": "xpath=//aside//select", "click": true, "hold": 1500 },
+  "save": { "selector": "button[data-action=\"save\"]", "click": true }
+}

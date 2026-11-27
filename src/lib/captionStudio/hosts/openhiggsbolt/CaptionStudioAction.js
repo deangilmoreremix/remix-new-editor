@@ -24,18 +24,22 @@ import { useCallback } from 'react';
  * @param {(err: Error) => void} [props.onError]
  * @param {string} [props.language]  Spoken language code ('en', 'es', …) or 'auto' (default).
  * @param {string} [props.accentColor]  Hex colour for the modal's accents.
+ * @param {object} [props.theme]  Surface colours (bg, card, ink, mute, line, field, bezel); defaults to OpenHiggsBolt's own near-black panels.
  * @param {string} [props.className]
  * @param {React.ReactNode} [props.children]  Button label. Defaults to "Free Captions".
  */
-export default function CaptionStudioAction({ videoUrl, onComplete, onApply, onError, language = 'auto', accentColor = '#22d3ee', className, children }) {
+/** OpenHiggsBolt's surfaces (measured from the Personalization modal: dialog #101419, cards #151a20, inputs #0d1116). */
+const OHB_SURFACES = { bg: '#101419', card: '#151a20', field: '#0d1116', bezel: '#151a20', line: 'rgba(255,255,255,0.1)', ink: '#ffffff', mute: 'rgba(255,255,255,0.6)' };
+
+export default function CaptionStudioAction({ videoUrl, onComplete, onApply, onError, language = 'auto', accentColor = '#22d3ee', theme = OHB_SURFACES, className, children }) {
   const open = useCallback(async () => {
     try {
       const { openCaptionStudio } = await import('@/shared/captionStudio/modal');
-      openCaptionStudio({ videoUrl, onComplete, onApply, onError, language, accentColor, lookImage: (key) => `/caption-looks/${key}.webp` });
+      openCaptionStudio({ videoUrl, onComplete, onApply, onError, language, accentColor, theme, lookImage: (key) => `/caption-looks/${key}.webp` });
     } catch (err) {
       onError?.(err);
     }
-  }, [videoUrl, onComplete, onApply, onError, language, accentColor]);
+  }, [videoUrl, onComplete, onApply, onError, language, accentColor, theme]);
 
   return (
     <button

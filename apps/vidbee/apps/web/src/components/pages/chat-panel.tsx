@@ -20,6 +20,7 @@ export const ChatPanel = ({
 	const { t } = useTranslation();
 	const [chat, setChat] = useState<WebChat | null>(null);
 	const [draft, setDraft] = useState("");
+	const [webSearch, setWebSearch] = useState(false);
 	const endRef = useRef<HTMLDivElement>(null);
 
 	const refresh = useCallback(async () => {
@@ -71,7 +72,7 @@ export const ChatPanel = ({
 			return;
 		}
 		try {
-			setChat(await chatClient.send({ downloadId, message }));
+			setChat(await chatClient.send({ downloadId, message, webSearch }));
 			setDraft("");
 		} catch (error) {
 			toast.error(messageOf(error));
@@ -128,7 +129,18 @@ export const ChatPanel = ({
 				{chat?.error && <p className="text-destructive">{chat.error}</p>}
 				<div ref={endRef} />
 			</div>
-			<div className="flex gap-2 border-t p-3">
+			<label className="flex items-center gap-2 border-t px-3 pt-2 text-muted-foreground text-xs">
+				<input
+					checked={webSearch}
+					disabled={running}
+					onChange={(event) => setWebSearch(event.target.checked)}
+					type="checkbox"
+				/>
+				{t("webTranscripts.chat.webSearch", {
+					defaultValue: "Let the assistant search the web (OpenAI web search)",
+				})}
+			</label>
+			<div className="flex gap-2 p-3 pt-2">
 				<Input
 					disabled={!hasTranscript}
 					onChange={(event) => setDraft(event.target.value)}

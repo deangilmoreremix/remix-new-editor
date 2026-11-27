@@ -1,3 +1,4 @@
+import { routeHash } from '../../../lib/routeUrl.js';
 // SmartWarmupAI studio: email warmup, cold outreach, unified inbox, CRM and automations.
 //
 // Hosts the vendored upstream dashboard (apps/warmbly-web, rebranded at build time and built to public/smartwarmupai-app by
@@ -24,7 +25,60 @@ async function isBuilt(base) {
   }
 }
 
+// The dashboard opens in its light theme. SmartVideo is dark, so default it to the dashboard's own dark theme.
+// 'theme-default' is the dashboard's brand-default setting (apps/warmbly-web/src/lib/theme.ts), read before first paint;
+// a theme the viewer picked themselves ('theme') always wins, so this never overrides their choice.
+function defaultToDarkTheme() {
+  try {
+    // Only when nothing is set: never replace a default the dashboard or a brand already stored.
+    if (!localStorage.getItem('theme') && !localStorage.getItem('theme-default')) localStorage.setItem('theme-default', 'dark');
+  } catch {
+    // No storage: the dashboard keeps its own default.
+  }
+}
+
+// The frame's colour until the dashboard paints: dark unless the viewer explicitly chose light.
+function frameBackground() {
+  try {
+    return localStorage.getItem('theme') === 'light' ? '#fff' : '#111214';
+  } catch {
+    return '#111214';
+  }
+}
+
+// With the live backend (apps/smartwarmupai-brand/live-config.js turns demo off) the service scales to zero when idle and takes up to
+// a minute to wake. Wake it while the person watches, instead of letting their first sign-in time out. A demo build has no backend and
+// skips this. Gives up after `maxMs` and loads the dashboard anyway, which then shows its own retry message.
+export async function waitForBackend({ onWaiting, maxMs = 120000, stepMs = 3000, fetchImpl = fetch, sleep = (ms) => new Promise((r) => setTimeout(r, ms)) } = {}) {
+  const until = Date.now() + maxMs;
+  // Everything here is bounded by the same budget: a request that stalls (headers, body or the whole connection) must
+  // never keep the dashboard from loading. `withinMs` gives up on the work itself, so it holds even for a fetch that
+  // ignores its abort signal.
+  const withinMs = (ms, run) => new Promise((resolve) => {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => { ctrl.abort(); resolve(undefined); }, Math.max(1, ms));
+    Promise.resolve().then(() => run(ctrl.signal)).then(
+      (v) => { clearTimeout(timer); resolve(v); },
+      () => { clearTimeout(timer); resolve(undefined); },
+    );
+  });
+
+  const live = await withinMs(Math.min(maxMs, 10000), async (signal) => {
+    const res = await fetchImpl(`${APP}/config.js`, { cache: 'no-store', signal });
+    return res.ok && /DEMO:\s*["']0["']/.test(await res.text());
+  });
+  if (!live) return; // demo build, no config, or the probe ran out of time: load the dashboard as it is
+  onWaiting?.();
+  while (Date.now() < until) {
+    const ok = await withinMs(Math.min(until - Date.now(), 30000), async (signal) => (await fetchImpl('/smartwarmupai-api/health', { cache: 'no-store', signal })).ok);
+    if (ok) return;
+    if (Date.now() >= until) return;
+    await sleep(stepMs);
+  }
+}
+
 export function SmartWarmupAIStudio() {
+  defaultToDarkTheme();
   const container = document.createElement('div');
   Object.assign(container.style, { width: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' });
   // Pin to the viewport below the header (the app shell grows with the sidebar).
@@ -53,13 +107,20 @@ export function SmartWarmupAIStudio() {
 
   const frames = {};
   let disposed = false;
+  let current = 'app'; // the tab the person is on; kept across the wait for the backend
+  let waiting = false;
+  const note = document.createElement('div');
+  Object.assign(note.style, { position: 'absolute', inset: '0', padding: '24px', display: 'none' });
+  host.appendChild(note);
   const makeFrame = (key, src, title) => {
     const f = document.createElement('iframe'); f.src = src; f.title = title; f.dataset.frame = key;
     f.setAttribute('allow', 'clipboard-read; clipboard-write; fullscreen');
-    Object.assign(f.style, { position: 'absolute', inset: '0', width: '100%', height: '100%', border: '0', background: '#fff', display: 'none' });
+    Object.assign(f.style, { position: 'absolute', inset: '0', width: '100%', height: '100%', border: '0', background: frameBackground(), display: 'none' });
     host.appendChild(f); frames[key] = f; return f;
   };
   const show = (key, src) => {
+    current = key;
+    note.style.display = waiting && key === 'app' ? 'block' : 'none';
     if (src && frames[key]) frames[key].src = src;
     for (const [k, f] of Object.entries(frames)) f.style.display = k === key ? 'block' : 'none';
     for (const b of [tabApp, tabHelp]) { const on = b.dataset.tab === key; b.style.opacity = on ? '1' : '.7'; b.style.fontWeight = on ? '600' : '400'; b.style.background = on ? 'rgba(128,128,128,.18)' : 'transparent'; b.setAttribute('aria-pressed', String(on)); }
@@ -67,7 +128,7 @@ export function SmartWarmupAIStudio() {
   tabApp.onclick = () => show('app');
   tabHelp.onclick = () => show('help');
 
-  const hash = window.location.hash.match(/#\/smartwarmupai\/([\w/-]+)/)?.[1] || '';
+  const hash = routeHash().match(/#\/smartwarmupai\/([\w/-]+)/)?.[1] || '';
   const wantsHelp = hash === 'help' || hash.startsWith('help/');
   (async () => {
     const [appBuilt, helpBuilt] = await Promise.all([isBuilt(APP), isBuilt(HELP)]);
@@ -77,9 +138,19 @@ export function SmartWarmupAIStudio() {
       Object.assign(host.style, { padding: '24px' });
       return;
     }
+    // Help is static documentation: usable at once, whatever the backend is doing.
+    if (helpBuilt) {
+      // Help pages are folders (getting-started/index.html): keep the trailing slash so their relative links resolve.
+      const helpPage = wantsHelp ? hash.slice(5).replace(/^\//, '').replace(/([^/])$/, '$1/') : '';
+      makeFrame('help', `${HELP}/${helpPage}`, 'SmartWarmupAI Help');
+    } else tabHelp.style.display = 'none';
+    current = wantsHelp && helpBuilt ? 'help' : 'app';
+    show(current);
+    await waitForBackend({ onWaiting: () => { waiting = true; note.textContent = 'Starting SmartWarmupAI… this can take up to a minute after a quiet period.'; show(current); } });
+    if (disposed) return;
+    waiting = false; note.textContent = '';
     const appFrame = makeFrame('app', `${APP}${VIEW_ROUTES[hash] || '/app/emails'}`, 'SmartWarmupAI');
     if (helpBuilt) {
-      makeFrame('help', `${HELP}/${wantsHelp ? hash.slice(5).replace(/^\//, '') : ''}`, 'SmartWarmupAI Help');
       // A help link clicked inside the dashboard opens the Help tab instead of a new browser tab.
       appFrame.addEventListener('load', () => {
         try {
@@ -91,8 +162,8 @@ export function SmartWarmupAIStudio() {
           }, true);
         } catch { /* cross-origin dashboard: links open normally */ }
       });
-    } else tabHelp.style.display = 'none';
-    show(wantsHelp && helpBuilt ? 'help' : 'app');
+    }
+    show(current);
   })();
 
   container.cleanup = () => { disposed = true; window.removeEventListener('resize', fit); };

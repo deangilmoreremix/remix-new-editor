@@ -4,6 +4,7 @@ import type { WebAiConnectionTest, WebAiSettings } from "@vidbee/transcription/w
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { clearOpenAiKey, saveOpenAiKey } from "../../lib/byok-key";
 import { aiClient } from "../../lib/orpc-client";
 
 const messageOf = (error: unknown): string =>
@@ -28,6 +29,22 @@ export const AiSettingsForm = ({
 	const save = async (clearApiKey = false) => {
 		setSaving(true);
 		try {
+			if (settings.byok) {
+				// Bring your own key: the key stays in this browser and goes out with each AI request.
+				if (clearApiKey) {
+					clearOpenAiKey();
+				} else {
+					saveOpenAiKey({
+						apiKey: apiKey.trim() || undefined,
+						model: model.trim() || undefined,
+					});
+				}
+				setApiKey("");
+				const next = await aiClient.settingsGet();
+				onSaved(next);
+				toast.success(t("webTranscripts.ai.saved", { defaultValue: "AI settings saved" }));
+				return;
+			}
 			const next = await aiClient.settingsSet({
 				apiKey: apiKey.trim() || undefined,
 				clearApiKey,
@@ -85,6 +102,7 @@ export const AiSettingsForm = ({
 				<span className="text-muted-foreground">Model ID</span>
 				<Input onChange={(event) => setModel(event.target.value)} value={model} />
 			</label>
+			{!settings.byok && (
 			<label className="block space-y-1">
 				<span className="text-muted-foreground">Base URL</span>
 				<Input onChange={(event) => setBaseUrl(event.target.value)} value={baseUrl} />
@@ -94,6 +112,7 @@ export const AiSettingsForm = ({
 					})}
 				</span>
 			</label>
+			)}
 			<div className="flex flex-wrap gap-2">
 				<Button disabled={testing} onClick={() => void runTest()} size="sm" variant="outline">
 					{testing
@@ -117,7 +136,12 @@ export const AiSettingsForm = ({
 				</p>
 			)}
 			<p className="text-muted-foreground text-xs">
-				{t("webTranscripts.ai.privacy", {
+				{settings.byok
+					? t("webTranscripts.ai.privacyByok", {
+							defaultValue:
+								"Your OpenAI key is saved only in this browser and sent with each AI request over HTTPS. It is never stored on the server. Only the transcript text goes to OpenAI when you run a prompt; media files stay on the server. Use a key with a spending limit, and clear it on shared computers.",
+						})
+					: t("webTranscripts.ai.privacy", {
 					defaultValue:
 						"The key is stored on the server and never sent back to the browser. Only the transcript text is sent to this endpoint when you run a prompt; media files stay on the server.",
 				})}

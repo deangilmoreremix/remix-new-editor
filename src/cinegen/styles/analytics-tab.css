@@ -57,18 +57,42 @@
 .cg-demos__title{margin:0 0 2px;font-size:14px;color:var(--text-strong);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .cg-demos__sub{margin:0;font-size:12px;color:var(--text-muted);max-width:640px}
 .cg-demos__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:10px}
-.cg-demo-card{display:flex;gap:10px;align-items:center;text-align:left;border:1px solid var(--border);background:var(--surface-2);color:inherit;font:inherit;border-radius:var(--r-md);padding:8px;cursor:pointer}
+.cg-demo-card{display:flex;gap:10px;align-items:center;text-align:left;border:1px solid var(--border);background:transparent;color:inherit;font:inherit;border-radius:var(--r-md);padding:8px;cursor:pointer}
 .cg-demo-card:hover{border-color:var(--cyan)}
-.cg-demo-card[aria-pressed="true"]{border-color:rgba(217,255,0,.5);background:var(--cyan-soft)}
+.cg-demo-card[aria-pressed="true"]{border-color:rgba(217,255,0,.5)}
 .cg-demo-card img{width:96px;aspect-ratio:8/5;object-fit:cover;border-radius:8px;flex:none;background:var(--surface-sunken)}
 .cg-demo-card__text{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:12px;color:var(--text-muted)}
 .cg-demo-card__text strong{font-size:13px;color:var(--text-strong)}
 .cg-demo-card__text em{font-style:normal;font-weight:700;color:var(--cyan);font-size:11px}
 .cg-demos__open{margin-top:12px}
 .cg-demos__banner{font-size:12px;line-height:1.5;color:var(--text);background:var(--cyan-faint);border:1px solid var(--cyan-soft);border-radius:var(--r-md);padding:10px 12px}
-.cg-demos__banner ul{margin:6px 0 0;padding-left:18px;color:var(--text-muted)}
+.cg-demos__banner ul{margin:6px 0 0;padding-left:18px;color:var(--text-muted);list-style:disc}
+.cg-demos__banner li{display:list-item;list-style:disc}
 .cg-demos-removed{max-width:1200px;margin:0 auto 10px;font-size:12px;color:var(--text-dim)}
 .cg-demos-removed__btn{background:none;border:0;padding:0;font:inherit;color:var(--cyan);text-decoration:underline;cursor:pointer}
 @media(max-width:720px){.cg-demo-card img{width:72px}}
 /* A demo video has no public page, so there is no link to copy. */
 .cg-analytics [data-testid="demo-analytics-host"] .sv-toolbar-actions > .sv-secondary-btn{display:none}
+
+/* [remix] The editor theme outlines every class-less button and every .mini-btn with a lime left edge (theme-remix.css), and
+   outline-buttons.css clears every button fill. The Analytics screens have their own controls: the period and view switches
+   are one segmented bar, the heatmap type switch likewise, and "Remove demo videos" is a plain button. They keep that look.
+   Selected states still use the app's outline-only rule (neon text and border): only the lime left edge and the lift on hover
+   are undone. Scoped to this tab; the extra selectors only outrank the theme's. */
+:root .cinegen-root .cg-analytics .sv-analytics :is(.sv-segment, .sv-tabs, .sv-heat-types) button{
+  border:1px solid transparent;border-left:1px solid transparent;box-shadow:none;transform:none;font-weight:600;color:var(--text-muted);
+}
+:root .cinegen-root .cg-analytics .sv-analytics :is(.sv-segment, .sv-tabs, .sv-heat-types) button:hover:not(:disabled):not(.active){
+  border:1px solid transparent;border-left:1px solid transparent;box-shadow:none;transform:none;color:var(--text-strong);
+}
+:root .cinegen-root .cg-analytics .sv-analytics .sv-heat-actions button,
+:root .cinegen-root .cg-analytics .cg-demos .mini-btn{
+  border:1px solid var(--border);border-left:1px solid var(--border);box-shadow:none;transform:none;font-weight:500;color:var(--text);
+}
+:root .cinegen-root .cg-analytics .sv-analytics .sv-heat-actions button:hover:not(:disabled),
+:root .cinegen-root .cg-analytics .cg-demos .mini-btn:hover:not(:disabled){
+  border:1px solid rgba(217,255,0,.5);border-left:1px solid rgba(217,255,0,.5);box-shadow:none;transform:none;color:#fff;
+}
+.cg-analytics__account{max-width:720px;margin:24px auto;padding:0 16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.cg-analytics__hint{margin:0;font-size:12px;color:var(--text-muted)}
+.cg-analytics__account .cg-analytics__host{width:100%}

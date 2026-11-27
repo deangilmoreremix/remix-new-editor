@@ -112,8 +112,10 @@ describe('openLandingPagePicker', () => {
   const btn = (text) => [...document.querySelectorAll('button')].find((b) => b.textContent === text);
   const LIB = [{ key: 'gen:1', url: 'https://cdn.test/made.mp4', posterUrl: null, title: 'Made in Video', duration: 8, source: { kind: 'generation', studio: 'video' }, permanent: false }];
 
-  it('without a usable video it opens the video chooser; a link must be https', async () => {
+  it('without a usable video it opens the designs, and Choose a video opens the chooser; a link must be https', async () => {
     openLandingPagePicker({ video: { url: 'http://x/a.mp4' }, deps: { loadVideoSources: async () => [] } });
+    expect(grid()).not.toBeNull();
+    btn('Choose a video').click();
     expect(document.querySelector('[data-video-chooser]')).not.toBeNull();
     expect(document.body.textContent).toContain('Choose a video first');
     const input = document.querySelector('input[aria-label="Video link"]');
@@ -131,6 +133,7 @@ describe('openLandingPagePicker', () => {
     const createPageFromVideo = vi.fn(async (_c, v, o) => ({ id: 'abcd123456', config: { template: o.template }, video_url: v.url }));
     const mountPageEditor = vi.fn(() => ({ destroy() {} }));
     openLandingPagePicker({ deps: { loadVideoSources: async () => LIB, mountPageEditor, createPageFromVideo, updatePage: async (_c, id) => ({ id, published: false }) } });
+    btn('Choose a video').click();
     await vi.waitFor(() => expect(document.querySelector('[data-video-source="gen:1"]')).not.toBeNull());
     expect(document.body.textContent).toContain('will be copied');
     document.querySelector('[data-video-source="gen:1"]').click();
@@ -147,6 +150,7 @@ describe('openLandingPagePicker', () => {
     const createPageFromVideo = vi.fn(async () => ({ id: 'abcd123456', config: {} }));
     const mountPageEditor = vi.fn(() => ({ destroy() {} }));
     openLandingPagePicker({ deps: { loadVideoSources: async () => [], mountPageEditor, createPageFromVideo, updatePage: async (_c, id) => ({ id }) } });
+    btn('Choose a video').click();
     const f = new File(['x'], 'My pitch.mp4', { type: 'video/mp4' });
     const input = document.querySelector('input[type="file"]');
     Object.defineProperty(input, 'files', { value: [f] });
@@ -163,6 +167,7 @@ describe('openLandingPagePicker', () => {
   it('a picture file is accepted from the computer and shows as a picture; an oversize one is refused', async () => {
     globalThis.URL.createObjectURL = vi.fn(() => 'blob:pic-1');
     openLandingPagePicker({ deps: { loadVideoSources: async () => [], mountPageEditor: vi.fn(() => ({ destroy() {} })) } });
+    btn('Choose a video').click();
     const input = document.querySelector('input[type="file"]');
     expect(input.accept).toContain('image/*');
     Object.defineProperty(input, 'files', { value: [new File(['x'], 'Sunset.png', { type: 'image/png' })], configurable: true });

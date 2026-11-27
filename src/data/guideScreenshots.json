@@ -449,6 +449,59 @@
     },
     "overview": "/guides/smart-video-viral/overview.webp"
   },
+  "smartvid-studio": {
+    "features": {
+      "model-picker": "/guides/smartvid-studio/model-picker.webp",
+      "live-price-and-batch": "/guides/smartvid-studio/live-price-and-batch.webp",
+      "form-and-json-input": "/guides/smartvid-studio/form-and-json-input.webp",
+      "apps": "/guides/smartvid-studio/apps.webp",
+      "uploading-files": "/guides/smartvid-studio/uploading-files.webp",
+      "recent-uploads": "/guides/smartvid-studio/recent-uploads.webp",
+      "my-generations": "/guides/smartvid-studio/my-generations.webp",
+      "your-own-muapi-key": "/guides/smartvid-studio/your-own-muapi-key.webp",
+      "your-own-key-and-a-secure-proxy": "/guides/smartvid-studio/your-own-key-and-a-secure-proxy.webp",
+      "per-account-history": "/guides/smartvid-studio/per-account-history.webp"
+    },
+    "overview": "/guides/smartvid-studio/overview.webp"
+  },
+  "smartviddownloader": {
+    "features": {
+      "opening-smartviddownloader": "/guides/smartviddownloader/opening-smartviddownloader.webp",
+      "download-by-link": "/guides/smartviddownloader/download-by-link.webp",
+      "formats-and-quality": "/guides/smartviddownloader/formats-and-quality.webp",
+      "one-click-download": "/guides/smartviddownloader/one-click-download.webp",
+      "download-playlist": "/guides/smartviddownloader/download-playlist.webp",
+      "download-queue": "/guides/smartviddownloader/download-queue.webp",
+      "download-history": "/guides/smartviddownloader/download-history.webp",
+      "cookies-for-sign-in-only-videos": "/guides/smartviddownloader/cookies-for-sign-in-only-videos.webp",
+      "subscriptions": "/guides/smartviddownloader/subscriptions.webp",
+      "transcripts": "/guides/smartviddownloader/transcripts.webp",
+      "built-in-ai-openai": "/guides/smartviddownloader/built-in-ai-openai.webp",
+      "chat-and-agent": "/guides/smartviddownloader/chat-and-agent.webp",
+      "settings": "/guides/smartviddownloader/settings.webp"
+    },
+    "overview": "/guides/smartviddownloader/overview.webp"
+  },
+  "smartwarmupai": {
+    "features": {
+      "connect-mailboxes-accounts": "/guides/smartwarmupai/connect-mailboxes-accounts.webp",
+      "warmup": "/guides/smartwarmupai/warmup.webp",
+      "campaigns-and-sequences": "/guides/smartwarmupai/campaigns-and-sequences.webp",
+      "inbox": "/guides/smartwarmupai/inbox.webp",
+      "contacts": "/guides/smartwarmupai/contacts.webp",
+      "lead-finder": "/guides/smartwarmupai/lead-finder.webp",
+      "crm-pipelines-deals-tasks-meetings": "/guides/smartwarmupai/crm-pipelines-deals-tasks-meetings.webp",
+      "templates-and-forms": "/guides/smartwarmupai/templates-and-forms.webp",
+      "automations": "/guides/smartwarmupai/automations.webp",
+      "integrations": "/guides/smartwarmupai/integrations.webp",
+      "analytics-and-reports": "/guides/smartwarmupai/analytics-and-reports.webp",
+      "deliverability-and-placement-tests": "/guides/smartwarmupai/deliverability-and-placement-tests.webp",
+      "settings": "/guides/smartwarmupai/settings.webp",
+      "ask-remie-ai-assistant": "/guides/smartwarmupai/ask-remie-ai-assistant.webp",
+      "help": "/guides/smartwarmupai/help.webp"
+    },
+    "overview": "/guides/smartwarmupai/overview.webp"
+  },
   "storyboard-studio": {
     "features": {
       "describe-and-generate-a-storyboard": "/guides/storyboard-studio/describe-and-generate-a-storyboard.webp",
@@ -638,7 +691,7 @@
       "powerful-removal-tools-section": "/guides/video-watermark-remover/powerful-removal-tools-section.webp",
       "how-it-works-steps": "/guides/video-watermark-remover/how-it-works-steps.webp",
       "ai-video-watermark-remover-card": "/guides/video-watermark-remover/ai-video-watermark-remover-card.webp",
-      "ai-video-object-remover-and-logo-remover-cards": "/guides/video-watermark-remover/ai-video-object-remover-and-logo-remover-cards.webp",
+      "logo-seedance-and-background-remover-cards": "/guides/video-watermark-remover/logo-seedance-and-background-remover-cards.webp",
       "get-started-free-button": "/guides/video-watermark-remover/get-started-free-button.webp",
       "removing-a-watermark-in-video-studio": "/guides/video-watermark-remover/removing-a-watermark-in-video-studio.webp"
     },

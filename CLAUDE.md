@@ -14,5 +14,4 @@ Netlify project `smartvideo2` (smartvid.app) builds production from the `develop
 
 1. **Always open pull requests against `develop`, never `main`.** Check the base branch before and after creating a PR.
 2. **Run lint and build before opening a PR, and fix any failures.** Do not open a PR with a failing lint or build.
-3. **After opening a PR, enable auto-merge on it** (squash) so it merges into `develop` once its checks pass.
-4. Checks and deploys are Netlify only. Do not add or rely on GitHub Actions.
+3. Checks and deploys are Netlify only. Do not add or rely on GitHub Actions.

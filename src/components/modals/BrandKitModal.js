@@ -1,6 +1,6 @@
 // src/components/modals/BrandKitModal.js
 // A modal that is only the Brand Kit: paste a business website, review what was found (logo, colors, copy,
-// images), optionally scan its other pages for fonts / tone / offers, save it to Brand Studio, and start a
+// images), optionally scan its other pages for fonts / tone / offers, save it, and start a
 // video, Cinema, Storyboard or Video Agent project from it.
 //
 // It is NOT the personalization modal and shares no code or state with it. All logic lives in lib/brandKit.js.
@@ -52,7 +52,7 @@ export function openBrandKitModal({ url = '' } = {}) {
   const dialog = el('div', 'relative w-full max-w-3xl max-h-full overflow-y-auto custom-scrollbar rounded-2xl border border-white/10 bg-[#0d0d10] p-5 md:p-7 text-white');
   dialog.setAttribute('role', 'dialog');
   dialog.setAttribute('aria-modal', 'true');
-  dialog.setAttribute('aria-label', 'Brand Kit');
+  dialog.setAttribute('aria-label', 'Find My Brand');
   overlay.appendChild(dialog);
 
   const close = () => {
@@ -111,14 +111,26 @@ export function openBrandKitModal({ url = '' } = {}) {
   function save() {
     const kit = currentKit();
     if (!kit) return;
-    state.saved = saveBrandKit(kit);
+    try {
+      state.saved = saveBrandKit(kit);
+      state.error = '';
+    } catch (e) {
+      state.error = e?.message || "Couldn't save your Brand Kit.";
+    }
     render();
   }
 
   function make() {
     const kit = currentKit();
     if (!kit) return;
-    const brand = saveBrandKit(kit);
+    let brand;
+    try {
+      brand = saveBrandKit(kit);
+    } catch (e) {
+      state.error = e?.message || "Couldn't save your Brand Kit.";
+      render();
+      return; // stay open: the studio would start without a saved kit
+    }
     state.saved = brand;
     makeBrandProject(brand, state.target, { duration: state.duration, aspectRatio: state.aspect });
     close();
@@ -156,7 +168,7 @@ export function openBrandKitModal({ url = '' } = {}) {
 
     const head = el('div', 'flex items-start justify-between gap-3 mb-4');
     const titles = el('div');
-    titles.appendChild(el('h2', 'text-xl font-black tracking-tight', 'Brand Kit'));
+    titles.appendChild(el('h2', 'text-xl font-black tracking-tight', 'Find My Brand'));
     titles.appendChild(el('p', 'text-xs text-secondary mt-1', 'Paste a business website to pull its logo, colors, copy and images — then make a video from it.'));
     head.appendChild(titles);
     const x = el('button', 'text-white/70 hover:text-white text-lg leading-none px-2', '✕');
@@ -287,7 +299,7 @@ export function openBrandKitModal({ url = '' } = {}) {
 
     // 3. Save and make
     const act = el('div', 'mt-4 flex items-center gap-2 flex-wrap');
-    const saveBtn = el('button', BTN, state.saved ? '✓ Saved to Brand Studio' : 'Save Brand Kit');
+    const saveBtn = el('button', BTN, state.saved ? '✓ Saved' : 'Save Brand Kit');
     saveBtn.type = 'button';
     saveBtn.setAttribute('data-testid', 'brand-kit-save');
     saveBtn.addEventListener('click', save);
@@ -304,7 +316,7 @@ export function openBrandKitModal({ url = '' } = {}) {
     act.appendChild(makeBtn);
     dialog.appendChild(act);
     if (state.target === 'video-agent') {
-      dialog.appendChild(el('p', 'text-[11px] text-muted mt-2', 'Video Agent starts writing right away, using your own OpenAI key.'));
+      dialog.appendChild(el('p', 'text-[11px] text-muted mt-2', 'Animation Agent starts writing right away, using your own OpenAI key.'));
     }
     dialog.scrollTop = keepScroll;
   }

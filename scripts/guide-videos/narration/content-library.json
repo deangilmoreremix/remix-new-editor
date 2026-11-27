@@ -1,0 +1,13 @@
+{
+  "slug": "content-library",
+  "name": "Content",
+  "intro": "Content is your saved shelf in SmartVideo. It keeps the generations you saved, files you uploaded, PDFs and stock media, all in one place.",
+  "features": {
+    "save-to-content": "Press Save on a studio result or in Library, and the item lands here under the Saved tab with its prompt and model. It's the easy way to mark your keepers.",
+    "browse-stock-media": "Browse Stock Media opens a picker of free Pexels images and videos. Choose one and it's saved here with the photographer credit, ready for backgrounds and b-roll.",
+    "upload": "Use the upload button to add your own files to Content. It's a handy place to keep references and documents you want close by.",
+    "preview": "Click any item to see it large, whether it's an image, a video, audio or a PDF. The preview shows its details and has a Download button.",
+    "remove-delete": "Hover over an item and press the red delete button to tidy up. Removing a saved item only takes it off this shelf, and it stays in your Library."
+  },
+  "outro": "That's Content. Save what you love, keep your references handy, and download the files that matter most."
+}

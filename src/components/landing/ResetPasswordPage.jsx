@@ -43,7 +43,7 @@ export function ResetPasswordPage() {
       return;
     }
     if (isSignedIn) {
-      window.location.href = '/#/image';
+      window.location.href = '/image';
     }
   }, [userLoaded, isSignedIn, user]);
 
@@ -88,8 +88,8 @@ export function ResetPasswordPage() {
       setDone(true);
       await signIn.finalize({
         navigate: async ({ decorateUrl }) => {
-          const url = decorateUrl('/#/image');
-          window.location.href = url.startsWith('http') ? url : '/#/image';
+          const url = decorateUrl('/image');
+          window.location.href = url.startsWith('http') ? url : '/image';
         },
       });
       return;

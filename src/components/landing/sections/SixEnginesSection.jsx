@@ -1,5 +1,14 @@
 import { guideHrefFor } from '../guideLinks.js';
+import { videoSlot, mountLandingVideos } from '../common/landingVideo.js';
 // Six Creative Engines Section - Animated with parallax and hover effects
+
+const ENGINE_CLIPS = {
+  create: ['c01-hero-prompt', 'Typing a prompt in Video Studio'],
+  enhance: ['c11-vfx-effects', 'AI VFX and Effects studios'],
+  produce: ['c06-director', 'The Director studio'],
+  localize: ['c10-lip-sync', 'Lip Sync Studio'],
+  scale: ['c12-templates', 'The template library']
+};
 
 export function SixEnginesSection() {
   const engines = [
@@ -45,7 +54,7 @@ export function SixEnginesSection() {
       description: 'Streamline workflows with AI assistance',
       icon: '🤖',
       gradient: 'from-yellow-500 to-yellow-400',
-      apps: ['Video Agent', 'Agents', 'Assist', 'Chat'],
+      apps: ['Animation Agent', 'Agents', 'Assist', 'Chat'],
       color: 'yellow'
     },
     {
@@ -116,6 +125,7 @@ export function SixEnginesSection() {
             
             <!-- Content -->
             <div class="relative z-10">
+              ${ENGINE_CLIPS[engine.id] ? videoSlot(ENGINE_CLIPS[engine.id][0], ENGINE_CLIPS[engine.id][1], { className: 'aspect-video rounded-lg border border-white/10 mb-4' }) : ''}
               <div class="w-16 h-16 bg-gradient-to-br ${engine.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
                 <span class="text-3xl">${engine.icon}</span>
               </div>
@@ -193,6 +203,12 @@ export function SixEnginesSection() {
       .engine-card {
         transition: transform 0.5s ease-out-quart, border-color 0.3s ease, box-shadow 0.3s ease;
       }
+      /* The global .animate-in rule starts elements at opacity 0 until a .visible class is added;
+         this section adds animate-in on scroll, so the cards must be explicitly shown. */
+      .engine-card.animate-in {
+        opacity: 1;
+        transform: translateY(0);
+      }
       .engine-card:hover {
         transform: translateY(-8px) scale(1.02);
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
@@ -269,5 +285,6 @@ export function SixEnginesSection() {
     });
   }, 100);
 
+  mountLandingVideos(section);
   return section;
 }

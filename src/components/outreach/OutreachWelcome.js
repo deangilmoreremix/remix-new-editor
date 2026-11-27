@@ -1,6 +1,6 @@
 // src/components/outreach/OutreachWelcome.js
 //
-// The SmartVideo welcome in Video Outreach: five short questions and then your Brand Kit, one per screen, with a progress bar,
+// The SmartVideo welcome in Video Outreach: five short questions and then Find My Brand, one per screen, with a progress bar,
 // Back and Skip. Every answer is handed to onChange (saved straight away by the caller), so leaving
 // half-way picks up at the same question next time. Answers and options: src/lib/outreach/onboarding.js.
 import { GOALS, TEAM_SIZES, VOLUMES, SOURCES, ONBOARDING_STEPS, cleanOnboarding, workReady, normalizeWebsite } from '../../lib/outreach/onboarding.js';
@@ -180,7 +180,7 @@ export function mountOutreachWelcome(host, { name = '', initial = null, onChange
   }
 
   function step5() {
-    titles('Finally, how did you hear about us?', 'It helps us find more teams like yours. One click, then the last step: your Brand Kit.');
+    titles('Finally, how did you hear about us?', 'It helps us find more teams like yours. One click, then the last step: Find My Brand.');
     const wrap = el('div', 'mt-10 flex w-full max-w-4xl flex-wrap justify-center gap-3');
     SOURCES.forEach((s) => {
       const on = a.heard === s.id;
@@ -206,7 +206,7 @@ export function mountOutreachWelcome(host, { name = '', initial = null, onChange
   }
 
   // ---- Step 6 (last): the Brand Kit. Reads the website from step 4; nothing is saved until Save. ----
-  const brand = { status: 'idle', input: null, kit: null, url: '', error: '' };
+  const brand = { status: 'idle', input: null, kit: null, url: '', error: '', saveError: '' };
   const isHttp = (u) => { try { const p = new URL(u).protocol; return p === 'http:' || p === 'https:'; } catch { return false; } };
 
   async function findBrand(box) {
@@ -252,19 +252,31 @@ export function mountOutreachWelcome(host, { name = '', initial = null, onChange
       box.appendChild(top);
       if (k.valueProposition) box.appendChild(el('p', 'text-sm leading-relaxed text-white/60', k.valueProposition.slice(0, 220)));
       const n = (k.siteImages || []).length;
-      box.appendChild(el('p', 'text-xs text-white/50', `${n} image${n === 1 ? '' : 's'} found. You can add fonts, tone and offers later with the full Brand Kit.`));
+      box.appendChild(el('p', 'text-xs text-white/50', `${n} image${n === 1 ? '' : 's'} found. You can add fonts, tone and offers later in Find My Brand.`));
       const save = el('button', 'rounded-xl border border-white/[0.12] border-l-2 border-l-primary bg-transparent px-5 py-3.5 text-[15px] font-bold text-white hover:bg-white/[0.05]', 'Save my Brand Kit and finish');
       save.type = 'button';
       save.setAttribute('data-welcome-brand-save', '');
       save.addEventListener('click', async () => {
         save.disabled = true;
-        try { (await import('../../lib/brandKit.js')).saveBrandKit(brand.kit); } catch { /* the welcome still finishes */ }
+        try {
+          (await import('../../lib/brandKit.js')).saveBrandKit(brand.kit);
+        } catch (e) {
+          // Not saved: say so and stay here (Skip still finishes the welcome) instead of finishing as if it were.
+          brand.saveError = e?.message || "Couldn't save your Brand Kit.";
+          if (box.isConnected) paintBrand(box);
+          return;
+        }
         finish();
       });
-      const more = el('button', 'rounded-xl border border-white/10 px-5 py-3 text-sm font-semibold text-white/80 hover:border-primary/35', 'Review it in the full Brand Kit');
+      const more = el('button', 'rounded-xl border border-white/10 px-5 py-3 text-sm font-semibold text-white/80 hover:border-primary/35', 'Review it in Find My Brand');
       more.type = 'button';
       more.setAttribute('data-welcome-brand-open', '');
       more.addEventListener('click', async () => { (await import('../modals/BrandKitModal.js')).openBrandKitModal({ url: brand.url }); });
+      if (brand.saveError) {
+        const err = el('p', 'text-sm text-amber-300', `${brand.saveError} You can skip this step and add it later in Find My Brand.`);
+        err.setAttribute('role', 'alert');
+        box.appendChild(err);
+      }
       box.append(save, more);
       return;
     }
@@ -286,7 +298,7 @@ export function mountOutreachWelcome(host, { name = '', initial = null, onChange
   }
 
   function step6() {
-    titles('Last step: your Brand Kit', 'We read your website for your logo, colors, words and images, so your videos look like you. Nothing is saved until you press Save. You can skip this.');
+    titles('Last step: Find My Brand', 'We read your website for your logo, colors, words and images, so your videos look like you. Nothing is saved until you press Save. You can skip this.');
     const box = el('div', 'mt-10 flex w-full max-w-xl flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-7');
     box.setAttribute('data-welcome-brand', '');
     body.appendChild(box);

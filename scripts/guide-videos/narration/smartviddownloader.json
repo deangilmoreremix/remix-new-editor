@@ -1,0 +1,17 @@
+{
+  "slug": "smartviddownloader",
+  "name": "SmartVidDownloader",
+  "intro": "SmartVidDownloader saves videos and audio from links, then turns them into searchable transcripts you can edit, export and ask AI about. Here is a quick tour of how it works.",
+  "features": {
+    "download-by-link": "Paste a link, fetch its details, then choose video or audio and start the download. You can also drop a link onto the page, which saves the file for you.",
+    "formats-and-quality": "After fetching, a dialog lists the available formats with quality, size and frame rate. Advanced options let you set a start and end time, so you only download the part you need.",
+    "download-playlist": "To save a whole playlist or channel, preview its videos first, tick the ones you want or set a range, then download them together as one group in the queue.",
+    "download-queue": "The queue lists every download with its progress, speed and status. You can pause, resume, cancel or retry an item, and open its logs when something fails.",
+    "transcripts": "Click Transcribe on a download, or drop in your own audio or video file. The app prepares the audio, detects speech and identifies speakers, then gives you searchable text.",
+    "speaker-labels": "Transcripts mark who is speaking, and the speaker list shows each person's share of talking time. If voices get mixed up, adjust the number of speakers and update the labels.",
+    "export": "Export a transcript as text, markdown or subtitles, and check the preview first. You can also make a video with captions, either as a switchable subtitle track or burned into the picture.",
+    "ai-skills": "In the transcript sidebar, run a skill to get an overview, bullet points, a FAQ, a mind map, a translation or a rewritten article. Skills use the AI provider you set up.",
+    "chat-and-agent": "Open Chat and describe what you want in plain words, like downloading a video or extracting its audio. The agent does the steps, and asks your permission when it needs it."
+  },
+  "outro": "That's SmartVidDownloader. Start with one link, add a transcript, and let the AI skills turn a long video into notes you can use."
+}

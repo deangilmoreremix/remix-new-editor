@@ -1,0 +1,15 @@
+{
+  "slug": "motion-director",
+  "name": "Motion Director",
+  "intro": "Motion Director is a chat that plans a short promotional film from your prompt and your website, then opens it in an editor where you can fine tune and export.",
+  "features": {
+    "describe-your-motion-video-chat-composer": "Start in the chat box. Describe your film, add your website address and how long you want it, and the director takes it from there.",
+    "storyboard-planning-with-your-options": "Before anything is built, the director offers choices and shows a storyboard, so you can steer the look and the shots first.",
+    "templates-picker": "The Templates button opens a gallery of shot cards with live previews. Pick the ones you like, and the film uses them in the order you chose.",
+    "aspect-ratio": "Choose your aspect ratio here. Pick sixteen by nine for websites and YouTube, nine by sixteen for vertical feeds, or one by one for square posts.",
+    "use-my-brand": "Use My Brand connects your colors, logos and images, so the film looks like your company even when you have no website to share.",
+    "open-in-motion-workbench": "Open in Motion Workbench gives you a timeline, a shot library and a properties panel, so you can adjust text, timing and shot order.",
+    "export-video": "Export video renders your film to an MP4 right in your browser. Fast draft is handy while you're still tweaking."
+  },
+  "outro": "That's the tour of Motion Director. Bring a website and an idea, and let the director do the planning while you stay in charge."
+}

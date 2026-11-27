@@ -240,7 +240,7 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', aspe
         const resolved = personal ? safeImageUrl(resolveOverlayText(src, profile)) : src;
         const imageSrc = personal ? ((resolved && !/\{\{/.test(resolved) ? resolved : null) || safeImageUrl(clip.fallbackSrc)) : src;
         if (!imageSrc) return;
-        const layer = { ...base, kind: 'image', src: imageSrc, ...flip, fit: clip.transform?.fit || clip.fit || 'cover', ...(clip.scroll ? { scroll: true } : {}), ...(clip.cursor ? { cursor: true } : {}), ...(clip.compoundGroup ? { compoundGroup: String(clip.compoundGroup) } : {}) };
+        const layer = { ...base, kind: 'image', src: imageSrc, ...flip, fit: clip.transform?.fit || clip.fit || 'cover', ...(clip.scroll ? { scroll: true, ...(clip.scrollBack ? { scrollBack: true } : {}) } : {}), ...(clip.cursor ? { cursor: true } : {}), ...(clip.compoundGroup ? { compoundGroup: String(clip.compoundGroup) } : {}) };
         layers.push(layer);
         if (isVideoTrack(track) && !secondCam(track)) media.push(layer);
         return;

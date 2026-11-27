@@ -10,8 +10,10 @@ import '../../../lib/editor/addons/interactiveAddons.js';
 import '../../../lib/editor/addons/overlayAddons.js';
 // @ts-expect-error plain JS add-on: a Personalization Studio design as an overlay (filled in for each contact)
 import { defaultStudioDesignOptions } from '../../../lib/editor/addons/studioDesignAddon.js';
-// @ts-expect-error plain JS List Builder defaults
-import { defaultListBuilder } from '../../../lib/editor/addons/listBuilder.js';
+// @ts-expect-error plain JS List Builder defaults + the Lead Generator clip adapter
+import { defaultListBuilder, leadFormToOptin, applyOptinToLeadForm } from '../../../lib/editor/addons/listBuilder.js';
+// @ts-expect-error plain JS: the opt-in form designs (Lead Generator + List Builder + Personalizer share them)
+import { OPTIN_DESIGNS, OPTIN_DESIGN_CATEGORIES, DESIGN_LAYOUTS, COLOR_SCHEMES, getOptinDesign, applyOptinDesign } from '../../../lib/editor/addons/optinDesigns.js';
 
 export const OVERLAY_KINDS: Array<{ kind: OverlayKind; label: string; blurb: string }> = [
   { kind: 'lead-form', label: 'Lead Generator', blurb: 'Opt-in form over the video; pauses playback until the viewer submits or skips.' },
@@ -57,16 +59,54 @@ export function normalizeOverlays(value: unknown): OverlayClip[] {
   return value.filter((o): o is OverlayClip => !!o && typeof o === 'object' && KINDS.has((o as OverlayClip).type) && typeof (o as OverlayClip).start === 'number');
 }
 
-/** A new overlay at `startSec` (clamped inside the timeline), with the old add-on's default options. */
-export function createOverlay(kind: OverlayKind, startSec: number, timelineSeconds: number): OverlayClip {
+/** The colour schemes a design can be created / recoloured with (the first, '', is the design's own colours). */
+export const FORM_COLOR_SCHEMES: Array<{ id: string; label: string; hue: number | null }> = COLOR_SCHEMES;
+export interface FormDesign { id: string; label: string; category: string; categoryLabel: string; layout: string }
+/** The opt-in form designs, for the Lead Generator and the List Builder / Personalizer (one set, shared by both). */
+export const FORM_DESIGNS: FormDesign[] = (OPTIN_DESIGNS as Array<{ id: string; label: string; category: string; patch: { designLayout: string } }>).map((d) => ({
+  id: d.id, label: d.label, category: d.category,
+  categoryLabel: ((OPTIN_DESIGN_CATEGORIES as Array<[string, string]>).find(([c]) => c === d.category) ?? [d.category, d.category])[1],
+  layout: ((DESIGN_LAYOUTS as Array<[string, string]>).find(([l]) => l === d.patch.designLayout) ?? [d.patch.designLayout, d.patch.designLayout])[1],
+}));
+
+/**
+ * `overlay` with a design applied (a Lead Generator or a List Builder; anything else is returned as it was). The design's look is always set;
+ * its wording and starter boxes only replace the creator's while those are still the defaults — the same rule as the Design tab.
+ */
+export function applyDesignToOverlay(overlay: OverlayClip, designId: string, schemeId = ''): OverlayClip {
+  const design = getOptinDesign(designId);
+  if (!design) return overlay;
+  if (overlay.type === 'list-builder') {
+    const config = ((overlay as { config?: object }).config ?? {}) as Record<string, unknown>;
+    return { ...overlay, config: { ...config, ...applyOptinDesign(config, design, schemeId) } } as OverlayClip;
+  }
+  if (overlay.type === 'lead-form') {
+    // the flat Lead Generator clip: style / design / fields are copied, never mutated (the panel does the same)
+    const o = overlay as unknown as Record<string, unknown>;
+    const clip = { ...o, style: { ...((o.style as object) ?? {}) }, design: { ...((o.design as object) ?? {}) }, fields: Array.isArray(o.fields) ? (o.fields as unknown[]).map((f) => ({ ...(f as object) })) : o.fields };
+    const base = leadFormToOptin(clip);
+    applyOptinToLeadForm(clip, { ...base, ...applyOptinDesign(base, design, schemeId) });
+    return clip as unknown as OverlayClip;
+  }
+  return overlay;
+}
+
+/**
+ * A new overlay at `startSec` (clamped inside the timeline), with the old add-on's default options. Lead Generator and List Builder can be
+ * created with a design (`designId`): everything else about creating them — the List Builder gate at 0s, one per video — is unchanged.
+ */
+export function createOverlay(kind: OverlayKind, startSec: number, timelineSeconds: number, designId?: string, schemeId = ''): OverlayClip {
   const id = `ov-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+  let made: OverlayClip;
   if (kind === 'list-builder') {
     // The List Builder is a registration wall on the whole video: a locked gate at 0s (it takes no video time), one per video.
-    return { id, type: kind, name: 'List Builder', start: 0, end: GATE_SECONDS, config: { ...defaultListBuilder('list-builder'), enabled: true } };
+    made = { id, type: kind, name: 'List Builder', start: 0, end: GATE_SECONDS, config: { ...defaultListBuilder('list-builder'), enabled: true } };
+  } else {
+    const clip = createAddonClip(kind, { startSec, timelineSeconds, id }) as Record<string, unknown>;
+    if (isRegistryOverlay(kind)) clip.name = getAddon(kind).label;
+    made = { ...clip, id, type: kind, name: String(clip.name ?? kind), start: Number(clip.start), end: Number(clip.end) } as OverlayClip;
   }
-  const clip = createAddonClip(kind, { startSec, timelineSeconds, id }) as Record<string, unknown>;
-  if (isRegistryOverlay(kind)) clip.name = getAddon(kind).label;
-  return { ...clip, id, type: kind, name: String(clip.name ?? kind), start: Number(clip.start), end: Number(clip.end) } as OverlayClip;
+  return designId ? applyDesignToOverlay(made, designId, schemeId) : made;
 }
 
 // [remix] End Screens and Connect Form template libraries (the old editor's windows → items on the overlay lane)

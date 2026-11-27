@@ -15,7 +15,6 @@ import {
   processLipSync,
   uploadFile,
 } from '@ohb/packages/studio/src/muapi'
-import { getOpenAiKey } from '@ohb/lib/authConfig'
 import { createPersonalizationOpenAIClient } from './openaiPersonalizationClient'
 import { clampRecastDuration } from './recast/recastJob'
 import {
@@ -53,7 +52,10 @@ export interface GenerationInput {
   prompt: string
   mode: ImagePersonalizationMode | VideoPersonalizationMode | null
   options: GenerationOptions
+  /** The visitor's MuAPI key: video generation runs on MuAPI. */
   apiKey: string
+  /** The visitor's OpenAI key: image generation runs on OpenAI, so the MuAPI key is never sent there. */
+  openaiKey?: string
   onProgress?: (percent: number, message: string) => void
   /**
    * True when the caller puts the source video's audio back on afterwards
@@ -148,7 +150,8 @@ export function motionControlAspectRatio(aspectRatio: string | null | undefined)
 }
 
 export async function runGeneration(input: GenerationInput): Promise<GenerationResult> {
-  const { source, resolved, prompt, mode, options, apiKey, onProgress, restoresSourceAudio } = input
+  const { source, prompt, mode, options, apiKey, openaiKey, onProgress, restoresSourceAudio } = input
+  let { resolved } = input
 
   onProgress?.(5, 'Preparing assets...')
 
@@ -157,19 +160,25 @@ export async function runGeneration(input: GenerationInput): Promise<GenerationR
   }
 
   if (source.mediaType === 'image') {
+    // Images are made by OpenAI with the visitor's own OpenAI key, never the MuAPI key.
+    if (!openaiKey) throw new Error('Add your OpenAI key to personalize images with AI.')
     return handleImageGeneration({
       source,
       resolved,
       prompt,
       mode: mode as ImagePersonalizationMode | null,
       options,
-      apiKey,
+      apiKey: openaiKey,
       onProgress,
     })
   }
 
+  // MuAPI fetches every input from its own servers, so local and in-browser files are hosted on MuAPI first.
+  const prepared = await prepareRemoteInputs(source, resolved, apiKey)
+  resolved = prepared.resolved
+
   return handleVideoGeneration({
-    source,
+    source: prepared.source,
     resolved,
     prompt,
     mode: mode as VideoPersonalizationMode | null,
@@ -178,6 +187,67 @@ export async function runGeneration(input: GenerationInput): Promise<GenerationR
     onProgress,
     restoresSourceAudio: Boolean(restoresSourceAudio),
   })
+}
+
+// ── Remote inputs ────────────────────────────────────────────
+
+/**
+ * MuAPI fetches every input URL from its own servers, so it can only use public http(s) URLs. A demo video
+ * (`/media/...`), an uploaded file still in the browser (`blob:`), inline data (`data:`) or anything served by this
+ * page's own host (unreachable from outside while on localhost) is uploaded to MuAPI first, and its hosted URL is used.
+ */
+export function needsUpload(url: string): boolean {
+  if (!url) return false
+  if (/^(blob:|data:)/i.test(url)) return true
+  if (!/^https?:\/\//i.test(url)) return true
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    try {
+      return new URL(url).origin === window.location.origin
+    } catch {
+      return false
+    }
+  }
+  return false
+}
+
+async function uploadForGeneration(url: string, apiKey: string, cache: Map<string, Promise<string>>): Promise<string> {
+  if (!needsUpload(url)) return url
+  const cached = cache.get(url)
+  if (cached) return cached
+  const promise = (async () => {
+    const response = await fetch(url)
+    if (!response.ok) throw new Error(`Could not read ${url} (HTTP ${response.status}).`)
+    const blob = await response.blob()
+    const name = url.split(/[?#]/)[0].split('/').pop() || 'input'
+    const file = new File([blob], name, { type: blob.type || 'application/octet-stream' })
+    const hosted = await uploadFile(apiKey, file)
+    if (!hosted) throw new Error(`Upload of ${name} returned no URL.`)
+    return hosted as string
+  })()
+  cache.set(url, promise)
+  return promise
+}
+
+/** The source media and every direct input, with local URLs replaced by hosted ones. */
+export async function prepareRemoteInputs(
+  source: PersonalizationSource,
+  resolved: ResolvedAssets,
+  apiKey: string,
+): Promise<{ source: PersonalizationSource; resolved: ResolvedAssets }> {
+  const cache = new Map<string, Promise<string>>()
+  const swap = (value: unknown): Promise<unknown> | unknown => {
+    if (typeof value === 'string') return uploadForGeneration(value, apiKey, cache)
+    if (Array.isArray(value)) return Promise.all(value.map((item) => (typeof item === 'string' ? uploadForGeneration(item, apiKey, cache) : item)))
+    return value
+  }
+  const entries = await Promise.all(
+    Object.entries(resolved.directInputs ?? {}).map(async ([key, value]) => [key, await swap(value)] as const),
+  )
+  const sourceMedia = source.sourceMedia ? ((await swap(source.sourceMedia)) as string) : source.sourceMedia
+  return {
+    source: { ...source, sourceMedia },
+    resolved: { ...resolved, directInputs: Object.fromEntries(entries) },
+  }
 }
 
 // ── Image Generation ─────────────────────────────────────────────────────────
@@ -246,13 +316,7 @@ async function handleImageGeneration({
   apiKey: string
   onProgress?: (percent: number, message: string) => void
 }): Promise<GenerationResult> {
-  // `apiKey` is the MuAPI key (useAuthConfig().apiKey). Image generation
-  // talks to OpenAI directly, so it needs the user's OpenAI key from Settings.
-  const openaiKey = getOpenAiKey()
-  if (!openaiKey) {
-    throw new Error('Add your OpenAI API key in Settings to personalize images.')
-  }
-  const openaiClient = createPersonalizationOpenAIClient(openaiKey)
+  const openaiClient = createPersonalizationOpenAIClient(apiKey)
   const imageModel = pickImageModel(source, options, mode || 'recreate')
   const size = mapAspectRatioToSize(options.aspectRatio || source.aspectRatio)
 

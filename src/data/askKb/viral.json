@@ -20,7 +20,7 @@
     "Use Character Studio (#/character) for consistent characters.",
     "Use Commercial Studio (#/commercial) for product ads.",
     "Use Personalizer (#/personalizer) for personalized video at scale.",
-    "Use Templates (#/templates) or Explore (#/explore) for ready-made starting points that are not from X."
+    "Use Templates (#/templates), including its Prompts filter, for ready-made starting points that are not from X."
   ],
   "keyFeatures": [
     "Feed of trending AI image and video prompts with preview media.",
@@ -314,7 +314,7 @@
     "Test a prompt on the recommended model first.",
     "Keep a JSON export of your favorite category for later."
   ],
-  "relatedStudios": ["image", "video", "cinema", "character", "commercial", "personalizer", "templates", "explore"],
+  "relatedStudios": ["image", "video", "cinema", "character", "commercial", "personalizer", "templates"],
   "relatedStudioGuidance": [
     {"studio": "image", "relationship": "Generates images from prompts.", "whenToMove": "After copying an image prompt.", "why": "Smart Video Viral does not generate."},
     {"studio": "video", "relationship": "Generates videos from prompts.", "whenToMove": "After choosing a video prompt.", "why": "Create This Style opens it for video items."},
