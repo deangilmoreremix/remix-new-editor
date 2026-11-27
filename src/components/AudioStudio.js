@@ -223,6 +223,111 @@ function createAudioListUploader(label, value, onChange, apiKey, maxItems = 2) {
   return container;
 }
 
+/**
+ * Editor for a list of objects (e.g. the speaker turns of a dialogue): one row per item, one field per property of the item schema,
+ * plus add / remove. Only rows that have their text filled are reported, so an empty starter row is never sent.
+ */
+export function createTurnsEditor(label, schema, value, onChange) {
+  const props = schema?.items?.properties || {};
+  const keys = Object.keys(props);
+  const textKey = props.text ? 'text' : keys[0];
+  const rows = Array.isArray(value) && value.length ? value.map((r) => ({ ...r })) : [{}];
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'space-y-2';
+  wrapper.dataset.turnsEditor = '1';
+  const labelEl = document.createElement('label');
+  labelEl.className = 'block text-xs font-bold text-zinc-200 uppercase tracking-wider';
+  labelEl.textContent = label;
+  wrapper.appendChild(labelEl);
+  if (schema?.description) {
+    const desc = document.createElement('span');
+    desc.className = 'block text-[11px] text-zinc-300 leading-normal';
+    desc.textContent = schema.description;
+    wrapper.appendChild(desc);
+  }
+  const list = document.createElement('div');
+  list.className = 'space-y-3';
+  wrapper.appendChild(list);
+
+  const report = () => onChange(rows.filter((r) => String(r[textKey] ?? '').trim()).map((r) => {
+    const out = {};
+    for (const k of keys) if (r[k] !== undefined && r[k] !== '') out[k] = r[k];
+    return out;
+  }));
+
+  const field = (row, key) => {
+    const def = props[key] || {};
+    const title = def.title || key.replace(/_/g, ' ');
+    let el;
+    if (Array.isArray(def.enum) && def.enum.length) {
+      el = document.createElement('select');
+      el.setAttribute('aria-label', title);
+      const blank = document.createElement('option');
+      blank.value = '';
+      blank.textContent = `${title}…`;
+      el.appendChild(blank);
+      for (const opt of def.enum) {
+        const o = document.createElement('option');
+        o.value = typeof opt === 'object' ? opt.value : opt;
+        o.textContent = typeof opt === 'object' ? (opt.label || opt.value) : opt;
+        el.appendChild(o);
+      }
+      el.value = row[key] ?? '';
+      el.addEventListener('change', () => { row[key] = el.value; report(); });
+    } else if (key === textKey) {
+      el = document.createElement('textarea');
+      el.rows = 2;
+      el.placeholder = def.description || title;
+      el.setAttribute('aria-label', title);
+      el.value = row[key] ?? '';
+      el.addEventListener('input', () => { row[key] = el.value; report(); });
+    } else {
+      el = document.createElement('input');
+      el.type = 'text';
+      el.placeholder = def.description || title;
+      el.setAttribute('aria-label', title);
+      el.value = row[key] ?? '';
+      el.addEventListener('input', () => { row[key] = el.value; report(); });
+    }
+    el.className = 'w-full bg-zinc-900 border border-zinc-700 hover:border-zinc-600 focus:border-primary/80 rounded px-3 py-2.5 text-xs text-white placeholder:text-zinc-400 focus:outline-none';
+    return el;
+  };
+
+  const draw = () => {
+    list.innerHTML = '';
+    rows.forEach((row, i) => {
+      const card = document.createElement('div');
+      card.className = 'space-y-2 bg-zinc-900/60 border border-zinc-700/80 rounded p-3';
+      card.dataset.turn = String(i);
+      const head = document.createElement('div');
+      head.className = 'flex items-center justify-between text-[11px] font-bold text-zinc-300';
+      head.textContent = `Turn ${i + 1}`;
+      if (rows.length > 1) {
+        const rm = document.createElement('button');
+        rm.type = 'button';
+        rm.textContent = 'Remove';
+        rm.setAttribute('aria-label', `Remove turn ${i + 1}`);
+        rm.className = 'text-zinc-400 hover:text-white';
+        rm.addEventListener('click', () => { rows.splice(i, 1); draw(); report(); });
+        head.appendChild(rm);
+      }
+      card.appendChild(head);
+      for (const k of keys) card.appendChild(field(row, k));
+      list.appendChild(card);
+    });
+  };
+  draw();
+
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.textContent = 'Add turn';
+  add.className = 'text-xs font-bold text-primary hover:text-white';
+  add.addEventListener('click', () => { rows.push({}); draw(); });
+  wrapper.appendChild(add);
+  return wrapper;
+}
+
 function renderSchemaControls(selectedModel, schemaParams, setSchemaParams, container, apiKey) {
   if (!selectedModel || !selectedModel.inputs) return;
 
@@ -246,6 +351,13 @@ function renderSchemaControls(selectedModel, schemaParams, setSchemaParams, cont
         setSchemaParams(prev => ({ ...prev, [key]: urls }));
       }, apiKey, schema.maxItems || 2);
       controlsContainer.appendChild(uploader);
+      return;
+    }
+
+    if (schema.type === 'array' && schema.items?.type === 'object' && schema.items.properties) {
+      controlsContainer.appendChild(createTurnsEditor(schema.title || key, schema, schemaParams[key], (rows) => {
+        setSchemaParams(prev => ({ ...prev, [key]: rows }));
+      }));
       return;
     }
 
@@ -1379,6 +1491,17 @@ export function AudioStudio() {
       showToast('Please enter a prompt for this model.', 'error');
       return;
     }
+    if (selectedModel.forwardInputs) {
+      const missing = (selectedModel.required || []).filter((k) => {
+        if (k === 'prompt') return false;
+        const v = schemaParams[k];
+        return v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0);
+      });
+      if (missing.length) {
+        showToast(`Please fill in: ${missing.map((k) => selectedModel.inputs?.[k]?.title || k).join(', ')}.`, 'error');
+        return;
+      }
+    }
     const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) {
       AuthModal(() => genBtn.click());
@@ -1413,6 +1536,11 @@ export function AudioStudio() {
       for (let i = 0; i < schemaKeys.length; i += 1) {
         const key = schemaKeys[i];
         const value = schemaParams[key];
+        if (Array.isArray(value) && selectedModel.inputs?.[key]?.items?.type === 'object') {
+          // A list of objects (e.g. dialogue turns) is data, not media references.
+          if (value.length) resolvedSchemaParams[key] = value;
+          continue;
+        }
         if (Array.isArray(value)) {
           const resolvedList = await resolveMuapiMediaRefs(value.map(asRef));
           if (resolvedList.length) resolvedSchemaParams[key] = resolvedList;

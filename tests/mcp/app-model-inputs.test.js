@@ -18,7 +18,7 @@ beforeEach(async () => {
   client = new MuapiClient();
   await client.apiKeyManager.setMuapiKey('test-key-0123456789');
   fetchMock = vi.fn(() => Promise.resolve({ ok: true, status: 200, statusText: 'OK', json: () => Promise.resolve({ outputs: ['https://cdn.example.com/out.mp3'] }) }));
-  global.fetch = fetchMock;
+  globalThis.fetch = fetchMock;
 });
 const sent = () => { const b = JSON.parse(fetchMock.mock.calls[0][1].body); return { endpoint: String(b.endpoint).replace(/^\//, ''), params: b.params ?? b }; };
 
