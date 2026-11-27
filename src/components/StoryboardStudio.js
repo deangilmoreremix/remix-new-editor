@@ -29,6 +29,12 @@ import {
   MIN_FRAMES,
   MAX_FRAMES,
 } from '../lib/storyboardEngine.js';
+import {
+  saveCloudProject, loadCloudProject, listCloudProjects, deleteCloudProject, toCloudError, isNewer, MAX_CLOUD_NAME,
+} from '../lib/storyboardCloud.js';
+import {
+  MIN_FRAME_SECONDS, MAX_FRAME_SECONDS, pxPerSecond, segmentWidth, secondsAfterDrag, secondsAfterKey, secondsLabel,
+} from '../lib/storyboardTimeline.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -72,6 +78,7 @@ const LAYOUTS = [
 const MAX_RETRIES = 3;
 const RETRY_BASE_DELAY = 1000;
 const GENERATION_CONCURRENCY = 2;
+const CLOUD_AUTOSAVE_MS = 8000;
 const PROJECTS_KEY = 'storyboard_projects_v1';
 const LAST_PROJECT_KEY = 'storyboard_last_project';
 
@@ -142,6 +149,37 @@ function createUndoRedo() {
 
 // ---- Saved projects (localStorage; never touches the Timeline Editor's slot) ----
 
+/**
+ * Where the cloud copy lives. Resolves { client, reason }: a Supabase client
+ * that carries the signed-in identity, or null plus why not
+ * ('not_configured' | 'signed_out'). Tests inject their own provider.
+ */
+async function defaultCloudProvider() {
+  const m = await import('../lib/supabase.js');
+  if (!m.isSupabaseConfigured?.()) return { client: null, reason: 'not_configured' };
+  if (!m.getClerkUserId?.()) return { client: null, reason: 'signed_out' };
+  try { await m.primeSupabaseIdentity?.(m.supabase); } catch { /* falls back to header identity; the database then refuses and we say "sign in" */ }
+  return { client: m.supabase, reason: null };
+}
+
+/** Update fields of one saved record without touching the rest (best effort). */
+function patchProject(name, patch) {
+  try {
+    const projects = readProjects();
+    if (!projects[name]) return;
+    projects[name] = { ...projects[name], ...patch };
+    localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+  } catch { /* storage unavailable */ }
+}
+
+function removeLocalProject(name) {
+  try {
+    const projects = readProjects();
+    delete projects[name];
+    localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+  } catch { /* storage unavailable */ }
+}
+
 function readProjects() {
   try {
     return JSON.parse(localStorage.getItem(PROJECTS_KEY) || '{}') || {};
@@ -183,7 +221,7 @@ function writeProject(name, state) {
 }
 
 export function StoryboardStudio(options = {}) {
-  const { embedded = false } = options;
+  const { embedded = false, cloudProvider = defaultCloudProvider } = options;
   const undoRedo = createUndoRedo();
   const cleanups = [];
   const listen = (target, type, handler) => {
@@ -208,6 +246,8 @@ export function StoryboardStudio(options = {}) {
   let selectedColor = intent.colorGrade || 'None';
   let layout = 'horizontal';
   let projectName = '';
+  /** Cloud sync state. `client` is null whenever sync is unavailable; `reason` says why. */
+  const cloud = { client: null, reason: 'checking', names: new Map(), remoteStamp: new Map(), conflictBlocked: new Set() };
   let stage = 'describe';
   let enhancedConcept = '';
   let generatedStoryboard = null;
@@ -513,11 +553,16 @@ export function StoryboardStudio(options = {}) {
   const projectList = document.createElement('datalist');
   projectList.id = 'storyboard-project-list';
   const refreshProjectList = () => {
-    const names = Object.keys(readProjects());
+    const local = readProjects();
+    const names = [...new Set([...cloud.names.keys(), ...Object.keys(local)])];
+    const stamp = (n) => Date.parse(cloud.names.get(n)?.updated_at || local[n]?.updatedAt || 0) || 0;
+    names.sort((x, y) => stamp(y) - stamp(x));
     projectList.innerHTML = names.map((n) => `<option value="${escapeHtml(n)}"></option>`).join('');
     const savedBox = brief.querySelector('#saved-projects');
     if (savedBox) {
-      brief.querySelector('#saved-select').innerHTML = names.map((n) => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+      brief.querySelector('#saved-select').innerHTML = names
+        .map((n) => `<option value="${escapeHtml(n)}">${escapeHtml(n)}${cloud.names.has(n) ? '  ☁' : ''}</option>`)
+        .join('');
       savedBox.classList.toggle('hidden', names.length === 0 || stage === 'board');
       savedBox.classList.toggle('flex', names.length > 0 && stage !== 'board');
     }
@@ -528,6 +573,12 @@ export function StoryboardStudio(options = {}) {
   try { projectInput.value = localStorage.getItem(LAST_PROJECT_KEY) || ''; } catch { /* storage unavailable */ }
   const saveBtn = makeBtn('Save', { title: 'Save project (Ctrl+S)' });
   const loadBtn = makeBtn('Load', { title: 'Load the project named in the box' });
+  const deleteBtn = makeBtn('Delete', { title: 'Delete the project named in the box (this device and your account)' });
+  const syncStatusEl = document.createElement('span');
+  syncStatusEl.id = 'sync-status';
+  syncStatusEl.className = 'text-[10px] text-muted';
+  syncStatusEl.setAttribute('role', 'status');
+  syncStatusEl.setAttribute('aria-live', 'polite');
   const needFrames = (fn) => () => {
     if (!frames.length) { showToast('Nothing to export yet. Generate a storyboard first.', 'warning'); return; }
     fn();
@@ -537,7 +588,7 @@ export function StoryboardStudio(options = {}) {
     { id: 'csv', label: 'CSV shot list', run: needFrames(() => downloadText('storyboard-shot-list.csv', buildCsv(), 'text/csv')) },
     { id: 'json', label: 'JSON', run: needFrames(() => downloadText('storyboard.json', JSON.stringify(buildStoryboardPayload(), null, 2), 'application/json')) },
   ]);
-  projectRow.append(projectInput, projectList, saveBtn, loadBtn, exportMenu);
+  projectRow.append(projectInput, projectList, saveBtn, loadBtn, deleteBtn, exportMenu, syncStatusEl);
 
   // --- Row B: edit + generate ---
   const editRow = makeRow();
@@ -719,7 +770,8 @@ export function StoryboardStudio(options = {}) {
     mountThumbnailModal(modal);
     modal.open();
   });
-  personalizeTrigger?.button?.classList.add('min-h-[36px]');
+  // Touch-sized buttons in this row, including ones other features add to it later.
+  actionRow.classList.add('[&_button]:min-h-[36px]');
   arrangeActionRow(actionRow, { thumbnail: thumbBtn, personalize: personalizeTrigger?.button });
   generateRow.appendChild(sendBtn);
 
@@ -880,16 +932,24 @@ export function StoryboardStudio(options = {}) {
       selectedColor,
       settings: { ...settings },
       brief: readBrief(),
+      cloudUpdatedAt: (projectName && cloud.remoteStamp.get(projectName)) || null,
     };
   }
 
   let autosaveTimer = null;
+  let cloudTimer = null;
   function scheduleAutosave() {
     if (!projectName) return;
     clearTimeout(autosaveTimer);
     autosaveTimer = setTimeout(() => writeProject(projectName, getStoryboardState()), 1500);
+    // The cloud copy follows a few seconds later, and only for a project the user has saved or loaded.
+    clearTimeout(cloudTimer);
+    if (cloud.client && !cloud.conflictBlocked.has(projectName)) {
+      cloudTimer = setTimeout(() => { cloudTimer = null; pushCloud(projectName, { silent: true }); }, CLOUD_AUTOSAVE_MS);
+    }
   }
   cleanups.push(() => clearTimeout(autosaveTimer));
+  cleanups.push(() => clearTimeout(cloudTimer));
 
   let typingSnapshot = null;
   let typingTimer = null;
@@ -1567,31 +1627,88 @@ export function StoryboardStudio(options = {}) {
     updateUndoRedoButtons();
   }
 
+  /** Pixels per second of the strip as last drawn; the drag maths reads it. */
+  let timelinePps = 28;
+
+  /**
+   * Change a frame's length in place (no re-render, so a drag or a focused
+   * handle keeps working) and keep every view of that number in step: its
+   * timeline segment, its card, the total, and the summary line.
+   */
+  function applyDuration(frame, seconds) {
+    frame.duration = seconds;
+    const card = frameRefs.get(frame.id)?.card;
+    const input = card?.querySelector('input[type="number"]');
+    if (input && document.activeElement !== input) input.value = String(seconds);
+    updateSummary();
+    const seg = timelineStrip.querySelector(`[data-seg-id="${frame.id}"]`);
+    if (seg) {
+      const idx = frames.indexOf(frame);
+      seg.style.width = `${segmentWidth(seconds, timelinePps)}px`;
+      seg.title = `Frame ${idx + 1}: ${frame.shot} · ${frame.cameraMovement} · ${seconds}s`;
+      const lab = seg.querySelector('[data-seg-seconds]');
+      if (lab) lab.textContent = `${SHOT_ABBREV[frame.shot] || ''} ${seconds}s`;
+      const handle = seg.querySelector('[role="slider"]');
+      if (handle) {
+        handle.setAttribute('aria-valuenow', String(seconds));
+        handle.setAttribute('aria-valuetext', secondsLabel(seconds));
+      }
+    }
+    const total = timelineStrip.querySelector('[data-timeline-total]');
+    if (total) total.textContent = `Timeline · ${totalDuration(frames)}s`;
+  }
+
   function renderTimelineStrip() {
     timelineStrip.innerHTML = '';
     if (!frames.length) return;
     const total = totalDuration(frames) || frames.length;
+    timelinePps = pxPerSecond(total, timelineStrip.clientWidth - 8);
+
     const label = document.createElement('div');
-    label.className = 'text-[10px] font-bold text-secondary uppercase tracking-widest mb-2';
-    label.textContent = `Timeline · ${total}s`;
+    label.className = 'flex items-baseline gap-3 flex-wrap text-[10px] font-bold text-secondary uppercase tracking-widest mb-2';
+    label.innerHTML = '<span data-timeline-total></span><span class="normal-case tracking-normal font-normal text-muted">Drag a frame\'s right edge to change its length, or focus the edge and use ← →.</span>';
+    label.querySelector('[data-timeline-total]').textContent = `Timeline · ${total}s`;
     timelineStrip.appendChild(label);
 
+    const scroller = document.createElement('div');
+    scroller.className = 'overflow-x-auto no-scrollbar rounded-lg';
     const strip = document.createElement('div');
-    strip.className = 'flex h-11 rounded-lg border border-white/10 bg-white/[0.03] overflow-hidden';
+    strip.className = 'inline-flex h-11 min-w-full rounded-lg border border-white/10 bg-white/[0.03]';
     strip.setAttribute('role', 'list');
+
     frames.forEach((frame, idx) => {
-      const seg = document.createElement('button');
-      seg.type = 'button';
+      const seg = document.createElement('div');
       seg.setAttribute('role', 'listitem');
-      seg.className = 'relative flex flex-col items-center justify-center border-r border-white/5 last:border-r-0 hover:bg-white/10 transition-all text-white overflow-hidden';
-      seg.style.flex = `${Math.max(1, frame.duration)} 1 0`;
-      seg.style.minWidth = '34px';
+      seg.dataset.segId = frame.id;
+      seg.className = 'relative shrink-0 border-r border-white/5 last:border-r-0 hover:bg-white/10 transition-colors text-white overflow-hidden cursor-pointer';
+      seg.style.width = `${segmentWidth(frame.duration, timelinePps)}px`;
       if (frame.imageUrl && /^(https?:|data:image\/)/.test(frame.imageUrl)) {
         seg.style.backgroundImage = `linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.55)), url("${frame.imageUrl.replace(/"/g, '%22')}")`;
         seg.style.backgroundSize = 'cover';
       }
       seg.title = `Frame ${idx + 1}: ${frame.shot} · ${frame.cameraMovement} · ${frame.duration}s`;
-      seg.innerHTML = `<span class="text-[10px] font-bold tabular-nums">${idx + 1}</span><span class="text-[9px] text-white/70">${SHOT_ABBREV[frame.shot] || ''} ${frame.duration}s</span>`;
+
+      const jump = document.createElement('button');
+      jump.type = 'button';
+      jump.className = 'absolute inset-0 flex flex-col items-center justify-center pr-3';
+      jump.setAttribute('aria-label', `Go to frame ${idx + 1}`);
+      jump.innerHTML = `<span class="text-[10px] font-bold tabular-nums">${idx + 1}</span><span data-seg-seconds class="text-[9px] text-white/70">${SHOT_ABBREV[frame.shot] || ''} ${frame.duration}s</span>`;
+      seg.appendChild(jump);
+
+      const handle = document.createElement('span');
+      handle.setAttribute('role', 'slider');
+      handle.tabIndex = 0;
+      handle.setAttribute('aria-label', `Frame ${idx + 1} length`);
+      handle.setAttribute('aria-orientation', 'horizontal');
+      handle.setAttribute('aria-valuemin', String(MIN_FRAME_SECONDS));
+      handle.setAttribute('aria-valuemax', String(MAX_FRAME_SECONDS));
+      handle.setAttribute('aria-valuenow', String(frame.duration));
+      handle.setAttribute('aria-valuetext', secondsLabel(frame.duration));
+      handle.className = 'absolute top-0 right-0 h-full w-4 flex items-center justify-center cursor-col-resize hover:bg-primary/30 focus:bg-primary/40 focus:outline-none';
+      handle.style.touchAction = 'none';
+      handle.innerHTML = '<span class="block w-0.5 h-5 rounded bg-white/60"></span>';
+      seg.appendChild(handle);
+
       seg.onclick = () => {
         const ref = frameRefs.get(frame.id);
         if (!ref) return;
@@ -1599,9 +1716,51 @@ export function StoryboardStudio(options = {}) {
         ref.card.classList.add('ring-2', 'ring-primary');
         setTimeout(() => ref.card.classList.remove('ring-2', 'ring-primary'), 1500);
       };
+      handle.addEventListener('click', (e) => e.stopPropagation());
+
+      // Drag the right edge: whole seconds, one undo step per drag.
+      handle.addEventListener('pointerdown', (e) => {
+        if (e.button) return;
+        e.preventDefault();
+        e.stopPropagation();
+        try { handle.setPointerCapture?.(e.pointerId); } catch { /* not capturable (e.g. synthetic event) */ }
+        const startX = e.clientX;
+        const startSeconds = frame.duration;
+        let changed = false;
+        seg.classList.add('ring-1', 'ring-primary');
+        const move = (ev) => {
+          const next = secondsAfterDrag(startSeconds, ev.clientX - startX, timelinePps);
+          if (next === frame.duration) return;
+          if (!changed) { pushUndo(); changed = true; }
+          applyDuration(frame, next);
+        };
+        const end = () => {
+          handle.removeEventListener('pointermove', move);
+          handle.removeEventListener('pointerup', end);
+          handle.removeEventListener('pointercancel', end);
+          seg.classList.remove('ring-1', 'ring-primary');
+          if (changed) { scheduleAutosave(); renderTimelineStrip(); }
+        };
+        handle.addEventListener('pointermove', move);
+        handle.addEventListener('pointerup', end);
+        handle.addEventListener('pointercancel', end);
+      });
+
+      // Keyboard: ← → (Shift = 5s), Home / End.
+      handle.addEventListener('keydown', (e) => {
+        const next = secondsAfterKey(frame.duration, e.key, { shift: e.shiftKey });
+        if (next === null) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (next === frame.duration) return;
+        beginTextEdit(); // groups a burst of key presses into one undo step
+        applyDuration(frame, next);
+      });
+
       strip.appendChild(seg);
     });
-    timelineStrip.appendChild(strip);
+    scroller.appendChild(strip);
+    timelineStrip.appendChild(scroller);
   }
 
   // =====================================================================
@@ -1658,36 +1817,162 @@ export function StoryboardStudio(options = {}) {
     return true;
   }
 
+  // ---- Cloud sync -------------------------------------------------------------------------
+
+  const clock = () => new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  function setSyncStatus(text, tone = 'muted') {
+    syncStatusEl.textContent = text;
+    syncStatusEl.className = `text-[10px] ${tone === 'error' ? 'text-red-400' : tone === 'ok' ? 'text-primary' : 'text-muted'}`;
+  }
+  const REASON_TEXT = {
+    not_configured: 'Saved on this device only',
+    signed_out: 'Sign in to sync across devices',
+    not_set_up: 'Cloud sync is not set up yet (saved on this device)',
+    offline: 'Offline: saved on this device',
+  };
+
+  /** (Re)check whether cloud sync is available and load the account's project list. */
+  async function connectCloud() {
+    let provided;
+    try { provided = await cloudProvider(); } catch { provided = { client: null, reason: 'not_configured' }; }
+    cloud.client = provided?.client || null;
+    cloud.reason = cloud.client ? 'ready' : (provided?.reason || 'not_configured');
+    if (!cloud.client) { cloud.names.clear(); setSyncStatus(REASON_TEXT[cloud.reason] || ''); refreshProjectList(); return; }
+    try {
+      const rows = await listCloudProjects(cloud.client);
+      cloud.names = new Map(rows.map((r) => [r.name, r]));
+      rows.forEach((r) => { if (!cloud.remoteStamp.has(r.name)) cloud.remoteStamp.set(r.name, r.updated_at); });
+      setSyncStatus(rows.length ? `☁ ${rows.length} in your account` : '☁ Sync on', 'ok');
+    } catch (err) {
+      const e = toCloudError(err);
+      if (e.code !== 'error') { cloud.client = null; cloud.reason = e.code; }
+      setSyncStatus(REASON_TEXT[e.code] || e.message, 'muted');
+    }
+    refreshProjectList();
+  }
+  let cloudReady = connectCloud();
+  /** Clerk can finish signing in after the studio mounts, so look again whenever sync is off. */
+  const ensureCloud = async () => {
+    await cloudReady;
+    if (!cloud.client && cloud.reason !== 'not_set_up') { cloudReady = connectCloud(); await cloudReady; }
+  };
+  const recheck = setTimeout(() => { if (!cloud.client && cloud.reason === 'signed_out') cloudReady = connectCloud(); }, 3000);
+  cleanups.push(() => clearTimeout(recheck));
+  listen(window, 'focus', () => { if (!cloud.client && cloud.reason === 'signed_out') cloudReady = connectCloud(); });
+
+  /**
+   * Push the current storyboard to the account. `silent` (autosave) never asks
+   * questions: if the cloud copy changed elsewhere it just pauses and says so.
+   */
+  async function pushCloud(name, { silent = false, force = false } = {}) {
+    if (!cloud.client) return { ok: false, reason: cloud.reason };
+    if (name.length > MAX_CLOUD_NAME) {
+      setSyncStatus(`Name too long to sync (max ${MAX_CLOUD_NAME})`, 'error');
+      return { ok: false, reason: 'name' };
+    }
+    setSyncStatus('☁ Syncing…');
+    try {
+      const res = await saveCloudProject(cloud.client, name, getStoryboardState(), { expectedUpdatedAt: cloud.remoteStamp.get(name) || null, force });
+      cloud.remoteStamp.set(name, res.updatedAt);
+      cloud.names.set(name, { name, updated_at: res.updatedAt, frame_count: res.frameCount });
+      cloud.conflictBlocked.delete(name);
+      patchProject(name, { cloudUpdatedAt: res.updatedAt });
+      setSyncStatus(`☁ Synced ${clock()}`, 'ok');
+      refreshProjectList();
+      return { ok: true, strippedImages: res.strippedImages };
+    } catch (err) {
+      const e = toCloudError(err);
+      if (e.code === 'conflict') {
+        if (!silent && typeof window.confirm === 'function' && window.confirm('This storyboard was changed on another device. Overwrite the cloud copy with this version?')) {
+          return pushCloud(name, { silent, force: true });
+        }
+        cloud.conflictBlocked.add(name);
+        setSyncStatus('Cloud copy changed elsewhere. Press Save to choose.', 'error');
+        return { ok: false, reason: 'conflict' };
+      }
+      if (e.code === 'signed_out' || e.code === 'not_set_up') { cloud.client = null; cloud.reason = e.code; }
+      if (e.code === 'error') console.warn('[StoryboardStudio] cloud sync failed:', err, err?.cause?.message || '', err?.cause?.code || '');
+      setSyncStatus(REASON_TEXT[e.code] || e.message, e.code === 'error' ? 'error' : 'muted');
+      return { ok: false, reason: e.code, message: e.message };
+    }
+  }
+
   saveBtn.onclick = async () => {
     if (!(await requireEntitlement())) return;
     const name = projectInput.value.trim() || `Storyboard ${new Date().toLocaleDateString()}`;
     projectInput.value = projectName = name;
+    clearTimeout(cloudTimer);
     const result = writeProject(name, getStoryboardState());
     if (!result.ok) { showToast('Could not save: browser storage is full or blocked. Export JSON instead.', 'error'); return; }
     try { localStorage.setItem(LAST_PROJECT_KEY, name); } catch { /* ignore */ }
     refreshProjectList();
-    showToast(result.stripped ? `Saved "${name}" without ${result.stripped} large image(s). Export a PDF to keep them.` : `Saved "${name}"`, result.stripped ? 'warning' : 'success');
+    const local = result.stripped ? `Saved "${name}" on this device without ${result.stripped} large image(s). Export a PDF to keep them.` : `Saved "${name}"`;
     // Optional server copy for self-hosted deployments; never blocks or fails the save.
     fetch('/api/storyboard/' + encodeURIComponent(name), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: name, frames, preset: null }),
     }).catch(() => {});
+
+    await ensureCloud();
+    cloud.conflictBlocked.delete(name);
+    const cloudResult = cloud.client ? await pushCloud(name) : { ok: false, reason: cloud.reason };
+    if (cloudResult.ok) {
+      const note = cloudResult.strippedImages ? ` ${cloudResult.strippedImages} generated image(s) stay on this device only; regenerate them elsewhere.` : '';
+      showToast(`Saved "${name}" to this device and your account.${note}`, cloudResult.strippedImages ? 'warning' : 'success');
+    } else if (cloudResult.reason === 'conflict') {
+      showToast(`${local}. The cloud copy was NOT changed (it was updated on another device).`, 'warning');
+    } else if (cloudResult.reason === 'signed_out') {
+      showToast(`${local}. Sign in to sync it to your account.`, 'success');
+    } else if (cloudResult.reason === 'not_configured' || cloudResult.reason === 'checking') {
+      showToast(local, result.stripped ? 'warning' : 'success');
+    } else {
+      showToast(`${local}. ${cloudResult.message || REASON_TEXT[cloudResult.reason] || 'Cloud sync did not complete.'}`, 'warning');
+    }
   };
 
   async function loadByName(name) {
     if (!(await requireEntitlement())) return;
+    await ensureCloud();
     const saved = readProjects();
     if (!name) {
-      const names = Object.keys(saved);
+      const names = [...new Set([...cloud.names.keys(), ...Object.keys(saved)])];
       showToast(names.length ? `Type a project name. Saved: ${names.slice(0, 5).join(', ')}` : 'No saved storyboards yet.', 'warning');
       return;
     }
-    if (saved[name]) {
-      applyLoaded(saved[name]);
+    const localRec = saved[name];
+    let remote = null;
+    if (cloud.client) {
+      try { remote = await loadCloudProject(cloud.client, name); } catch (err) {
+        const e = toCloudError(err);
+        if (e.code !== 'error') { cloud.client = null; cloud.reason = e.code; }
+        setSyncStatus(REASON_TEXT[e.code] || e.message, 'muted');
+      }
+    }
+    // The cloud copy wins when there is no local one, or when it was saved later than the local one.
+    const useRemote = !!remote && (!localRec || (remote.updatedAt !== localRec.cloudUpdatedAt && isNewer(remote.updatedAt, localRec.updatedAt)));
+    if (useRemote) {
+      if (!applyLoaded(remote.state)) { showToast(`"${name}" in your account could not be read.`, 'error'); return; }
       projectName = name;
       projectInput.value = name;
+      cloud.remoteStamp.set(name, remote.updatedAt);
+      cloud.conflictBlocked.delete(name);
+      writeProject(name, getStoryboardState());
       try { localStorage.setItem(LAST_PROJECT_KEY, name); } catch { /* ignore */ }
+      refreshProjectList();
+      setSyncStatus(`☁ Synced ${clock()}`, 'ok');
+      showToast(localRec ? `Loaded the newer copy of "${name}" from your account` : `Loaded "${name}" from your account`, 'success');
+      return;
+    }
+    if (localRec) {
+      applyLoaded(localRec);
+      projectName = name;
+      projectInput.value = name;
+      if (remote) cloud.remoteStamp.set(name, remote.updatedAt);
+      else if (localRec.cloudUpdatedAt && !cloud.remoteStamp.has(name)) cloud.remoteStamp.set(name, localRec.cloudUpdatedAt);
+      try { localStorage.setItem(LAST_PROJECT_KEY, name); } catch { /* ignore */ }
+      const ahead = remote && remote.updatedAt !== localRec.cloudUpdatedAt;
+      if (ahead) setSyncStatus('Your device copy is newer. Press Save to sync it.', 'muted');
       showToast(`Loaded "${name}"`, 'success');
       return;
     }
@@ -1699,6 +1984,24 @@ export function StoryboardStudio(options = {}) {
     } catch { /* fall through */ }
     showToast(`No saved storyboard named "${name}".`, 'warning');
   }
+
+  deleteBtn.onclick = async () => {
+    const name = projectInput.value.trim();
+    await ensureCloud();
+    const inCloud = cloud.names.has(name);
+    const inLocal = !!readProjects()[name];
+    if (!name || (!inCloud && !inLocal)) { showToast('Type the name of a saved storyboard to delete it.', 'warning'); return; }
+    const where = inCloud && inLocal ? 'this device and your account' : inCloud ? 'your account' : 'this device';
+    if (typeof window.confirm === 'function' && !window.confirm(`Delete "${name}" from ${where}? This cannot be undone.`)) return;
+    removeLocalProject(name);
+    let cloudNote = '';
+    if (inCloud && cloud.client) {
+      try { await deleteCloudProject(cloud.client, name); cloud.names.delete(name); cloud.remoteStamp.delete(name); } catch (err) { cloudNote = ` It could not be removed from your account: ${toCloudError(err).message}`; }
+    }
+    if (name === projectName) { projectName = ''; clearTimeout(autosaveTimer); clearTimeout(cloudTimer); }
+    refreshProjectList();
+    showToast(`Deleted "${name}".${cloudNote}`, cloudNote ? 'warning' : 'success');
+  };
 
   loadBtn.onclick = () => loadByName(projectInput.value.trim());
   brief.querySelector('#open-saved').addEventListener('click', () => loadByName(brief.querySelector('#saved-select').value));
@@ -1811,6 +2114,7 @@ export function StoryboardStudio(options = {}) {
   // Cleanup hook called by the router when the page is left.
   container.cleanup = () => {
     commitTypingSnapshot();
+    if (cloudTimer && projectName) { clearTimeout(cloudTimer); cloudTimer = null; pushCloud(projectName, { silent: true }); }
     if (outsideClickHandler) document.removeEventListener('click', outsideClickHandler);
     generation.stop = true;
     cleanups.splice(0).forEach((fn) => { try { fn(); } catch { /* ignore */ } });
