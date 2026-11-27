@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { createStudioVideoPagesButton } from './studio/studioVideoPagesButton.js';
 import { registerGeneration } from '../lib/generationHistory.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
@@ -316,6 +317,7 @@ export function EditStudio({ embed = false } = {}) {
   let cameraWidget = null; // set while an app with the 3D camera control is open
   let secondary = null;  // { url, assetId }
   let resultUrl = null;
+  let resultKind = 'image';
   let inFlight = false;
   const runs = [];
   let runId = 0;
@@ -899,7 +901,7 @@ export function EditStudio({ embed = false } = {}) {
     setSource({ url: resultUrl, assetId: null });
     showToast('Result is now the source image', 'success');
   };
-  resultActions.append(downloadBtn, regenBtn, reuseBtn);
+  resultActions.append(downloadBtn, regenBtn, reuseBtn, createStudioVideoPagesButton({ studioId: 'edit', getResult: () => resultUrl || '', getAsset: () => ({ type: resultKind }) }));
 
   const historyPanel = document.createElement('div');
   historyPanel.className = 'hidden flex flex-col gap-2';
@@ -1033,6 +1035,7 @@ export function EditStudio({ embed = false } = {}) {
 
   function showResult(url, beforeUrl, kind = 'image') {
     resultUrl = url;
+    resultKind = kind;
     reuseBtn.classList.toggle('hidden', kind === 'video');
     if (kind === 'video') {
       showVideo(url, 'RESULT');
