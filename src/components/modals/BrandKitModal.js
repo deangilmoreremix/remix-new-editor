@@ -316,7 +316,7 @@ export function openBrandKitModal({ url = '' } = {}) {
     act.appendChild(makeBtn);
     dialog.appendChild(act);
     if (state.target === 'video-agent') {
-      dialog.appendChild(el('p', 'text-[11px] text-muted mt-2', 'Video Agent starts writing right away, using your own OpenAI key.'));
+      dialog.appendChild(el('p', 'text-[11px] text-muted mt-2', 'Animation Agent starts writing right away, using your own OpenAI key.'));
     }
     dialog.scrollTop = keepScroll;
   }

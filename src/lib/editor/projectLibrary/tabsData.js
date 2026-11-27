@@ -47,6 +47,12 @@ export function seedInterestMap(projectState, existing = []) {
   });
 }
 
+/** True when the owner's saved mapping differs from the one in the published video, so viewers still see the old one until it is published again. */
+export function mappingIsStale(saved, published) {
+  const key = (m) => JSON.stringify((Array.isArray(m) ? m : []).filter((e) => e?.interest?.label).map((e) => [String(e.id), Number(e.start), Number(e.end), e.interest.type, e.interest.label]));
+  return key(saved) !== key(published);
+}
+
 /** Validate/normalise what the owner entered before saving it. */
 export function cleanInterestMap(entries) {
   return (entries || []).slice(0, MAX_MAP_ENTRIES).map((e) => {

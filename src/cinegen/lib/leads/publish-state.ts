@@ -30,3 +30,10 @@ export function buildPublishState(tl: Timeline, assets: Asset[], overlays: Overl
     ],
   };
 }
+
+/** How many scenes (video clips) the timeline has. Retarget maps sections to products and needs at least two. */
+export function countScenes(tl: Timeline | undefined): number {
+  if (!tl) return 0;
+  const videoTracks = new Set(tl.tracks.filter((t) => t.kind === 'video').map((t) => t.id));
+  return tl.clips.filter((c) => videoTracks.has(c.trackId)).length;
+}

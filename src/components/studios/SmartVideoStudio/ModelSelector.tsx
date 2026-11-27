@@ -2,9 +2,34 @@
  * SmartVideo Studio — ModelSelector
  *
  * Searchable, filterable model picker with categories, providers, and badges.
+ *
+ * The list is drawn on document.body with position: fixed, placed from the Model box. The settings column
+ * scrolls (overflow-y: auto), so a list drawn inside it was clipped off-screen and could not be clicked.
  */
 
-import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+const GAP = 6;
+const MAX_HEIGHT = 420;
+const MIN_WIDTH = 320;
+const EDGE = 8;
+// With less room than this below the box, the list opens above it (when there is more room there).
+const MIN_BELOW_ROOM = 240;
+
+export interface PickerPlacement { top: number; left: number; width: number; maxHeight: number; above: boolean }
+
+/** Where the list goes: below the box, or above it when there is more room there; always inside the window. */
+export function placePicker(rect: { top: number; bottom: number; left: number; width: number }, viewport: { width: number; height: number }): PickerPlacement {
+  const below = viewport.height - rect.bottom - GAP - EDGE;
+  const aboveRoom = rect.top - GAP - EDGE;
+  const above = below < Math.min(MAX_HEIGHT, MIN_BELOW_ROOM) && aboveRoom > below;
+  const maxHeight = Math.max(160, Math.min(MAX_HEIGHT, above ? aboveRoom : below));
+  const width = Math.min(Math.max(rect.width, MIN_WIDTH), viewport.width - EDGE * 2);
+  const left = Math.min(Math.max(EDGE, rect.left), viewport.width - width - EDGE);
+  const top = above ? Math.max(EDGE, rect.top - GAP - maxHeight) : rect.bottom + GAP;
+  return { top, left, width, maxHeight, above };
+}
+
+import React, { useState, useMemo, useCallback, useRef, useEffect, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { searchModels, getModelsForTab, type ModelMeta } from './svStudio/modelRegistry';
 import { syncCatalog } from './svStudio/modelRegistry';
 
@@ -58,6 +83,60 @@ export default function ModelSelector({ tabId, selectedModelId, onSelect }: Mode
   const [catalog, setCatalog] = useState<ModelMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const pickerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const [placement, setPlacement] = useState<PickerPlacement | null>(null);
+
+  const reposition = useCallback(() => {
+    const el = triggerRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    setPlacement(placePicker(r, { width: window.innerWidth, height: window.innerHeight }));
+  }, []);
+
+  // While open: follow the box when the window resizes or anything scrolls (the settings column scrolls),
+  // at most once per frame. Measured before paint on open, so the list never shows in the wrong place.
+  useLayoutEffect(() => {
+    if (!showPicker) { setPlacement(null); return undefined; }
+    reposition();
+    let frame = 0;
+    const onMove = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => { frame = 0; reposition(); });
+    };
+    window.addEventListener('resize', onMove);
+    window.addEventListener('scroll', onMove, true);
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener('resize', onMove);
+      window.removeEventListener('scroll', onMove, true);
+    };
+  }, [showPicker, reposition]);
+
+  // Close on a click outside the box and the list, or on Escape (focus goes back to the box).
+  useEffect(() => {
+    if (!showPicker) return undefined;
+    // pointerdown covers mouse, touch and pen, so a tap outside closes it on phones too.
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as Node;
+      if (pickerRef.current?.contains(t) || listRef.current?.contains(t)) return;
+      setShowPicker(false);
+      setQuery('');
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      setShowPicker(false);
+      setQuery('');
+      triggerRef.current?.focus();
+    };
+    document.addEventListener('pointerdown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [showPicker]);
 
   // Load catalog on mount
   useEffect(() => {
@@ -111,6 +190,7 @@ export default function ModelSelector({ tabId, selectedModelId, onSelect }: Mode
 
       {/* Selected model display / trigger */}
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setShowPicker(!showPicker)}
         className={`model-selector-trigger ${selectedModel ? 'has-selection' : ''}`}
@@ -130,9 +210,14 @@ export default function ModelSelector({ tabId, selectedModelId, onSelect }: Mode
         </svg>
       </button>
 
-      {/* Picker dropdown */}
-      {showPicker && (
-        <div className="model-selector-picker">
+      {/* Picker dropdown, on document.body so the scrolling settings column cannot clip it */}
+      {showPicker && placement && typeof document !== 'undefined' && createPortal(
+        <div
+          ref={listRef}
+          className={`model-selector-picker ${placement?.above ? 'is-above' : 'is-below'}`}
+          data-model-picker=""
+          style={{ top: placement.top, left: placement.left, width: placement.width, maxHeight: placement.maxHeight }}
+        >
           {/* Search */}
           <div className="model-selector-search">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -195,7 +280,8 @@ export default function ModelSelector({ tabId, selectedModelId, onSelect }: Mode
               })
             )}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

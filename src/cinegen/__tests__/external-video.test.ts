@@ -41,6 +41,12 @@ describe('validateVideoUrl', () => {
     expect(validateVideoUrl('http://x.com/v.mp4')).toMatch(/https/);
     expect(validateVideoUrl('video.mp4')).toMatch(/full link/);
   });
+  it('says a video page (YouTube, Vimeo, ...) is not a video file', () => {
+    expect(validateVideoUrl('https://www.youtube.com/watch?v=abc')).toMatch(/video page/);
+    expect(validateVideoUrl('https://youtu.be/abc')).toMatch(/video page/);
+    expect(validateVideoUrl('https://vimeo.com/123')).toMatch(/video page/);
+    expect(validateVideoUrl('https://notyoutube.com/v.mp4')).toBeNull();
+  });
 });
 
 describe('buildExternalProject', () => {

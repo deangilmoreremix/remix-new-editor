@@ -148,7 +148,7 @@ export const BRAND_TARGETS = {
   video: { label: 'Video Studio', route: 'video' },
   cinema: { label: 'Cinema Studio', route: 'cinema' },
   storyboard: { label: 'Storyboard Studio', route: 'storyboard' },
-  'video-agent': { label: 'Video Agent', route: 'video-agent' },
+  'video-agent': { label: 'Animation Agent', route: 'video-agent' },
 };
 
 const brandFacts = (brand) => {
@@ -158,7 +158,7 @@ const brandFacts = (brand) => {
 
 /**
  * The brief for one studio, built only from the kit. Video: the ad brief. Cinema: one hero shot.
- * Storyboard: a short scene outline. Video Agent: an on-brand motion-graphics brief (colors, fonts, logo, copy).
+ * Storyboard: a short scene outline. Animation Agent: an on-brand motion-graphics brief (colors, fonts, logo, copy).
  */
 export function buildBrandBrief(brand, target = 'video', options = {}) {
   const facts = brandFacts(brand);
@@ -196,7 +196,7 @@ export function buildBrandBrief(brand, target = 'video', options = {}) {
   return base;
 }
 
-/** Open a studio with the brand's brief filled in. The user still presses Generate (Video Agent starts writing at once). */
+/** Open a studio with the brand's brief filled in. The user still presses Generate (Animation Agent starts writing at once). */
 export function makeBrandProject(brand, target = 'video', options = {}) {
   const dest = BRAND_TARGETS[target];
   const plan = dest && buildBrandBrief(brand, target, options);

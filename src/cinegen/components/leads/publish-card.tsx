@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { publishIncludes } from '@cinegen/lib/leads/leads';
+import { countScenes } from '@cinegen/lib/leads/publish-state';
 import { requestRetarget } from '@cinegen/lib/leads/open-retarget';
 import { createQrEndCard, mp4WatchLink } from '@cinegen/lib/leads/qr-end-card';
 import { LINK_PRESETS, trackedLink } from '@cinegen/lib/leads/share-links';
@@ -29,6 +30,7 @@ export function PublishCard({ pub, leadCount }: { pub: ReturnType<typeof usePubl
   useEffect(() => setDomain(pub.info?.customDomain || ''), [pub.info?.customDomain]);
   useEffect(() => { setSlug(pub.info?.slug || slugify(pub.title, '')); }, [pub.info?.slug, pub.title]);
   const includes = publishIncludes(state.overlays ?? []);
+  const scenes = countScenes(state.timelines.find((t) => t.id === state.activeTimelineId) ?? state.timelines[0]);
   // The readable /v/<business>/<slug> link once set, else /watch/<id>.
   const shareLink = pub.info ? canonicalUrl({ ...pub.info, id: pub.id }) : '';
   const domainLink = pub.info ? customDomainUrl(pub.info) : null;
@@ -63,6 +65,7 @@ export function PublishCard({ pub, leadCount }: { pub: ReturnType<typeof usePubl
       <label className="leads-label">Title
         <input className="leads-input" value={title} onChange={(e) => setTitle(e.target.value)} data-testid="publish-title" />
       </label>
+      {scenes < 2 && <p className="leads-note" data-testid="retarget-scenes-hint">Retarget ties parts of your video to products or services, so it needs at least two scenes. This timeline has {scenes === 1 ? 'one' : 'none'}: split the video into scenes before publishing to get follow-up suggestions.</p>}
       <div className="leads-row">
         <button type="button" className="leads-btn leads-btn--primary" disabled={pub.busy} onClick={() => void pub.publish(title)} data-testid="publish-btn">
           {pub.busy ? 'Working…' : pub.info ? 'Update published video' : 'Publish video'}
