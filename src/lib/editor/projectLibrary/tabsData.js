@@ -79,6 +79,22 @@ export async function saveInterestMap(client, projectId, settings, entries) {
   return map;
 }
 
+/**
+ * Put the owner's saved mapping into the published copy itself. Viewer interest is scored from the published video's own
+ * `interestMap`, and a video made elsewhere has no editor to republish from, so the mapping is applied directly. Resolves to the
+ * updated project.
+ */
+export async function applyMappingToPublished(client, videoId, map) {
+  const { data, error } = await client.from('published_videos').select('project').eq('id', videoId).maybeSingle();
+  if (error) throw new Error(error.message || 'Could not read the published video');
+  if (!data?.project) throw new Error('The published video was not found');
+  const project = { ...data.project };
+  if (map.length) project.interestMap = map; else delete project.interestMap;
+  const res = await client.from('published_videos').update({ project }).eq('id', videoId);
+  if (res.error) throw new Error(res.error.message || 'Could not apply the mapping to the published video');
+  return project;
+}
+
 export async function loadFollowupComparison(client, original, followups, now = new Date()) {
   if (!followups.length) return [];
   const { from, to } = periodRange('90d', null, now);

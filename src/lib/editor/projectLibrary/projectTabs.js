@@ -5,7 +5,7 @@
  * from owner-only RPCs; nothing here is static or demo data.
  */
 import {
-  getProjectVideo, loadAudience, seedInterestMap, saveInterestMap, mappingIsStale, INTEREST_TYPES, loadFollowupComparison,
+  getProjectVideo, loadAudience, seedInterestMap, saveInterestMap, applyMappingToPublished, mappingIsStale, INTEREST_TYPES, loadFollowupComparison,
   listNotifications, markRead, NOTIFICATION_TYPES, NOTIFICATION_GROUPS, groupState, loadPreferences, savePreferences, effectivePushTypes, pushGroupState,
 } from './tabsData.js';
 import { quietToForm, quietFromForm, timeZoneOptions, browserTimeZone, QUIET_NOTE_SUMMARY, QUIET_NOTE_DROPPED } from './quietHours.js';
@@ -97,7 +97,7 @@ export function retargetTab(deps) {
       const flash = (m) => { const el = root.querySelector('[data-map-msg]'); if (el) el.textContent = m; };
       root.querySelector('[data-save-map]')?.addEventListener('click', async () => {
         const entries = map.map((m, i) => ({ ...m, interest: root.querySelector(`[data-label="${i}"]`).value.trim() ? { type: root.querySelector(`[data-type="${i}"]`).value, label: root.querySelector(`[data-label="${i}"]`).value } : null }));
-        try { const saved = await saveInterestMap(client, original.id, original.settings, entries); original.settings = { ...(original.settings || {}), interestMap: saved }; deps.onInterestMapSaved?.(saved); const stale = root.querySelector('[data-map-stale]'); if (stale) stale.hidden = !mappingIsStale(saved, video.project?.interestMap); flash(`Saved ${saved.length} mapping${saved.length === 1 ? '' : 's'}. Publish again to apply it to viewers.`); } catch (e) { flash(e.message); }
+        try { const saved = await saveInterestMap(client, original.id, original.settings, entries); original.settings = { ...(original.settings || {}), interestMap: saved }; deps.onInterestMapSaved?.(saved); if (original.settings.source === 'external') video.project = await applyMappingToPublished(client, video.id, saved); const stale = root.querySelector('[data-map-stale]'); if (stale) stale.hidden = !mappingIsStale(saved, video.project?.interestMap); flash(original.settings.source === 'external' ? `Saved ${saved.length} mapping${saved.length === 1 ? '' : 's'} and applied it to viewers.` : `Saved ${saved.length} mapping${saved.length === 1 ? '' : 's'}. Publish again to apply it to viewers.`); } catch (e) { flash(e.message); }
       });
       root.querySelector('[data-save-sections]')?.addEventListener('click', async () => {
         const say = (m) => { const el = root.querySelector('[data-sections-msg]'); if (el) el.textContent = m; };
@@ -105,7 +105,7 @@ export function retargetTab(deps) {
         if (parsed.error) { say(parsed.error); return; }
         if (!parsed.sections.length) { say('Add at least one section, like 0:45 Pricing.'); return; }
         const entries = parsed.sections.map((s, i) => ({ id: `m${i}`, title: s.title, start: s.start, end: s.end, interest: { type: 'topic', label: s.title }, clipIds: [] }));
-        try { const saved = await saveInterestMap(client, original.id, original.settings, entries); original.settings = { ...(original.settings || {}), interestMap: saved }; deps.onInterestMapSaved?.(saved); if (alive) await render(client, video); } catch (e) { say(e.message); }
+        try { const saved = await saveInterestMap(client, original.id, original.settings, entries); original.settings = { ...(original.settings || {}), interestMap: saved }; deps.onInterestMapSaved?.(saved); if (original.settings.source === 'external') video.project = await applyMappingToPublished(client, video.id, saved); if (alive) await render(client, video); } catch (e) { say(e.message); }
       });
       root.querySelectorAll('[data-rec]').forEach((b) => b.addEventListener('click', async () => {
         b.disabled = true;

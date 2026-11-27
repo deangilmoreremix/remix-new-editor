@@ -174,6 +174,27 @@ describe('Retarget tab', () => {
     ]);
     expect(panel.querySelectorAll('[data-row]')).toHaveLength(2); // now editable like any other mapping
   });
+  it('for a video made elsewhere, applies a saved mapping to the published copy so viewers are scored with it', async () => {
+    const c = client({ rpcs: { video_audience_segments: [], video_interest_summary: [] } });
+    const projectUpdates = [];
+    let settings = { source: 'external' };
+    let published = { timelineSeconds: 100, tracks: [{ type: 'video', items: [{ id: 'a', left: 0, width: 100 }] }] };
+    const base = c.from;
+    const tp = { select: () => tp, eq: () => tp, is: () => tp, or: () => tp, order: () => tp, limit: () => tp, update: (patch) => ({ eq: async () => { settings = patch.settings; return { error: null }; } }), then: (res, rej) => Promise.resolve({ data: [], error: null }).then(res, rej),
+      maybeSingle: async () => ({ data: { id: 'orig', name: 'Webinar', data: published, tags: [], settings }, error: null }) };
+    const pv = { select: () => pv, eq: () => pv, is: () => pv, order: () => pv, limit: () => pv, then: (res, rej) => Promise.resolve({ data: [], error: null }).then(res, rej),
+      maybeSingle: async () => ({ data: { id: 'vid-1', title: 'Webinar', published: true, slug: 'w', project: published }, error: null }),
+      update: (patch) => ({ eq: async () => { projectUpdates.push(patch.project); published = patch.project; return { error: null }; } }) };
+    c.from = (t) => (t === 'timeline_projects' ? tp : t === 'published_videos' ? pv : base(t));
+    const { panel } = mount(retargetTab, c);
+    await tick(10);
+    panel.querySelector('[data-sections-text]').value = '0:45 Pricing';
+    panel.querySelector('[data-save-sections]').click();
+    await tick(20);
+    expect(projectUpdates).toHaveLength(1);
+    expect(projectUpdates[0].interestMap.map((m) => m.interest.label)).toEqual(['Intro', 'Pricing']);
+    expect(panel.querySelector('[data-map-stale]').hidden).toBe(true);
+  });
   it('shows a clear message for sections that cannot be saved, and saves nothing', async () => {
     const c = client({ rpcs: { video_audience_segments: [], video_interest_summary: [] } });
     const upd = vi.fn(() => ({ eq: vi.fn(async () => ({ error: null })) }));

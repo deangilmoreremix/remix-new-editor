@@ -6331,6 +6331,12 @@ export function TimelineEditorPage() {
           // Interest mapping lives with the project (Projects > Retarget); publishing carries it to viewers.
           if (state.projectId) {
             try { state.interestMap = (await (await projectStore()).loadProject(client, state.projectId))?.settings?.interestMap || undefined; } catch { /* publish without a mapping */ }
+          } else if (videoId()) {
+            // An unsaved timeline republished: the video's own project row (made when it was first published) holds the mapping.
+            try {
+              const { data: linked } = await client.from('published_videos').select('project_id').eq('id', videoId()).maybeSingle();
+              if (linked?.project_id) state.interestMap = (await (await projectStore()).loadProject(client, linked.project_id))?.settings?.interestMap || undefined;
+            } catch { /* publish without a mapping */ }
           }
           const project = pub.preparePublishProject(state, { title });
           const id = videoId() || pub.makeSlug();
