@@ -479,7 +479,7 @@ const AGENT_STEPS = {
 export function DirectorPage() {
   const container = document.createElement('div');
   // flex column so the banner sits above the page and the main panels take the rest of the height
-  container.className = 'w-full h-full flex flex-col overflow-hidden bg-[#08090b]';
+  container.className = 'studio-short-scroll w-full h-full flex flex-col overflow-hidden bg-[#08090b]';
   mountStudioChrome(container, { currentRoute: 'director' });
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -528,7 +528,7 @@ export function DirectorPage() {
         </div>
 
         <!-- Main Content -->
-        <div class="flex-1 min-h-0 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
+        <div class="studio-short-body flex-1 min-h-0 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
             <!-- Left: Agents Panel -->
             <div class="w-full md:w-72 shrink-0 md:min-h-0 border-b md:border-b-0 md:border-r border-white/5 overflow-hidden bg-black/30 flex flex-col">
                 <div class="p-4 overflow-auto flex-1 max-h-[50vh] md:max-h-none">

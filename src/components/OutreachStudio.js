@@ -146,7 +146,7 @@ function ensureStepTransitionStyle(doc = globalThis.document) {
 }
 
 export function OutreachStudio() {
-  const container = el('div', 'relative w-full h-full flex flex-col overflow-hidden bg-app-bg text-white');
+  const container = el('div', 'studio-short-scroll relative w-full h-full flex flex-col overflow-hidden bg-app-bg text-white');
   mountStudioChrome(container, { currentRoute: 'outreach' });
 
   const draft = loadDraft();

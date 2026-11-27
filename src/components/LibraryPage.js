@@ -20,7 +20,7 @@ const MUAPI_STUDIOS = [
 
 export function LibraryPage() {
   const container = document.createElement('div');
-  container.className = 'w-full h-full flex flex-col bg-app-bg overflow-hidden';
+  container.className = 'studio-short-scroll w-full h-full flex flex-col bg-app-bg overflow-hidden';
   mountStudioChrome(container, { currentRoute: 'library' });
 
   let activeFilter = 'all';

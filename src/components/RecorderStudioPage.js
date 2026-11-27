@@ -12,7 +12,7 @@ export function RecorderStudioPage() {
   const chrome = mountStudioChrome(root, { title: 'Recorder' });
   root.appendChild(createEditorBanner('recorder', 'Recorder', 'Record your screen and camera, then edit scenes, captions and B-roll'));
   const host = document.createElement('div');
-  host.className = 'flex-1 min-h-0 studio-short-body studio-short-body--tall';
+  host.className = 'flex-1 min-h-0 studio-short-host';
   root.appendChild(host);
   let unmount = null;
   import('../features/recorder/mount.tsx').then(({ mountRecorderStudio }) => {

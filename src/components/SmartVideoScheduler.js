@@ -9,7 +9,7 @@ const CALENDAR_TABS = ['Calendar', 'Schedule', 'Analytics'];
 
 export function SmartVideoScheduler() {
   const container = document.createElement('div');
-  container.className = 'w-full h-full flex flex-col bg-app-bg overflow-hidden relative';
+  container.className = 'studio-short-scroll w-full h-full flex flex-col bg-app-bg overflow-hidden relative';
   mountStudioChrome(container, { currentRoute: 'smart-video-scheduler', title: 'Smart Video Scheduler' });
 
   let activeTab = 'Calendar';
@@ -17,7 +17,7 @@ export function SmartVideoScheduler() {
   const contentIdeas = [];
 
   const wrapper = document.createElement('div');
-  wrapper.className = 'flex flex-col flex-1 overflow-hidden';
+  wrapper.className = 'studio-short-body flex flex-col flex-1 overflow-hidden';
 
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
