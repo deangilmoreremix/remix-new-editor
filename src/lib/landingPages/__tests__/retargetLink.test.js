@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { publishPageVideo, mirrorPublished, pageVideoId } from '../retargetLink.js';
+import { publishPageVideo, mirrorPublished, pageVideoId, refreshPageVideo } from '../retargetLink.js';
+import { updatePage } from '../client.js';
 
 /** Minimal supabase-js stand-in: records every write. */
 function fakeClient() {
@@ -69,5 +70,72 @@ describe('mirrorPublished', () => {
     const c = fakeClient();
     await mirrorPublished(c, { source: {} }, true);
     expect(c.calls).toEqual([]);
+  });
+});
+
+describe('the page editor path (updatePage)', () => {
+  /** A landing_pages table that returns the patched row, plus a published_videos table. */
+  function pageClient(page, video = null) {
+    const calls = [];
+    return {
+      calls,
+      from(table) {
+        if (table === 'landing_pages') {
+          return { update: (patch) => { calls.push(['update', table, patch]); return { eq: () => ({ select: () => ({ single: async () => ({ data: { ...page, ...patch }, error: null }) }) }) }; } };
+        }
+        return {
+          select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: video, error: null }) }) }),
+          update: (patch) => { calls.push(['update', table, patch]); return { eq: async (c, v) => { calls.push(['eq', c, v]); return { error: null }; } }; },
+        };
+      },
+    };
+  }
+  const linked = { id: 'page12345', title: 'Promo', video_url: 'https://cdn.example.com/a.mp4', source: { videoId: 'abcdefgh12' }, published: false };
+
+  it('publishing from the editor publishes the linked video too, so its plays are accepted', async () => {
+    const c = pageClient(linked);
+    await updatePage(c, 'page12345', { published: true });
+    expect(c.calls).toContainEqual(['update', 'published_videos', { published: true }]);
+  });
+  it('unpublishing hides it again', async () => {
+    const c = pageClient({ ...linked, published: true });
+    await updatePage(c, 'page12345', { published: false });
+    expect(c.calls).toContainEqual(['update', 'published_videos', { published: false }]);
+  });
+  it('a page with no linked video is saved as before, with no extra writes', async () => {
+    const c = pageClient({ ...linked, source: {} });
+    await updatePage(c, 'page12345', { published: true, title: 'x' });
+    expect(c.calls.filter((x) => x[1] === 'published_videos')).toEqual([]);
+  });
+});
+
+describe('refreshPageVideo (the page video was replaced)', () => {
+  const page = { id: 'page12345', title: 'Promo', video_url: 'https://cdn.example.com/new.mp4', source: { kind: 'link', videoId: 'abcdefgh12' } };
+  const withVideo = (src) => {
+    const calls = [];
+    const client = { calls, from: (table) => ({
+      select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { project: { tracks: [{ items: [{ src }] }] } }, error: null }) }) }),
+      update: (patch) => { calls.push(['update', table, patch]); return { eq: async () => ({ error: null }) }; },
+    }) };
+    return client;
+  };
+  it('rebuilds the linked record for the new video (and drops the old section mapping)', async () => {
+    const c = withVideo('https://cdn.example.com/old.mp4');
+    await refreshPageVideo(c, page, { readDuration: async () => 30 });
+    const upd = c.calls.find((x) => x[1] === 'published_videos');
+    expect(upd[2].project.tracks[0].items[0].src).toBe('https://cdn.example.com/new.mp4');
+    expect(upd[2].project.timelineSeconds).toBe(30);
+    expect(upd[2].project.interestMap).toBeUndefined();
+  });
+  it('does nothing when the video did not change', async () => {
+    const c = withVideo('https://cdn.example.com/new.mp4');
+    await refreshPageVideo(c, page, { readDuration: async () => 30 });
+    expect(c.calls).toEqual([]);
+  });
+  it('when the new video\'s length cannot be read, hides the record and detaches it from the page', async () => {
+    const c = withVideo('https://cdn.example.com/old.mp4');
+    await refreshPageVideo(c, page, { readDuration: async () => null });
+    expect(c.calls).toContainEqual(['update', 'published_videos', { published: false }]);
+    expect(c.calls).toContainEqual(['update', 'landing_pages', { source: { kind: 'link' } }]);
   });
 });

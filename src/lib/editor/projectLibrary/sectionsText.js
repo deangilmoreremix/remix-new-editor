@@ -18,7 +18,7 @@ export function parseSections(text, duration) {
   const bad = rows.find((r) => r.start == null);
   if (bad) return { sections: [], error: `"${bad.line}" does not start with a time like 1:05` };
   if (rows.length > MAX_SECTIONS) return { sections: [], error: `Use at most ${MAX_SECTIONS} sections` };
-  const sorted = rows.sort((a, b) => a.start - b.start);
+  const sorted = [...rows].sort((a, b) => a.start - b.start);
   if (sorted.some((r, i) => i > 0 && r.start === sorted[i - 1].start)) return { sections: [], error: 'Two sections start at the same time' };
   if (sorted.some((r) => r.start >= duration)) return { sections: [], error: `A section starts after the video ends (${Math.floor(duration)}s)` };
   if (sorted.length && sorted[0].start > 0) sorted.unshift({ start: 0, title: 'Intro' });

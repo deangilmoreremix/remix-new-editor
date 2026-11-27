@@ -33,3 +33,41 @@ export async function mirrorPublished(client, page, published) {
   if (!id) return;
   try { await setPublished(client, id, !!published); } catch { /* the page itself is already saved */ }
 }
+
+/** The video's length in seconds, read in the browser (null when it cannot be read in a few seconds). */
+export function readVideoDuration(url, documentImpl = globalThis.document) {
+  if (!documentImpl) return Promise.resolve(null);
+  return new Promise((resolve) => {
+    const v = documentImpl.createElement('video');
+    const timer = setTimeout(() => resolve(null), 6000);
+    v.preload = 'metadata';
+    v.onloadedmetadata = () => { clearTimeout(timer); resolve(Number.isFinite(v.duration) ? v.duration : null); };
+    v.onerror = () => { clearTimeout(timer); resolve(null); };
+    v.src = url;
+  });
+}
+
+/**
+ * The owner replaced the page's video: keep the linked record about the video the page really shows. Rebuilds the record's project
+ * for the new address (the old section mapping described the old video, so it goes). When the new video's length cannot be read the
+ * record is hidden and detached instead, so plays are never counted against the wrong video. Best effort, never throws.
+ */
+export async function refreshPageVideo(client, page, { readDuration = readVideoDuration } = {}) {
+  const id = pageVideoId(page);
+  if (!id || !/^https:\/\//i.test(String(page?.video_url || ''))) return;
+  try {
+    const { data: current } = await client.from('published_videos').select('project').eq('id', id).maybeSingle();
+    const shown = current?.project?.tracks?.[0]?.items?.[0]?.src;
+    if (shown === page.video_url) return; // the same video: nothing to do
+    const duration = await readDuration(page.video_url);
+    if (duration > 0) {
+      const title = page.title || 'Untitled page';
+      const project = preparePublishProject(buildMinimalProject({ fileUrl: page.video_url, title, durationSec: duration }), { title });
+      await client.from('published_videos').update({ project, title: project.title }).eq('id', id);
+    } else {
+      await setPublished(client, id, false);
+      const { videoId: _gone, ...rest } = page.source || {};
+      await client.from('landing_pages').update({ source: rest }).eq('id', page.id);
+    }
+  } catch { /* the page itself is already saved */ }
+}

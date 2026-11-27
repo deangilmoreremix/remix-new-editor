@@ -7,7 +7,7 @@
  * src/lib/editor/publish/publishClient.js, so the public page stays light.
  */
 import { makeSlug } from '../editor/publish/publishClient.js';
-import { mirrorPublished } from './retargetLink.js';
+import { mirrorPublished, refreshPageVideo } from './retargetLink.js';
 import { sanitizeConfig, safeImageUrl } from './templates.js';
 
 export const PAGE_ID_RE = /^[A-Za-z0-9_-]{8,32}$/;
@@ -64,14 +64,14 @@ export async function updatePage(client, id, patch = {}) {
   if ('published' in patch) row.published = !!patch.published;
   const { data, error } = await client.from('landing_pages').update(row).eq('id', id).select(PAGE_COLUMNS).single();
   fail(error, 'Could not save the page');
+  // The page's video record follows the page: published and hidden with it, and refreshed when the page's video is replaced.
+  // Done here, not in the callers, so the editor's own Save / Publish buttons are covered too.
+  if ('published' in patch) await mirrorPublished(client, data, data.published);
+  if (row.video_url) await refreshPageVideo(client, data);
   return data;
 }
 
-export async function setPagePublished(client, id, published) {
-  const page = await updatePage(client, id, { published });
-  await mirrorPublished(client, page, published);
-  return page;
-}
+export const setPagePublished = (client, id, published) => updatePage(client, id, { published });
 
 export async function listPages(client) {
   const { data, error } = await client.from('landing_pages').select(PAGE_COLUMNS).order('updated_at', { ascending: false });
