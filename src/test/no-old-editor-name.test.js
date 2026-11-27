@@ -20,6 +20,9 @@ const ALLOWED_FILES = new Set([
 const TEXT = /\.(js|jsx|ts|tsx|mjs|cjs|css|json|md|html)$/;
 const ROOTS = ['src', 'styles', 'scripts', 'docs', 'netlify', 'public'];
 const SKIP_DIR = new Set(['node_modules', '.git']);
+// Not source we write: base64-encoded fonts (random letters can spell the word, e.g. "…PPUckhjY…") and the SmartWarmupAI app's
+// build output (gitignored; only present after a local build, and its bundled word list includes the word).
+const SKIP_PATHS = ['src/lib/captionStudio/fonts/data', 'public/smartwarmupai-app'];
 
 function* walk(dir) {
   for (const name of readdirSync(dir)) {
@@ -38,7 +41,7 @@ describe('the old landing-editor name is gone from the code', () => {
   for (const r of ROOTS) {
     for (const file of walk(join(root, r))) {
       const rel = relative(root, file);
-      if (ALLOWED_FILES.has(rel)) continue;
+      if (ALLOWED_FILES.has(rel) || SKIP_PATHS.some((p) => rel.startsWith(`${p}/`))) continue;
       if (WORD.test(rel.split('/').pop())) names.push(rel);
       if (!TEXT.test(file) || statSync(file).size > 2_000_000) continue;
       const text = readFileSync(file, 'utf8')
