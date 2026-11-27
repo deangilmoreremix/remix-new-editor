@@ -14,6 +14,8 @@ import {
 } from '../lib/landingPages/client.js';
 import { renderLandingPage } from '../lib/landingPages/render.js';
 import { tokensFromQuery, sanitizeConfig } from '../lib/landingPages/templates.js';
+import { pageVideoId } from '../lib/landingPages/retargetLink.js';
+import { createAnalytics } from '../lib/editor/publish/analyticsClient.js';
 
 function message(container, title, text) {
   container.replaceChildren();
@@ -59,7 +61,12 @@ export async function mountVideoPage(container, id, deps = {}) {
 
   document.title = page.title || 'Video';
   const track = (kind) => (deps.recordEvent || recordPageEvent)(page.id, { kind, contactId });
+  // The page's video is also a published video: its plays, watch time and retention go to the video analytics that Analytics, Heatmaps
+  // and Retarget read (only for pages whose video was linked when the page was made).
+  const videoId = pageVideoId(page);
+  const analytics = videoId ? (deps.analytics || createAnalytics({ videoId, contactId })) : null;
   const handlers = {
+    onPlayerChange: (state) => analytics?.onPlayerChange(state),
     onPlay: () => track('play'),
     onProgress: (kind) => track(kind),
     onComplete: () => track('complete'),

@@ -2521,7 +2521,7 @@ export function OutreachStudio() {
           duration: draft.video?.duration || null,
           source: { kind: 'outreach', studio: 'outreach', id: draft.campaign.id },
           config,
-        });
+        }, { linkVideo: false }); // Outreach has its own per-contact analytics and alerts, so its page does not publish a second video record
         await setPagePublished(client, row.id, true);
       }
       const url = pageUrl(row.id);
