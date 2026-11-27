@@ -110,9 +110,12 @@ export async function uploadFileToSupabase(file, options = {}) {
 
   const validation = validateUploadFile(file, { category, maxSize });
 
-  // Make sure the upload carries the signed-in user's verified token, so the path owner matches the JWT `sub`.
-  try { await primeSupabaseIdentity(); } catch { /* signed out or token exchange down: upload as anonymous */ }
-  const objectPath = buildObjectPath(file, getClerkUserId() || 'anonymous');
+  // The path owner must be the identity the request is really sent as (the policies compare it with the JWT `sub`):
+  // the Clerk id only when its verified token is attached; signed out, or with the token exchange down, 'anonymous'.
+  let token = null;
+  try { token = await primeSupabaseIdentity(); } catch (e) { console.warn('[upload] identity prime failed; uploading as anonymous', e?.message || e); }
+  if (!token && getClerkUserId()) console.warn('[upload] signed in but no verified storage token; uploading as anonymous');
+  const objectPath = buildObjectPath(file, token ? getClerkUserId() || 'anonymous' : 'anonymous');
   const bucket = resolveSupabaseBucket();
 
   const uploadPromise = supabase.storage.from(bucket).upload(objectPath, file, {

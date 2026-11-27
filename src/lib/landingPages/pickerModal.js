@@ -199,7 +199,8 @@ export function openLandingPagePicker({ video = null, items = [], template = nul
     }
     head.appendChild(el('h2', 'text-sm font-black uppercase tracking-widest', title));
     head.appendChild(el('div', 'flex-1'));
-    if (view === 'grid' && !onEdit) {
+    // My pages: on the designs, and on the first chooser when there is no video yet (that is where the window opens then).
+    if ((view === 'grid' || (view === 'video' && !src)) && !onEdit) {
       const mine = el('button', BTN, 'My pages');
       mine.type = 'button';
       mine.dataset.myPages = '';

@@ -5,7 +5,7 @@
 // person clicked (Video Pages, a studio, …) silently does nothing. This shows one banner instead:
 // "SmartVid was updated. Reload to continue." with a Reload button.
 
-const STALE = /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|Unable to preload CSS|ChunkLoadError/i;
+const STALE = /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed/i;
 
 /** Pure: is this error (or rejection reason) a missing code file from an older version? */
 export function isStaleChunkError(err) {
@@ -40,15 +40,14 @@ export function mountStaleVersionGuard({ win = globalThis.window } = {}) {
   if (!win?.addEventListener) return { stop() {} };
   const onRejection = (e) => { if (isStaleChunkError(e?.reason)) { e.preventDefault?.(); showReloadBanner(); } };
   const onPreload = (e) => { e.preventDefault?.(); showReloadBanner(); };   // Vite's own event for a failed preload
-  const onError = (e) => { if (isStaleChunkError(e?.error || e?.message)) showReloadBanner(); };
+  // Only these two: a failed dynamic import surfaces as a rejection, a failed preload as Vite's event. (A generic
+  // `error` listener could show the banner for unrelated errors whose text happens to match.)
   win.addEventListener('unhandledrejection', onRejection);
   win.addEventListener('vite:preloadError', onPreload);
-  win.addEventListener('error', onError);
   return {
     stop() {
       win.removeEventListener('unhandledrejection', onRejection);
       win.removeEventListener('vite:preloadError', onPreload);
-      win.removeEventListener('error', onError);
     },
   };
 }

@@ -116,6 +116,7 @@ describe('openLandingPagePicker', () => {
     openLandingPagePicker({ video: { url: 'http://x/a.mp4' }, deps: { loadVideoSources: async () => [] } });
     expect(grid()).toBeNull();
     expect(document.querySelector('[data-video-chooser]')).not.toBeNull();
+    expect(document.querySelector('[data-my-pages]'), 'My pages stays reachable before any video is chosen').not.toBeNull();
     expect(document.body.textContent).toContain('Choose a video first');
     const input = document.querySelector('input[aria-label="Video link"]');
     input.value = 'http://nope/a.mp4';
