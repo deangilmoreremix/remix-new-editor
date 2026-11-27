@@ -24090,7 +24090,7 @@ input[type='range']::-moz-range-track {
     box-sizing: border-box;
     position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%);
     width: min(320px, calc(100vw - 24px)); padding: 8px;
-    max-height: calc(100dvh - 90px); overflow-y: auto;
+    max-height: max(240px, calc(100dvh - 300px)); overflow-y: auto; /* [remix] editor sits below the page banner */
     background: var(--bg-elevated); border: 1px solid var(--border-medium);
     border-radius: 16px; box-shadow: 0 20px 60px #0009;
   }
