@@ -2,9 +2,11 @@
 #
 # Netlify is the only CI/CD for this project (GitHub Actions workflows were
 # removed). Every deploy — production, branch deploys and deploy previews —
-# runs ESLint first, so a lint error fails the deploy instead of shipping.
+# runs ESLint and then the studio smoke test (every studio must mount without
+# throwing; src/components/__tests__/studio-smoke.test.js) before building, so a
+# lint error or a studio that crashes on load fails the deploy instead of shipping.
 [build]
-  command = "npm install --include=optional && npm run lint && npm run build"
+  command = "npm install --include=optional && npm run lint && npm run test:smoke && npm run build"
   publish = "dist"
 
 [build.environment]

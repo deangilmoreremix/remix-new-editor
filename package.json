@@ -29,6 +29,7 @@
     "vidbee:start": "cd apps/vidbee && npm run start",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
+    "test:smoke": "vitest run src/components/__tests__/studio-smoke.test.js",
     "clean": "rm -rf dist",
     "clean:ai-vfx": "rm -rf apps/ai-vfx/.next",
     "build:packages": "npm run build --workspaces --if-present",
