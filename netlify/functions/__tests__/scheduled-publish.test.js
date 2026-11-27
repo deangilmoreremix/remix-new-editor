@@ -143,6 +143,18 @@ describe('publishing a due job', () => {
     expect(saves.at(-1)[0]).toMatchObject({ status: 'processing', request_id: 'r1' })
   })
 
+  it('submits every destination before polling, so a slow first one cannot block the rest', async () => {
+    const jobs = [{ platform: 'instagram', account_id: 5, payload: { a: 1 } }, { platform: 'x', account_id: 6, payload: { b: 1 } }, { platform: 'tiktok', account_id: 7, payload: { c: 1 } }]
+    const order = []
+    const { fetchImpl } = harness((url) => { order.push(url.includes('-publish') ? `POST ${url.split('/').pop()}` : 'GET'); return url.includes('-publish') ? json(200, { request_id: `r-${order.length}` }) : json(200, { status: 'processing' }) })
+    let t = 0
+    const { s } = await run(job({ jobs }), fetchImpl, { now: () => (t += 1000), deadline: 30000 })
+    const firstGet = order.indexOf('GET')
+    expect(order.slice(0, 3)).toEqual(['POST instagram-publish', 'POST x-publish', 'POST tiktok-publish']) // all submitted first
+    expect(firstGet).toBe(3)
+    expect(s).toMatchObject({ final: false, patch: { status: 'publishing' } })
+  })
+
   it('only allows the known MuAPI publish endpoints', async () => {
     expect(Object.keys(PUBLISH_ENDPOINTS).sort()).toEqual(['facebook', 'instagram', 'linkedin', 'pinterest', 'threads', 'tiktok', 'x', 'youtube'])
     const { fetchImpl, calls } = harness(() => json(200, {}))

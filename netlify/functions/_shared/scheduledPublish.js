@@ -115,9 +115,17 @@ export async function processJob(row, { key, fetchImpl, now = () => Date.now(), 
       await persist();
     }
 
-    // Poll (resume) until done or out of time; unfinished work continues next tick with the same request id.
-    while (now() < deadline && r.status === 'processing') {
-      await sleep(2000);
+    // (Accepted posts are checked in phase 2 below, after EVERY destination has been submitted.)
+  }
+
+  // Phase 2: check every accepted post, one round at a time across all of them, until each is done or this job's slice ends.
+  // Submitting first and polling second means a destination that stays "processing" can never keep a later destination from being
+  // submitted; whatever is still unfinished resumes next tick with the same request id (never re-sent).
+  const processing = () => jobs.map(find).filter((r) => r && r.status === 'processing' && r.request_id);
+  while (now() < deadline && processing().length) {
+    await sleep(2000);
+    for (const r of processing()) {
+      if (now() >= deadline) break;
       let p;
       try { p = await muapi(fetchImpl, key, `predictions/${encodeURIComponent(r.request_id)}/result`); } catch { continue; }
       if (!p.ok) {

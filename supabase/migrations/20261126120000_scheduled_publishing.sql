@@ -26,6 +26,12 @@ create table if not exists public.social_publish_credentials (
 );
 alter table public.social_publish_credentials enable row level security;
 revoke all on public.social_publish_credentials from public, anon, authenticated;
+-- The live project has revoked default privileges for new tables, so the server role is granted explicitly (RLS bypass is not a
+-- table privilege). Only the Netlify functions use the service role; clients still have no access.
+grant select, insert, update, delete on public.social_publish_credentials to service_role;
+
+-- Same reason: the scheduler reads/writes scheduled_posts with the service role.
+grant select, insert, update, delete on public.scheduled_posts to service_role;
 
 -- ---------------------------------------------------------------- job columns
 alter table public.scheduled_posts
