@@ -122,12 +122,14 @@ export function mountUpstreamModelPicker({ kind, anchor, selectedModelId, onSele
     } else {
       host.style.bottom = "auto";
       host.style.top = `${rect.bottom + GAP}px`;
-      // Opening downward: slide up if the panel would run past the bottom edge.
-      const panelHeight = popover.getBoundingClientRect().height;
-      const maxTop = viewportHeight - MARGIN - panelHeight;
-      if (rect.bottom + GAP > maxTop) {
-        host.style.top = `${Math.max(topLimit(), maxTop)}px`;
-      }
+    }
+    // Whatever the anchor position (it can itself be off-screen on short viewports),
+    // keep the whole panel inside the viewport.
+    const placed = popover.getBoundingClientRect();
+    if (placed.bottom > viewportHeight - MARGIN || placed.top < topLimit()) {
+      const clampedTop = Math.max(topLimit(), Math.min(placed.top, viewportHeight - MARGIN - placed.height));
+      host.style.bottom = "auto";
+      host.style.top = `${clampedTop}px`;
     }
     const width = popover.getBoundingClientRect().width;
     const left = Math.max(MARGIN, Math.min(rect.left, viewportWidth - width - MARGIN));
