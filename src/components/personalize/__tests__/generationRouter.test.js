@@ -282,6 +282,24 @@ describe('runGeneration — video source', () => {
     expect(call.studioType).toBe('personalize-t2v');
   });
 
+  it('saves a finished video to the Library', async () => {
+    localStorage.removeItem('video_history');
+    muapiMock.generateVideo.mockResolvedValue({ url: 'https://example.com/library-saved.mp4' });
+    await runGeneration({
+      source: baseSource,
+      client: {},
+      assets: baseAssets,
+      resolved: { directInputs: { video_url: 'https://example.com/source.mp4' } },
+      prompt: 'a video',
+      mode: 'recreate',
+      options: baseOptions,
+      apiKey: 'k',
+    });
+    await new Promise((r) => setTimeout(r, 0));
+    const saved = JSON.parse(localStorage.getItem('video_history') || '[]');
+    expect(saved.map((h) => h.url)).toContain('https://example.com/library-saved.mp4');
+  });
+
   it('throws when face_only has no identity image', async () => {
     await expect(
       runGeneration({

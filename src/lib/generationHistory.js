@@ -203,6 +203,10 @@ export function saveGeneration(data) {
   const storageKey = getStorageKey(type);
   try {
     const history = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    // Several layers can report the same finished output (a studio and the engine
+    // under it); keep one Library entry per URL and skip the cloud save and event.
+    const existing = history.find((h) => h && h.url === url);
+    if (existing) return existing;
     history.unshift(entry);
     localStorage.setItem(storageKey, JSON.stringify(history.slice(0, MAX_HISTORY)));
   } catch (e) {

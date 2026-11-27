@@ -181,6 +181,25 @@ describe('saveGeneration', () => {
   });
 });
 
+describe('saveGeneration de-duplication', () => {
+  test('keeps one entry when two layers report the same URL', () => {
+    const first = saveGeneration({ studio: 'edit', type: 'video', url: 'https://example.com/same.mp4', prompt: 'a' });
+    const second = saveGeneration({ studio: 'video', type: 'video', url: 'https://example.com/same.mp4', prompt: 'a' });
+
+    expect(second.id).toBe(first.id);
+    expect(JSON.parse(ls.getItem('video_history'))).toHaveLength(1);
+    // Only the first report goes to the cloud.
+    const cloudSaves = fetchMock.mock.calls.filter(([, init]) => init?.method === 'POST');
+    expect(cloudSaves).toHaveLength(1);
+  });
+
+  test('different URLs are both kept', () => {
+    saveGeneration({ studio: 'video', type: 'video', url: 'https://example.com/a.mp4' });
+    saveGeneration({ studio: 'video', type: 'video', url: 'https://example.com/b.mp4' });
+    expect(JSON.parse(ls.getItem('video_history'))).toHaveLength(2);
+  });
+});
+
 describe('deleteGeneration', () => {
   test('removes entry by URL from image history', () => {
     saveGeneration({ studio: 'image', type: 'image', url: 'https://a.com/1.png', prompt: 'A' });

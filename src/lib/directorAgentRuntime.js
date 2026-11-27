@@ -6,6 +6,7 @@ import { MuapiClient } from './muapi.js';
 import { supabase } from './supabase.js';
 import { browserVideoProcessor } from './browserVideoProcessor.js';
 import { videoDb } from './videoDb.js';
+import { registerGeneration } from './generationHistory.js';
 
 // Storyboard presets from the React code
 const STORYBOARD_PRESETS = [
@@ -978,6 +979,7 @@ class DirectorAgentRuntime {
         studioType: 'storyboard'
       });
       
+      if (result?.url) registerGeneration('storyboard', 'video', result.url, { prompt: `${this.currentPreset.visualStyle} ${this.currentPreset.mood} video from storyboard`, model: result.model || '' }).catch(() => {});
       return {
         success: !!result?.url,
         url: result?.url,
@@ -1295,6 +1297,7 @@ class DirectorAgentRuntime {
       }, signal);
       
       const videoUrl = result.url || result.outputs?.[0];
+      if (videoUrl) registerGeneration('storyboard', 'video', videoUrl, { prompt, model: result.model || '' }).catch(() => {});
       
       // Update frame with generated video clip
       this.updateFrame(frameId, {

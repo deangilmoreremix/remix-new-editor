@@ -11,6 +11,7 @@
 import { NODE_REGISTRY } from './node-registry.js';
 import { getModelDefinition, resolveVideoModelEndpoint, sanitizeVideoInputsForEndpoint } from '../fal/models.js';
 import { muapi } from '../muapi.js';
+import { registerGeneration } from '../generationHistory.js';
 
 // ---------------------------------------------------------------------------
 // Dispatch interface
@@ -453,6 +454,9 @@ async function executeModelNode(nodeId, nodeType, data, portInputs, results, dis
         throw new Error('No output URL in response');
       }
       results.set(nodeId, { [modelDef.outputType]: url });
+      if (modelDef.outputType === 'video') {
+        registerGeneration('workflow', 'video', url, { prompt: commonParams?.prompt || '', model: effectiveModelId || '' }).catch(() => {});
+      }
       dispatch.setNodeResult(nodeId, { status: 'complete', url });
       dispatch.addGeneration(nodeId, url);
     }

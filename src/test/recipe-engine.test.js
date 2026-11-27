@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import { loadGenerationHistory } from '../lib/generationHistory.js';
 import { RECIPES, getRecipeById, runRecipe } from '../lib/recipeEngine.js';
 
 const fakeClient = (outputs = {}) => ({
@@ -124,5 +125,15 @@ describe('runRecipe chaining', () => {
     expect(client.generateAudio.mock.calls[0][1]).toBe(ctrl.signal);
     ctrl.abort();
     await expect(runRecipe(fakeClient(), getRecipeById('music-track'), { basePrompt: 'x', signal: ctrl.signal })).rejects.toMatchObject({ name: 'AbortError' });
+  });
+});
+
+describe('runRecipe saves finished videos to the Library', () => {
+  it('registers every video step, not only the last one', async () => {
+    localStorage.removeItem('video_history');
+    await runRecipe(fakeClient({ i2v: 'https://cdn/recipe-clip.mp4' }), getRecipeById('product-commercial'), { basePrompt: 'red sneaker', referenceImage: 'https://cdn/shoe.jpg' });
+    await new Promise((r) => setTimeout(r, 0));
+    const urls = (await loadGenerationHistory()).filter((h) => h.type === 'video').map((h) => h.url);
+    expect(urls).toContain('https://cdn/recipe-clip.mp4');
   });
 });

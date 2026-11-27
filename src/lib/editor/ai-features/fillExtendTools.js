@@ -1,4 +1,5 @@
 import { generateVideoFromFrames } from '../../ai/muapiService.js';
+import { registerGeneration } from '../../generationHistory.js';
 
 function getClipTimeRange(clip, timelineSeconds = 60) {
   if (clip.start !== undefined && clip.end !== undefined) {
@@ -76,6 +77,7 @@ export async function fillGap(timelineState, trackId, gapStart, gapEnd, options 
 
   const videoUrl = result.url || result.outputs?.[0] || result.raw?.url || result.raw?.outputs?.[0];
   if (!videoUrl) throw new Error('MuAPI did not return a video URL');
+  registerGeneration('edit', 'video', videoUrl, { prompt, model: options.model || 'seedance-2.5-first-last-frame' }).catch(() => {});
 
   const newClip = {
     id: `clip-ai-${Date.now()}`,
@@ -164,6 +166,7 @@ export async function extendClip(timelineState, clipId, direction = 'after', opt
 
   const videoUrl = result.url || result.outputs?.[0] || result.raw?.url || result.raw?.outputs?.[0];
   if (!videoUrl) throw new Error('MuAPI did not return a video URL');
+  registerGeneration('edit', 'video', videoUrl, { prompt, model: options.model || 'seedance-2.5-first-last-frame' }).catch(() => {});
 
   const newClip = {
     id: `clip-ai-extend-${Date.now()}`,
