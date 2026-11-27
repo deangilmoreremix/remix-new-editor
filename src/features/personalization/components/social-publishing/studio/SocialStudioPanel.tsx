@@ -30,7 +30,7 @@ export interface SocialStudioPanelProps {
   /** MuAPI key from the API-keys settings (sent once to the server only if the owner turns on automatic publishing). */
   apiKey?: string
   /** Makes the media public and builds the exact MuAPI request per destination (same code path as Publish). */
-  onPrepareSchedule?: () => Promise<PreparedSchedule>
+  onPrepareSchedule?: (scheduledAt: number) => Promise<PreparedSchedule>
   /** The modal's existing preview card. */
   children?: React.ReactNode
 }
@@ -172,7 +172,7 @@ export function SocialStudioPanel(p: SocialStudioPanelProps) {
       </div>}
       {visited.has('plan') && <div role="tabpanel" id="studio-panel-plan" aria-labelledby="studio-tab-plan" hidden={tab !== 'plan'}>
         <PlanPanel stores={stores} draftId={draftId} onRestore={restore} schedule={schedule} onSchedule={setSchedule} scheduleError={scheduleError} autosave={autosave} publishResults={p.publishResults} onRetry={p.onRetry} refreshKey={refreshKey} cloudPlans={cloudPlans} onMoveCloud={moveCloud}
-          autoPublish={<AutoPublishPanel apiKey={p.apiKey ?? ''} scheduledAt={schedule.at} timeZone={schedule.timeZone} canPrepare={!!p.onPrepareSchedule && platforms.length > 0} onPrepare={() => p.onPrepareSchedule!()} jobs={cloud.jobs} jobsError={cloud.error} reload={cloud.reload} />} />
+          autoPublish={<AutoPublishPanel apiKey={p.apiKey ?? ''} scheduledAt={schedule.at} timeZone={schedule.timeZone} canPrepare={!!p.onPrepareSchedule && platforms.length > 0} onPrepare={(at) => p.onPrepareSchedule!(at)} jobs={cloud.jobs} jobsError={cloud.error} reload={cloud.reload} />} />
       </div>}
       <button type="button" className={`${btn} mt-3`} hidden={tab === 'preview'} onClick={() => go('preview')}>← Back to preview</button>
     </div>

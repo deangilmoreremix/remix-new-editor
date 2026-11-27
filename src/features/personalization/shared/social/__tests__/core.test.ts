@@ -5,7 +5,7 @@ import { detectCapabilities, aiAvailability } from '../capabilities'
 import { rewriteCaption, summarizeText, translateText, AiUnavailableError, shortenLocal, bulletsLocal } from '../copyTools'
 import { extractKeywords, suggestHashtags, dedupeTags, appendHashtags, detectNiche } from '../hashtags'
 import { parseSubtitles, toSrt, toVtt, shiftCues, validateCues, parseTimestamp } from '../subtitles'
-import { validatePost, validateFileType, hasBlockingErrors, similarity } from '../validation'
+import { validatePost, validateFileType, hasBlockingErrors, similarity, temporaryMediaScheduleError, TEMP_UPLOAD_SAFE_MS } from '../validation'
 import { computeReframe, clampTrim, presetTrim, estimateVideoBytes, limitResolution, even } from '../mediaPrep'
 import { exportFilename, slug } from '../exportNames'
 import { copyText, readClipboardText, imagesFromPasteEvent } from '../clipboard'
@@ -201,5 +201,29 @@ describe('notifications', () => {
     const plans = [{ id: 'a', scheduledAt: 5, status: 'draft' }, { id: 'b', scheduledAt: 5, status: 'published' }, { id: 'c', scheduledAt: 99, status: 'draft' }]
     expect(dueNow(plans, 10).map((p) => p.id)).toEqual(['a'])
     expect(dueNow(plans, 10, new Set(['a']))).toEqual([])
+  })
+})
+
+describe('temporary upload links vs automatic scheduling', () => {
+  const now = 1_000_000_000_000
+  const pub = 'https://cdn.example.com/a.mp4'
+  it('allows permanent public links at any time', () => {
+    expect(temporaryMediaScheduleError({ mediaUrl: pub, scheduledAt: now + 30 * 86_400_000 }, now)).toBe('')
+    expect(temporaryMediaScheduleError({ mediaUrl: pub, coverUrls: ['https://cdn.example.com/c.png'], scheduledAt: now + 86_400_000 }, now)).toBe('')
+  })
+  it('blocks a device-only file scheduled beyond the safe window, before anything is uploaded', () => {
+    const msg = temporaryMediaScheduleError({ mediaUrl: 'blob:abc', scheduledAt: now + TEMP_UPLOAD_SAFE_MS + 60_000 }, now)
+    expect(msg).toMatch(/expires in about an hour/)
+    expect(msg).toMatch(/permanent public https link/)
+    expect(temporaryMediaScheduleError({ mediaUrl: 'data:image/png;base64,xx', scheduledAt: now + 3 * 3_600_000 }, now)).not.toBe('')
+  })
+  it('allows a device-only file inside the safe window, and when there is no time yet', () => {
+    expect(temporaryMediaScheduleError({ mediaUrl: 'blob:abc', scheduledAt: now + 10 * 60_000 }, now)).toBe('')
+    expect(temporaryMediaScheduleError({ mediaUrl: 'blob:abc', scheduledAt: now + TEMP_UPLOAD_SAFE_MS }, now)).toBe('')
+    expect(temporaryMediaScheduleError({ mediaUrl: 'blob:abc', scheduledAt: null }, now)).toBe('')
+  })
+  it('also blocks when only the cover image is device-only, and says so', () => {
+    const msg = temporaryMediaScheduleError({ mediaUrl: pub, coverUrls: [undefined, 'data:image/png;base64,xx'], scheduledAt: now + 5 * 3_600_000 }, now)
+    expect(msg).toMatch(/^The cover image/)
   })
 })

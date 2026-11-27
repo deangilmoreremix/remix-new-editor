@@ -49,7 +49,7 @@ interface Props {
   scheduledAt: number | null
   timeZone: string
   canPrepare: boolean
-  onPrepare: () => Promise<PreparedSchedule>
+  onPrepare: (scheduledAt: number) => Promise<PreparedSchedule>
   jobs: CloudJob[]
   jobsError: string | null
   reload: () => Promise<void>
@@ -92,7 +92,7 @@ export function AutoPublishPanel({ apiKey, scheduledAt, timeZone, canPrepare, on
         <div className="space-y-1">
           <button type="button" className={btnPrimary} disabled={!!busy || !canPrepare || !scheduledAt}
             onClick={() => run('schedule', async () => {
-              const p = await onPrepare()
+              const p = await onPrepare(scheduledAt as number)
               if (p.errors.length) throw new Error(p.errors.join(' '))
               await scheduleJob({ jobs: p.jobs, mediaUrl: p.mediaUrl, mediaType: p.mediaType, caption: p.caption, hashtags: p.hashtags, scheduledFor: new Date(scheduledAt as number), timeZone })
               return `Scheduled. It will publish automatically at ${formatInZone(scheduledAt as number, timeZone)} ${timeZoneLabel(scheduledAt as number, timeZone)}, even if you close this page.${p.notes.length ? ` ${p.notes.join(' ')}` : ''}`

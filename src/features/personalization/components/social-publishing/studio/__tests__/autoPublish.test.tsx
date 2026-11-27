@@ -19,7 +19,7 @@ const prepared = (o: Partial<PreparedSchedule> = {}): PreparedSchedule => ({ job
 const FUTURE = Date.now() + 3 * 3600_000
 const job = (o: any = {}) => ({ id: 'j1', job_key: 'k', status: 'scheduled', scheduled_for: new Date(FUTURE).toISOString(), time_zone: 'UTC', platforms: ['instagram'], caption: 'Launch day', media_url: 'https://cdn/a.mp4', results: [], attempts: 0, max_attempts: 3, last_error: null, published_at: null, ...o })
 
-function Host(p: Partial<React.ComponentProps<typeof AutoPublishPanel>> & { prepare?: () => Promise<PreparedSchedule> }) {
+function Host(p: Partial<React.ComponentProps<typeof AutoPublishPanel>> & { prepare?: (at: number) => Promise<PreparedSchedule> }) {
   const cloud = useCloudJobs(true)
   return <AutoPublishPanel apiKey="muapi-key-0123456789" scheduledAt={FUTURE} timeZone="UTC" canPrepare onPrepare={p.prepare ?? (async () => prepared())} jobs={cloud.jobs} jobsError={cloud.error} reload={cloud.reload} {...p} />
 }
@@ -66,6 +66,16 @@ describe('Automatic publishing panel', () => {
     render(<Host prepare={async () => prepared({ errors: ['X: The X post is 300 characters; the limit is 280.'] })} />)
     fireEvent.click(await screen.findByRole('button', { name: /Publish automatically/ }))
     expect(await screen.findByRole('alert')).toHaveTextContent(/limit is 280/)
+    expect(api.schedule).not.toHaveBeenCalled()
+  })
+
+  it('tells the panel the chosen time so the modal can refuse temporary-link media that is too far ahead', async () => {
+    api.status.mockResolvedValue({ enabled: true, available: true })
+    const prepare = vi.fn(async () => { throw new Error('This file is only on this device, so it has to be uploaded to a link that expires in about an hour.') })
+    render(<Host prepare={prepare as any} />)
+    fireEvent.click(await screen.findByRole('button', { name: /Publish automatically/ }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(/expires in about an hour/)
+    expect(prepare).toHaveBeenCalledWith(FUTURE)
     expect(api.schedule).not.toHaveBeenCalled()
   })
 

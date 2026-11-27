@@ -106,3 +106,23 @@ export function similarity(a: string, b: string): number {
   for (const w of A) if (B.has(w)) inter++
   return inter / (A.size + B.size - inter)
 }
+
+/**
+ * MuAPI upload links (used when a file only exists on this device or was edited here) expire after about an hour, but an
+ * automatic job sends its stored links unchanged when the time comes. So a job that depends on a temporary upload may only be
+ * scheduled for a little under an hour ahead; anything later needs a permanent public https link. Returns '' when fine.
+ */
+export const TEMP_UPLOAD_SAFE_MS = 50 * 60_000
+
+export function temporaryMediaScheduleError(
+  input: { mediaUrl?: string; coverUrls?: Array<string | undefined>; scheduledAt: number | null },
+  now = Date.now(),
+): string {
+  if (input.scheduledAt === null || !Number.isFinite(input.scheduledAt)) return ''
+  const temporary = [input.mediaUrl, ...(input.coverUrls ?? [])].filter((u): u is string => !!u && !isPublicMediaUrl(u))
+  if (!temporary.length) return ''
+  const ahead = input.scheduledAt - now
+  if (ahead <= TEMP_UPLOAD_SAFE_MS) return ''
+  const what = !input.mediaUrl || isPublicMediaUrl(input.mediaUrl) ? 'The cover image' : 'This file'
+  return `${what} is only on this device, so it has to be uploaded to a link that expires in about an hour. Automatic posts that far ahead (${Math.round(ahead / 60_000)} minutes) would find an expired link. Pick a time within ${Math.round(TEMP_UPLOAD_SAFE_MS / 60_000)} minutes, publish now, or use a permanent public https link for the media.`
+}

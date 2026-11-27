@@ -14,6 +14,7 @@ import DestinationsStep from './social-publishing/steps/DestinationsStep';
 import ReviewPublishStep from './social-publishing/steps/ReviewPublishStep';
 import { SocialStudioPanel } from './social-publishing/studio/SocialStudioPanel';
 import type { PreparedSchedule } from './social-publishing/studio/AutoPublishPanel';
+import { temporaryMediaScheduleError } from '@ohb/shared/social/validation';
 import type {
   Asset,
   CopyState,
@@ -228,9 +229,15 @@ export default function SocialPublishModal({
    * Automatic publishing: same preparation as Publish (media + thumbnail hosted, one MuAPI payload per destination),
    * but the requests are saved as a job for the server instead of being sent now.
    */
-  const prepareSchedule = useCallback(async (): Promise<PreparedSchedule> => {
+  const prepareSchedule = useCallback(async (scheduledAt: number): Promise<PreparedSchedule> => {
     if (!asset) throw new Error('There is nothing to schedule.');
     const todo = destinations.filter((d) => d.enabled && d.accountId);
+    // Checked BEFORE anything is uploaded: a temporary MuAPI upload link would expire before a far-ahead job runs.
+    const coverUrls = usesThumbnail(todo.map((d) => d.platform))
+      ? [thumbnail?.imageUrl, ...Object.values(thumbnail?.variants ?? {})]
+      : [];
+    const tooFar = temporaryMediaScheduleError({ mediaUrl: asset.url, coverUrls, scheduledAt });
+    if (tooFar) throw new Error(tooFar);
     const ready = await resolveAsset(asset);
     const readyThumb = usesThumbnail(todo.map((d) => d.platform)) ? await resolveThumbnail(thumbnail) : thumbnail;
     const jobs: PreparedSchedule['jobs'] = [];
