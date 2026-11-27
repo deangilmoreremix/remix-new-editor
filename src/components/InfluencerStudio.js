@@ -9,7 +9,7 @@ import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { mountModelSelector } from '../lib/modelSelectorUI.js';
+import { mountModelSelector, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { i2iModels } from '../lib/models.js';
 import { createSafeImage } from '../lib/security.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
@@ -348,17 +348,69 @@ export async function InfluencerStudio() {
   container.appendChild(header);
 
   const modelSelectorContainer = document.createElement('div');
-  modelSelectorContainer.className = 'w-full mb-6';
+  modelSelectorContainer.className = 'w-full mb-6 flex flex-col items-center gap-2';
   modelSelectorContainer.dataset.help = 'model';
   container.appendChild(modelSelectorContainer);
 
-  mountModelSelector(modelSelectorContainer, {
-    models: i2iModels,
-    selectedModelId: selectedModel.id,
-    onSelectModel: (model) => {
-      selectedModel = model;
-    },
-  });
+  // Model picker: a compact trigger button that opens a popover list
+  // (same pattern as Upscale Suite) instead of an always-open inline list.
+  const modelTrigger = document.createElement('button');
+  modelTrigger.type = 'button';
+  modelTrigger.className = 'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10';
+  modelTrigger.setAttribute('aria-haspopup', 'listbox');
+  modelTrigger.setAttribute('aria-expanded', 'false');
+  const updateModelTrigger = () => {
+    modelTrigger.innerHTML = '<span class="truncate"></span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0"><polyline points="6 9 12 15 18 9"/></svg>';
+    modelTrigger.firstChild.textContent = selectedModel.name || selectedModel.id;
+  };
+  updateModelTrigger();
+
+  const modelDropdown = document.createElement('div');
+  modelDropdown.className = 'fixed z-[200] bg-card-bg border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-top';
+  modelDropdown.style.width = 'calc(100vw - 2rem)';
+  modelDropdown.style.maxWidth = '480px';
+  modelDropdown.style.maxHeight = '70vh';
+  modelDropdown.style.overflowY = 'auto';
+
+  let modelOutsideClick = null;
+  const closeModelDropdown = () => {
+    modelDropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+    modelDropdown.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+    modelTrigger.setAttribute('aria-expanded', 'false');
+    if (modelOutsideClick) {
+      document.removeEventListener('click', modelOutsideClick);
+      modelOutsideClick = null;
+    }
+  };
+  const openModelDropdown = () => {
+    modelDropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+    modelDropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+    modelTrigger.setAttribute('aria-expanded', 'true');
+    positionModelSelectorDropdown(modelDropdown, modelTrigger, 6, container);
+    // Re-mount each open so the highlighted row reflects the current selection.
+    mountModelSelector(modelDropdown, {
+      models: i2iModels,
+      selectedModelId: selectedModel.id,
+      onSelectModel: (model) => {
+        selectedModel = model;
+        updateModelTrigger();
+        closeModelDropdown();
+      },
+    });
+    modelOutsideClick = (e) => {
+      if (!modelDropdown.contains(e.target) && !modelTrigger.contains(e.target)) closeModelDropdown();
+    };
+    document.addEventListener('click', modelOutsideClick);
+  };
+  modelTrigger.onclick = (e) => {
+    e.stopPropagation();
+    if (modelDropdown.classList.contains('opacity-100')) closeModelDropdown();
+    else openModelDropdown();
+  };
+  modelDropdown.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModelDropdown(); modelTrigger.focus(); } });
+
+  modelSelectorContainer.appendChild(modelTrigger);
+  modelSelectorContainer.appendChild(modelDropdown);
 
   const formCard = document.createElement('div');
   formCard.className = 'w-full bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
@@ -716,7 +768,7 @@ export async function InfluencerStudio() {
   try {
     const { consumeAndApply } = await import('../lib/examplesRail.js');
     consumeAndApply('influencer', (staged) => {
-      if (staged.model) selectedModel = staged.model;
+      if (staged.model) { selectedModel = staged.model; updateModelTrigger(); }
       if (staged.prompt) {
         promptInput.value = staged.prompt;
         promptInput.dispatchEvent(new Event('input', { bubbles: true }));
