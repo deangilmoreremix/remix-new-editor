@@ -9,7 +9,7 @@ import type { Asset } from '@cinegen/types/project';
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import { ModalShell } from '../ui/modal-shell';
 import '../../styles/edit-modal-stock-sound.css';
-import { MEDIA_CATEGORIES, MEDIA_GROUPS, aiPrompt, topicLabel } from './stock-categories';
+import { MEDIA_CATEGORIES, MEDIA_GROUPS, aiPrompt, topicLabel, IMAGE_QUALITIES, VIDEO_RESOLUTIONS, VIDEO_DURATIONS, DEFAULT_AI_OPTIONS, type AiOptions } from './stock-categories';
 
 export type StockKind = 'videos' | 'images';
 export type MediaSource = 'ai' | 'pixabay' | 'pexels';
@@ -21,6 +21,8 @@ export interface StockItem {
   source: 'pixabay' | 'pexels';
   name: string;
   src: string;
+  /** Smaller rendition to retry with when the full file cannot be copied. */
+  fallbackSrc?: string;
   preview?: string;
   thumbnail?: string;
   duration?: number;
@@ -33,7 +35,8 @@ export interface StockItem {
 }
 
 interface SearchResult { ok: boolean; items: StockItem[]; error?: string }
-type Search = (kind: StockKind, source: string, query: string) => Promise<SearchResult>;
+type Search = (kind: StockKind, source: string, query: string, page?: number) => Promise<SearchResult>;
+const PAGE_SIZE = 24; // matches createStockSearch's perPage: a full page means there may be more
 
 const home = STOCK_HOME as Record<string, string>;
 const SOURCES: Array<[MediaSource, string]> = [['ai', 'AI'], ['pexels', 'Pexels'], ['pixabay', 'Pixabay']];
@@ -53,10 +56,11 @@ export const isAiAsset = (a: Asset): boolean => {
 interface Props {
   onClose: () => void;
   /** Add a Pixabay / Pexels result to the timeline at the playhead. */
-  onAdd: (item: StockItem, kind: StockKind) => Promise<void> | void;
+  /** May resolve with a note to show (e.g. the copy only lasts for this session). */
+  onAdd: (item: StockItem, kind: StockKind) => Promise<void | string> | void | string;
   /** Generate AI media from a prompt and add it at the playhead. */
   /** Resolves with an optional warning to show instead of the plain success message (e.g. no durable copy could be saved). */
-  onGenerate: (prompt: string, kind: StockKind, aspect: AiAspect, onProgress: (msg: string) => void) => Promise<void | string>;
+  onGenerate: (prompt: string, kind: StockKind, aspect: AiAspect, onProgress: (msg: string) => void, opts: AiOptions) => Promise<void | string>;
   /** The project's media pool (AI-generated assets are listed first). */
   assets: Asset[];
   /** Put an existing pool asset on the timeline at the playhead. */
@@ -93,9 +97,11 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
   const [query, setQuery] = useState('');
   const [draft, setDraft] = useState('');
   // `for` records which tab (source:kind) the items were fetched for, so results never show or import under a different media type.
-  const [fetched, setFetched] = useState<{ loading: boolean; items: StockItem[]; error: string | null; for: string }>({ loading: false, items: [], error: null, for: '' });
+  const [fetched, setFetched] = useState<{ loading: boolean; items: StockItem[]; error: string | null; for: string; page: number; more: boolean; loadingMore: boolean }>({ loading: false, items: [], error: null, for: '', page: 1, more: false, loadingMore: false });
+  const [ai, setAi] = useState<AiOptions>(DEFAULT_AI_OPTIONS);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [added, setAdded] = useState<string | null>(null);
+  const [addNote, setAddNote] = useState<string | null>(null);
   const [addError, setAddError] = useState<string | null>(null);
   const [prompt, setPrompt] = useState('');
   const [aspect, setAspect] = useState<AiAspect>('16:9');
@@ -119,14 +125,14 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
     if (source === 'ai') return;
     const mine = ++seq.current;
     const tag = `${source}:${kind}`;
-    if (!query.trim()) { setFetched({ loading: false, items: [], error: null, for: tag }); return; }
-    setFetched({ loading: true, items: [], error: null, for: tag });
+    if (!query.trim()) { setFetched({ loading: false, items: [], error: null, for: tag, page: 1, more: false, loadingMore: false }); return; }
+    setFetched({ loading: true, items: [], error: null, for: tag, page: 1, more: false, loadingMore: false });
     search(kind, source, query)
-      .then((r) => { if (mine === seq.current) setFetched({ loading: false, items: r.items ?? [], error: r.ok ? null : (r.error || 'Search failed'), for: tag }); })
-      .catch((e: unknown) => { if (mine === seq.current) setFetched({ loading: false, items: [], error: e instanceof Error ? e.message : 'Search failed', for: tag }); });
+      .then((r) => { if (mine === seq.current) setFetched({ loading: false, items: r.items ?? [], error: r.ok ? null : (r.error || 'Search failed'), for: tag, page: 1, more: r.ok && (r.items?.length ?? 0) >= PAGE_SIZE, loadingMore: false }); })
+      .catch((e: unknown) => { if (mine === seq.current) setFetched({ loading: false, items: [], error: e instanceof Error ? e.message : 'Search failed', for: tag, page: 1, more: false, loadingMore: false }); });
   }, [search, kind, source, query]);
   // Until the new tab's request starts (first render after a switch) show nothing rather than the previous tab's items.
-  const state = fetched.for === `${source}:${kind}` ? fetched : { loading: true, items: [] as StockItem[], error: null as string | null, for: '' };
+  const state = fetched.for === `${source}:${kind}` ? fetched : { loading: true, items: [] as StockItem[], error: null as string | null, for: '', page: 1, more: false, loadingMore: false };
 
   const aiAll = useMemo(() => assets.filter(isAiAsset), [assets]);
   const aiAssets = useMemo(
@@ -151,7 +157,7 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
   const pickGroup = (id: string) => { setGroupId(id); if (cat && id !== 'all' && cat.group !== id) { setCatId(null); setTopic(null); } };
   /** One main tab per source and media type, so it is always clear whether you are browsing videos or images. */
   const openTab = (s: MediaSource, k: StockKind) => {
-    setAddError(null);
+    setAddError(null); setAddNote(null);
     setSource(s);
     setKind(k);
     if (s === 'ai') { if (topic) setPrompt(aiPrompt(topic, k)); return; }
@@ -161,15 +167,34 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
     if (busyId) return;
     setBusyId(item.id);
     setAddError(null);
-    try { await onAdd(item, state.for.endsWith(':images') ? 'images' : 'videos'); setAdded(item.id); }
+    setAddNote(null);
+    try { const note = await onAdd(item, state.for.endsWith(':images') ? 'images' : 'videos'); setAdded(item.id); if (typeof note === 'string') setAddNote(note); }
     catch (e) { setAddError(e instanceof Error ? e.message : 'Could not add this to the timeline.'); }
     finally { setBusyId(null); }
+  };
+  const loadMore = () => {
+    if (state.loadingMore || !state.more) return;
+    const mine = seq.current; // a new search or tab bumps seq, which discards this page
+    const tag = `${source}:${kind}`;
+    const next = state.page + 1;
+    setFetched((f) => ({ ...f, loadingMore: true }));
+    search(kind, source, query, next)
+      .then((r) => {
+        if (mine !== seq.current) return;
+        setFetched((f) => {
+          const seen = new Set(f.items.map((i) => i.id));
+          const fresh = (r.items ?? []).filter((i) => !seen.has(i.id));
+          return { ...f, for: tag, items: [...f.items, ...fresh], page: r.ok ? next : f.page, more: r.ok && fresh.length > 0 && (r.items?.length ?? 0) >= PAGE_SIZE, loadingMore: false, error: null };
+        });
+        if (!r.ok) setAddError(r.error || 'Could not load more results.');
+      })
+      .catch((e: unknown) => { if (mine === seq.current) { setFetched((f) => ({ ...f, loadingMore: false })); setAddError(e instanceof Error ? e.message : 'Could not load more results.'); } });
   };
   const generate = async () => {
     if (gen.busy || !prompt.trim()) return;
     setGen({ busy: true, msg: 'Submitting…', error: null });
     try {
-      const note = await onGenerate(prompt.trim(), kind, aspect, (msg) => setGen((g) => ({ ...g, msg })));
+      const note = await onGenerate(prompt.trim(), kind, aspect, (msg) => setGen((g) => ({ ...g, msg })), ai);
       setGen({ busy: false, msg: note || 'Added to the timeline and your media pool.', error: null });
     } catch (e) {
       setGen({ busy: false, msg: '', error: e instanceof Error ? e.message : 'Generation failed' });
@@ -253,6 +278,18 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
               <div><div className="cg-label">Aspect ratio</div>
                 <select className="cg-field" aria-label="Aspect ratio" value={aspect} onChange={(e) => setAspect(e.target.value as AiAspect)}><option value="16:9">16:9 landscape</option><option value="9:16">9:16 portrait</option><option value="1:1">1:1 square</option></select></div>
             )}
+            {source === 'ai' && kind === 'images' && (
+              <div><div className="cg-label">Quality</div>
+                <select aria-label="Image quality" data-testid="ai-quality" value={ai.size} onChange={(e) => setAi((o) => ({ ...o, size: Number(e.target.value) }))} className="cg-field">{IMAGE_QUALITIES.map((q) => <option key={q.id} value={q.id}>{q.label}</option>)}</select></div>
+            )}
+            {source === 'ai' && kind === 'videos' && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <div><div className="cg-label">Resolution</div>
+                  <select aria-label="Video resolution" data-testid="ai-resolution" value={ai.resolution} onChange={(e) => setAi((o) => ({ ...o, resolution: e.target.value as AiOptions['resolution'] }))} className="cg-field">{VIDEO_RESOLUTIONS.map((r) => <option key={r} value={r}>{r}</option>)}</select></div>
+                <div><div className="cg-label">Length</div>
+                  <select aria-label="Video length" data-testid="ai-duration" value={ai.duration} onChange={(e) => setAi((o) => ({ ...o, duration: Number(e.target.value) }))} className="cg-field">{VIDEO_DURATIONS.map((d) => <option key={d} value={d}>{d} s</option>)}</select></div>
+              </div>
+            )}
           </div>
           {source === 'ai' && (
             <div className="cg-stock__actions">
@@ -262,6 +299,7 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
               {gen.error && <span role="alert" className="cg-error">{gen.error}</span>}
             </div>
           )}
+          {addNote && <div role="status" data-testid="add-note" className="cg-note" style={{ color: '#fbbf24' }}>{addNote}</div>}
           {addError && <div role="alert" data-testid="add-error" className="cg-error">{addError}</div>}
           <div className="cg-note">
             {source === 'ai' ? `Your AI ${noun} in this project: ${shown}` : state.loading ? 'Loading…' : state.error ? '' : `Showing ${shown} ${noun} from ${sourceLabel}`}
@@ -280,6 +318,10 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
                   thumb={it.thumbnail || it.preview || ''} onClick={() => void pick(it)} />
               ))}
           </div>
+          {source !== 'ai' && state.more && !state.error && (
+            <button data-testid="load-more" className="cg-pill" disabled={state.loadingMore} onClick={loadMore}
+              style={{ alignSelf: 'center', marginTop: 10, padding: '9px 20px', borderRadius: 999, fontSize: 13, fontWeight: 700, border: '1px solid var(--border-medium)', color: 'inherit', background: 'var(--bg-elevated)', cursor: state.loadingMore ? 'progress' : 'pointer' }}>{state.loadingMore ? 'Loading…' : 'Load more'}</button>
+          )}
         </div>
       </ModalShell>
     </div>
