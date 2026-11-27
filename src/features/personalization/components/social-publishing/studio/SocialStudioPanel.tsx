@@ -11,6 +11,7 @@ import { PlatformPreviews } from './PlatformPreviews'
 import { OptimizePanel } from './OptimizePanel'
 import { MediaTools } from './MediaTools'
 import { PlanPanel, type Schedule } from './PlanPanel'
+import { BatchPanel } from './BatchPanel'
 
 export interface SocialStudioPanelProps {
   asset: Asset
@@ -29,8 +30,8 @@ export interface SocialStudioPanelProps {
   children?: React.ReactNode
 }
 
-type Tab = 'preview' | 'platforms' | 'optimize' | 'media' | 'plan'
-const TABS: [Tab, string][] = [['preview', 'Preview'], ['platforms', 'Platforms'], ['optimize', 'Optimize'], ['media', 'Media'], ['plan', 'Plan']]
+type Tab = 'preview' | 'platforms' | 'optimize' | 'media' | 'batch' | 'plan'
+const TABS: [Tab, string][] = [['preview', 'Preview'], ['platforms', 'Platforms'], ['optimize', 'Optimize'], ['media', 'Media'], ['batch', 'Batch'], ['plan', 'Plan']]
 
 export function derivePlanStatus(enabled: Destination[], results: PublishResult[]): PlanStatus {
   const mine = results.filter((r) => enabled.some((d) => d.platform === r.platform && d.accountId === r.accountId))
@@ -151,6 +152,9 @@ export function SocialStudioPanel(p: SocialStudioPanelProps) {
       </div>}
       {visited.has('media') && <div role="tabpanel" id="studio-panel-media" aria-labelledby="studio-tab-media" hidden={tab !== 'media'}>
         <MediaTools asset={p.asset} title={title} meta={meta} onReplaceAsset={p.onReplaceAsset} onUpdateThumbnail={p.onUpdateThumbnail} />
+      </div>}
+      {visited.has('batch') && <div role="tabpanel" id="studio-panel-batch" aria-labelledby="studio-tab-batch" hidden={tab !== 'batch'}>
+        <BatchPanel asset={p.asset} platforms={platforms} onReplaceAsset={p.onReplaceAsset} />
       </div>}
       {visited.has('plan') && <div role="tabpanel" id="studio-panel-plan" aria-labelledby="studio-tab-plan" hidden={tab !== 'plan'}>
         <PlanPanel stores={stores} draftId={draftId} onRestore={restore} schedule={schedule} onSchedule={setSchedule} scheduleError={scheduleError} autosave={autosave} publishResults={p.publishResults} onRetry={p.onRetry} refreshKey={refreshKey} />
