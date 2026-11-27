@@ -37,7 +37,7 @@ function nearbyKind(a, url) {
 }
 
 const mediaOf = (a) => { const href = a.getAttribute('href') || ''; return mediaFromHref(href, nearbyKind(a, href)); };
-// The landing page button is one of the action buttons right after the link ("Schedule post" may follow it too).
+// The landing page button is one of the action buttons right after the link.
 const buttonFor = (a) => {
   for (let n = a.nextElementSibling; n && n.dataset?.action; n = n.nextElementSibling) {
     if (n.dataset.action === 'create-landing-page') return n;
