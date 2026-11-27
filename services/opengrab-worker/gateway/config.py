@@ -35,6 +35,10 @@ class Settings:
     user_active_jobs: int = 2
     global_active_jobs: int = 5
     analyze_timeout_s: int = 60
+    scratch_dir: str = "/data/scratch"
+    storage_bucket: str = "media-downloads"
+    signed_url_ttl_s: int = 3600
+    poll_interval_s: float = 2.0  # 0 turns the background poller off (tests)
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -49,4 +53,8 @@ class Settings:
             user_active_jobs=_int("USER_ACTIVE_JOBS", 2),
             global_active_jobs=_int("GLOBAL_ACTIVE_JOBS", 5),
             analyze_timeout_s=_int("ANALYZE_TIMEOUT_S", 60),
+            scratch_dir=os.environ.get("SCRATCH_DIR", "/data/scratch"),
+            storage_bucket=os.environ.get("STORAGE_BUCKET", "media-downloads"),
+            signed_url_ttl_s=_int("SIGNED_URL_TTL_S", 3600),
+            poll_interval_s=float(os.environ.get("POLL_INTERVAL_S", 2)),
         )

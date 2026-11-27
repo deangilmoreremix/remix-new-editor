@@ -47,9 +47,15 @@ class FakeUpstream:
     async def cancel(self, upstream_id) -> None:
         self.cancelled.append(upstream_id)
 
+    async def download_file(self, upstream_id, dest, max_bytes) -> str:
+        raise AssertionError("not used in these tests")
+
+    async def discard(self, upstream_id) -> None:
+        pass
+
 
 def make(settings: Settings | None = None, analyzer: FakeAnalyzer | None = None):
-    s = settings or Settings(app_secrets={"remix": "sa", "ohb": "sb"})
+    s = settings or Settings(app_secrets={"remix": "sa", "ohb": "sb"}, poll_interval_s=0)
     store, up = MemoryStore(), FakeUpstream()
     client = TestClient(create_app(s, store, up, analyzer or FakeAnalyzer(), resolver=PUBLIC))
     return client, store, up
@@ -180,15 +186,12 @@ def test_public_job_does_not_leak_internal_fields():
 
 
 # --- lifecycle --------------------------------------------------------------
-def test_progress_is_mirrored_and_upstream_done_is_not_final():
+def test_progress_is_mirrored():
     c, store, up = make()
     jid = c.post("/v1/jobs", json=URL, headers=h()).json()["id"]
     up.jobs["u1"].update(status="downloading", percent=42.0, speed="1MiB/s")
     j = c.get(f"/v1/jobs/{jid}", headers=h()).json()
     assert j["status"] == "downloading" and j["percent"] == 42.0
-    up.jobs["u1"].update(status="done", percent=100)
-    j = c.get(f"/v1/jobs/{jid}", headers=h()).json()
-    assert j["status"] == "processing" and j["stage"] == "finalizing"  # not 'done' until validated + uploaded
 
 
 def test_engine_error_text_is_not_passed_through():

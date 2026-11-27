@@ -17,6 +17,10 @@ class JobStore(Protocol):
     async def list(self, app_id: str, user_id: str, limit: int = 50) -> list[dict[str, Any]]: ...
     async def update(self, job_id: str, **fields: Any) -> None: ...
     async def count_active(self, app_id: str | None = None, user_id: str | None = None) -> int: ...
+    async def list_active(self, limit: int = 100) -> list[dict[str, Any]]: ...
+    async def claim(self, job_id: str, from_status: str, to_status: str, stage_eq: str | None = None,
+                    **fields: Any) -> bool: ...
+    async def delete(self, job_id: str) -> None: ...
 
 
 class MemoryStore:
@@ -52,6 +56,22 @@ class MemoryStore:
             and (app_id is None or r["app_id"] == app_id)
             and (user_id is None or r["user_id"] == user_id)
         )
+
+
+    async def list_active(self, limit: int = 100) -> list[dict[str, Any]]:
+        return [dict(r) for r in self.rows.values() if r["status"] in ACTIVE][:limit]
+
+    async def claim(self, job_id: str, from_status: str, to_status: str, stage_eq: str | None = None,
+                    **fields: Any) -> bool:
+        """Atomically move a job between statuses; exactly one caller wins."""
+        r = self.rows.get(job_id)
+        if not r or r["status"] != from_status or (stage_eq is not None and r.get("stage") != stage_eq):
+            return False
+        r.update(fields, status=to_status)
+        return True
+
+    async def delete(self, job_id: str) -> None:
+        self.rows.pop(job_id, None)
 
 
 class SupabaseStore:
@@ -94,3 +114,21 @@ class SupabaseStore:
         if user_id:
             params["user_id"] = f"eq.{user_id}"
         return len((await self._req("GET", params=params)).json())
+
+    async def list_active(self, limit: int = 100) -> list[dict[str, Any]]:
+        r = await self._req("GET", params={"status": f"in.({','.join(ACTIVE)})", "order": "created_at.asc",
+                                           "limit": str(limit)})
+        return [dict(x) for x in r.json()]
+
+    async def claim(self, job_id: str, from_status: str, to_status: str, stage_eq: str | None = None,
+                    **fields: Any) -> bool:
+        """Single conditional PATCH: only the caller whose filter still matches gets a row back."""
+        params = {"id": f"eq.{job_id}", "status": f"eq.{from_status}"}
+        if stage_eq is not None:
+            params["stage"] = f"eq.{stage_eq}"
+        r = await self._req("PATCH", params=params, json={**fields, "status": to_status},
+                            extra={"Prefer": "return=representation"})
+        return bool(r.json())
+
+    async def delete(self, job_id: str) -> None:
+        await self._req("DELETE", params={"id": f"eq.{job_id}"})

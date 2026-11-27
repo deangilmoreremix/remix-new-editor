@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
+import logging
 import os
+from collections.abc import AsyncIterator
 from typing import Any
 
 import httpx
@@ -11,14 +14,18 @@ from pydantic import BaseModel, Field
 
 from .analyzer import Analyzer, YtDlpAnalyzer
 from .auth import Caller, authenticate
+from .blobs import Blobs, MemoryBlobs, SupabaseBlobs
 from .config import QUALITIES, Settings
+from .finalize import Finalizer
 from .store import ACTIVE, TERMINAL, JobStore, MemoryStore, SupabaseStore
 from .upstream import OpenGrabClient, Upstream
 from .urlcheck import Resolver, UrlRejected, _resolve, validate_public_url
 
 # Fields returned to apps. upstream ids, internal paths and raw errors from the engine are never exposed.
 PUBLIC_FIELDS = ("id", "kind", "status", "stage", "percent", "speed", "eta", "downloaded_bytes", "total_bytes",
-                 "title", "source_url", "source_platform", "options", "error", "created_at", "finished_at")
+                 "title", "source_url", "source_platform", "options", "error", "created_at", "finished_at",
+                 "size_bytes", "duration_s", "width", "height", "vcodec", "acodec", "import_status")
+log = logging.getLogger("worker")
 
 
 class AnalyzeReq(BaseModel):
@@ -43,8 +50,54 @@ def _fail(status: int, code: str) -> HTTPException:
 
 
 def create_app(settings: Settings, store: JobStore, upstream: Upstream, analyzer: Analyzer,
-               resolver: Resolver = _resolve) -> FastAPI:
-    app = FastAPI(title="opengrab-worker", docs_url=None, redoc_url=None, openapi_url=None)
+               resolver: Resolver = _resolve, blobs: Blobs | None = None) -> FastAPI:
+    blobs = blobs or MemoryBlobs()
+    finalizer = Finalizer(settings, store, upstream, blobs)
+    tasks: set[asyncio.Task[None]] = set()
+
+    async def maybe_finalize(row: dict[str, Any]) -> None:
+        """Start finalizing once. The conditional claim means only one caller (request or poller) wins."""
+        if await store.claim(row["id"], "processing", "uploading", stage_eq="finalizing", stage="fetching"):
+            t = asyncio.create_task(finalizer.run({**row, "status": "uploading", "stage": "fetching"}))
+            tasks.add(t)
+            t.add_done_callback(tasks.discard)
+
+    async def recover() -> None:
+        """After a restart, jobs left in 'uploading' are retried if the engine still has the file, else failed."""
+        for r in await store.list_active(500):
+            if r["status"] != "uploading":
+                continue
+            still_there = bool(r.get("upstream_job_id")) and await upstream.get_job(r["upstream_job_id"]) is not None
+            if still_there:
+                await store.update(r["id"], status="processing", stage="finalizing")
+            else:
+                await store.update(r["id"], status="failed", stage="failed", error="worker_restarted")
+
+    async def poll_loop() -> None:
+        while True:
+            try:
+                for r in await store.list_active(100):
+                    if r.get("upstream_job_id"):
+                        await refresh(r)
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                log.exception("poll loop error")
+            await asyncio.sleep(settings.poll_interval_s)
+
+    @contextlib.asynccontextmanager
+    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        with contextlib.suppress(Exception):
+            await recover()
+        poller = asyncio.create_task(poll_loop()) if settings.poll_interval_s > 0 else None
+        yield
+        if poller:
+            poller.cancel()
+        for t in list(tasks):
+            t.cancel()
+
+    app = FastAPI(title="opengrab-worker", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
+    app.state.finalize_tasks = tasks
 
     @app.exception_handler(HTTPException)
     async def _http_error(_: Request, exc: HTTPException) -> JSONResponse:
@@ -128,10 +181,13 @@ def create_app(settings: Settings, store: JobStore, upstream: Upstream, analyzer
         return _public({**row, "upstream_job_id": uid})
 
     async def refresh(row: dict[str, Any]) -> dict[str, Any]:
-        """Mirror engine progress into the row. Upstream 'done' is NOT final: the file still has to be validated
-        and uploaded to storage (not implemented yet), so it is reported as 'processing/finalizing'."""
-        if row["status"] in TERMINAL or not row.get("upstream_job_id"):
-            return row
+        """Mirror engine progress into the row. An engine 'done' is not final: the job moves to
+        processing/finalizing and the Finalizer validates, converts if needed, uploads, and only then marks it done."""
+        if row["status"] in TERMINAL or row["status"] == "uploading" or not row.get("upstream_job_id"):
+            return row  # 'uploading' is owned by the finalizer
+        if row["status"] == "processing" and row.get("stage") == "finalizing":
+            await maybe_finalize(row)  # picks up work orphaned by a restart
+            return await store.get(row["app_id"], row["user_id"], row["id"]) or row
         try:
             up = await upstream.get_job(row["upstream_job_id"])
         except httpx.HTTPError:
@@ -149,7 +205,11 @@ def create_app(settings: Settings, store: JobStore, upstream: Upstream, analyzer
             if s == "error":
                 patch["error"] = "download_failed"  # engine text can contain URLs; not passed through
         await store.update(row["id"], **patch)
-        return {**row, **patch}
+        row = {**row, **patch}
+        if patch["status"] == "processing" and patch["stage"] == "finalizing":
+            await maybe_finalize(row)
+            row = await store.get(row["app_id"], row["user_id"], row["id"]) or row
+        return row
 
     @app.get("/v1/jobs/{job_id}")
     async def get_job(job_id: str, who: Caller = Depends(caller)) -> dict[str, Any]:
@@ -178,6 +238,33 @@ def create_app(settings: Settings, store: JobStore, upstream: Upstream, analyzer
             row = {**row, "status": "cancelled", "stage": "cancelled"}
         return _public(row)
 
+    @app.get("/v1/jobs/{job_id}/download-url")
+    async def download_url(job_id: str, who: Caller = Depends(caller)) -> dict[str, Any]:
+        row = await store.get(who.app_id, who.user_id, job_id)
+        if row is None:
+            raise _fail(404, "not_found")
+        if row["status"] != "done" or not row.get("storage_path"):
+            raise _fail(409, "not_ready")
+        try:
+            url = await blobs.sign(row["storage_path"], settings.signed_url_ttl_s)
+        except (httpx.HTTPError, FileNotFoundError):
+            raise _fail(503, "storage_unavailable") from None
+        return {"url": url, "expires_in": settings.signed_url_ttl_s}
+
+    @app.delete("/v1/jobs/{job_id}", status_code=204)
+    async def delete_job(job_id: str, who: Caller = Depends(caller)) -> None:
+        row = await store.get(who.app_id, who.user_id, job_id)
+        if row is None:
+            raise _fail(404, "not_found")
+        if row["status"] in ACTIVE:
+            raise _fail(409, "job_active")  # cancel first
+        if row.get("storage_path"):
+            try:
+                await blobs.remove(row["storage_path"])
+            except httpx.HTTPError:
+                raise _fail(503, "storage_unavailable") from None
+        await store.delete(row["id"])
+
     return app
 
 
@@ -185,5 +272,6 @@ def build_from_env() -> FastAPI:
     settings = Settings.from_env()
     sb_url, sb_key = os.environ.get("SUPABASE_URL", ""), os.environ.get("SUPABASE_SERVICE_KEY", "")
     store: JobStore = SupabaseStore(sb_url, sb_key) if sb_url and sb_key else MemoryStore()
+    blobs: Blobs = SupabaseBlobs(sb_url, sb_key, settings.storage_bucket) if sb_url and sb_key else MemoryBlobs()
     return create_app(settings, store, OpenGrabClient(settings.upstream_url, settings.upstream_token),
-                      YtDlpAnalyzer(settings.analyze_timeout_s))
+                      YtDlpAnalyzer(settings.analyze_timeout_s), blobs=blobs)

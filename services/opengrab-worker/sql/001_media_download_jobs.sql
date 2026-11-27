@@ -1,4 +1,4 @@
--- REVIEW ONLY: not applied. Shared Supabase project; one table for both apps.
+-- APPLIED to the shared Supabase project (migration `media_download_jobs`). One table for both apps.
 -- Owner key is (app_id, user_id) as text: remix-new-editor uses Supabase user ids, OpenHiggsBolt uses Clerk ids.
 -- RLS is on with no policies, so anon/authenticated clients can do nothing; only the worker's service-role key can.
 create table if not exists public.media_download_jobs (
@@ -40,3 +40,11 @@ create index if not exists media_download_jobs_active_idx on public.media_downlo
   where status in ('queued','downloading','processing','uploading');
 create index if not exists media_download_jobs_media_idx on public.media_download_jobs (app_id, user_id, source_media_id);
 alter table public.media_download_jobs enable row level security;
+revoke all on public.media_download_jobs from anon, authenticated;
+
+-- One private bucket for downloaded media, separate from the app-specific and public buckets.
+-- Object path: <app_id>/<user_id>/<job_id>/<file>. No storage policies: only the worker (service role) touches it,
+-- and clients receive short-lived signed URLs.
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('media-downloads', 'media-downloads', false, 2147483648)
+on conflict (id) do nothing;
