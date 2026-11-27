@@ -7,7 +7,7 @@ import { createStudioHeader } from '../lib/thumbnails.js';
 
 export function ContentLibraryPage() {
   const container = document.createElement('div');
-  container.className = 'w-full h-full flex flex-col bg-app-bg overflow-hidden';
+  container.className = 'studio-short-scroll w-full h-full flex flex-col bg-app-bg overflow-hidden';
 
   let activeFilter = 'all';
   let searchQuery = '';

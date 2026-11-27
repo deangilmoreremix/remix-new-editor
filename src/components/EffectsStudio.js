@@ -68,7 +68,7 @@ async function EffectsCatalogStudio() {
   const container = document.createElement('div');
   // Mobile: the whole studio scrolls (header + effects list + controls stack
   // taller than the viewport). Desktop: fixed layout with per-panel scrolling.
-  container.className = 'w-full h-full flex flex-col bg-app-bg overflow-y-auto overflow-x-hidden md:overflow-hidden relative';
+  container.className = 'studio-short-scroll w-full h-full flex flex-col bg-app-bg overflow-y-auto overflow-x-hidden md:overflow-hidden relative';
   mountStudioChrome(container, { currentRoute: 'effects' });
 
   let activeTab = EFFECT_TABS[0];
@@ -184,7 +184,7 @@ async function EffectsCatalogStudio() {
   container.appendChild(topBar);
 
   const bodyArea = document.createElement('div');
-  bodyArea.className = 'flex shrink-0 md:shrink md:flex-1 md:min-h-0 md:overflow-hidden';
+  bodyArea.className = 'studio-short-body flex shrink-0 md:shrink md:flex-1 md:min-h-0 md:overflow-hidden';
 
   const effectsPanel = document.createElement('div');
   effectsPanel.className = 'w-full max-h-[60vh] md:max-h-none md:w-[340px] lg:w-[400px] shrink-0 overflow-y-auto custom-scrollbar px-4 md:px-6 pb-6 md:border-r border-white/5';

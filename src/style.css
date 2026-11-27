@@ -50,3 +50,12 @@ main {
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
+/* Short viewports (landscape phones, ~390px tall): fixed-height studio layouts squeeze their
+   panels to nothing, so let the studio scroll as a whole and give the main panel a usable height. */
+@media (max-height: 600px) {
+  .studio-short-scroll { overflow-y: auto !important; overflow-x: hidden; }
+  .studio-short-scroll .studio-short-body,
+  .studio-short-scroll .flex-1.overflow-auto,
+  .studio-short-scroll .flex-1.overflow-y-auto { flex: none !important; height: max(280px, 85vh) !important; min-height: 0 !important; }
+  .studio-short-scroll .studio-short-body--tall { height: 560px !important; }
+}

@@ -99,9 +99,12 @@ export function mountUpstreamModelPicker({ kind, anchor, selectedModelId, onSele
     const spaceBelow = viewportHeight - rect.bottom - GAP - MARGIN;
     const openAbove =
       spaceAbove >= naturalHeight || spaceAbove >= MIN_ROOM_ABOVE || spaceAbove >= spaceBelow;
-    const available = Math.max(
-      160,
-      Math.min(viewportHeight * 0.7, openAbove ? spaceAbove : spaceBelow),
+    // Never let the panel be taller than the room between the header and the
+    // bottom edge (landscape phones are ~390px tall).
+    const viewportRoom = Math.max(120, viewportHeight - topLimit() - MARGIN);
+    const available = Math.min(
+      viewportRoom,
+      Math.max(160, Math.min(viewportHeight * 0.7, openAbove ? spaceAbove : spaceBelow)),
     );
 
     popover.style.maxHeight = `${available}px`;
@@ -119,6 +122,12 @@ export function mountUpstreamModelPicker({ kind, anchor, selectedModelId, onSele
     } else {
       host.style.bottom = "auto";
       host.style.top = `${rect.bottom + GAP}px`;
+      // Opening downward: slide up if the panel would run past the bottom edge.
+      const panelHeight = popover.getBoundingClientRect().height;
+      const maxTop = viewportHeight - MARGIN - panelHeight;
+      if (rect.bottom + GAP > maxTop) {
+        host.style.top = `${Math.max(topLimit(), maxTop)}px`;
+      }
     }
     const width = popover.getBoundingClientRect().width;
     const left = Math.max(MARGIN, Math.min(rect.left, viewportWidth - width - MARGIN));

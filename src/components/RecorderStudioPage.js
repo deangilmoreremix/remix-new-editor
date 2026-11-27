@@ -8,11 +8,11 @@ import { createEditorBanner } from '../lib/thumbnails.js';
 
 export function RecorderStudioPage() {
   const root = document.createElement('div');
-  root.className = 'w-full h-full flex flex-col bg-app-bg overflow-hidden';
+  root.className = 'studio-short-scroll w-full h-full flex flex-col bg-app-bg overflow-hidden';
   const chrome = mountStudioChrome(root, { title: 'Recorder' });
   root.appendChild(createEditorBanner('recorder', 'Recorder', 'Record your screen and camera, then edit scenes, captions and B-roll'));
   const host = document.createElement('div');
-  host.className = 'flex-1 min-h-0';
+  host.className = 'flex-1 min-h-0 studio-short-body studio-short-body--tall';
   root.appendChild(host);
   let unmount = null;
   import('../features/recorder/mount.tsx').then(({ mountRecorderStudio }) => {

@@ -81,7 +81,7 @@ export function resolveGenerationAspectRatio(inputs, template) {
 
 export function CinemaTemplateStudio() {
   const container = document.createElement('div');
-  container.className = 'cinema-template-studio w-full h-full flex flex-col bg-black overflow-hidden';
+  container.className = 'cinema-template-studio studio-short-scroll w-full h-full flex flex-col bg-black overflow-hidden';
 
   // State
   const registry = getTemplateRegistry();
