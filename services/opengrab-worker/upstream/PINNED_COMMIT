@@ -1,0 +1,4 @@
+Upstream: https://github.com/Skydope/OpenGrab
+Commit:   59f857aedbebffcf90cc1a9b54b6d0280a3c2af3 (2026-11-02)
+License:  MIT (see LICENSE in this folder). Copied unmodified; do not edit files here.
+Excluded: desktop app, installer, logos, docs, scripts, nginx config.

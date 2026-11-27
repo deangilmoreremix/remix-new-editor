@@ -1,0 +1,22 @@
+version: 2
+updates:
+  # yt-dlp churnea seguido (releases ~semanales). Daily mantiene el pin fresco
+  # via PR revisado, sin auto-update en runtime.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    groups:
+      yt-dlp:
+        patterns:
+          - "yt-dlp"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"

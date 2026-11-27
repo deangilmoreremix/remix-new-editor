@@ -1,0 +1,63 @@
+services:
+  opengrab:
+    build: .
+    container_name: opengrab
+    ports:
+      - "${OPENGRAB_PORT:-8800}:8800"
+    volumes:
+      - ./downloads:/downloads
+    environment:
+      - OPENGRAB_HOST=0.0.0.0
+      - OPENGRAB_PORT=8800
+      - OPENGRAB_DIR=/downloads
+      # Ruta del ini de settings. En el volumen /downloads para que persista
+      # junto con la DB. La UI escribe aca los cambios de settings.
+      - OPENGRAB_CONFIG=${OPENGRAB_CONFIG:-/downloads/config.ini}
+      - OPENGRAB_TOKEN=${OPENGRAB_TOKEN:-}
+      - OPENGRAB_MAX_JOBS=${OPENGRAB_MAX_JOBS:-2}
+      - OPENGRAB_MAX_SIZE_MB=${OPENGRAB_MAX_SIZE_MB:-0}
+      # Budget total de disco (MB). 0 = sin limite. Protege /downloads de llenarse.
+      - OPENGRAB_MAX_TOTAL_MB=${OPENGRAB_MAX_TOTAL_MB:-0}
+      # Auto-update de yt-dlp en cada arranque. Off por default (supply-chain).
+      # Si lo activas, podes fijar version con OPENGRAB_YTDLP_VERSION.
+      - OPENGRAB_AUTOUPDATE=${OPENGRAB_AUTOUPDATE:-0}
+      - OPENGRAB_YTDLP_VERSION=${OPENGRAB_YTDLP_VERSION:-}
+      # Activar solo si OpenGrab está detrás de un reverse proxy (nginx, traefik)
+      # que seteás vos. Con TRUST_XFF=1, el rate limiting usa la IP real del
+      # cliente del header X-Forwarded-For. Sin proxy de confianza, dejalo en 0
+      # porque cualquiera puede spoofear el header y saltar los límites.
+      - OPENGRAB_TRUST_XFF=${OPENGRAB_TRUST_XFF:-0}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8800/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    # --------------------------------------------------------------------- #
+    # Capa 2 anti-SSRF (opcional, recomendado). Defensa en profundidad sobre
+    # el gate de la app (capa 1), que resuelve DNS y bloquea destinos privados.
+    # Esta capa cierra el TOCTOU/DNS-rebinding residual a nivel de RED.
+    #
+    # El egress filtering va en el HOST (chain DOCKER-USER), no acá: no requiere
+    # CAP_NET_ADMIN ni romper el modelo de usuario no-root del contenedor.
+    # Correr en el host, tras `docker compose up -d`:
+    #
+    #     sudo ./scripts/egress-lockdown.sh --dry-run   # previsualizar
+    #     sudo ./scripts/egress-lockdown.sh --apply     # aplicar
+    #     sudo ./scripts/egress-lockdown.sh --apply --log  # + loguear intentos
+    #     sudo ./scripts/egress-lockdown.sh --list      # verificar
+    #     sudo ./scripts/egress-lockdown.sh --remove    # revertir
+    #
+    # OJO: las reglas de DOCKER-USER se pierden si recreás la red de Docker o
+    # reiniciás el daemon. Re-corré --apply (es idempotente) o atalo a un hook
+    # de systemd que dispare tras docker.service.
+    #
+    # IPv6: el script agrega reglas ip6tables si Docker tiene IPv6 habilitado.
+    # Alternativa más simple para un downloader (el CDN de video es v4 en la
+    # práctica): deshabilitar IPv6 en el contenedor descomentando:
+    #
+    # sysctls:
+    #   - net.ipv6.conf.all.disable_ipv6=1
+    # --------------------------------------------------------------------- #

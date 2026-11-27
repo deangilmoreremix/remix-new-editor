@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+downloads/
+.venv/
+*.tmp
+*.patch
+Gemini_Generated_Image_*
+improve.md
+.DS_Store
+.pytest_cache/
+tests/_test_downloads/
+
+# SDD artifacts
+.atl/
+
+# PyInstaller / build de escritorio
+build/
+dist/
+vendor/
+*.whl

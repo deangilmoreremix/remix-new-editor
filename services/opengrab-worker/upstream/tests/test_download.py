@@ -1,0 +1,800 @@
+import asyncio
+import os
+import tempfile
+import time
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+import download
+
+from db import Database
+from models import Job
+from state import AppState
+
+
+def _resolve_max_size(mb: int):
+    """Monkeypatch helper: resolve('max_size_mb') -> mb from 'env'."""
+    return lambda self, k, d, t=int: (mb, "env") if k == "max_size_mb" else (d, "default")
+
+
+@pytest.fixture
+def dl_state():
+    tmp = Path(tempfile.mkdtemp())
+    db = Database(":memory:")
+    state = AppState(db, tmp)
+    state.out_dir.mkdir(parents=True, exist_ok=True)
+    yield state
+    db.close()
+    import shutil
+
+    shutil.rmtree(tmp, ignore_errors=True)
+
+
+def _make_job(state, job_id="test-1"):
+    state.jobs[job_id] = Job(id=job_id, created=time.time())
+    state.job_events[job_id] = asyncio.Event()
+    state.db.insert_job(job_id, "https://x.com/1", "best")
+    return job_id
+
+
+def _mock_ydl(info):
+    ydl = MagicMock()
+    ydl.__enter__.return_value = ydl
+    ydl.extract_info.return_value = info
+    return ydl
+
+
+# ------------------------------------------------------------------ T1 ----
+def test_run_download_video_success(dl_state, monkeypatch):
+    from download import DownloadContext, _run_download
+
+    loop = asyncio.new_event_loop()
+
+    jid = _make_job(dl_state, "t1")
+    wd = Path(tempfile.mkdtemp(prefix="opengrab_", dir=dl_state.out_dir))
+    video = wd / "Test.mp4"
+    video.write_bytes(b"fake mp4")
+    info = {"title": "Test", "requested_downloads": [{"filepath": str(video)}]}
+
+    with patch("download.yt_dlp.YoutubeDL", return_value=_mock_ydl(info)):
+        _run_download(dl_state, DownloadContext(job_id=jid, url="https://youtu.be/abc", quality="best"), loop)
+    loop.close()
+
+    job = dl_state.jobs[jid]
+    assert job.status == "done"
+    assert job.percent == 100.0
+    assert job.filename == "Test.mp4"
+    assert job.mime == "video/mp4"
+    assert job.filepath == str(video)
+    assert len(dl_state.history.get_history()) == 1
+
+
+# ------------------------------------------------------------------ T1b ---
+def test_run_download_playlist_subdir_server_mode(dl_state, monkeypatch):
+    """Server mode (IS_DESKTOP=False, incognito=False): con playlist_subdir,
+    el archivo final debe quedar en out_dir/<playlist_subdir>/, no directo
+    en out_dir."""
+    from download import DownloadContext, _run_download
+
+    assert download.IS_DESKTOP is False  # precondición del test
+
+    loop = asyncio.new_event_loop()
+
+    jid = _make_job(dl_state, "t1b")
+    wd = Path(tempfile.mkdtemp(prefix="opengrab_", dir=dl_state.out_dir))
+    video = wd / "Track 01.mp3"
+    video.write_bytes(b"fake mp3")
+    info = {"title": "Track 01"}  # sin requested_downloads -> cae al fallback glob(workdir)
+
+    with patch("download.yt_dlp.YoutubeDL", return_value=_mock_ydl(info)), \
+         patch("download.tempfile.mkdtemp", return_value=str(wd)):
+        _run_download(
+            dl_state,
+            DownloadContext(job_id=jid, url="https://youtu.be/abc", quality="audio",
+                           playlist_subdir="TOOL Discography"),
+            loop,
+        )
+    loop.close()
+
+    job = dl_state.jobs[jid]
+    expected = dl_state.out_dir / "TOOL Discography" / "Track 01.mp3"
+    assert job.status == "done"
+    assert job.filepath == str(expected)
+    assert expected.exists()
+
+
+# ------------------------------------------------------------------ T2 ----
+def test_run_download_audio_success(dl_state, monkeypatch):
+    from download import DownloadContext, _run_download
+
+    loop = asyncio.new_event_loop()
+
+    jid = _make_job(dl_state, "t2")
+    wd = Path(tempfile.mkdtemp(prefix="opengrab_", dir=dl_state.out_dir))
+    audio = wd / "Song.mp3"
+    audio.write_bytes(b"fake mp3")
+    info = {"title": "Song", "requested_downloads": [{"filepath": str(audio)}]}
+
+    with patch("download.yt_dlp.YoutubeDL", return_value=_mock_ydl(info)):
+        _run_download(dl_state, DownloadContext(job_id=jid, url="https://youtu.be/abc", quality="audio"), loop)
+    loop.close()
+
+    job = dl_state.jobs[jid]
+    assert job.status == "done"
+    assert job.mime == "audio/mpeg"
+
+
+# ------------------------------------------------------------------ T3 ----
+def test_run_download_fallback_glob(dl_state, monkeypatch):
+    from download import DownloadContext, _run_download
+
+    loop = asyncio.new_event_loop()
+
+    jid = _make_job(dl_state, "t3")
+    wd = Path(tempfile.mkdtemp(prefix="opengrab_", dir=dl_state.out_dir))
+    video = wd / "Fallback.mp4"
+    video.write_bytes(b"fake")
+    info = {"title": "Fallback"}
+
+    with patch("download.yt_dlp.YoutubeDL", return_value=_mock_ydl(info)), \
+         patch("download.tempfile.mkdtemp", return_value=str(wd)):
+        _run_download(dl_state, DownloadContext(job_id=jid, url="https://youtu.be/abc", quality="best"), loop)
+    loop.close()
+
+    job = dl_state.jobs[jid]
+    assert job.status == "done"
+    assert job.filename == "Fallback.mp4"
+
+
+# ------------------------------------------------------------------ T4 ----
+def test_run_download_extract_info_none(dl_state, monkeypatch):
+    from download import DownloadContext, _run_download
+
+    loop = asyncio.new_event_loop()
+
+    jid = _make_job(dl_state, "t4")
+    ydl = _mock_ydl(None)
+    ydl.extract_info.return_value = None
+
+    with patch("download.yt_dlp.YoutubeDL", return_value=ydl):
+        _run_download(dl_state, DownloadContext(job_id=jid, url="https://youtu.be/abc", quality="best"), loop)
+    loop.close()
+
+    job = dl_state.jobs[jid]
+    assert job.status == "error"
+    assert "no devolvió" in job.error
+
+
+# ------------------------------------------------------------------ T5 ----
+def test_run_download_no_files(dl_state, monkeypatch):
+    from download import DownloadContext, _run_download
+
+    loop = asyncio.new_event_loop()
+
+    jid = _make_job(dl_state, "t5")
+    info = {"title": "Ghost"}
+
+    with patch("download.yt_dlp.YoutubeDL", return_value=_mock_ydl(info)):
+        _run_download(dl_state, DownloadContext(job_id=jid, url="https://youtu.be/abc", quality="best"), loop)
+    loop.close()
+
+    job = dl_state.jobs[jid]
+    assert job.status == "error"
+    assert "No se generó" in job.error
+
+
+# ------------------------------------------------------------------ T6 ----
+def test_run_download_file_not_found(dl_state, monkeypatch):
+    from download import DownloadContext, _run_download
+
+    loop = asyncio.new_event_loop()
+
+    jid = _make_job(dl_state, "t6")
+    wd = Path(tempfile.mkdtemp(prefix="opengrab_", dir=dl_state.out_dir))
+    ghost = wd / "missing.mp4"
+    info = {"title": "Missing", "requested_downloads": [{"filepath": str(ghost)}]}
+
+    with patch("download.yt_dlp.YoutubeDL", return_value=_mock_ydl(info)):
+        _run_download(dl_state, DownloadContext(job_id=jid, url="https://youtu.be/abc", quality="best"), loop)
+    loop.close()
+
+    job = dl_state.jobs[jid]
+    assert job.status == "error"
+    assert "Archivo no encontrado" in job.error
+
+
+# ------------------------------------------------------------------ T7 ----
+def test_run_download_size_enforcement(dl_state, monkeypatch):
+    from download import DownloadContext, _run_download
+
+    # _run_download ahora usa state.resolve("max_size_mb") en vez de config.MAX_SIZE_MB
+    monkeypatch.setattr(type(dl_state), "resolve", _resolve_max_size(1))
+    loop = asyncio.new_event_loop()
+
+    jid = _make_job(dl_state, "t7")
+    wd = Path(tempfile.mkdtemp(prefix="opengrab_", dir=dl_state.out_dir))
+    big = wd / "big.mp4"
+    big.write_bytes(b"x" * (2 * 1024 * 1024))
+    info = {"title": "Big", "requested_downloads": [{"filepath": str(big)}]}
+
+    with patch("download.yt_dlp.YoutubeDL", return_value=_mock_ydl(info)):
+        _run_download(dl_state, DownloadContext(job_id=jid, url="https://youtu.be/abc", quality="best"), loop)
+    loop.close()
+
+    job = dl_state.jobs[jid]
+    assert job.status == "error"
+    assert "supera" in job.error and "MB" in job.error
+    assert not big.exists()
+
+
+# ------------------------------------------------------------------ T8 ----
+def test_run_download_hook_percent(dl_state, monkeypatch):
+    from download import DownloadContext, _run_download
+
+    loop = asyncio.new_event_loop()
+
+    jid = _make_job(dl_state, "t8")
+    wd = Path(tempfile.mkdtemp(prefix="opengrab_", dir=dl_state.out_dir))
+    video = wd / "Hook.mp4"
+    video.write_bytes(b"fake")
+
+    captured_hook = []
+
+    class HookYDL:
+        def __init__(self, opts):
+            captured_hook.extend(opts.get("progress_hooks", []))
+        def __enter__(self):
+            return self
+        def __exit__(self, *a):
+            pass
+        def extract_info(self, url, download=True):
+            for h in captured_hook:
+                h({
+                    "status": "downloading",
+                    "total_bytes": 2000000,
+                    "downloaded_bytes": 1000000,
+                    "_speed_str": "10MiB/s",
+                    "_eta_str": "5s",
+                })
+                h({"status": "finished"})
+            return {
+                "title": "Hook",
+                "requested_downloads": [{"filepath": str(video)}],
+            }
+
+    with patch("download.yt_dlp.YoutubeDL", HookYDL):
+        _run_download(dl_state, DownloadContext(job_id=jid, url="https://youtu.be/abc", quality="best"), loop)
+    loop.close()
+
+    job = dl_state.jobs[jid]
+    assert job.status == "done"
+    assert job.downloaded == 1000000
+    assert job.total == 2000000
+    assert job.speed == "10MiB/s"
+    assert job.eta == "5s"
+
+
+# ----------------------- A.1: mapeo de errores --------------------------- #
+
+
+def test_friendly_error_maps_403():
+    msg = download._friendly_error(Exception("ERROR: unable to download: HTTP Error 403: Forbidden"))
+    assert "rechaz" in msg.lower()
+    assert "403" not in msg  # no filtra el error técnico crudo
+
+
+def test_friendly_error_private_video():
+    assert "privado" in download._friendly_error(Exception("ERROR: Private video")).lower()
+
+
+def test_friendly_error_geo():
+    assert "regi" in download._friendly_error(
+        Exception("This video is not available in your country")
+    ).lower()
+
+
+def test_friendly_error_network():
+    assert "red" in download._friendly_error(Exception("<urlopen error timed out>")).lower()
+
+
+def test_friendly_error_unknown_passthrough():
+    msg = download._friendly_error(Exception("boom interno raro 12345"))
+    assert "boom interno raro 12345" in msg
+
+
+def test_friendly_error_truncates_long_unknown():
+    msg = download._friendly_error(Exception("x" * 500))
+    assert len(msg) <= 300
+
+
+# ------- _fetch_playlist: includes unavailable entries ------- #
+def test_fetch_playlist_includes_unavailable():
+    from download import _fetch_playlist
+
+    info = {
+        "title": "Test Playlist",
+        "entries": [
+            {"title": "Video OK", "url": "https://x.com/1", "id": "v1"},
+            {"title": "Video Privado", "url": "", "id": "v2"},
+            None,
+            {"title": "Otro OK", "webpage_url": "https://x.com/3", "id": "v3"},
+        ],
+    }
+    with patch("download.yt_dlp.YoutubeDL", return_value=_mock_ydl(info)):
+        result = _fetch_playlist("https://x.com/playlist?list=test")
+
+    assert result["count"] == 3  # 3 valid entries (not None)
+    videos = result["videos"]
+    assert len(videos) == 3
+    assert videos[0]["title"] == "Video OK"
+    assert videos[0]["unavailable"] is False
+    assert videos[1]["title"] == "Video Privado"
+    assert videos[1]["unavailable"] is True
+    assert videos[1]["url"] == ""
+    assert videos[2]["title"] == "Otro OK"
+    assert videos[2]["unavailable"] is False
+
+
+# ------- _fetch_playlist: usa extract_flat="in_playlist" ------- #
+def test_fetch_playlist_uses_in_playlist_flat():
+    # Regresion: con extract_flat=True yt-dlp resuelve watch?v=...&list=...
+    # al video (entries=None -> 0/0). Debe pedir "in_playlist".
+    from download import _fetch_playlist
+
+    captured = {}
+
+    def _factory(opts):
+        captured.update(opts)
+        return _mock_ydl({"title": "PL", "entries": []})
+
+    with patch("download.yt_dlp.YoutubeDL", side_effect=_factory):
+        _fetch_playlist("https://x.com/watch?v=a&list=b")
+
+    assert captured.get("extract_flat") == "in_playlist"
+    assert captured.get("ignoreerrors") is True
+
+
+# ------- _fetch_playlist: materializa entries perezosas (generador) ------- #
+def test_fetch_playlist_handles_generator_entries():
+    from download import _fetch_playlist
+
+    def _entries_gen():
+        yield {"title": "V1", "url": "https://x.com/1", "id": "v1"}
+        yield {"title": "V2", "url": "https://x.com/2", "id": "v2"}
+
+    info = {"title": "PL", "entries": _entries_gen()}
+    with patch("download.yt_dlp.YoutubeDL", return_value=_mock_ydl(info)):
+        result = _fetch_playlist("https://x.com/playlist?list=test")
+
+    assert result["count"] == 2
+    assert [v["title"] for v in result["videos"]] == ["V1", "V2"]
+
+
+# --------------------- watch mode: channel check ------------------------ #
+def test_check_channel_watch_finds_new_videos(dl_state, monkeypatch):
+    from download import _check_channel_watch
+
+    playlist = {
+        "title": "Test Channel",
+        "count": 2,
+        "videos": [
+            {"title": "V1", "url": "https://x.com/1", "extractor": "youtube", "video_id": "vid1"},
+            {"title": "V2", "url": "https://x.com/2", "extractor": "youtube", "video_id": "vid2"},
+        ],
+    }
+
+    monkeypatch.setattr("download._fetch_playlist", lambda url: playlist)
+
+    cid = dl_state.db.insert_channel("https://x.com/@test", "best")
+    channel = {"id": cid, "url": "https://x.com/@test", "quality": "best"}
+    videos = _check_channel_watch(dl_state, channel)
+    assert len(videos) == 2
+    assert videos[0]["url"] == "https://x.com/1"
+    assert videos[0]["extractor"] == "youtube"
+    assert videos[0]["video_id"] == "vid1"
+    # No debe haber creado jobs ni registrado descargas
+    assert not dl_state.db.is_downloaded("youtube", "vid1")
+    assert not dl_state.db.is_downloaded("youtube", "vid2")
+    assert len(dl_state.jobs) == 0
+
+
+def test_check_channel_watch_skips_downloaded(dl_state, monkeypatch):
+    from download import _check_channel_watch
+
+    dl_state.db.insert_job("j1", "https://x.com/1", "best")
+    dl_state.db.record_download("youtube", "vid1", "j1")
+
+    playlist = {
+        "title": "TC",
+        "count": 2,
+        "videos": [
+            {"title": "V1", "url": "https://x.com/1", "extractor": "youtube", "video_id": "vid1"},
+            {"title": "V2", "url": "https://x.com/2", "extractor": "youtube", "video_id": "vid2"},
+        ],
+    }
+
+    monkeypatch.setattr("download._fetch_playlist", lambda url: playlist)
+
+    cid = dl_state.db.insert_channel("https://x.com/@test", "best")
+    channel = {"id": cid, "url": "https://x.com/@test", "quality": "best"}
+    videos = _check_channel_watch(dl_state, channel)
+    assert len(videos) == 1
+    assert videos[0]["video_id"] == "vid2"
+
+
+def test_check_channel_watch_skips_active_job(dl_state, monkeypatch):
+    from download import _check_channel_watch
+
+    dl_state.db.insert_job("j1", "https://x.com/1", "best", status="downloading")
+    dl_state.db.update_job("j1", extractor="youtube", video_id="vid1")
+
+    playlist = {
+        "title": "TC",
+        "count": 2,
+        "videos": [
+            {"title": "V1", "url": "https://x.com/1", "extractor": "youtube", "video_id": "vid1"},
+            {"title": "V2", "url": "https://x.com/2", "extractor": "youtube", "video_id": "vid2"},
+        ],
+    }
+
+    monkeypatch.setattr("download._fetch_playlist", lambda url: playlist)
+
+    channel = {"id": 1, "url": "https://x.com/@test", "quality": "best"}
+    videos = _check_channel_watch(dl_state, channel)
+    assert len(videos) == 1
+    assert videos[0]["video_id"] == "vid2"
+
+
+def test_check_channel_watch_handles_fetch_error(dl_state, monkeypatch):
+    from download import _check_channel_watch
+
+    def fail(url):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr("download._fetch_playlist", fail)
+
+    channel = {"id": 1, "url": "https://x.com/@test", "quality": "best"}
+    videos = _check_channel_watch(dl_state, channel)
+    assert videos == []
+
+
+# ---------------- _run_download: dedup en camino de éxito ----------------- #
+def test_run_download_records_dedup(dl_state, monkeypatch):
+    from download import DownloadContext, _run_download
+
+    loop = asyncio.new_event_loop()
+
+    jid = _make_job(dl_state, "dedup-ok")
+    wd = Path(tempfile.mkdtemp(prefix="opengrab_", dir=dl_state.out_dir))
+    video = wd / "Test.mp4"
+    video.write_bytes(b"fake mp4")
+    info = {
+        "title": "Test",
+        "extractor_key": "youtube",
+        "id": "abc123",
+        "requested_downloads": [{"filepath": str(video)}],
+    }
+
+    with patch("download.yt_dlp.YoutubeDL", return_value=_mock_ydl(info)):
+        _run_download(dl_state, DownloadContext(job_id=jid, url="https://youtu.be/abc", quality="best"), loop)
+    loop.close()
+
+    assert dl_state.jobs[jid].status == "done"
+    assert dl_state.db.is_downloaded("youtube", "abc123")
+    j = dl_state.db.get_job(jid)
+    assert j["extractor"] == "youtube"
+    assert j["video_id"] == "abc123"
+
+
+def test_run_download_does_not_record_on_error(dl_state, monkeypatch):
+    from download import DownloadContext, _run_download
+
+    loop = asyncio.new_event_loop()
+
+    jid = _make_job(dl_state, "dedup-fail")
+    ydl = _mock_ydl(None)
+    ydl.extract_info.return_value = None
+
+    with patch("download.yt_dlp.YoutubeDL", return_value=ydl):
+        _run_download(dl_state, DownloadContext(job_id=jid, url="https://youtu.be/abc", quality="best"), loop)
+    loop.close()
+
+    assert dl_state.jobs[jid].status == "error"
+    assert not dl_state.db.is_downloaded("youtube", "abc123")
+
+
+def test_run_download_persists_error_status_to_db(dl_state, monkeypatch):
+    """Un job que falla debe quedar status='error' en la DB, no 'queued'.
+
+    Si quedara 'queued', el dispatch_loop lo re-despacharia tras evict_once
+    (regresion: descarga fantasma ~1h despues de un fallo manual).
+    """
+    from download import DownloadContext, _run_download
+
+    loop = asyncio.new_event_loop()
+
+    jid = _make_job(dl_state, "err-persist")
+    assert dl_state.db.get_job(jid)["status"] == "queued"
+
+    def boom(*a, **kw):
+        raise RuntimeError("403 Forbidden")
+
+    with patch("download.yt_dlp.YoutubeDL", side_effect=boom):
+        _run_download(dl_state, DownloadContext(job_id=jid, url="https://youtu.be/abc", quality="best"), loop)
+    loop.close()
+
+    j = dl_state.db.get_job(jid)
+    assert j["status"] == "error"
+    assert j["error"]  # mensaje friendly no vacio
+    # Y, lo importante: ya no es candidato para el dispatch_loop.
+    assert jid not in [r["id"] for r in dl_state.db.get_queued(limit=10)]
+
+
+# --------------------- secure delete ----------------------------------- #
+def test_secure_delete_file_three_pass(tmp_path, monkeypatch):
+    from secure_delete import wipe_file
+
+    monkeypatch.setattr("config.SECURE_DELETE", True)
+    f = tmp_path / "secret.bin"
+    f.write_bytes(b"A" * 5000)
+    assert f.exists()
+    wipe_file(str(f))
+    assert not f.exists()
+
+
+def test_secure_delete_file_fast_path(tmp_path, monkeypatch):
+    """Sin OPENGRAB_SECURE_DELETE, usa unlink directo (sin overwrite)."""
+    from secure_delete import wipe_file
+
+    monkeypatch.setattr("config.SECURE_DELETE", False)
+    f = tmp_path / "plain.bin"
+    f.write_bytes(b"B" * 5000)
+    assert f.exists()
+    wipe_file(str(f))
+    assert not f.exists()
+
+
+def test_secure_delete_file_noop_on_missing(tmp_path):
+    from secure_delete import wipe_file
+
+    wipe_file(str(tmp_path / "ghost.bin"))
+
+
+def test_secure_delete_workdir_recursive(tmp_path, monkeypatch):
+    from secure_delete import wipe_workdir
+
+    monkeypatch.setattr("config.SECURE_DELETE", True)
+    wd = tmp_path / "opengrab_test"
+    wd.mkdir()
+    (wd / "a.bin").write_bytes(b"x" * 100)
+    (wd / "b.bin").write_bytes(b"y" * 200)
+    sub = wd / "sub"
+    sub.mkdir()
+    (sub / "c.bin").write_bytes(b"z" * 300)
+    wipe_workdir(str(wd))
+    assert not wd.exists()
+
+
+def test_secure_delete_workdir_fast_path(tmp_path, monkeypatch):
+    """Sin OPENGRAB_SECURE_DELETE, workdir se borra con unlink directo."""
+    from secure_delete import wipe_workdir
+
+    monkeypatch.setattr("config.SECURE_DELETE", False)
+    wd = tmp_path / "opengrab_fast"
+    wd.mkdir()
+    (wd / "a.bin").write_bytes(b"x" * 100)
+    (wd / "b.bin").write_bytes(b"y" * 200)
+    wipe_workdir(str(wd))
+    assert not wd.exists()
+
+
+# --------------------- history management ------------------------------ #
+def test_delete_history_entry_removes_from_db_and_ram(dl_state, tmp_path):
+    dl_state.db.insert_job("h1", "https://x.com/1", "best", status="done")
+    dl_state.db.update_job("h1", filepath=str(tmp_path / "video.mp4"), workdir=str(tmp_path / "opengrab_wd"))
+
+    f = tmp_path / "video.mp4"
+    f.write_bytes(b"fake")
+    wd = tmp_path / "opengrab_wd"
+    wd.mkdir()
+
+    result = dl_state.history.delete_history_entry("h1")
+    assert result is not None
+    filepath, workdir = result
+    assert filepath == str(tmp_path / "video.mp4")
+    assert workdir == str(tmp_path / "opengrab_wd")
+    assert dl_state.db.get_job("h1") is None
+
+
+def test_delete_history_entry_nonexistent(dl_state):
+    assert dl_state.history.delete_history_entry("phantom") is None
+
+
+def test_clear_all_history(dl_state):
+    dl_state.db.insert_job("a", "u", "best", status="done")
+    dl_state.db.insert_job("b", "u", "best", status="error")
+    dl_state.db.insert_job("c", "u", "best", status="interrupted")
+    dl_state.db.insert_job("d", "u", "best", status="downloading")
+
+    count = dl_state.history.clear_all_history()
+    assert count == 3
+    assert dl_state.db.get_job("d") is not None
+
+
+# --------------------- storage ----------------------------------------- #
+def test_list_storage(dl_state):
+    info = dl_state.storage.list_storage()
+    assert "total_usage_bytes" in info
+    assert "workdirs" in info
+    assert "loose_files" in info
+    assert "db_size_bytes" in info
+
+
+def test_cleanup_storage_dry_run(dl_state):
+    import time
+    wd = dl_state.out_dir / "opengrab_old"
+    wd.mkdir()
+    (wd / "f.bin").write_bytes(b"x" * 1000)
+    # make it look old
+    old = time.time() - 50 * 3600
+    os.utime(str(wd), (old, old))
+
+    result = dl_state.storage.cleanup_storage(max_age_hours=24, dry_run=True)
+    assert result["dry_run"] is True
+    assert result["would_clean"] >= 1
+    assert result["freed_bytes"] >= 1000
+    assert wd.exists()
+
+
+def test_cleanup_storage_deletes_old_workdirs(dl_state):
+    import time
+    wd = dl_state.out_dir / "opengrab_ancient"
+    wd.mkdir()
+    (wd / "f.bin").write_bytes(b"x" * 500)
+    old = time.time() - 50 * 3600
+    os.utime(str(wd), (old, old))
+
+    result = dl_state.storage.cleanup_storage(max_age_hours=24)
+    assert result["cleaned"] >= 1
+    assert result["freed_bytes"] >= 500
+    assert not wd.exists()
+
+
+def test_cleanup_storage_keeps_recent_workdirs(dl_state):
+    wd = dl_state.out_dir / "opengrab_fresh"
+    wd.mkdir()
+    (wd / "f.bin").write_bytes(b"x" * 100)
+
+    dl_state.storage.cleanup_storage(max_age_hours=24)
+    assert wd.exists()
+
+
+# -------------------- _resolve_template (Phase 3.5-3.7) --------------------- #
+def test_resolve_template_all_7_tokens(tmp_path):
+    """Los 7 tokens se expanden correctamente desde info dict."""
+    from state import AppState
+    from db import Database
+
+    db = Database(":memory:")
+    state = AppState(db, tmp_path)
+    info = {
+        "title": "Mi Video",
+        "uploader": "Canal Prueba",
+        "upload_date": "20250623",
+        "extractor_key": "Youtube",
+        "id": "abc123",
+        "resolution": "1920x1080",
+        "formats": [{"vcodec": "avc1", "filesize": 1000, "resolution": "1920x1080"}],
+    }
+    result = state.library._resolve_template("{title}/{channel}/{upload_year}/{resolution}", info, "mp4")
+    parts = result.parts
+    assert "Mi Video" in parts
+    assert "Canal Prueba" in parts
+    assert "2025" in parts
+    assert result.suffix == ".mp4"
+
+
+def test_resolve_template_title_empty_fallback_to_video(tmp_path):
+    """Si title está vacío, se reemplaza por 'video'."""
+    from state import AppState
+    from db import Database
+
+    db = Database(":memory:")
+    state = AppState(db, tmp_path)
+    info = {"title": "", "uploader": "Ch", "upload_date": "", "formats": []}
+    result = state.library._resolve_template("{title}", info, "mp4")
+    assert result.stem == "video"
+
+
+def test_resolve_template_sanitizes_illegal_chars(tmp_path):
+    """Chars ilegales se remueven, espacios colapsados, max 120."""
+    from state import AppState
+    from db import Database
+
+    db = Database(":memory:")
+    state = AppState(db, tmp_path)
+    info = {
+        "title": "Video\x00con\bin\x1fchars\x7fy espacios   dobles",
+        "uploader": "canal/nasty?file*name",
+        "upload_date": "",
+        "formats": [],
+    }
+    result = state.library._resolve_template("{title}/{channel}", info, "mp4")
+    name = result.name
+    # No debe contener chars ilegales
+    assert "\x00" not in name
+    assert "/" not in name
+    assert "?" not in name
+    assert "*" not in name
+    assert "  " not in name
+
+
+def test_resolve_template_truncates_segments_at_120(tmp_path):
+    """Segmentos de más de 120 chars se truncan."""
+    from state import AppState
+    from db import Database
+
+    db = Database(":memory:")
+    state = AppState(db, tmp_path)
+    long_title = "A" * 200
+    info = {"title": long_title, "uploader": "Ch", "upload_date": "", "formats": []}
+    result = state.library._resolve_template("{title}", info, "mp4")
+    assert len(result.stem) <= 120
+
+
+def test_resolve_template_date_format(tmp_path):
+    """upload_date se formatea como YYYY-MM-DD."""
+    from state import AppState
+    from db import Database
+
+    db = Database(":memory:")
+    state = AppState(db, tmp_path)
+    info = {
+        "title": "Vid",
+        "upload_date": "20250623",
+        "uploader": "Ch",
+        "formats": [],
+    }
+    result = state.library._resolve_template("{upload_date}", info, "mp4")
+    assert result.stem == "2025-06-23"
+
+
+# ------------------------- deduplicate (3.8) ------------------------------- #
+def test_deduplicate_no_collision_returns_same(tmp_path):
+    """Sin colisión, devuelve el mismo path."""
+    from state import AppState
+    from db import Database
+
+    db = Database(":memory:")
+    state = AppState(db, tmp_path)
+    target = tmp_path / "video.mp4"
+    result = state.library.deduplicate(target)
+    assert result == target
+
+
+def test_deduplicate_one_collision_adds_1(tmp_path):
+    """Una colisión → appende ' (1)'."""
+    from state import AppState
+    from db import Database
+
+    db = Database(":memory:")
+    state = AppState(db, tmp_path)
+    (tmp_path / "video.mp4").write_bytes(b"existing")
+    result = state.library.deduplicate(tmp_path / "video.mp4")
+    assert result.name == "video (1).mp4"
+
+
+def test_deduplicate_multiple_collisions_sequential(tmp_path):
+    """Colisiones secuenciales → ' (1)', ' (2)', ' (3)'."""
+    from state import AppState
+    from db import Database
+
+    db = Database(":memory:")
+    state = AppState(db, tmp_path)
+    base = tmp_path / "video.mp4"
+    base.write_bytes(b"0")
+    (tmp_path / "video (1).mp4").write_bytes(b"1")
+    result = state.library.deduplicate(base)
+    assert result.name == "video (2).mp4"

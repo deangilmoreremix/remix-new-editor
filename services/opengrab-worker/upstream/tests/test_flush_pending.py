@@ -1,0 +1,107 @@
+import asyncio
+from unittest.mock import patch
+import pytest
+from db import Database
+from models import Job
+from state import AppState
+
+
+@pytest.fixture
+def st(tmp_path):
+    db = Database(":memory:")
+    s = AppState(db, tmp_path)
+    yield s
+    db.close()
+
+
+def _make_husk(out_dir, name, with_residue):
+    """Crea un workdir opengrab_* simulando estado post-finalize:
+    el keeper ya se movió afuera; queda (o no) residuo adentro."""
+    wd = out_dir / name
+    wd.mkdir()
+    if with_residue:
+        (wd / "video.f137.mp4.part").write_bytes(b"x" * 1024)   # fragmento HLS
+        (wd / "audio.f140.m4a").write_bytes(b"y" * 512)         # stream sin mergear
+    return wd
+
+
+def test_flush_borra_husk_con_residuo(st):
+    """El bug: os.rmdir dejaba leakear husks no vacíos. flush_pending_cleanups
+    los borra."""
+    wd = _make_husk(st.out_dir, "opengrab_abc", with_residue=True)
+    st.storage.schedule_tempdir_cleanup(str(wd))
+
+    removed = st.storage.flush_pending_cleanups()
+
+    assert removed == 1
+    assert not wd.exists()
+    assert str(wd) not in st.storage.pending_cleanups
+
+
+def test_flush_borra_husk_vacio(st):
+    """Caso feliz (merge limpio): workdir vacío también se va."""
+    wd = _make_husk(st.out_dir, "opengrab_empty", with_residue=False)
+    st.storage.schedule_tempdir_cleanup(str(wd))
+    assert st.storage.flush_pending_cleanups() == 1
+    assert not wd.exists()
+
+
+def test_flush_self_heal_entrada_stale(st):
+    """Si el dir ya no existe (borrado externo), la entrada se descarta igual."""
+    st.storage.schedule_tempdir_cleanup(str(st.out_dir / "opengrab_ghost"))
+    st.storage.flush_pending_cleanups()
+    assert st.storage.pending_cleanups == set()
+
+
+def test_flush_invalida_cache_usage(st):
+    wd = _make_husk(st.out_dir, "opengrab_cache", with_residue=True)
+    st.storage.schedule_tempdir_cleanup(str(wd))
+    with st.storage._usage_lock:
+        st.storage._usage_cache = 999
+        st.storage._usage_cache_ts = 1e18  # cache "fresca"
+    st.storage.flush_pending_cleanups()
+    assert st.storage._usage_cache_ts == 0.0  # invalidada
+
+
+@pytest.mark.asyncio
+async def test_dispatch_loop_flushea_al_quedar_sin_activos(st):
+    """Cuando count_active_jobs()==0, dispatch_loop drena en el primer tick."""
+    wd = _make_husk(st.out_dir, "opengrab_dispatch", with_residue=True)
+    st.storage.schedule_tempdir_cleanup(str(wd))
+    # sin jobs activos -> count_active_jobs()==0
+
+    calls = {"n": 0}
+    real_sleep = asyncio.sleep
+    async def fake_sleep(_):
+        calls["n"] += 1
+        if calls["n"] >= 2:
+            raise asyncio.CancelledError
+        await real_sleep(0)
+    with patch("asyncio.sleep", fake_sleep):
+        with pytest.raises(asyncio.CancelledError):
+            await st.dispatch_loop()
+
+    assert not wd.exists()
+
+
+@pytest.mark.asyncio
+async def test_dispatch_loop_NO_flushea_con_job_activo(st):
+    """Con una descarga en curso, el husk no se toca."""
+    wd = _make_husk(st.out_dir, "opengrab_active", with_residue=True)
+    st.storage.schedule_tempdir_cleanup(str(wd))
+    st.jobs["j1"] = Job(id="j1", created=0.0)
+    st.jobs["j1"].status = "downloading"
+
+    calls = {"n": 0}
+    real_sleep = asyncio.sleep
+    async def fake_sleep(_):
+        calls["n"] += 1
+        if calls["n"] >= 2:
+            raise asyncio.CancelledError
+        await real_sleep(0)
+    with patch("asyncio.sleep", fake_sleep), \
+         patch.object(st.db, "get_queued", return_value=[]):
+        with pytest.raises(asyncio.CancelledError):
+            await st.dispatch_loop()
+
+    assert wd.exists()  # preservado: hay un job activo

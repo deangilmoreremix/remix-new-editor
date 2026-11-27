@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenGrab</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png?v=__VERSION__">
+<link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png?v=__VERSION__">
+<link rel="shortcut icon" href="/static/favicon.ico?v=__VERSION__">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png?v=__VERSION__">
+<link rel="manifest" href="/static/site.webmanifest?v=__VERSION__">
+<link rel="stylesheet" href="/static/style.css?v=__VERSION__">
+</head>
+<body>
+<div class="wrap" x-data="app" x-init="init()">
+
+  <header> 
+    <a href="/">
+    <img src="/static/logo.png" alt="Logo"></a>
+    <span class="logo">Open<b>Grab</b></span>
+    <span class="tag"><span class="dot"></span>self-hosted · yt-dlp</span>
+    <span class="header-actions">
+      <button class="theme-btn" @click="toggleTheme" :aria-label="theme==='dark'?t('theme.light'):t('theme.dark')">
+        <svg x-show="theme==='dark'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"></path>
+        </svg>
+        <svg x-show="theme!=='dark'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" x-cloak>
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
+        </svg>
+      </button>
+      
+      <button class="theme-btn" x-show="isDesktop" @click="openDownloadsFolder()"
+              :title="t('ui.open_downloads')" :aria-label="t('ui.open_downloads')" x-cloak>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </button>
+
+      <button class="theme-btn" @click="openSettingsModal()" :title="t('ui.settings_title')" :aria-label="t('ui.settings_title')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+    </span>
+  </header>
+
+  <!-- Auth card -->
+  <div class="card auth-card" x-show="authChecked && !authenticated" x-cloak>
+    <label class="fld" for="token" x-text="t('ui.token_label')"></label>
+    <div class="row">
+      <input id="token" type="password" :placeholder="t('ui.token_placeholder')"
+             autocomplete="off" spellcheck="false" x-model="token"
+             @keydown.enter="doAuth">
+      <button class="go" @click="doAuth" :disabled="authLoading" x-text="t('ui.connect')">
+        <span x-show="authLoading">…</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main card -->
+  <div class="card" x-show="authChecked && authenticated" x-cloak>
+    <label class="fld" for="url" x-text="t('ui.url_label')"></label>
+    <div class="row url-row" @drop.prevent="onDrop($event)" @dragover.prevent>
+      <span class="url-input-wrap">
+        <input id="url" type="text" placeholder="https://…"
+               autocomplete="off" spellcheck="false" x-model="url"
+               @keydown.enter="inspect" @paste="onPaste($event)">
+        <button class="url-clear" x-show="url" @click="clearUrl()"
+                :aria-label="t('ui.clear_url')" :title="t('ui.clear')" x-cloak>✕</button>
+      </span>
+      <button class="copy-btn" @click="copyCommand" :disabled="!url"
+              :class="{copied: cmdCopied}" x-text="cmdCopied ? '✓' : '📋'"
+              :title="t('ui.copy_command')"></button>
+      <button class="paste-btn" @click="pasteFromClipboard"
+              :title="t('ui.paste_hint')" x-text="t('ui.paste')"></button>
+      <button class="btn-secondary analyze-btn" @click="inspect" :disabled="inspecting">
+        <span x-show="!inspecting" x-text="t('ui.analyze')"></span>
+        <span x-show="inspecting">…</span>
+      </button>
+    </div>
+    <p class="url-hint muted-sm" x-show="!meta && !inspecting && !isPlaylist && !downloading && !terminal.length" x-cloak
+       x-text="t('ui.url_placeholder')"></p>
+
+    <!-- Video metadata -->
+    <div class="meta" x-show="inspecting && !meta" x-transition.duration.200ms>
+      <div class="skeleton skeleton-thumb"></div>
+      <div class="info" style="flex:1">
+        <div class="skeleton skeleton-line"></div>
+        <div class="skeleton skeleton-line short"></div>
+      </div>
+    </div>
+    <div class="meta" x-show="meta" x-transition.duration.200ms>
+      <img class="thumb" :src="thumbnail" alt="">
+      <div class="info">
+        <p class="t" x-text="title">—</p>
+        <p class="s" x-text="subtitle">—</p>
+        <span class="site-badge" x-show="site" x-text="t('ui.site_detected') + ' ' + site"></span>
+        <button class="btn-sm mt-14" x-show="playlistAvailable"
+                @click="isPlaylist = true; loadPlaylist()">
+          <span x-text="t('ui.view_playlist')"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Quality chips -->
+    <div class="quality">
+      <template x-for="q in qualities" :key="q.id">
+        <span class="chip" :data-q="q.id"
+              :aria-pressed="quality === q.id" role="radio" tabindex="0"
+              @click="quality = q.id"
+              @keydown.enter.prevent="quality = q.id"
+              @keydown.space.prevent="quality = q.id"
+              x-text="t('quality.'+q.id)"></span>
+      </template>
+    </div>
+
+    <!-- Extras toggles (subs, thumb, info json) -->
+    <div class="extras-toggles" x-show="!isPlaylist && !downloading">
+      <label class="extra-toggle">
+        <input type="checkbox" x-model="subsEnabled" @change="saveExtraPref('subs')">
+        <span x-text="t('ui.subs_toggle')"></span>
+      </label>
+      <label class="extra-toggle">
+        <input type="checkbox" x-model="thumbEnabled" @change="saveExtraPref('thumb')">
+        <span x-text="t('ui.thumb_toggle')"></span>
+      </label>
+      <label class="extra-toggle">
+        <input type="checkbox" x-model="infojsonEnabled" @change="saveExtraPref('infojson')">
+        <span x-text="t('ui.infojson_toggle')"></span>
+      </label>
+    </div>
+
+    <!-- Modo incógnito: sin historial, entrega a carpeta elegida, wipe del temp -->
+    <div class="incognito-row" x-show="!isPlaylist && !downloading">
+      <label class="extra-toggle incognito-toggle">
+        <input type="checkbox" x-model="incognitoEnabled">
+        <span>🕶️ <span x-text="t('ui.incognito_toggle')"></span></span>
+      </label>
+      <p class="incognito-hint" x-show="incognitoEnabled" x-text="t('ui.incognito_hint')"></p>
+    </div>
+
+    <!-- Clips: descargar solo un rango [desde, hasta] del video/audio.
+         Solo con duración conocida (livestreams y extractores sin duration
+         quedan afuera: sin techo no hay slider ni validación posible). -->
+    <div class="clip-row" x-show="meta && !isPlaylist && !downloading && clipDuration > 0">
+      <label class="extra-toggle clip-toggle">
+        <input type="checkbox" x-model="clipEnabled">
+        <span>✂️ <span x-text="t('ui.clip_toggle')"></span></span>
+      </label>
+      <div class="clip-editor" x-show="clipEnabled" x-transition.duration.200ms>
+        <div class="clip-slider">
+          <div class="clip-track" :style="clipTrackStyle()"></div>
+          <input type="range" min="0" :max="clipDuration" step="1"
+                 x-model.number="clipStart" @input="clipSyncFromSlider('start')"
+                 :style="'z-index:' + clipStartZ()"
+                 :aria-label="t('ui.clip_start')">
+          <input type="range" min="0" :max="clipDuration" step="1"
+                 x-model.number="clipEnd" @input="clipSyncFromSlider('end')"
+                 :aria-label="t('ui.clip_end')">
+        </div>
+        <div class="clip-inputs">
+          <label>
+            <span x-text="t('ui.clip_start')"></span>
+            <input type="text" inputmode="numeric" x-model="clipStartText"
+                   :class="{invalid: clipStartInvalid}"
+                   @change="clipSyncFromText('start')"
+                   @keydown.enter.prevent="clipSyncFromText('start')">
+          </label>
+          <label>
+            <span x-text="t('ui.clip_end')"></span>
+            <input type="text" inputmode="numeric" x-model="clipEndText"
+                   :class="{invalid: clipEndInvalid}"
+                   @change="clipSyncFromText('end')"
+                   @keydown.enter.prevent="clipSyncFromText('end')">
+          </label>
+          <span class="clip-length"
+                x-text="t('ui.clip_length') + ': ' + clipLength()"></span>
+        </div>
+        <div class="clip-precise-row" x-show="quality !== 'audio'">
+          <label class="extra-toggle">
+            <input type="checkbox" x-model="clipPrecise">
+            <span x-text="t('ui.clip_precise')"></span>
+          </label>
+          <p class="clip-hint" x-show="!clipPrecise"
+             x-text="t('ui.clip_precise_hint')"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Format preview -->
+    <div x-show="formats.length" class="mt-14 fmt-wrap">
+      <div class="toggle-label"
+           role="button" tabindex="0" :aria-expanded="showFormats"
+           @click="showFormats = !showFormats"
+           @keydown.enter.prevent="showFormats = !showFormats"
+           @keydown.space.prevent="showFormats = !showFormats"
+           x-text="showFormats ? t('ui.formats_expanded') : t('ui.formats_collapsed') + ' (' + formats.length + ')'"></div>
+      <table class="fmt-table" x-show="showFormats" x-transition.duration.200ms>
+        <thead><tr><th x-text="t('shortcuts.calidad')"></th><th x-text="t('shortcuts.codec')"></th><th class="fsize" x-text="t('shortcuts.size')"></th></tr></thead>
+        <tbody>
+          <template x-for="f in formats" :key="f.format_id">
+            <tr role="button" tabindex="0"
+                @click="quality = f.format_id"
+                @keydown.enter.prevent="quality = f.format_id"
+                @keydown.space.prevent="quality = f.format_id"
+                :class="{sel: quality === f.format_id}">
+              <td x-text="f.format_note || f.resolution || f.format_id"></td>
+              <td x-text="(f.vcodec||'?') + ' / ' + (f.acodec||'?')"></td>
+              <td class="fsize" x-text="f.filesize ? (f.filesize/1048576).toFixed(1)+' MB' : '—'"></td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Playlist panel -->
+    <div x-show="isPlaylist" x-transition.duration.200ms class="mt-14">
+      <div class="pl-header">
+        <span class="pl-count" x-text="selectedCount() + '/' + playlistCount + ' ' + t('ui.seleccionados')"></span>
+        <button class="btn-sm" @click="toggleAllPlaylist(true)" x-text="t('ui.all')"></button>
+        <button class="btn-sm" @click="toggleAllPlaylist(false)" x-text="t('ui.none')"></button>
+        <button class="btn-sm" @click="downloadPlaylist" :disabled="selectedCount() === 0" x-text="t('ui.download_playlist')"></button>
+      </div>
+      <label class="extra-toggle pl-subfolder-toggle">
+        <input type="checkbox" x-model="saveInSubfolder">
+        <span x-text="t('ui.save_in_subfolder')"></span>
+      </label>
+      <div class="pl-list">
+        <template x-for="(v, i) in playlistVideos" :key="v.url || v.video_id || i">
+          <div class="pl-video">
+            <input type="checkbox" x-model="v.selected" :disabled="v.unavailable">
+            <span class="pl-title" :title="v.title" x-text="v.title"></span>
+            <span class="pl-dur" x-text="v.duration ? fmtDuration(v.duration) : ''"></span>
+          </div>
+        </template>
+        <span x-show="playlistLoading" class="loading-msg">
+          <template x-for="i in 4" :key="i">
+            <div class="skeleton-pl"><div class="skeleton skeleton-line"></div></div>
+          </template>
+        </span>
+      </div>
+    </div>
+
+    <!-- Batch progress display -->
+    <div x-show="batchJobIds.length > 0" x-transition.duration.200ms class="batch-progress">
+      <div class="batch-header">
+        <span class="batch-title" x-text="t('ui.batch_section')"></span>
+        <span class="batch-count" x-text="Object.keys(batchJobs).length + ' / ' + batchJobIds.length"></span>
+      </div>
+      <div class="batch-grid">
+        <template x-for="jobId in batchJobIds" :key="jobId">
+          <div class="batch-row" :class="'status-' + (batchJobs[jobId]?.status || 'queued')">
+            <span class="batch-status-icon" x-text="{
+              'queued': '⏳',
+              'starting': '⏳',
+              'downloading': '↓',
+              'processing': '⚙',
+              'done': '✓',
+              'error': '✗',
+              'interrupted': '⚠'
+            }[batchJobs[jobId]?.status || 'queued']"></span>
+            <span class="batch-title-cell" x-text="batchJobs[jobId]?.title || jobId" :title="batchJobs[jobId]?.filename || ''"></span>
+            <div class="batch-progress-bar" x-show="batchJobs[jobId]?.status === 'downloading' || batchJobs[jobId]?.status === 'processing'">
+              <i :style="'width:' + (batchJobs[jobId]?.percent || 0) + '%'"></i>
+            </div>
+            <span class="batch-pct" x-text="(batchJobs[jobId]?.percent || 0).toFixed(0) + '%'" x-show="batchJobs[jobId]?.status === 'downloading' || batchJobs[jobId]?.status === 'processing'"></span>
+            <span class="batch-speed" x-text="batchJobs[jobId]?.speed || ''" x-show="batchJobs[jobId]?.speed"></span>
+            <span class="batch-eta" x-text="batchJobs[jobId]?.eta || ''" x-show="batchJobs[jobId]?.eta"></span>
+            <span class="batch-error" x-show="batchJobs[jobId]?.status === 'error'" x-text="batchJobs[jobId]?.error || t('ui.error')"></span>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <div class="mt-18" x-show="!batchJobIds.length">
+      <button @click="isPlaylist ? downloadPlaylist() : download()" :disabled="isPlaylist ? selectedCount() === 0 : !url.trim()" class="btn-block" x-text="t('ui.download')"></button>
+    </div>
+
+    <!-- Progreso de descarga -->
+    <div class="term" :class="{show: terminal.length > 0 && !batchJobIds.length}">
+      <div class="bar-head">
+        <span class="tl"><i></i><i></i><i></i></span>
+        <span>yt-dlp</span>
+        <button class="term-toggle" @click="showTerminal = !showTerminal"
+                x-text="showTerminal ? t('ui.hide_log') : t('ui.show_log')"></button>
+      </div>
+      <!-- Lectura limpia: % grande + velocidad · ETA -->
+      <div class="dl-stats">
+        <span class="dl-pct" :class="{done: progressDone}" x-show="!progressIndet"
+              x-text="(progressDone ? 100 : Math.round(progress)) + '%'"></span>
+        <span class="dl-pct clip-indet-note" x-show="progressIndet"
+              x-text="t('ui.clip_downloading')"></span>
+        <span class="dl-meta" x-show="downloading && (dlSpeed || dlEta)">
+          <span x-show="dlSpeed" x-text="dlSpeed"></span>
+          <span x-show="dlEta" x-text="'· ETA ' + dlEta"></span>
+        </span>
+        <span class="dl-meta dl-done" x-show="progressDone">listo</span>
+      </div>
+      <div class="progress" :class="{done: progressDone, indet: progressIndet}">
+        <i :style="'width:' + (progressIndet ? 100 : progress) + '%'"></i>
+      </div>
+      <div class="lines" x-show="showTerminal" x-ref="lines"
+           x-effect="if($refs.lines && terminal.length) $refs.lines.scrollTop = $refs.lines.scrollHeight">
+        <template x-for="(line, idx) in terminal" :key="idx">
+          <p class="l" :class="line.cls">
+            <span class="pfx" x-text="line.pfx"></span>
+            <span class="body" x-text="line.text"></span>
+          </p>
+        </template>
+      </div>
+    </div>
+
+    <!-- Descargas de esta sesión (concurrentes + rehidratadas) -->
+    <div class="batch-progress" x-show="!batchJobIds.length && Object.keys(sessionJobs).length"
+         x-transition.duration.200ms style="margin-top:14px">
+      <div class="batch-header">
+        <span class="batch-title" x-text="t('ui.sessions_active')"></span>
+        <span class="batch-count" x-text="sessionActiveCount + ' activa(s) · ' + Object.keys(sessionJobs).length + ' total'"></span>
+      </div>
+      <template x-for="j in sortedSessionJobs" :key="j.id">
+        <div class="batch-row" :class="['status-' + (j.status || 'queued'), {focused: j.id === focusedJobId}]"
+             @click="focusJob(j.id)" style="cursor:pointer">
+          <span class="batch-status-icon" x-text="{
+            queued:'•', starting:'•', downloading:'↓', processing:'⚙', done:'✓', error:'✗', cancelled:'∅'
+          }[j.status] || '•'"></span>
+          <span class="batch-title-cell" x-text="j.title || j.filename || j.id" :title="j.filename || ''"></span>
+          <div class="batch-progress-bar" x-show="j.status === 'downloading' || j.status === 'processing'">
+            <i :style="'width:' + (j.percent || 0) + '%'"></i>
+          </div>
+          <span class="batch-pct" x-text="(j.percent || 0).toFixed(0) + '%'"
+                x-show="j.status === 'downloading' || j.status === 'processing'"></span>
+          <span class="batch-speed" x-text="j.speed || ''" x-show="j.speed && j.status === 'downloading'"></span>
+          <span class="batch-eta" x-text="j.eta || ''" x-show="j.eta && j.status === 'downloading'"></span>
+          <span class="batch-error" x-show="j.status === 'error'" x-text="j.error || t('ui.error')"></span>
+          <span class="batch-error" x-show="j.status === 'cancelled'">cancelado</span>
+          <span class="incognito-badge" x-show="j.incognito" :title="t('ui.incognito_delivered')"
+                x-text="'🕶️ ' + t('ui.incognito_badge')"></span>
+          <span class="clip-badge" x-show="j.clip_start != null"
+                x-text="'✂️ ' + clipBadge(j)"></span>
+          <span class="job-actions">
+            <a class="job-act" x-show="j.status === 'done' && !j.incognito" :href="'/api/jobs/' + j.id + '/file'"
+               :download="j.filename || ''" @click.stop :title="t('ui.save_file')">⬇</a>
+            <button class="job-act job-cancel"
+                    x-show="['queued','starting','downloading','processing'].includes(j.status)"
+                     @click.stop="cancelJob(j.id)" :title="t('ui.cancel')">✕</button>
+            <button class="job-act"
+                    x-show="j.status === 'done' || j.status === 'error' || j.status === 'cancelled'"
+                     @click.stop="dismissJob(j.id)" :title="t('ui.discard')">✕</button>
+          </span>
+        </div>
+      </template>
+    </div>
+
+    <!-- Error -->
+    <div class="err-box" :class="{show: errorMsg}">
+      <span x-text="errorMsg"></span>
+      <button class="btn-sm retry-btn" x-show="canRetry" @click="download"
+              :aria-label="t('ui.retry_download')" x-text="t('ui.retry')"></button>
+    </div>
+
+    <!-- Download / Save link -->
+    <div class="actions" :class="{show: downloadUrl}">
+      <template x-if="isDesktop">
+        <button class="dl" @click="saveTo(lastJobId)" :disabled="savingTo"
+                :aria-label="t('ui.save_to_folder')">
+          <span x-show="!savingTo" x-text="t('ui.save_as')"></span>
+          <span x-show="savingTo" x-cloak x-text="t('ui.saving')"></span>
+        </button>
+      </template>
+      <template x-if="!isDesktop">
+        <a class="dl" :href="downloadUrl" :download="downloadFilename" x-text="t('ui.save_file')"></a>
+      </template>
+    </div>
+
+    <!-- Success banner -->
+    <div class="success-box" :class="{show: successPath}" x-transition.duration.200ms>
+      <span class="success-icon">✓</span>
+      <span class="success-path" x-text="successPath"></span>
+      <button class="folder-btn" @click="openFolder(lastJobId)" :disabled="!lastJobId"
+              x-text="t('ui.open_folder')"></button>
+    </div>
+  </div>
+
+  <footer>
+    <span x-text="t('ui.footer')"></span>
+  </footer>
+
+  <!-- Tools section divider -->
+  <div class="section-divider" x-show="authenticated" x-cloak>
+    <span class="section-label" x-text="t('ui.tools')"></span>
+  </div>
+
+  <!-- History -->
+  <div class="tools-section" x-show="authenticated" x-cloak>
+    <div class="toggle-label-lg"
+         role="button" tabindex="0" :aria-expanded="historyOpen"
+         @click="toggleHistory"
+         @keydown.enter.prevent="toggleHistory"
+         @keydown.space.prevent="toggleHistory"
+                    x-text="historyOpen ? t('ui.history_expanded') : t('ui.history_collapsed') + historyBadge()"></div>
+    <div x-show="historyOpen">
+      <input type="text" x-model="historyFilter" 
+             :placeholder="t('ui.history_filter_placeholder')"
+             class="hist-filter" x-show="history.length > 5">
+      <span x-show="!historyLoaded" class="muted-sm" x-text="t('ui.loading')"></span>
+      <span x-show="historyLoaded && !history.length" class="empty-state" x-text="t('ui.no_downloads')"></span>
+      <span x-show="historyLoaded && history.length && !visibleHistory.length && historyFilter" class="empty-state" x-text="t('ui.history_no_results')"></span>
+      <template x-for="e in visibleHistory" :key="e.job_id">
+        <div class="h-entry" :data-job-id="e.job_id">
+          <img class="h-thumb" x-show="e.thumbnail" :src="e.thumbnail" alt="" loading="lazy">
+          <span class="h-title" :title="e.title" x-text="e.title"></span>
+          <span class="h-meta" x-text="e.quality"></span>
+          <span class="h-size" x-show="e.size" x-text="(e.size/1048576).toFixed(1) + ' MB'"></span>
+          <button class="h-del" @click.stop="deleteHistoryEntry(e.job_id)" :title="t('ui.delete')">×</button>
+        </div>
+      </template>
+      <div class="engine-row">
+        <button class="btn-sm" @click="clearAllHistory" x-show="history.length" x-text="t('ui.clear_history')"></button>
+        <button class="btn-sm" @click="updateEngine" :disabled="engineUpdating"
+                :aria-label="t('ui.update_engine_aria')"
+                x-text="engineUpdating ? t('ui.updating_engine') : t('ui.update_engine')"></button>
+        <span class="muted-sm" x-show="engineMsg" x-text="engineMsg" aria-live="polite"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Storage -->
+  <div class="tools-section" x-show="authenticated" x-cloak>
+    <div class="toggle-label-lg"
+         role="button" tabindex="0" :aria-expanded="storageOpen"
+         @click="toggleStorage"
+         @keydown.enter.prevent="toggleStorage"
+         @keydown.space.prevent="toggleStorage"
+                    x-text="storageOpen ? t('ui.storage_expanded') : t('ui.storage_collapsed') + storageBadge()"></div>
+    <div x-show="storageOpen">
+      <span x-show="!storageLoaded" class="muted-sm" x-text="t('ui.loading')"></span>
+      <div x-show="storageLoaded">
+        <div class="storage-summary">
+          <span x-text="t('ui.total_used') + ' ' + formatMB(storage.total_usage_bytes)"></span>
+          <span class="muted-sm" x-show="storage.db_size_bytes" x-text="' · DB: ' + formatMB(storage.db_size_bytes)"></span>
+        </div>
+        <div x-show="storageLoaded && !storage.workdirs.length && !(storage.loose_files && storage.loose_files.length)"
+             class="empty-state"><span class="success-icon">✓</span> <span x-text="t('ui.clean_storage')"></span></div>
+        <template x-if="storage.workdirs.length">
+          <div>
+            <div class="muted-sm" style="margin:8px 0 4px" x-text="t('ui.temp_workdirs')"></div>
+            <template x-for="w in storage.workdirs" :key="w.name">
+              <div class="wd-entry">
+                <span class="wd-name" x-text="w.name"></span>
+                <span class="wd-badge" x-show="w.active" x-text="t('ui.active_badge')"></span>
+                <span class="h-meta" x-text="formatMB(w.size_bytes)"></span>
+                <span class="h-meta" x-text="formatAge(w.age_hours)"></span>
+              </div>
+            </template>
+          </div>
+        </template>
+        <template x-if="storage.loose_files && storage.loose_files.length">
+          <div>
+            <div class="muted-sm" style="margin:8px 0 4px" x-text="t('ui.loose_files')"></div>
+            <template x-for="f in storage.loose_files" :key="f.name">
+              <div class="wd-entry">
+                <span class="wd-name" x-text="f.name"></span>
+                <span class="h-meta" x-text="formatMB(f.size_bytes)"></span>
+                <span class="h-meta" x-text="formatAge(f.age_hours)"></span>
+              </div>
+            </template>
+          </div>
+        </template>
+        <div class="engine-row">
+          <button class="btn-sm" @click="cleanupStorage" x-text="t('ui.cleanup_old')"></button>
+          <button class="btn-sm" @click="cleanupAllStorage" x-text="t('ui.cleanup_all')"></button>
+          <span class="muted-sm" x-show="storageMsg" x-text="storageMsg" aria-live="polite"></span>
+    </div>
+
+    <!-- Extras files (subs, thumb, info json) -->
+    <div x-show="focusedJobId && jobExtras[focusedJobId]?.length" class="job-extras">
+      <span class="extras-label" x-text="t('ui.extras') + ':'"></span>
+      <template x-for="ex in jobExtras[focusedJobId]" :key="ex.filename">
+        <a :href="'/api/jobs/' + focusedJobId + '/file/' + ex.filename" class="extra-link"
+           :download="ex.filename" x-text="ex.filename + ' (' + fmtSize(ex.size) + ')'"></a>
+      </template>
+    </div>
+  </div>
+    </div>
+  </div>
+
+  <!-- Channels (watch mode) -->
+  <div class="tools-section" x-show="authenticated" x-cloak>
+    <div class="toggle-label-lg"
+         role="button" tabindex="0" :aria-expanded="channelsOpen"
+         @click="toggleChannels"
+         @keydown.enter.prevent="toggleChannels"
+         @keydown.space.prevent="toggleChannels"
+                    x-text="channelsOpen ? t('ui.channels_expanded') : t('ui.channels_collapsed') + channelsBadge()"></div>
+    <div x-show="channelsOpen">
+      <span x-show="!channelsLoaded" class="muted-sm" x-text="t('ui.loading')"></span>
+
+      <template x-for="ch in channels" :key="ch.id">
+        <div class="ch-entry">
+          <span class="ch-title" :title="ch.url" x-text="ch.title || ch.url"></span>
+          <span class="ch-meta" x-text="ch.quality"></span>
+          <span class="ch-meta" x-text="'cada ' + ch.interval_minutes + 'm'"></span>
+          <button class="btn-sm" @click="checkChannel(ch.id)" :disabled="ch._checking"
+                  x-text="ch._checking ? '…' : t('ui.check_channel')"></button>
+          <button class="btn-sm" :class="{toggled: ch.enabled}"
+                  @click="toggleChannel(ch)"
+                  x-text="ch.enabled ? t('ui.on') : t('ui.off')"></button>
+          <button class="btn-sm" @click="deleteChannel(ch.id)">✕</button>
+        </div>
+      </template>
+      <span x-show="channelsLoaded && !channels.length" class="empty-state" x-text="t('ui.no_channels')"></span>
+
+      <div class="ch-add">
+        <input type="text" :placeholder="t('ui.url_channel_placeholder')" x-model="newChannelUrl"
+               @keydown.enter="addChannel">
+        <select x-model="newChannelQuality">
+          <option value="best">best</option>
+          <option value="1080p">1080p</option>
+          <option value="720p">720p</option>
+          <option value="480p">480p</option>
+          <option value="audio">audio</option>
+        </select>
+        <input type="number" x-model="newChannelInterval" min="5" max="1440" style="width:60px"
+               :title="t('ui.interval_minutes_title')">
+        <button class="btn-sm" @click="addChannel" :disabled="!newChannelUrl" x-text="t('ui.add_channel')"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings modal -->
+  <div class="settings-overlay" x-show="settingsModalOpen" x-cloak
+       @keydown.escape.window="closeSettingsModal()" x-transition.opacity>
+    <div class="settings-backdrop" @click="closeSettingsModal()"></div>
+    <div class="settings-modal" role="dialog" aria-modal="true"
+         :aria-label="t('ui.settings_title')" @click.stop
+         x-transition:enter="sm-enter" x-transition:enter-start="sm-enter-start">
+      <!-- Header -->
+      <div class="sm-head">
+        <div class="sm-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span x-text="t('ui.settings_title')"></span>
+        </div>
+        <button class="sm-close" @click="closeSettingsModal()"
+                :aria-label="t('ui.close')" :title="t('ui.press_esc')">&#10005;</button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="sm-tabs" role="tablist">
+        <template x-for="tab in settingsTabs" :key="tab.id">
+          <button class="sm-tab" role="tab" :class="{active: activeTab === tab.id}"
+                  :aria-selected="activeTab === tab.id" @click="activeTab = tab.id">
+            <span x-text="t(tab.label)"></span>
+          </button>
+        </template>
+      </div>
+
+      <!-- Body -->
+      <div class="sm-body">
+        <div x-show="settingsLoading" aria-busy="true">
+          <div class="skeleton" style="height:52px;margin:12px 0;"></div>
+          <div class="skeleton" style="height:52px;margin:12px 0;"></div>
+          <div class="skeleton" style="height:52px;margin:12px 0;"></div>
+        </div>
+
+        <!-- Grouped panels (downloads / storage / interface) -->
+        <template x-for="tab in settingsTabs.filter(tt => tt.id !== 'advanced')" :key="'p-'+tab.id">
+          <div class="sm-panel" role="tabpanel"
+               x-show="!settingsLoading && activeTab === tab.id">
+            <template x-for="s in settingsByGroup(tab.id)" :key="s.key">
+              <div class="sm-field" x-show="s.scope !== 'desktop' || isDesktop"
+                   :class="{ 'sm-field-err': s._error }">
+                <div class="sm-field-info">
+                  <span class="sm-field-label" x-text="t(s.description || s.key)"></span>
+                  <span x-show="s.tokens && s.key==='name_template'" class="sm-field-help">
+                    <span x-text="t('ui.tokens_label')"></span>: <template x-for="tok in s.tokens"><code class="set-token" x-text="tok"></code></template>
+                  </span>
+                </div>
+                <div class="sm-field-control">
+                  <span class="set-origin" x-show="s.locked"
+                        :title="t('ui.settings_lock_note')">&#128274;</span>
+
+                  <select x-show="!s.locked && (s.scope !== 'desktop' || isDesktop) && s.options"
+                          x-model="s._editValue" @change="saveSetting(s)">
+                    <template x-for="opt in s.options" :key="opt.value">
+                      <option :value="opt.value" x-text="t(opt.label)"></option>
+                    </template>
+                  </select>
+
+                  <input x-show="!s.locked && (s.scope !== 'desktop' || isDesktop) && s.type==='int'"
+                         type="number" x-model="s._editValue"
+                         :min="s.validation?.min" :max="s.validation?.max"
+                         @keydown.enter="validateAndSave(s)" @blur="validateAndSave(s)">
+
+                  <label x-show="!s.locked && (s.scope !== 'desktop' || isDesktop) && s.type==='bool'"
+                         class="set-toggle">
+                    <input type="checkbox"
+                           :checked="s._editValue === true || s._editValue === 'true'"
+                           @change="s._editValue = $event.target.checked; saveSetting(s)">
+                    <span class="set-toggle-label"
+                          x-text="(s._editValue === true || s._editValue === 'true') ? t('ui.on') : t('ui.off')"></span>
+                  </label>
+
+                  <input x-show="!s.locked && (s.scope !== 'desktop' || isDesktop) && s.type==='string' && !s.options"
+                         type="text" x-model="s._editValue" :placeholder="s.placeholder"
+                         @keydown.enter="validateAndSave(s)">
+
+                  <span x-show="s.locked || (s.scope === 'desktop' && !isDesktop)"
+                        class="set-value" x-text="s.value"></span>
+
+                  <button x-show="!s.locked && (s.scope !== 'desktop' || isDesktop) && !s.options && s.type!=='bool'"
+                          class="btn-sm" @click="validateAndSave(s)" :disabled="s._saving"
+                          x-text="s._saving ? t('ui.saving') : t('ui.save')"></button>
+
+                  <span x-show="s._saving" class="set-spin" :aria-label="t('ui.saving')"></span>
+                </div>
+                <div x-show="s._error" class="set-err" x-text="s._error"></div>
+              </div>
+            </template>
+            <div class="sm-empty"
+                 x-show="settingsByGroup(tab.id).filter(s => s.scope !== 'desktop' || isDesktop).length === 0"
+                 x-text="t('ui.settings_empty_group')"></div>
+          </div>
+        </template>
+
+        <!-- Advanced panel -->
+        <div class="sm-panel" role="tabpanel" x-show="!settingsLoading && activeTab === 'advanced'">
+          <div class="sm-adv-block">
+            <div class="sm-adv-title" x-text="t('ui.backup_title')"></div>
+            <div class="sm-adv-desc muted-sm" x-text="t('ui.backup_desc')"></div>
+            <div class="backup-actions">
+              <button class="btn-sm" @click="exportBackup" x-text="t('ui.export_backup')"></button>
+              <button class="btn-sm" @click="importBackup" x-text="t('ui.import_backup')"></button>
+              <input type="file" id="backup-file" accept=".json" @change="handleBackupFile($event)" style="display:none">
+            </div>
+          </div>
+          <div class="sm-adv-note muted-sm" x-show="settings.some(s => s.locked)"
+               x-text="t('ui.settings_lock_note')"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" :class="{show: toast.show, success: toast.type === 'success'}">
+    <span x-text="toast.message"></span>
+    <button @click="undoDelete" x-show="toast.type === 'pending'" x-text="t('ui.undo')"></button>
+    <button @click="acceptDeletes" x-show="toast.type === 'pending'" x-text="t('ui.accept')"></button>
+    <button @click="dismissToast" x-show="toast.type === 'success'" class="toast-close">✕</button>
+  </div>
+
+</div>
+
+<script>
+// Template variables injected by server
+window.og = window.og || {};
+window.og.AUTH_REQUIRED = "__AUTH_REQUIRED__" === "true";
+window.og.FORMATS = __FORMATS_JSON__;
+window.og.isDesktop = "__IS_DESKTOP__" === "true";
+</script>
+
+<script src="/static/alpine.min.js?v=__VERSION__"></script>
+<script src="/static/js/init.js?v=__VERSION__"></script>
+<script src="/static/js/i18n.js?v=__VERSION__"></script>
+<script src="/static/js/utils.js?v=__VERSION__"></script>
+<script src="/static/js/auth.js?v=__VERSION__"></script>
+<script src="/static/js/theme.js?v=__VERSION__"></script>
+<script src="/static/js/notifications.js?v=__VERSION__"></script>
+<script src="/static/js/inspector.js?v=__VERSION__"></script>
+<script src="/static/js/clips.js?v=__VERSION__"></script>
+<script src="/static/js/download.js?v=__VERSION__"></script>
+<script src="/static/js/jobs.js?v=__VERSION__"></script>
+<script src="/static/js/playlist.js?v=__VERSION__"></script>
+<script src="/static/js/history.js?v=__VERSION__"></script>
+<script src="/static/js/storage.js?v=__VERSION__"></script>
+<script src="/static/js/channels.js?v=__VERSION__"></script>
+<script src="/static/js/settings.js?v=__VERSION__"></script>
+<script src="/static/js/app.js?v=__VERSION__"></script>
+</body>
+</html>

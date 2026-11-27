@@ -1,0 +1,17 @@
+.git/
+.gitignore
+.dockerignore
+__pycache__/
+*.py[cod]
+.env
+downloads/
+README.md
+nginx/
+docker-compose.yml
+tests/
+.pytest_cache/
+CHANGELOG.md
+LICENSE
+*.tmp
+.venv/
+.DS_Store
