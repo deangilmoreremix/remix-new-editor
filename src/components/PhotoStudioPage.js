@@ -1,4 +1,5 @@
 // src/components/PhotoStudioPage.js
+import { createStudioVideoPagesButton } from './studio/studioVideoPagesButton.js';
 // AI Photo Studio — 6 categories × 5 styles = 30 product-photography presets.
 // Follows the exact pattern of existing studios (vanilla DOM + mountStudioChrome).
 
@@ -461,6 +462,10 @@ export function PhotoStudioPage() {
     }
   };
   root.appendChild(generateBtn);
+  const pagesRow = document.createElement('div');
+  pagesRow.className = 'mb-6 flex';
+  pagesRow.appendChild(createStudioVideoPagesButton({ studioId: 'photo-studio', getResult: () => state.results.at(-1)?.imageUrl || '', getAsset: () => ({ type: 'image' }) }));
+  root.appendChild(pagesRow);
 
   // ---- Results ----
   const resultSection = document.createElement('div');
