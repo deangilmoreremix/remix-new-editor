@@ -151,6 +151,23 @@ describe('Choose your path when a route returns to earlier footage', () => {
   });
 });
 
+describe('Choose your path: a choice that starts at the card itself', () => {
+  it('plays on instead of showing the card again', async () => {
+    const box = document.createElement('div');
+    document.body.innerHTML = '';
+    document.body.appendChild(box);
+    choice.addon = { ...choice.addon, choice1From: 2, choice1Until: 0 }; // the card is at 2s
+    const { e, create } = fakeEngine();
+    const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Demo', project: project() }), createEngine: create, analytics: { track: vi.fn(), onPlayerChange: vi.fn(), destroy: vi.fn() }, onLead: vi.fn() });
+    box.querySelector('[data-bigplay]').click();
+    e.advance(2.5);
+    box.querySelectorAll('.wf-pathchoice__btn')[0].click();
+    expect(box.querySelector('.wf-pathchoice')).toBeNull();
+    expect(e.playing).toBe(true);
+    player.destroy();
+  });
+});
+
 describe('Choose your path at the very start', () => {
   it('stops on the first tick of playback and only once', () => {
     const rt = new AddonRuntime();

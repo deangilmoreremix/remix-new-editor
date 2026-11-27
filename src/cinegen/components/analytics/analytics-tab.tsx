@@ -34,6 +34,7 @@ const OPEN_FLAG = 'remix_open_projects'; // set by the header bell
  */
 function GuestAnalytics({ pub, onPublish }: { pub: ReturnType<typeof usePublished>; onPublish: () => void }) {
   const host = useRef<HTMLDivElement>(null);
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     if (!host.current || !pub.id) return undefined;
     let stop: (() => void) | null = null; let cancelled = false;
@@ -42,10 +43,18 @@ function GuestAnalytics({ pub, onPublish }: { pub: ReturnType<typeof usePublishe
     getClient().then((client) => {
       if (cancelled) return;
       stop = mountAnalyticsTab(panel, { project: { id: null, name: pub.title, videoId: pub.id }, card: { id: null, published: true, publishedId: pub.id } }, { client, onPublish });
-    }).catch((e: Error) => { panel.textContent = friendlyPublishError(e, 'Analytics is not available right now.'); });
+    }).catch((e: Error) => {
+      if (cancelled) return;
+      const msg = document.createElement('p');
+      msg.textContent = friendlyPublishError(e, 'Analytics is not available right now.');
+      const again = document.createElement('button');
+      again.type = 'button'; again.className = 'cg-analytics__btn'; again.textContent = 'Try again';
+      again.addEventListener('click', () => setAttempt((n) => n + 1));
+      panel.replaceChildren(msg, again);
+    });
     return () => { cancelled = true; try { stop?.(); } catch { /* already unmounted */ } };
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- remount only for a different video
-  }, [pub.id]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- remount only for a different video, or when the viewer retries
+  }, [pub.id, attempt]);
   return (
     <>
       <p className="cg-analytics__toast" role="note" data-testid="guest-analytics-note">

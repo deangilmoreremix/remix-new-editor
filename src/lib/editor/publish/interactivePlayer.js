@@ -191,6 +191,8 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
         route = choice.until ? { until: choice.until, then } : null;
         seekEngine(choice.from);
         runtime.handleSeek(time, clips, T);
+        // A choice that starts right at the card has answered it: seeking there re-armed the card, which would stop playback again at once.
+        if (Math.abs(choice.from - clipTimeRange(clip, T).start) <= 0.05) runtime.firedPauses.add(String(clip.id));
         play();
       },
     });
