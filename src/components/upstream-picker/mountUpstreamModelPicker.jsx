@@ -33,8 +33,10 @@ function topLimit() {
  * @param {(entry: object, category: string) => void} options.onSelect
  *   Upstream's onSelect(pickerEntry, categoryId).
  * @param {() => void} [options.onClose]
+ * @param {boolean} [options.preferBelow] Open downward unless there is clearly more room above (trigger near the top of the page).
+ * @param {(entry: object) => boolean} [options.entryFilter] Image picker only: keep just these entries.
  */
-export function mountUpstreamModelPicker({ kind, anchor, selectedModelId, onSelect, onClose }) {
+export function mountUpstreamModelPicker({ kind, anchor, selectedModelId, onSelect, onClose, entryFilter, preferBelow = false }) {
   const isVideo = kind === "video";
   const copy = isVideo ? videoCopy : imageCopy;
   const Dropdown = isVideo ? VideoModelDropdown : ImageModelDropdown;
@@ -67,6 +69,7 @@ export function mountUpstreamModelPicker({ kind, anchor, selectedModelId, onSele
             onSelect={(entry, category) => onSelect?.(entry, category)}
             onClose={close}
             copy={copy}
+            entryFilter={entryFilter}
           />
         </PromptPopover>,
       );
@@ -97,8 +100,9 @@ export function mountUpstreamModelPicker({ kind, anchor, selectedModelId, onSele
     const naturalHeight = popover.scrollHeight;
     const spaceAbove = rect.top - GAP - topLimit();
     const spaceBelow = viewportHeight - rect.bottom - GAP - MARGIN;
-    const openAbove =
-      spaceAbove >= naturalHeight || spaceAbove >= MIN_ROOM_ABOVE || spaceAbove >= spaceBelow;
+    const openAbove = preferBelow
+      ? spaceBelow < MIN_ROOM_ABOVE && spaceAbove > spaceBelow
+      : spaceAbove >= naturalHeight || spaceAbove >= MIN_ROOM_ABOVE || spaceAbove >= spaceBelow;
     // Never let the panel be taller than the room between the header and the
     // bottom edge (landscape phones are ~390px tall).
     const viewportRoom = Math.max(120, viewportHeight - topLimit() - MARGIN);
