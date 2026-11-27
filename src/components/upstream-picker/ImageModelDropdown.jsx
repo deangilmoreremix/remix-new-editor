@@ -37,25 +37,27 @@ const PROVIDER_LOGOS = {
 
 const invertLogos = ['openai', 'blackforest', 'runway', 'ideogram', 'lightricks', 'grok'];
 
-function ModelDropdown({ selectedModel, onSelect, onClose, copy }) {
+// `entryFilter` (optional) narrows the catalog for studios that only support some models.
+function ModelDropdown({ selectedModel, onSelect, onClose, copy, entryFilter }) {
   const t = copy.modelDropdown;
+  const baseEntries = entryFilter ? imageModelPickerEntries.filter(entryFilter) : imageModelPickerEntries;
   const [search, setSearch] = useState("");
   const selectedEntry = imageModelPickerEntryByVariantId.get(selectedModel);
   const modelCategories = [
     {
       id: "all",
       label: t.categoryAll,
-      entries: imageModelPickerEntries,
+      entries: baseEntries,
     },
     {
       id: "t2i",
       label: t.categoryT2I,
-      entries: imageModelPickerEntries.filter((entry) => entry.variantsByMode.t2i),
+      entries: baseEntries.filter((entry) => entry.variantsByMode.t2i),
     },
     {
       id: "i2i",
       label: t.categoryI2I,
-      entries: imageModelPickerEntries.filter((entry) => entry.variantsByMode.i2i),
+      entries: baseEntries.filter((entry) => entry.variantsByMode.i2i),
     },
   ];
   const [selectedCategory, setSelectedCategory] = useState("all");

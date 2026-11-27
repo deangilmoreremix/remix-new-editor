@@ -9,8 +9,8 @@ import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { createPill, openComposerPopover } from './studio/promptComposer.js';
-import { i2iModels } from '../lib/models.js';
+import { createPill } from './studio/promptComposer.js';
+import { mountUpstreamModelPicker } from './upstream-picker/mountUpstreamModelPicker.jsx';
 import { createSafeImage } from '../lib/security.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
@@ -347,22 +347,44 @@ export async function InfluencerStudio() {
   header.appendChild(createStudioHeader('influencer', 'AI Influencer Studio', 'Design a consistent AI influencer and their content'));
   container.appendChild(header);
 
-  // Model picker: a pill that opens a popover (one model shown until clicked),
-  // using the shared composer helpers like Video Studio.
+  // Model picker: a pill that opens the upstream split-pane picker (provider sidebar,
+  // search, mode tabs). Only models that take one photo + a prompt are offered; tool
+  // models that need a second image (Face Swap, Dress Change...) or no prompt at all
+  // live in the studios built for them.
+  const supportsPhotoAndPrompt = (entry) => {
+    const m = entry.variantsByMode.i2i?.model;
+    return Boolean(m)
+      && m.hasPrompt !== false
+      && !m.swapField
+      && ['image_url', 'images_list', undefined].includes(m.imageField);
+  };
   const modelSelectorContainer = document.createElement('div');
   modelSelectorContainer.className = 'w-full mb-4 flex justify-start relative';
   modelSelectorContainer.dataset.help = 'model';
   const modelPill = createPill({ label: selectedModel.name || selectedModel.id, title: 'Model' });
-  modelPill.setAttribute('aria-haspopup', 'menu');
-  modelPill.addEventListener('click', () => openComposerPopover(modelPill, {
-    title: 'Model',
-    className: 'top-[calc(100%+8px)] bottom-auto w-[280px]',
-    items: i2iModels.map((m) => ({
-      label: m.name,
-      selected: m.id === selectedModel.id,
-      onSelect: () => { selectedModel = m; modelPill.setLabel(m.name); },
-    })),
-  }));
+  modelPill.setAttribute('aria-haspopup', 'dialog');
+  let modelPicker = null;
+  modelPill.addEventListener('click', () => {
+    if (modelPicker) { modelPicker.close(); return; }
+    modelPicker = mountUpstreamModelPicker({
+      kind: 'image',
+      anchor: modelPill,
+      selectedModelId: selectedModel.id,
+      entryFilter: supportsPhotoAndPrompt,
+      preferBelow: true,
+      onSelect: (entry) => {
+        const variant = entry.variantsByMode.i2i;
+        if (!variant) return;
+        selectedModel = variant.model;
+        modelPill.setLabel(variant.model.name || variant.model.id);
+        modelPicker?.close();
+      },
+      onClose: () => { modelPicker = null; modelPill.setAttribute('aria-expanded', 'false'); modelPill.setActive?.(false); },
+    });
+    modelPill.setAttribute('aria-expanded', 'true');
+    modelPill.setActive?.(true);
+    modelPicker.open();
+  });
   modelSelectorContainer.appendChild(modelPill);
   container.appendChild(modelSelectorContainer);
 
