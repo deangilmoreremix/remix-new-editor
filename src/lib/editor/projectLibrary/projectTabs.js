@@ -12,6 +12,7 @@ import { quietToForm, quietFromForm, timeZoneOptions, browserTimeZone, QUIET_NOT
 import { recommend, SEGMENT_LABELS, SCORE_EXPLANATION } from './retarget/recommendations.js';
 import { listFollowups, loadProject } from './projectStore.js';
 import { launchFollowup } from './retarget/followup.js';
+import { parseSections } from './sectionsText.js';
 import { canonicalUrl, setPublished } from '../publish/publishClient.js';
 import { mountPushCard } from '../../push/pushCard.js';
 
@@ -65,7 +66,7 @@ export function audienceTab(deps) {
 export function retargetTab(deps) {
   return (panel, ctx) => {
     let alive = true;
-    withVideo(panel, ctx, deps, async (client, video) => {
+    const render = async (client, video) => {
       // The list row omits the heavy `data` column; the mapping editor needs the project's scenes.
       const original = (await loadProject(client, ctx.project.id)) || ctx.project;
       const [aud, followups] = await Promise.all([loadAudience(client, video.id, '30d', deps.now?.()), listFollowups(client, original.id)]);
@@ -88,7 +89,9 @@ export function retargetTab(deps) {
               <label>Product, service or topic<input type="text" maxlength="80" data-label="${i}" value="${esc(m.interest?.label || '')}" placeholder="e.g. Roof repair" /></label></div></div>`).join('')}
             <button type="button" class="sv-primary-btn" data-save-map>Save mapping</button> <span class="sv-hint" data-map-msg role="status"></span>
             <p class="sv-hint" data-map-stale role="status" ${mappingIsStale(original.settings?.interestMap, video.project?.interestMap) ? '' : 'hidden'}>Your saved mapping is not on the published video yet. Publish the video again so viewers use it.</p></div>`
-            : '<p class="sv-subtitle">This project has fewer than two scenes. Add scenes to the timeline to map sections to interests.</p>'}
+            : `<p class="sv-subtitle">This video has fewer than two scenes, so there are no sections to map yet. Add scenes in the editor, or type the sections by time here (one per line, like <code>0:45 Pricing</code>). Each section becomes an interest named after it; you can rename them afterwards.</p>
+              <textarea rows="4" data-sections-text aria-label="Sections by time" placeholder="0:00 Intro&#10;0:45 Pricing&#10;1:30 Book a call" style="width:100%"></textarea>
+              <button type="button" class="sv-primary-btn" data-save-sections>Save sections</button> <span class="sv-hint" data-sections-msg role="status"></span>`}
         </div>
         ${compare.length > 1 ? `<div class="sv-card"><h3>Original vs follow-ups</h3><div style="overflow:auto"><table class="pz-table"><thead><tr><th></th><th>Plays</th><th>Completed</th><th>CTA</th><th>Leads</th></tr></thead><tbody>${compare.map((r) => `<tr><td>${esc(r.kind)}: ${esc(r.name)}</td>${r.published ? `<td>${r.plays}</td><td>${r.completion == null ? '—' : r.completion + '%'}</td><td>${r.cta}</td><td>${r.leads}</td>` : '<td colspan="4"><span class="sv-hint">Not published yet</span></td>'}</tr>`).join('')}</tbody></table></div><p class="sv-hint">Last 90 days. Counts are viewing sessions, so compare similar audiences with care.</p></div>` : ''}`);
       const flash = (m) => { const el = root.querySelector('[data-map-msg]'); if (el) el.textContent = m; };
@@ -96,11 +99,20 @@ export function retargetTab(deps) {
         const entries = map.map((m, i) => ({ ...m, interest: root.querySelector(`[data-label="${i}"]`).value.trim() ? { type: root.querySelector(`[data-type="${i}"]`).value, label: root.querySelector(`[data-label="${i}"]`).value } : null }));
         try { const saved = await saveInterestMap(client, original.id, original.settings, entries); original.settings = { ...(original.settings || {}), interestMap: saved }; deps.onInterestMapSaved?.(saved); const stale = root.querySelector('[data-map-stale]'); if (stale) stale.hidden = !mappingIsStale(saved, video.project?.interestMap); flash(`Saved ${saved.length} mapping${saved.length === 1 ? '' : 's'}. Publish again to apply it to viewers.`); } catch (e) { flash(e.message); }
       });
+      root.querySelector('[data-save-sections]')?.addEventListener('click', async () => {
+        const say = (m) => { const el = root.querySelector('[data-sections-msg]'); if (el) el.textContent = m; };
+        const parsed = parseSections(root.querySelector('[data-sections-text]').value, Number(original.data?.timelineSeconds) || 0);
+        if (parsed.error) { say(parsed.error); return; }
+        if (!parsed.sections.length) { say('Add at least one section, like 0:45 Pricing.'); return; }
+        const entries = parsed.sections.map((s, i) => ({ id: `m${i}`, title: s.title, start: s.start, end: s.end, interest: { type: 'topic', label: s.title }, clipIds: [] }));
+        try { const saved = await saveInterestMap(client, original.id, original.settings, entries); original.settings = { ...(original.settings || {}), interestMap: saved }; deps.onInterestMapSaved?.(saved); if (alive) await render(client, video); } catch (e) { say(e.message); }
+      });
       root.querySelectorAll('[data-rec]').forEach((b) => b.addEventListener('click', async () => {
         b.disabled = true;
         try { await launchFollowup({ client, original, followup: recs[Number(b.dataset.rec)].followup, navigate: deps.navigate, videoUrl: url, openFollowup: deps.openFollowup }); } catch (e) { b.disabled = false; deps.onToast?.(e.message, 'error'); }
       }));
-    });
+    };
+    withVideo(panel, ctx, deps, render);
     return () => { alive = false; };
   };
 }

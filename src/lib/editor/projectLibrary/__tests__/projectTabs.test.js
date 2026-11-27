@@ -17,6 +17,9 @@ describe('interest mapping', () => {
     expect(map[0].interest).toEqual({ type: 'service', label: 'Roof repair' });
     expect(map[1].interest).toBeNull();
     expect(seedInterestMap({ timelineSeconds: 10, tracks: [] })).toEqual([]);
+    // no scenes to read: the sections the owner typed in are kept
+    expect(seedInterestMap({ timelineSeconds: 100, tracks: [] }, [{ id: 'm0', title: 'Intro', start: 0, end: 40, interest: { type: 'topic', label: 'Intro' } }]))
+      .toEqual([{ id: 'm0', title: 'Intro', start: 0, end: 40, interest: { type: 'topic', label: 'Intro' }, clipIds: [] }]);
   });
   it('cleans owner input (types, labels, lengths) and drops unmapped/invalid rows from what is saved', async () => {
     const cleaned = cleanInterestMap([
@@ -149,6 +152,42 @@ describe('Retarget tab', () => {
     expect(upd).toHaveBeenCalledTimes(1);
     expect(upd.mock.calls[0][0].settings.interestMap).toEqual([{ id: 'a', title: 'Roof repair', start: 0, end: 50, interest: { type: 'service', label: 'Roof repair' }, clipIds: ['cta1'] }]);
     expect(panel.querySelector('[data-map-msg]').textContent).toContain('Publish again');
+  });
+  it('for a video with no scenes, lets the owner type sections by time, saves them as interests, and then lists them for editing', async () => {
+    const c = client({ rpcs: { video_audience_segments: [], video_interest_summary: [] } });
+    let settings = {};
+    const upd = vi.fn((patch) => ({ eq: vi.fn(async () => { settings = patch.settings; return { error: null }; }) }));
+    const base = c.from;
+    const tp = { select: () => tp, eq: () => tp, is: () => tp, or: () => tp, order: () => tp, limit: () => tp, update: upd, then: (res, rej) => Promise.resolve({ data: [], error: null }).then(res, rej),
+      maybeSingle: async () => ({ data: { id: 'orig', name: 'Webinar', data: { timelineSeconds: 100, tracks: [{ type: 'video', items: [{ id: 'a', left: 0, width: 100 }] }] }, tags: [], settings }, error: null }) };
+    c.from = (t) => (t === 'timeline_projects' ? tp : base(t));
+    const { panel } = mount(retargetTab, c);
+    await tick(10);
+    expect(panel.querySelectorAll('[data-row]')).toHaveLength(0);
+    expect(panel.textContent).toContain('type the sections by time');
+    panel.querySelector('[data-sections-text]').value = '0:45 Pricing';
+    panel.querySelector('[data-save-sections]').click();
+    await tick(15);
+    expect(upd.mock.calls[0][0].settings.interestMap).toEqual([
+      { id: 'm0', title: 'Intro', start: 0, end: 45, interest: { type: 'topic', label: 'Intro' }, clipIds: [] },
+      { id: 'm1', title: 'Pricing', start: 45, end: 100, interest: { type: 'topic', label: 'Pricing' }, clipIds: [] },
+    ]);
+    expect(panel.querySelectorAll('[data-row]')).toHaveLength(2); // now editable like any other mapping
+  });
+  it('shows a clear message for sections that cannot be saved, and saves nothing', async () => {
+    const c = client({ rpcs: { video_audience_segments: [], video_interest_summary: [] } });
+    const upd = vi.fn(() => ({ eq: vi.fn(async () => ({ error: null })) }));
+    const base = c.from;
+    const tp = { select: () => tp, eq: () => tp, is: () => tp, or: () => tp, order: () => tp, limit: () => tp, update: upd, then: (res, rej) => Promise.resolve({ data: [], error: null }).then(res, rej),
+      maybeSingle: async () => ({ data: { id: 'orig', name: 'Webinar', data: { timelineSeconds: 100, tracks: [] }, tags: [], settings: {} }, error: null }) };
+    c.from = (t) => (t === 'timeline_projects' ? tp : base(t));
+    const { panel } = mount(retargetTab, c);
+    await tick(10);
+    panel.querySelector('[data-sections-text]').value = 'hello';
+    panel.querySelector('[data-save-sections]').click();
+    await tick();
+    expect(panel.querySelector('[data-sections-msg]').textContent).toMatch(/does not start with a time/);
+    expect(upd).not.toHaveBeenCalled();
   });
   it('without evidence it recommends nothing', async () => {
     const { panel } = mount(retargetTab, client({ rpcs: { video_audience_segments: [], video_interest_summary: [] } }));
