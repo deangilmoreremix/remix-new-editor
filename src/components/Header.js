@@ -2,7 +2,6 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { muapi } from '../lib/muapi.js';
 import { createNotificationsBell } from '../lib/notificationsBell.js';
 import { supabase, rawClient, primeSupabaseIdentity, getSupabaseAccessToken, getClerkUserId } from '../lib/supabase.js';
-import { createVideoPagesButton } from './VideoPagesButton.js';
 
 // App top bar: logo, credit balance, API key and account.
 // Studio navigation lives only in the left side menu (src/components/Sidebar.js),
@@ -87,7 +86,6 @@ export function Header(navigate) {
       return { client: rawClient, userId, token };
     },
   });
-  rightPart.appendChild(createVideoPagesButton());
   rightPart.appendChild(bell.element);
   rightPart.appendChild(balanceChip);
   rightPart.appendChild(keyBtn);
