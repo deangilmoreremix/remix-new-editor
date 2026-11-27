@@ -85,7 +85,7 @@ export function LibraryPage() {
   container.appendChild(topBar);
 
   const gridArea = document.createElement('div');
-  gridArea.className = 'flex-1 overflow-y-auto px-4 md:px-8 pb-8';
+  gridArea.className = 'studio-short-body flex-1 overflow-y-auto px-4 md:px-8 pb-8';
   container.appendChild(gridArea);
 
   async function loadHistory() {
