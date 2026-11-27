@@ -126,11 +126,14 @@ export async function processJob(row, { key, fetchImpl, now = () => Date.now(), 
   // Phase 2: check every accepted post, one round at a time across all of them, until each is done or this job's slice ends.
   // Submitting first and polling second means a destination that stays "processing" can never keep a later destination from being
   // submitted; whatever is still unfinished resumes next tick with the same request id (never re-sent).
-  const processing = () => jobs.map(find).filter((r) => r && r.status === 'processing' && r.request_id);
+  // Least-recently-checked first, and the time is stamped BEFORE the lookup and saved with the results: a slow or never-finishing
+  // destination moves to the back, so on the next tick the others are checked first instead of the same one using up the slice again.
+  const processing = () => jobs.map(find).filter((r) => r && r.status === 'processing' && r.request_id).sort((a, b) => (a.checked_at || 0) - (b.checked_at || 0));
   while (now() < deadline && processing().length) {
     await sleep(2000);
     for (const r of processing()) {
       if (now() >= deadline) break;
+      r.checked_at = now();
       let p;
       try { p = await muapi(fetchImpl, key, `predictions/${encodeURIComponent(r.request_id)}/result`); } catch { continue; }
       if (!p.ok) {

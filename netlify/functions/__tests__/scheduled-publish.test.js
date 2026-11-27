@@ -169,6 +169,36 @@ describe('publishing a due job', () => {
     expect(s).toMatchObject({ final: false, patch: { status: 'publishing' } })
   })
 
+  it('a slow first destination cannot keep the others from being checked: polling rotates across ticks', async () => {
+    const jobs = [{ platform: 'instagram', account_id: 5, payload: {} }, { platform: 'x', account_id: 6, payload: {} }]
+    const accepted = [
+      { platform: 'instagram', account_id: 5, status: 'processing', request_id: 'slow' },
+      { platform: 'x', account_id: 6, status: 'processing', request_id: 'fast' },
+    ]
+    let t = 0
+    const polled = []
+    const fetchImpl = vi.fn(async (url) => {
+      const id = url.split('/predictions/')[1].split('/')[0]
+      polled.push(id)
+      if (id === 'slow') { t += 6000; return json(200, { status: 'processing' }) } // every lookup eats the whole slice
+      t += 500
+      return json(200, { status: 'completed', output: { url: 'https://live/x' } })
+    })
+    const common = { now: () => t, sleep: async () => { t += 2000 } }
+    // tick 1: only the slow one fits in the slice
+    const first = await run(job({ jobs, results: accepted }), fetchImpl, { ...common, deadline: 8000 })
+    expect(polled).toEqual(['slow'])
+    expect(first.s.final).toBe(false)
+    const saved = first.saves.at(-1)
+    expect(saved.find((r) => r.request_id === 'slow').checked_at).toBeGreaterThan(0)
+    // tick 2 (same state, saved by tick 1): the fast one is checked FIRST and gets recorded
+    t = 0
+    polled.length = 0
+    const second = await run(job({ jobs, results: saved }), fetchImpl, { ...common, deadline: 8000 })
+    expect(polled[0]).toBe('fast')
+    expect(second.saves.at(-1).find((r) => r.request_id === 'fast')).toMatchObject({ status: 'published', url: 'https://live/x' })
+  })
+
   it('only allows the known MuAPI publish endpoints', async () => {
     expect(Object.keys(PUBLISH_ENDPOINTS).sort()).toEqual(['facebook', 'instagram', 'linkedin', 'pinterest', 'threads', 'tiktok', 'x', 'youtube'])
     const { fetchImpl, calls } = harness(() => json(200, {}))
