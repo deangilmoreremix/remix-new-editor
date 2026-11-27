@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '../../addons/index.js';
-import { getAddon, createAddonClip, addonOptions, pathChoices } from '../../addons/index.js';
+import { getAddon, createAddonClip, addonOptions, pathChoices, AddonRuntime } from '../../addons/index.js';
 import { pathChoiceElement } from '../viewerOverlays.js';
 import { mountWatchPage } from '../../../../pages/WatchPage.jsx';
 import { timelineToComposition } from '../../remotion/timelineToComposition.js';
@@ -102,5 +102,41 @@ describe('Choose your path on the published player', () => {
     e.advance(15.2);
     expect(player.time).toBeCloseTo(25, 1);
     player.destroy();
+  });
+
+  it('scrubbing away removes the card, and coming back never stacks a second one', async () => {
+    const { e, player } = await mount(analytics());
+    e.advance(2.5);
+    expect(box.querySelectorAll('.wf-pathchoice')).toHaveLength(1);
+    player.seek(20);
+    expect(box.querySelector('.wf-pathchoice')).toBeNull();
+    player.seek(0);
+    player.play();
+    e.advance(2.5);
+    expect(box.querySelectorAll('.wf-pathchoice')).toHaveLength(1);
+    player.destroy();
+  });
+
+  it('a route that ends with the video still continues at its continue point', async () => {
+    choice.addon = { ...choice.addon, choice2Until: 30 }; // Features runs to the very end, then continues at 25
+    const { e, player } = await mount(analytics());
+    e.advance(2.5);
+    box.querySelectorAll('.wf-pathchoice__btn')[1].click();
+    expect(player.time).toBeCloseTo(18, 1);
+    e.onEnded();
+    expect(player.time).toBeCloseTo(25, 1);
+    expect(e.playing).toBe(true);
+    player.destroy();
+  });
+});
+
+describe('Choose your path at the very start', () => {
+  it('stops on the first tick of playback and only once', () => {
+    const rt = new AddonRuntime();
+    const clip = { id: 'p0', type: 'addon-path-choice', left: 0, width: 10, addon: { choice1Label: 'A', choice1From: 5, choice2Label: 'B', choice2From: 9 } };
+    const first = rt.tick(0, 0, { clips: [clip], timelineSeconds: T });
+    expect(first.map((a) => a.type)).toEqual(['seek', 'pause', 'show']);
+    expect(first[2].overlay).toBe('path-choice');
+    expect(rt.tick(0, 0.3, { clips: [clip], timelineSeconds: T })).toEqual([]);
   });
 });

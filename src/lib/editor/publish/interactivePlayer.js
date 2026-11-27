@@ -144,7 +144,20 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
       updateInteractive(time);
       emit();
     },
-    onEnded: () => { playing = false; emit(); },
+    onEnded: () => {
+      // A route that runs to the very end of the video still continues where it was told to (the last frame is never `>= until`).
+      if (route && route.then < T - 0.05) {
+        const to = route.then;
+        route = null;
+        seekEngine(to);
+        runtime.lastTime = time;
+        play();
+        return;
+      }
+      route = null;
+      playing = false;
+      emit();
+    },
     onReady: () => engine?.seekToFrame?.(Math.round(time * fps)),
     onError: (err) => console.warn('[watch] playback error', err),
   });
@@ -166,10 +179,13 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
 
   // "Choose your path": the card pauses the video; a pick jumps to that route and, if the route has an end,
   // playback hops on to the clip's "continue at" time when it gets there.
+  let pathCard = null; // the card on screen; it goes when the viewer picks or leaves the decision point
+  const closePathCard = () => { pathCard?.remove(); pathCard = null; };
   function openPathChoice(clip) {
+    closePathCard();
     const el = pathChoiceElement(clip, {
       onPick: ({ choice, label }) => {
-        el?.remove();
+        closePathCard();
         onHotspot?.({ clip, action: 'path', label: `Path: ${label}`, time });
         const then = Number(addonOptions(clip).thenTime) || 0;
         route = choice.until ? { until: choice.until, then } : null;
@@ -178,7 +194,7 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
         play();
       },
     });
-    if (el) layer.appendChild(el);
+    if (el) { layer.appendChild(el); pathCard = el; }
     else play(); // fewer than two usable choices: nothing to ask
   }
 
@@ -305,6 +321,7 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
   function seek(sec) {
     if (gateOpen) return;
     route = null; // a scrub cancels the route being followed
+    closePathCard(); // ...and leaves the decision point
     clearTimeout(resumeTimer);
     seekEngine(sec);
     runtime.handleSeek(time, clips, T);

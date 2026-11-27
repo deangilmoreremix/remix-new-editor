@@ -125,7 +125,8 @@ export class AddonRuntime {
       }
 
       // Choose your path: stop at the card and let the viewer pick (the player draws it and does the jumping).
-      if (behavior === 'path' && crossed(start) && !this.firedPauses.has(id)) {
+      // A card at the very start has no earlier frame to cross from, so the first tick counts as reaching it.
+      if (behavior === 'path' && (crossed(start) || (start <= 0.05 && prev <= 0.05)) && !this.firedPauses.has(id)) {
         this.firedPauses.add(id);
         actions.push({ type: 'seek', time: start, clip });
         actions.push({ type: 'pause', clip });
