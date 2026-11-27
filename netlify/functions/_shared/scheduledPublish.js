@@ -189,7 +189,12 @@ export async function runTick({ call, fetchImpl = fetch, env = process.env, now 
         const s = { final: true, outcome: 'failed', published: 0, total: (row.jobs || []).length, patch: { status: 'failed', last_error: 'Automatic publishing is off or its key could not be read. Turn it on again, then retry.', locked_until: null } };
         await patchRow(s.patch); await notify(call, row, s); continue;
       }
-      const s = await processJob(row, { key, fetchImpl, now, deadline, sleep, save: (p) => patchRow(p) });
+      // Each job gets its own slice of the tick (at least 5 s, enough to submit and check once), so a slow job can never use up the
+      // whole budget and starve the ones behind it. An unfinished job is saved with locked_until = now and rotates to the back of the
+      // claim order (see claim_due_scheduled_posts), so next tick the others go first.
+      const left = Math.max(1, rows.length - summary.claimed + 1);
+      const slice = Math.max(5000, Math.floor((deadline - now()) / left));
+      const s = await processJob(row, { key, fetchImpl, now, deadline: Math.min(deadline + 5000, now() + slice), sleep, save: (p) => patchRow(p) });
       await patchRow(s.patch);
       if (s.final) { s.outcome === 'published' ? summary.posted++ : summary.failed++; await notify(call, row, s); }
       else if (s.patch.status === 'scheduled') summary.retrying++; else summary.waiting++;

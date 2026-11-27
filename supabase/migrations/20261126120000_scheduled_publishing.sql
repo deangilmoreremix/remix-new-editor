@@ -159,7 +159,8 @@ begin
     where s.auto_publish and s.jobs is not null
       and ((s.status = 'scheduled' and s.scheduled_for <= now() and coalesce(s.next_attempt_at, s.scheduled_for) <= now())
         or (s.status = 'publishing' and coalesce(s.locked_until, now()) <= now()))
-    order by s.scheduled_for
+    -- fair rotation: a job that was worked on and left unfinished (locked_until = when it stopped) goes behind jobs not yet tried
+    order by coalesce(s.locked_until, s.scheduled_for), s.scheduled_for
     limit greatest(1, least(p_limit, 50))
     for update skip locked
   )

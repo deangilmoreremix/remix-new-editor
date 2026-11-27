@@ -185,6 +185,19 @@ describe('scheduler tick', () => {
     expect(log.find((l) => l.method === 'PATCH').body.status).toBe('failed')
     expect(log.find((l) => l.path === 'owner_notifications').body.type).toBe('post_failed')
   })
+  it('a slow job cannot starve the jobs behind it in the same tick', async () => {
+    const mk = (id, acct) => job({ id, job_key: id, clerk_user_id: 'user_1', jobs: [{ platform: 'instagram', account_id: acct, payload: { a: acct } }] })
+    const { call } = mkCall([mk('slow', 1), mk('b', 2), mk('c', 3)], [{ key_ciphertext: encryptKey(KEY, 'user_1', ENV) }])
+    let t = 0
+    const submitted = []
+    const fetchImpl = vi.fn(async (url, init) => {
+      t += 1000
+      if (url.includes('-publish')) { submitted.push(JSON.parse(init.body).a); return json(200, { request_id: `r${submitted.length}` }) }
+      return json(200, { status: 'processing' }) // every result check says "still processing"
+    })
+    await runTick({ call, fetchImpl, env: ENV, now: () => t, budgetMs: 22000, sleep: async () => { t += 2000 } })
+    expect(submitted).toEqual([1, 2, 3]) // all three were submitted in this one tick
+  })
   it('reports a claim failure instead of throwing', async () => {
     const out = await runTick({ call: async () => { throw Object.assign(new Error('x'), { status: 404 }) }, env: ENV })
     expect(out.error).toBe('claim_failed_404')
