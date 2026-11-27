@@ -2,7 +2,7 @@
 export function slug(s: string, max = 40): string {
   return (s || 'post').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, max) || 'post'
 }
-export type ExportKind = 'image' | 'video' | 'thumbnail' | 'subtitles' | 'caption'
+export type ExportKind = 'image' | 'video' | 'thumbnail' | 'subtitles' | 'caption' | 'audio'
 export function exportFilename(kind: ExportKind, title: string, ext: string, opts: { platform?: string; aspect?: string; date?: Date } = {}): string {
   const d = (opts.date ?? new Date()).toISOString().slice(0, 10)
   const parts = [slug(title), opts.platform, opts.aspect?.replace(':', 'x'), kind === 'thumbnail' ? 'thumbnail' : kind === 'caption' ? 'caption' : undefined, d].filter(Boolean)

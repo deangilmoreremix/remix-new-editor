@@ -7,6 +7,8 @@
  */
 import { computeReframe, COMPRESSION_PRESETS, limitResolution, type CompressionPreset, type FitMode } from './mediaPrep'
 import type { AspectKey } from './platformConfig'
+import { makeAudioReplacer } from './audioTools'
+import { drawTextOverlay, type TextOverlay } from './animatedText'
 
 export class MediaUnsupportedError extends Error { constructor(m: string) { super(m); this.name = 'MediaUnsupportedError' } }
 export class MediaCancelledError extends Error { constructor() { super('Cancelled'); this.name = 'MediaCancelledError' } }
@@ -88,6 +90,10 @@ export interface VideoJob {
   focus?: { x: number; y: number }
   preset?: CompressionPreset
   longEdge?: number
+  /** Audio already rendered with the Audio tools (replaces the original track). Cannot be combined with `trim`. */
+  audioBuffer?: AudioBuffer
+  /** Animated text painted onto the frames (same `textFrame` curves as the preview). */
+  overlays?: TextOverlay[]
   onProgress?: (fraction: number) => void
   signal?: AbortSignal
 }
@@ -97,6 +103,7 @@ export async function processVideo(job: VideoJob): Promise<{ blob: Blob; mime: s
   if (typeof VideoEncoder === 'undefined' || typeof VideoDecoder === 'undefined') {
     throw new MediaUnsupportedError('Video processing needs WebCodecs (Chrome, Edge or Safari 16.4+). You can still publish the original file.')
   }
+  if (job.audioBuffer && job.trim) throw new MediaUnsupportedError('Apply audio changes and trimming in two separate steps (trim first, then adjust the audio).')
   const mb = await import('mediabunny')
   const input = new mb.Input({ formats: mb.ALL_FORMATS, source: new mb.BlobSource(job.file) })
   const canMp4 = await mb.canEncodeVideo('avc')
@@ -119,12 +126,36 @@ export async function processVideo(job: VideoJob): Promise<{ blob: Blob; mime: s
     video = { ...video, width: l.w, height: l.h }
   }
 
+  // Animated text: each frame is drawn onto a canvas and handed back as a new sample (a copy, so the canvas can be reused).
+  if (job.overlays?.length) {
+    let canvas: any = null
+    let ctx: any = null
+    video = {
+      ...video,
+      process: (sample: any) => {
+        const w = sample.displayWidth, h = sample.displayHeight
+        if (!canvas || canvas.width !== w || canvas.height !== h) {
+          canvas = typeof OffscreenCanvas === 'function' ? new OffscreenCanvas(w, h) : Object.assign(document.createElement('canvas'), { width: w, height: h })
+          ctx = canvas.getContext('2d')
+        }
+        sample.draw(ctx, 0, 0, w, h)
+        for (const o of job.overlays as TextOverlay[]) drawTextOverlay(ctx, o, sample.timestamp, w, h)
+        return new mb.VideoSample(canvas, { timestamp: sample.timestamp, duration: sample.duration })
+      },
+    }
+  }
+  const audio: Record<string, any> = { bitrate: preset.audioKbps * 1000 }
+  if (job.audioBuffer) {
+    audio.process = makeAudioReplacer(job.audioBuffer, (b, t) => mb.AudioSample.fromAudioBuffer(b, t))
+    audio.processedNumberOfChannels = job.audioBuffer.numberOfChannels
+    audio.processedSampleRate = job.audioBuffer.sampleRate
+  }
   const conversion = await mb.Conversion.init({
     input,
     output,
     trim: job.trim ? { start: job.trim.start, end: job.trim.end } : undefined,
     video,
-    audio: { bitrate: preset.audioKbps * 1000 },
+    audio,
   } as any)
   if (!conversion.isValid) throw new MediaUnsupportedError('This video could not be converted in the browser.')
   conversion.onProgress = (p: number) => job.onProgress?.(p)
