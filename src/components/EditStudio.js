@@ -815,7 +815,11 @@ export function EditStudio({ embed = false } = {}) {
     viewButtons[id] = btn;
     viewToggle.appendChild(btn);
   }
-  previewHead.append(previewLabel, viewToggle);
+  // Video Pages stays in the always-visible header (before a first edit it opens with your latest creation or the upload chooser).
+  const headTools = document.createElement('div');
+  headTools.className = 'flex items-center gap-2';
+  headTools.append(viewToggle, createStudioVideoPagesButton({ studioId: 'edit', getResult: () => resultUrl || '', getAsset: () => ({ type: resultKind }) }));
+  previewHead.append(previewLabel, headTools);
 
   const stage = document.createElement('div');
   stage.className = 'relative w-full min-h-[320px] lg:min-h-[460px] rounded-xl bg-black/40 border border-white/5 overflow-hidden flex items-center justify-center';
@@ -901,7 +905,7 @@ export function EditStudio({ embed = false } = {}) {
     setSource({ url: resultUrl, assetId: null });
     showToast('Result is now the source image', 'success');
   };
-  resultActions.append(downloadBtn, regenBtn, reuseBtn, createStudioVideoPagesButton({ studioId: 'edit', getResult: () => resultUrl || '', getAsset: () => ({ type: resultKind }) }));
+  resultActions.append(downloadBtn, regenBtn, reuseBtn);
 
   const historyPanel = document.createElement('div');
   historyPanel.className = 'hidden flex flex-col gap-2';
