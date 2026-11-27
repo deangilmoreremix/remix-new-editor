@@ -91,10 +91,10 @@ describe('custom-domain edge function', () => {
     }
   });
 
-  it('never takes over the app\'s own paths, even on a verified host', async () => {
+  it('never takes over the app\'s reserved paths, even on a verified host', async () => {
     const { default: handler } = await load();
     rpcAnswer = 'acme';
-    for (const path of ['/studios', '/academy', '/signin', '/api', '/assets', '/v', '/watch']) {
+    for (const path of ['/signin', '/api', '/assets', '/v', '/watch', '/settings']) {
       const next = vi.fn(async () => new Response('app'));
       await handler(new Request(`https://videos.acme.com${path}`), { next });
       expect(next).toHaveBeenCalledWith();
@@ -102,15 +102,20 @@ describe('custom-domain edge function', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('lists every top-level folder of public/ and every single-segment route of netlify.toml', async () => {
-    const fs = await import('node:fs');
+  it('serves a video whose address matches one of the app\'s own pages (academy, studios, recorder...)', async () => {
+    const { default: handler } = await load();
+    rpcAnswer = 'acme';
+    for (const path of ['/academy', '/studios', '/recorder', '/zackd']) {
+      const res = await handler(new Request(`https://videos.acme.com${path}`), { next: nextWith() });
+      expect(await res.text()).toContain(`content="v/acme/${path.slice(1)}"`);
+    }
+  });
+
+  it('skips exactly the words the publish rules refuse as a video address, so no valid video is ever skipped', async () => {
     const { APP_PATHS } = await load();
-    const names = fs.readdirSync('public', { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
-    const toml = fs.readFileSync('netlify.toml', 'utf8');
-    const routes = [...toml.matchAll(/^\s*from\s*=\s*"\/([a-z0-9-]+)(?:\/\*)?"/gm)].map((m) => m[1]);
-    const matches = (n) => /^[a-z0-9][a-z0-9-]{1,46}[a-z0-9]$/.test(n);
-    const missing = [...new Set([...names, ...routes])].filter((n) => matches(n) && !APP_PATHS.has(n));
-    expect(missing).toEqual([]);
+    const { validateSlug, RESERVED_SLUGS } = await import('../lib/editor/publish/publishClient.js');
+    for (const word of APP_PATHS) expect(validateSlug(word)).not.toBeNull();
+    expect([...APP_PATHS].sort()).toEqual([...RESERVED_SLUGS].sort());
   });
 
   it('treats an upper-case or trailing-dot host like its normal form', async () => {

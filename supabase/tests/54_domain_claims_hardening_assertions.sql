@@ -86,6 +86,9 @@ reset role;
 -- ===== one open alert per (business, domain)
 select t.ok('the open-alert index is per business and domain', exists (select 1 from pg_indexes where indexname = 'custom_domain_alerts_open_key' and indexdef like '%business_slug, domain%'));
 
+-- ===== set_custom_domain locks the owner's row before counting (two simultaneous calls cannot both pass the limit)
+select t.ok('set_custom_domain locks the owner row before counting', (select prosrc ~ 'clerk_user_id = me for update' from pg_proc where proname = 'set_custom_domain' and pronamespace = 'public'::regnamespace));
+
 -- ===== API roles cannot read the counter table or write the approval flag
 set role authenticated; set request.jwt.claims = '{"sub":"userH"}';
 select t.sees_nothing('authenticated cannot read the change counter', 'public.custom_domain_changes');

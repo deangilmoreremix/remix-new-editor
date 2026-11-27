@@ -44,7 +44,9 @@ declare
   recent integer;
 begin
   if me is null then raise exception 'not_authenticated' using errcode = '42501'; end if;
-  select custom_domain into cur from public.video_owner_profiles where clerk_user_id = me;
+  -- Lock the owner's row first: two simultaneous calls from one owner run one after the other, so the count below
+  -- cannot be read by both before either has recorded its change.
+  select custom_domain into cur from public.video_owner_profiles where clerk_user_id = me for update;
   if not found then raise exception 'business_required' using errcode = '22023'; end if;
   if cur is not distinct from d then return d; end if; -- nothing to change: no alert, no count
 

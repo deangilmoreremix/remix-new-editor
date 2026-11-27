@@ -16,17 +16,16 @@ const OWN = /(^|\.)(smartvid\.app|netlify\.app|netlify\.live|localhost)$/;
 const SLUG_PATH = /^\/([a-z0-9][a-z0-9-]{1,46}[a-z0-9])\/?$/;
 
 /**
- * Single-segment paths that belong to the app itself (real pages, folders under public/ and routes in netlify.toml).
- * A video on a custom domain can never use one of these as its address. src/test/customDomainEdge.test.js checks this
- * list against public/ and netlify.toml so a new folder cannot be forgotten.
+ * Words the database refuses as a video address (public.slug_is_valid, mirrored by RESERVED_SLUGS in publishClient.js).
+ * They can never be a video, so they are not looked up and the app's own page for that path is served. Every OTHER
+ * single-segment path on a verified host is a video address, even when the app also has a page of that name (a video
+ * may be called "academy" or "studios"). src/test/customDomainEdge.test.js checks this list against validateSlug.
  */
 export const APP_PATHS = new Set([
-  'academy', 'account', 'admin', 'analytics-demo', 'api', 'app', 'assets', 'auth', 'billing', 'caption-looks', 'dashboard',
-  'data', 'director-api', 'edit', 'embed', 'fonts', 'forgot-password', 'guides', 'help', 'hyperframes', 'landing-art',
-  'landing-previews', 'landing-videos', 'library-previews', 'login', 'logout', 'luts', 'media', 'mediapipe', 'models',
-  'motion-studio', 'new', 'occ-templates', 'openthorn', 'overlay-templates', 'preview', 'private', 'profile', 'public',
-  'recorder', 'reset-password', 'screenshots', 'settings', 'signin', 'signup', 'smartwarmupai-api', 'smartwarmupai-app',
-  'sound-effects', 'static', 'studios', 'support', 'thumbnails', 'v', 'vidbee', 'watch', 'zackd',
+  'admin', 'api', 'app', 'assets', 'auth', 'billing', 'account', 'profile', 'dashboard', 'embed',
+  'help', 'login', 'logout', 'new', 'null', 'undefined', 'settings', 'signin', 'signup', 'static',
+  'support', 'v', 'watch', 'www', 'openthorn', 'netlify', 'supabase', 'smartvideo', 'smartvid',
+  'official', 'root', 'system', 'video', 'videos', 'edit', 'preview', 'public', 'private',
 ]);
 
 const cache = new Map(); // host -> { slug, at }
@@ -71,7 +70,7 @@ export default async (request, context) => {
   const host = normalizeHost(url.hostname);
   if (OWN.test(host) || request.method !== 'GET') return context.next();
   const match = SLUG_PATH.exec(url.pathname);
-  if (!match || APP_PATHS.has(match[1])) return context.next(); // assets, /watch/*, /v/*, the root, the app's own pages
+  if (!match || APP_PATHS.has(match[1])) return context.next(); // assets, /watch/*, /v/*, the root, reserved words
   const business = await businessFor(host);
   if (!business) return context.next();
 
