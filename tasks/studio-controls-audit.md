@@ -2,9 +2,9 @@
 
 Compared with the live MuAPI catalog (`GET https://api.muapi.ai/api/v1/models`, 874 models, read 2026-11-27).
 The studios build their settings from the bundled schemas in `src/lib/models.js` (auto-generated, "from models_dump.json").
-The older `src/lib/muapi/liveModels.json` (787 models, 2026-11-07) is **not** a reliable reference for what an endpoint
-accepts: it attached one shared schema to whole families (for example `resolution` and `high_bitrate` on every Seedance 2
-endpoint, including the `-1080p` and `-4k` ones), which the live catalog does not do.
+`src/lib/muapi/liveModels.json` was regenerated on 2026-11-27 (854 models). Its `fields` come from `openapi.json`, which
+often shares one schema across a family and so lists settings an endpoint ignores (see below); its `declared` list is
+what the model list says the endpoint takes.
 
 ## Live settings the bundled copy does not list
 
@@ -24,19 +24,23 @@ endpoint, including the `-1080p` and `-4k` ones), which the live catalog does no
 The catalog lists setting **names** only, not their allowed values or ranges, so a value list still has to come from
 somewhere else (the old snapshot, the provider's docs, or a real call).
 
-## Video Resolution, narrowed
+## Video Resolution: done
 
-Of the text-to-video and image-to-video models, **26** declare `resolution` in the live catalog while the bundled copy
-does not (130 others never declared it, 133 already have it):
+Of the text-to-video and image-to-video models, 26 declare `resolution` in the live model list while the bundled copy
+lacked it. For **each of the 26** the real `estimate-cost` endpoint prices resolution (lowest vs highest value differ,
+for example Seedance 2 VIP 720p $1.50 vs 4k $6.75, Seedance 2.5 480p $0.68 vs 4k $6.80, Grok Imagine 480p $0.125 vs
+720p $0.25), so they are now listed in a marked block at the end of `src/lib/models.js` (`LIVE_VIDEO_RESOLUTION`).
+`src/test/models-live-resolution.test.js` fails if a model that the live list declares `resolution` for is missing it.
 
-* Grok Imagine text-to-video and image-to-video: 480p, 720p.
-* Seedance 2 vip / spicy (11): 720p, 1080p, 4k.
-* Seedance 2 other (3, `seedance-2-t2v`, `seedance-2-vip-extend`, `seedance-2-omni-reference`).
-* Seedance 2.5 (10): 480p, 720p, 1080p, 4k.
-
-Value lists are from the November snapshot, so confirm them before use. Not applied yet: `models.js` is generated, so the
-right fix is to regenerate it from the live catalog (`scripts/generate-model-catalog.mjs`, 87 models are new) and review
-the diff, not to hand-edit it. Do that in its own change with a browser pass on the Video and Cinema studios.
+* **`openapi.json` is a superset.** `seedance-2-image-to-video` lists `resolution` and `high_bitrate` in its request
+  schema, but its price is $1.25 at 720p and at 4k (and with high_bitrate on), while duration doubles it. It ignores
+  them, so the studios do not offer them. 1080p and 4k are separate endpoints. Use the model list's `input_fields`
+  (`declared` in `liveModels.json`) to decide what to show, not the request schema.
+* `scripts/build-muapi-catalog.mjs` regenerates `src/lib/muapi/liveModels.json` (854 models, +67). `src/lib/models.js`
+  has no generator: its header comment ("auto-generated from models_dump.json") is stale and `models_dump.json` holds only
+  about 60 entries. The Video and Cinema studios read `models.js`, so changes there are made by hand or by a block like
+  the one above.
+* Two older entries list `4K` where the schema says `4k`; the API prices both the same, so they were left alone.
 
 ## Already handled
 * The 72 Edit Studio apps. Settings added from `src/data/muapiAppModelControls.json`: MiniMax H3 duration 5-15 s,

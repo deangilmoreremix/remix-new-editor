@@ -4,6 +4,7 @@
  * https://api.muapi.ai/api/v1/models (list) and https://api.muapi.ai/openapi.json (request schemas).
  * Run `node scripts/build-muapi-catalog.mjs` to refresh. Used by the Spaces model catalog and by the server's
  * `generate` tool (validation), so both see the same models and fields.
+ * Behind the Claude Code sandbox proxy run it as: NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt node scripts/build-muapi-catalog.mjs
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -49,7 +50,9 @@ for (const m of models) {
     if (v.title) f.title = v.title;
     fields.push(f);
   }
-  out.push({ name: m.name, endpoint: m.endpoint_url || m.name, category: m.category, family: m.family, group: m.group_of, cost: m.cost, fields });
+  // `fields` is the full request schema from openapi.json, which often shares one schema across a family (so it can list
+  // settings an endpoint ignores). `declared` is what the model list says the endpoint takes: use it to decide what to show.
+  out.push({ name: m.name, endpoint: m.endpoint_url || m.name, category: m.category, family: m.family, group: m.group_of, cost: m.cost, ...(Array.isArray(m.input_fields) ? { declared: m.input_fields } : {}), fields });
 }
 fs.writeFileSync(OUT, JSON.stringify({ generatedAt: new Date().toISOString().slice(0, 10), count: out.length, models: out }));
 console.log(`wrote ${out.length} models → ${path.relative(process.cwd(), OUT)} (${(fs.statSync(OUT).size / 1024).toFixed(0)} KB)`);

@@ -33415,3 +33415,54 @@ export const textModels = [
 }];;
 
 export const getTextModelById = (id) => textModels.find(m => m.id === id);
+
+// ── Live-catalog patch: video Resolution (2026-11-27) ────────────────────────────────────────────────
+// These models declare `resolution` in MuAPI's live model list (GET /api/v1/models, input_fields) and the
+// real estimate-cost endpoint prices it: for each one the price of the lowest and highest value differs
+// (e.g. Seedance 2 VIP 720p $1.50 vs 4k $6.75, Grok Imagine 480p $0.125 vs 720p $0.25). The definitions above
+// did not list it, so the Video and Cinema studios showed no Resolution choice for them.
+// Values and defaults are from the request schema (src/lib/muapi/liveModels.json). Models that merely list
+// `resolution` in openapi.json but ignore it (for example seedance-2-image-to-video, 720p at any value) are
+// NOT here; src/test/models-live-resolution.test.js keeps this list honest.
+const LIVE_VIDEO_RESOLUTION = {
+  t2v: {
+  "grok-imagine-text-to-video": { enum: ["480p", "720p"], default: "480p" },
+  "seedance-2-t2v": { enum: ["480p", "720p"], default: "720p" },
+  "seedance-2-vip-text-to-video": { enum: ["720p", "1080p", "4k"], default: "720p" },
+  "seedance-2-vip-text-to-video-fast": { enum: ["720p", "1080p", "4k"], default: "720p" },
+  "seedance-2-vip-extend": { enum: ["720p", "1080p"], default: "720p" },
+  "seedance-2.5-text-to-video": { enum: ["480p", "720p", "1080p", "4k"], default: "720p" },
+  "seedance-2-spicy-text-to-video": { enum: ["720p", "1080p", "4k"], default: "720p" },
+  "seedance-2-spicy-text-to-video-fast": { enum: ["720p", "1080p", "4k"], default: "720p" },
+  "seedance-2.5-intl-text-to-video": { enum: ["480p", "720p", "1080p", "4k"], default: "720p" },
+  },
+  i2v: {
+  "grok-imagine-image-to-video": { enum: ["480p", "720p"], default: "480p" },
+  "seedance-2-omni-reference": { enum: ["480p", "720p", "1080p", "4k"], default: "720p" },
+  "seedance-2-vip-image-to-video": { enum: ["720p", "1080p", "4k"], default: "720p" },
+  "seedance-2-vip-image-to-video-fast": { enum: ["720p", "1080p", "4k"], default: "720p" },
+  "seedance-2-vip-first-last-frame": { enum: ["720p", "1080p", "4k"], default: "720p" },
+  "seedance-2-vip-omni-reference": { enum: ["720p", "1080p", "4k"], default: "720p" },
+  "seedance-2-vip-omni-reference-fast": { enum: ["720p", "1080p", "4k"], default: "720p" },
+  "seedance-2.5-image-to-video": { enum: ["480p", "720p", "1080p", "4k"], default: "720p" },
+  "seedance-2.5-first-last-frame": { enum: ["480p", "720p", "1080p", "4k"], default: "720p" },
+  "seedance-2.5-omni-reference": { enum: ["480p", "720p", "1080p", "4k"], default: "720p" },
+  "seedance-2-spicy-image-to-video": { enum: ["720p", "1080p", "4k"], default: "720p" },
+  "seedance-2-spicy-image-to-video-fast": { enum: ["720p", "1080p", "4k"], default: "720p" },
+  "seedance-2.5-intl-image-to-video": { enum: ["480p", "720p", "1080p", "4k"], default: "720p" },
+  "seedance-2.5-intl-first-last-frame": { enum: ["480p", "720p", "1080p", "4k"], default: "720p" },
+  "seedance-2.5-spicy-first-last-frame": { enum: ["480p", "720p", "1080p", "4k"], default: "720p" },
+  "seedance-2.5-intl-omni-reference": { enum: ["480p", "720p", "1080p", "4k"], default: "720p" },
+  "seedance-2.5-spicy-omni-reference": { enum: ["480p", "720p", "1080p", "4k"], default: "720p" },
+  },
+};
+for (const [list, byId] of [[t2vModels, LIVE_VIDEO_RESOLUTION.t2v], [i2vModels, LIVE_VIDEO_RESOLUTION.i2v]]) {
+  for (const model of list) {
+    const live = byId[model.id];
+    if (!live || !model.inputs || model.inputs.resolution) continue;
+    model.inputs.resolution = {
+      enum: [...live.enum], type: 'string', title: 'Resolution', name: 'resolution',
+      description: 'Output resolution. Higher values cost more.', default: live.default,
+    };
+  }
+}
