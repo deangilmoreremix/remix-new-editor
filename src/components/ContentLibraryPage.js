@@ -7,7 +7,7 @@ import { createStudioHeader } from '../lib/thumbnails.js';
 
 export function ContentLibraryPage() {
   const container = document.createElement('div');
-  container.className = 'w-full h-full flex flex-col bg-app-bg overflow-hidden';
+  container.className = 'studio-short-scroll w-full h-full flex flex-col bg-app-bg overflow-hidden';
 
   let activeFilter = 'all';
   let searchQuery = '';
@@ -95,7 +95,7 @@ export function ContentLibraryPage() {
 
   // Grid area
   const gridArea = document.createElement('div');
-  gridArea.className = 'flex-1 overflow-y-auto px-4 md:px-8 pb-8';
+  gridArea.className = 'studio-short-body flex-1 overflow-y-auto px-4 md:px-8 pb-8';
   container.appendChild(gridArea);
 
   // Preview overlay

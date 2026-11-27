@@ -88,3 +88,6 @@
     border-top: 1px solid rgba(255,255,255,0.06);
   }
 }
+
+/* Workspace row keeps a usable height; the studio scrolls as a whole (see .studio-short-scroll). */
+.personalizer-studio.studio-short-scroll > div:last-child { flex: 1 0 640px !important; min-height: 640px !important; }
