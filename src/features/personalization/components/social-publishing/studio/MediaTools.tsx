@@ -9,6 +9,8 @@ import { exportFilename, downloadBlob } from '@ohb/shared/social/exportNames'
 import { imagesFromPasteEvent } from '@ohb/shared/social/clipboard'
 import type { Asset, ThumbnailState } from '../types'
 import { useCapabilities, useObjectUrls, blobToDataUrl, type MediaMeta, btn, btnPrimary, field, h4 } from './useStudio'
+import { CaptionTools } from './CaptionTools'
+import { BackgroundTools } from './BackgroundTools'
 
 interface Props {
   asset: Asset
@@ -243,10 +245,12 @@ export function MediaTools({ asset, title, meta, onReplaceAsset, onUpdateThumbna
               <button type="button" className={btn} onClick={() => downloadBlob(new Blob([toSrt(cues)], { type: 'application/x-subrip' }), exportFilename('subtitles', title, 'srt'))}>Export SRT</button>
               <button type="button" className={btn} onClick={() => downloadBlob(new Blob([toVtt(cues, subPos)], { type: 'text/vtt' }), exportFilename('subtitles', title, 'vtt'))}>Export VTT</button>
             </div>
-            <p className="mt-1 text-[10px] text-white/40">Subtitle files are for download or upload to platforms that accept them. Burned-in captions and on-device speech-to-text are not part of this panel yet.</p>
+            <p className="mt-1 text-[10px] text-white/40">Subtitle files are for download or upload to platforms that accept them. To put captions into the picture, generate or import them, then use "Burn captions into video" below.</p>
           </>
         )}
       </section>
+      {asset.type === 'video' && <CaptionTools cues={cues} setCues={setCues} getSource={source} onOutput={addOutput} position={subPos} />}
+      <BackgroundTools mediaType={asset.type} getSource={source} onOutput={addOutput} />
     </div>
   )
 }
