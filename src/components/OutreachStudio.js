@@ -884,9 +884,10 @@ export function OutreachStudio() {
     const title = el('div', 'mr-auto min-w-0 truncate text-[15px] font-extrabold text-white', draft.name || 'Untitled dynamic video');
     bar.appendChild(title);
     bar.appendChild(el('span', 'mx-2 h-6 w-px bg-white/10'));
+    const TOOL_LABELS = { captions: 'Captions', language: 'Language', script: 'Script', trim: 'Edit', thumbnail: 'Thumbnail', link: 'Copy link', preview: 'Preview' };
     const tool = (key, k, tip, onClick, { active = false, disabled = false } = {}) => {
-      const b = el('button', `grid h-10 w-10 place-items-center rounded-full border transition-colors disabled:opacity-30 ${active ? 'border-primary/40 bg-primary/[0.1] text-white' : 'border-transparent text-white/65 hover:border-white/15 hover:text-white'}`);
-      b.type = 'button'; b.innerHTML = icon(k); b.title = tip; b.setAttribute('aria-label', tip); b.disabled = disabled;
+      const b = el('button', `inline-flex h-10 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors disabled:opacity-30 ${active ? 'border-primary/40 bg-primary/[0.1] text-white' : 'border-transparent text-white/70 hover:border-white/15 hover:text-white'}`);
+      b.type = 'button'; b.innerHTML = `${icon(k)}<span>${TOOL_LABELS[key] || tip}</span>`; b.title = tip; b.setAttribute('aria-label', tip); b.disabled = disabled;
       b.setAttribute('data-editor-tool', key);
       if (active) b.setAttribute('aria-pressed', 'true');
       b.addEventListener('click', onClick);
