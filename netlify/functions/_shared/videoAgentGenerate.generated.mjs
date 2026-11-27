@@ -1442,7 +1442,7 @@ async function POST(req) {
   if (!apiKey) {
     return new Response(
       JSON.stringify({
-        error: "The Video Agent uses your own OpenAI key. Add it in SmartVid \u2192 Settings \u2192 API keys (OpenAI API Key)."
+        error: "The Animation Agent uses your own OpenAI key. Add it in SmartVid \u2192 Settings \u2192 API keys (OpenAI API Key)."
       }),
       {
         status: 401,
