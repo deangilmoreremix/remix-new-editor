@@ -31,8 +31,8 @@ export function CineGenEditorPage(): HTMLElement {
   if (bannerText) bannerText.style.paddingLeft = '28px';
   el.appendChild(banner);
   const host = document.createElement('div');
-  // [remix] the editor never gets squeezed below 600px by the banner: when the window is short the page scrolls instead of clipping the workspace.
-  Object.assign(host.style, { flex: '1 0 600px', minHeight: '0', position: 'relative', overflow: 'hidden', contain: 'layout', display: 'flex', flexDirection: 'column' });
+  // [remix] the editor never gets squeezed below 640px by the banner: when the window is short the page scrolls instead of clipping the workspace.
+  Object.assign(host.style, { flex: '1 0 640px', minHeight: '0', position: 'relative', overflow: 'hidden', contain: 'layout', display: 'flex', flexDirection: 'column' });
   el.appendChild(host);
   const root = createRoot(host);
   // Bring over projects saved by the earlier build (once), then show the project manager.
