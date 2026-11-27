@@ -5,7 +5,7 @@ import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 const SVG_SPIN = '<svg class="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-opacity="0.3"/><path d="M21 12a9 9 0 00-9-9"/></svg>';
 const SVG_CALENDAR = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
 
-const CALENDAR_TABS = ['Calendar', 'Schedule', 'Analytics'];
+const CALENDAR_TABS = ['Calendar', 'Publish', 'Analytics'];
 
 export function SmartVideoScheduler() {
   const container = document.createElement('div');
@@ -26,7 +26,7 @@ export function SmartVideoScheduler() {
   if (hero) {
     const heroText = document.createElement('div');
     heroText.className = 'absolute bottom-0 left-0 right-0 p-5 z-10 flex items-end justify-between';
-    heroText.innerHTML = '<div><h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-1">Smart Video Scheduler</h1><p class="text-white/60 text-sm max-w-md">AI-powered content calendar and scheduling studio</p></div>';
+    heroText.innerHTML = '<div><h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-1">Smart Video Scheduler</h1><p class="text-white/60 text-sm max-w-md">Publish your videos to social with an AI-made thumbnail</p></div>';
     hero.appendChild(heroText);
     topBar.appendChild(hero);
   }
@@ -68,12 +68,12 @@ export function SmartVideoScheduler() {
     if (activeTab === 'Calendar') {
       const placeholder = document.createElement('div');
       placeholder.className = 'flex flex-col items-center justify-center py-20 text-center';
-      placeholder.innerHTML = '<div class="text-5xl mb-4">📅</div><h3 class="text-lg font-bold text-white mb-2">Content Calendar</h3><p class="text-sm text-white/50 max-w-md">Your scheduled posts will appear here. Connect your social accounts to start scheduling.</p>';
+      placeholder.innerHTML = '<div class="text-5xl mb-4">📅</div><h3 class="text-lg font-bold text-white mb-2">Content Calendar</h3><p class="text-sm text-white/50 max-w-md">A calendar of your posts is not available yet. To post a video now, open the Publish tab.</p>';
       contentArea.appendChild(placeholder);
-    } else if (activeTab === 'Schedule') {
+    } else if (activeTab === 'Publish') {
       const placeholder = document.createElement('div');
       placeholder.className = 'flex flex-col items-center justify-center py-20 text-center';
-      placeholder.innerHTML = '<div class="text-5xl mb-4">⏰</div><h3 class="text-lg font-bold text-white mb-2">Publish a video</h3><p class="text-sm text-white/50 max-w-md mb-5">Pick a video, add a caption and an AI-generated thumbnail, then publish it to your connected accounts. Timed scheduling is not available yet.</p>';
+      placeholder.innerHTML = '<div class="text-5xl mb-4">🚀</div><h3 class="text-lg font-bold text-white mb-2">Publish a video</h3><p class="text-sm text-white/50 max-w-md mb-5">Choose a video, write the caption, make an AI thumbnail and publish it to your connected accounts right away.</p>';
       const publishBtn = document.createElement('button');
       publishBtn.type = 'button';
       publishBtn.dataset.testid = 'scheduler-publish';

@@ -332,7 +332,7 @@
         "slug": "smart-video-scheduler",
         "name": "Smart Video Scheduler",
         "route": "smart-video-scheduler",
-        "shortDescription": "Content calendar page with Calendar, Schedule and Analytics tabs (preview). The Schedule tab opens Publish to Social.",
+        "shortDescription": "Page with Calendar, Publish and Analytics tabs (preview). The Publish tab opens Publish to Social.",
         "features": 3,
         "thumbnail": "/guides/smart-video-scheduler/overview.webp"
       },

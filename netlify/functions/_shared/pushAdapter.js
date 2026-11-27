@@ -10,7 +10,7 @@ import { timingSafeEqual, createHash } from 'node:crypto';
 import { inQuietHours, getEmailAdapter, alertsUrl } from './emailAdapter.js';
 import { sendAlertEmailNow } from './ownerEmail.js';
 import { rest, supabaseConfig } from './supabaseRest.js';
-import { CATEGORY_BY_TYPE } from './alertTypes.js';
+import { CATEGORY_BY_TYPE, PUBLISH_TYPES } from './alertTypes.js';
 
 export { CATEGORY_BY_TYPE };
 export const MAX_FAILURES = 5;
@@ -67,7 +67,8 @@ export async function prepareWebPush(vapid, injected) {
 
 /** Why this owner's push preferences block `type`, or null. push_types NULL/absent = push every enabled type (legacy). */
 export function pushTypeBlock(prefs, type) {
-  if (!Array.isArray(prefs.enabled_types) || !prefs.enabled_types.includes(type)) return 'type_disabled';
+  // Publish results are not a retarget alert: they follow the push switch, and only an explicit push_types list can mute them.
+  if (!PUBLISH_TYPES.includes(type) && (!Array.isArray(prefs.enabled_types) || !prefs.enabled_types.includes(type))) return 'type_disabled';
   if (Array.isArray(prefs.push_types) && !prefs.push_types.includes(type)) return 'type_push_disabled';
   return null;
 }

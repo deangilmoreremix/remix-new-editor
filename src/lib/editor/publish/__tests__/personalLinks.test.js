@@ -82,7 +82,7 @@ describe('personal link owner client', () => {
   it('gives a link a new address and removes links', async () => {
     const client = fakeClient([row({ revoked: true, overrides: { firstName: 'Annie' } })]);
     const next = await regeneratePersonalLink(client, 'a'.repeat(20), { makeId: () => 'N'.repeat(20) });
-    expect(next).toMatchObject({ id: 'N'.repeat(20), revoked: false, overrides: { firstName: 'Annie' } });
+    expect(next).toMatchObject({ id: 'N'.repeat(20), revoked: true, overrides: { firstName: 'Annie' } }); // a turned-off link stays off with its new address
     await deletePersonalLink(client, 'N'.repeat(20));
     expect(await listPersonalLinks(client, 'vid0000001')).toEqual([]);
   });

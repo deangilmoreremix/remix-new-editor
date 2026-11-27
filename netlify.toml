@@ -390,3 +390,7 @@ force = false
 # Scheduled (every 15 min): sends the "while you were away" summary push after quiet hours, same send code as push-dispatch.
 [functions."push-quiet-flush"]
   external_node_modules = ["web-push"]
+
+# Scheduled publishing (every minute): publishes due auto_publish rows of scheduled_posts through MuAPI with the owner's
+# encrypted key. Needs SUPABASE_SERVICE_ROLE_KEY and SCHEDULER_KEY_SECRET (32 random bytes, base64) in the Netlify environment.
+# (schedule is declared in the function file: netlify/functions/scheduled-publish.mjs)

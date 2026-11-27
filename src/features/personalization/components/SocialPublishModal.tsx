@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { X, ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
 import { mergeCopy } from './social-publishing/mergeCopy';
 import { publishOrchestrator, publishOne } from '@ohb/shared/api/publishOrchestrator';
-import { PLATFORM_ORDER, PLATFORM_SPECS, buildPublishPayload, isPublicMediaUrl, type PlatformId } from '@ohb/shared/api/socialPayloads';
+import { PLATFORM_ORDER, PLATFORM_SPECS, buildPublishPayload, isPublicMediaUrl, pickThumbnailUrl, type PlatformId } from '@ohb/shared/api/socialPayloads';
 import { uploadPublishMedia } from '@ohb/lib/muapi';
 import { prepareThumbnailFile } from '@ohb/lib/thumbnailUpload';
 import SocialPublishStepper from './social-publishing/SocialPublishStepper';
@@ -13,6 +13,8 @@ import ThumbnailStep from './social-publishing/steps/ThumbnailStep';
 import DestinationsStep from './social-publishing/steps/DestinationsStep';
 import ReviewPublishStep from './social-publishing/steps/ReviewPublishStep';
 import { SocialStudioPanel } from './social-publishing/studio/SocialStudioPanel';
+import type { PreparedSchedule } from './social-publishing/studio/AutoPublishPanel';
+import { deviceOnlyMediaError, isTemporaryMediaUrl } from '@ohb/shared/social/validation';
 import type {
   Asset,
   CopyState,
@@ -223,6 +225,32 @@ export default function SocialPublishModal({
     [asset, publishing, publishResults, destinations, resolveAsset, resolveThumbnail, copy, thumbnail, apiKey, updatePublishResults, sessionId],
   );
 
+  /**
+   * Automatic publishing: one MuAPI payload per destination, saved as a job for the server. Nothing is uploaded here: a job may only
+   * use links that stay valid (public, unsigned https), because the server sends them unchanged, possibly days later, and the job
+   * can be rescheduled or retried. Device-only media is refused; a device-only cover is left out with a note.
+   */
+  const prepareSchedule = useCallback(async (): Promise<PreparedSchedule> => {
+    if (!asset) throw new Error('There is nothing to schedule.');
+    const todo = destinations.filter((d) => d.enabled && d.accountId);
+    const mediaProblem = deviceOnlyMediaError(asset.url);
+    if (mediaProblem) throw new Error(mediaProblem);
+    const jobs: PreparedSchedule['jobs'] = [];
+    const errors: string[] = [];
+    const notes: string[] = [];
+    for (const d of todo) {
+      const cover = asset.type === 'video' && d.platform === 'instagram' ? pickThumbnailUrl(thumbnail, d.platform, d.settings) : undefined;
+      const coverOk = cover && !isTemporaryMediaUrl(cover) ? cover : undefined;
+      if (cover && !coverOk) notes.push('The cover image is only on this device, so Instagram uses its default cover for the automatic post.');
+      const built = buildPublishPayload({ platform: d.platform as PlatformId, accountId: d.accountId ?? '', mediaUrl: asset.url, mediaType: asset.type, copy, settings: d.settings, thumbnailUrl: coverOk });
+      if (!built.payload) errors.push(`${PLATFORM_SPECS[d.platform as PlatformId]?.label ?? d.platform}: ${built.errors.join(' ')}`);
+      else jobs.push({ platform: d.platform, account_id: d.accountId as string, payload: built.payload });
+    }
+    if (!todo.length) errors.push('Choose at least one connected account in the Destinations step.');
+    if (todo.some((d) => d.platform === 'youtube') && thumbnail?.imageUrl) notes.push('A custom YouTube thumbnail is not applied to automatic posts; set it in YouTube Studio.');
+    return { jobs, mediaUrl: asset.url, mediaType: asset.type, caption: copy.caption || copy.master || '', hashtags: [], errors, notes: [...new Set(notes)] };
+  }, [asset, destinations, thumbnail, copy]);
+
   const handleRetry = useCallback(
     async (platform: string, accountId?: string) => {
       const dest = destinations.find((d) => d.platform === platform && d.accountId === accountId);
@@ -395,6 +423,8 @@ export default function SocialPublishModal({
                     onReplaceAsset={onReplaceAsset}
                     onRestoreDraft={onRestoreDraft}
                     onRetry={handleRetry}
+                    apiKey={apiKey}
+                    onPrepareSchedule={prepareSchedule}
                   >
                     <div>
                       <h3 className="text-[11px] font-bold uppercase tracking-wide text-white/40 mb-3">
