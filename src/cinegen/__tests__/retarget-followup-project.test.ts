@@ -13,7 +13,7 @@ vi.mock('@cinegen/lib/leads/overview-deps', () => ({ OPEN_PROJECT_EVENT: 'remix:
 import { cinegenSource, openCinegenFollowup } from '@cinegen/lib/leads/followup-project';
 import { OPEN_PROJECT_EVENT } from '@cinegen/lib/leads/overview-deps';
 import { linkedProjectId } from '@cinegen/lib/leads/project-link';
-import { buildPublishState } from '@cinegen/lib/leads/publish-state';
+import { buildPublishState, countScenes } from '@cinegen/lib/leads/publish-state';
 
 const original = { id: 'row-orig', name: 'Roof promo — Timeline 1', settings: { source: 'cinegen', cinegenProjectId: 'cloud_orig', timelineId: 'tl-1', interestMap: [{ id: 's1' }] } };
 const saved = {
@@ -127,5 +127,14 @@ describe('interest-map sections for a CineGen video', () => {
     const items = built.tracks[0].items as Array<{ name?: string; start: number }>;
     expect(items.map((i) => i.name)).toEqual(['Opening', 'Offer']);
     expect(items.map((i) => i.start)).toEqual([0, 5]);
+  });
+});
+
+describe('countScenes', () => {
+  const tl = (clips: Array<{ id: string; trackId: string }>) => ({ tracks: [{ id: 'tv', kind: 'video' }, { id: 'ta', kind: 'audio' }], clips }) as never;
+  it('counts video clips only', () => {
+    expect(countScenes(tl([{ id: 'a', trackId: 'tv' }, { id: 'b', trackId: 'tv' }, { id: 'c', trackId: 'ta' }]))).toBe(2);
+    expect(countScenes(tl([]))).toBe(0);
+    expect(countScenes(undefined)).toBe(0);
   });
 });

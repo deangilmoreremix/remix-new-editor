@@ -5,7 +5,7 @@
  * from owner-only RPCs; nothing here is static or demo data.
  */
 import {
-  getProjectVideo, loadAudience, seedInterestMap, saveInterestMap, INTEREST_TYPES, loadFollowupComparison,
+  getProjectVideo, loadAudience, seedInterestMap, saveInterestMap, mappingIsStale, INTEREST_TYPES, loadFollowupComparison,
   listNotifications, markRead, NOTIFICATION_TYPES, NOTIFICATION_GROUPS, groupState, loadPreferences, savePreferences, effectivePushTypes, pushGroupState,
 } from './tabsData.js';
 import { quietToForm, quietFromForm, timeZoneOptions, browserTimeZone, QUIET_NOTE_SUMMARY, QUIET_NOTE_DROPPED } from './quietHours.js';
@@ -86,14 +86,15 @@ export function retargetTab(deps) {
           ${map.length ? `<div data-map>${map.map((m, i) => `<div class="sv-section-bar" data-row="${i}"><div><span>${esc(m.title)} <small class="sv-subtitle">${fmtTime(m.start)}–${fmtTime(m.end)}${m.clipIds.length ? ` · ${m.clipIds.length} call${m.clipIds.length === 1 ? '' : 's'} to action` : ''}</small></span></div>
               <div class="sv-custom-range"><label>Type<select data-type="${i}">${INTEREST_TYPES.map((t) => `<option value="${t}" ${(m.interest?.type || 'service') === t ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
               <label>Product, service or topic<input type="text" maxlength="80" data-label="${i}" value="${esc(m.interest?.label || '')}" placeholder="e.g. Roof repair" /></label></div></div>`).join('')}
-            <button type="button" class="sv-primary-btn" data-save-map>Save mapping</button> <span class="sv-hint" data-map-msg role="status"></span></div>`
+            <button type="button" class="sv-primary-btn" data-save-map>Save mapping</button> <span class="sv-hint" data-map-msg role="status"></span>
+            <p class="sv-hint" data-map-stale role="status" ${mappingIsStale(original.settings?.interestMap, video.project?.interestMap) ? '' : 'hidden'}>Your saved mapping is not on the published video yet. Publish the video again so viewers use it.</p></div>`
             : '<p class="sv-subtitle">This project has fewer than two scenes. Add scenes to the timeline to map sections to interests.</p>'}
         </div>
         ${compare.length > 1 ? `<div class="sv-card"><h3>Original vs follow-ups</h3><div style="overflow:auto"><table class="pz-table"><thead><tr><th></th><th>Plays</th><th>Completed</th><th>CTA</th><th>Leads</th></tr></thead><tbody>${compare.map((r) => `<tr><td>${esc(r.kind)}: ${esc(r.name)}</td>${r.published ? `<td>${r.plays}</td><td>${r.completion == null ? '—' : r.completion + '%'}</td><td>${r.cta}</td><td>${r.leads}</td>` : '<td colspan="4"><span class="sv-hint">Not published yet</span></td>'}</tr>`).join('')}</tbody></table></div><p class="sv-hint">Last 90 days. Counts are viewing sessions, so compare similar audiences with care.</p></div>` : ''}`);
       const flash = (m) => { const el = root.querySelector('[data-map-msg]'); if (el) el.textContent = m; };
       root.querySelector('[data-save-map]')?.addEventListener('click', async () => {
         const entries = map.map((m, i) => ({ ...m, interest: root.querySelector(`[data-label="${i}"]`).value.trim() ? { type: root.querySelector(`[data-type="${i}"]`).value, label: root.querySelector(`[data-label="${i}"]`).value } : null }));
-        try { const saved = await saveInterestMap(client, original.id, original.settings, entries); original.settings = { ...(original.settings || {}), interestMap: saved }; deps.onInterestMapSaved?.(saved); flash(`Saved ${saved.length} mapping${saved.length === 1 ? '' : 's'}. Publish again to apply it to viewers.`); } catch (e) { flash(e.message); }
+        try { const saved = await saveInterestMap(client, original.id, original.settings, entries); original.settings = { ...(original.settings || {}), interestMap: saved }; deps.onInterestMapSaved?.(saved); const stale = root.querySelector('[data-map-stale]'); if (stale) stale.hidden = !mappingIsStale(saved, video.project?.interestMap); flash(`Saved ${saved.length} mapping${saved.length === 1 ? '' : 's'}. Publish again to apply it to viewers.`); } catch (e) { flash(e.message); }
       });
       root.querySelectorAll('[data-rec]').forEach((b) => b.addEventListener('click', async () => {
         b.disabled = true;
