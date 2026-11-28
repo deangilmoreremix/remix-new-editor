@@ -579,7 +579,7 @@ describe('watch page with blocked site storage and a button text test', () => {
   it('still plays: reading localStorage throws, so the pick is simply not remembered', async () => {
     const landing = { header: 'Hi', message: '', fallbacks: {}, cta: { label: 'Book a call', labelB: 'Get my demo', url: 'https://cal.com/me/intro' } };
     window.history.replaceState(null, '', '/watch/abcdefgh12');
-    const spy = vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => { throw new DOMException('blocked', 'SecurityError'); });
+    const spy = vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => { throw Object.assign(new Error('blocked'), { name: 'SecurityError' }); });
     const box = document.createElement('div');
     document.body.appendChild(box);
     try {
