@@ -18,6 +18,7 @@
 //                              captionsFile('srt'|'vtt'), makeChapters(), mediaDuration(file) → seconds }
 //   cutPanel                 the Cut tab's element (trim, cuts, before/after), built by the studio
 //   sender                   { name, title } from the Page step, for the name strap
+import { PERF_PRESETS, recommendPreset, chosenPreset, choosePreset } from '../../lib/outreach/perfPresets.js';
 import { listPresets, savePreset, deletePreset, applyPreset } from '../../lib/outreach/overlayPresets.js';
 import { ASPECTS, CAPTION_STYLES, TRANSITIONS, QUALITY, STICKERS, newOverlay, newBroll, isPersonal, placeItem, overlapsOf } from '../../lib/outreach/editTools.js';
 
@@ -440,8 +441,29 @@ function chapters(body, o) {
   });
 }
 
+// A suggestion for this device, from what the browser says about itself. Choosing sets the file size, and the number of
+// frames "Suggest best moments" looks at; it is remembered in this browser only.
+function devicePresets(o) {
+  const wrap = el('div', 'flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.02] p-3');
+  wrap.setAttribute('data-device-presets', '');
+  const rec = recommendPreset();
+  const now = chosenPreset();
+  wrap.appendChild(el('p', 'text-xs text-white/70', `Suggested for this device: ${PERF_PRESETS[rec.id].label}. ${rec.reason}`));
+  const row = el('div', 'flex flex-wrap gap-2');
+  Object.entries(PERF_PRESETS).forEach(([id, p]) => {
+    const b = btn(p.label, { selected: now === id, attr: 'data-device-preset' });
+    b.dataset.devicePreset = id; b.setAttribute('aria-pressed', String(now === id)); b.title = p.help;
+    b.addEventListener('click', () => { choosePreset(id); o.update((e) => { e.quality = p.quality; }); });
+    row.appendChild(b);
+  });
+  wrap.appendChild(row);
+  wrap.appendChild(el('p', 'text-[11px] text-white/45', PERF_PRESETS[now].help));
+  return wrap;
+}
+
 function exportTab(body, o) {
   body.append(
+    devicePresets(o),
     choices('File size', QUALITY.map(([k, n]) => [k, n]), o.edit.quality, (k) => o.update((e) => { e.quality = k; }), 'data-export-quality'),
     note('Small file and High quality re-encode the result with FFmpeg in your browser (H.264 MP4); Standard keeps the render as it is.'),
   );

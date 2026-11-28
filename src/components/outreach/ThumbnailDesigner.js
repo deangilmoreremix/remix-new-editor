@@ -9,6 +9,7 @@
 // "Make thumbnails" renders every prospect's picture (src/lib/outreach/thumbnail.js).
 import * as T from '../../lib/outreach/thumbnail.js';
 import { rankFrames, sampleTimes } from '../../lib/outreach/thumbnailPick.js';
+import { PERF_PRESETS, chosenPreset } from '../../lib/outreach/perfPresets.js';
 
 const el = (tag, cls = '', txt) => {
   const n = document.createElement(tag);
@@ -113,7 +114,7 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
     // Only moments the scrubber can really select (a GIF needs room after its start), so a suggestion and the saved start match.
     const latest = Number(start.max);
     suggestedFor = Number.isFinite(latest) ? latest : null;
-    const times = [...new Set(sampleTimes(draft.video.duration || video?.duration || 0, 8).map((t) => (Number.isFinite(latest) ? Math.floor(Math.min(t, latest) * 10 + 1e-9) / 10 : t)))];
+    const times = [...new Set(sampleTimes(draft.video.duration || video?.duration || 0, PERF_PRESETS[chosenPreset()].suggestFrames).map((t) => (Number.isFinite(latest) ? Math.floor(Math.min(t, latest) * 10 + 1e-9) / 10 : t)))];
     const frames = [];
     try {
       for (let i = 0; i < times.length; i += 1) {

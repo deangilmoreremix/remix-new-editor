@@ -168,4 +168,23 @@ describe('Video Outreach editor tools', () => {
       prompt.mockRestore();
     });
   });
+
+  describe('device presets and shapes', () => {
+    beforeEach(() => { localStorage.clear(); });
+    it('offers 4:5 as a shape', () => {
+      const { edit } = mount('look');
+      expect([...document.querySelectorAll('[data-look-aspect]')].map((b) => b.dataset.lookAspect)).toContain('4:5');
+      $('[data-look-aspect="4:5"]').click();
+      expect(edit().look.aspect).toBe('4:5');
+    });
+    it('a device preset sets the file size and is remembered', () => {
+      const { edit } = mount('export');
+      expect($('[data-device-presets]').textContent).toMatch(/Suggested for this device/);
+      $('[data-device-preset="light"]').click();
+      expect(edit().quality).toBe('small');
+      expect(localStorage.getItem('outreach-perf-preset')).toBe('light');
+      $('[data-device-preset="best"]').click();
+      expect(edit().quality).toBe('high');
+    });
+  });
 });

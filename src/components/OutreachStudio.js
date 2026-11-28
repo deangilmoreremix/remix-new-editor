@@ -27,6 +27,7 @@ import { onOwnerNotification, isOutreachAlertFor } from '../lib/liveAlerts.js';
 import { createHostLine, liveCallSupported } from '../lib/outreach/liveCall.js';
 import { summarizeCampaign, combineSummaries, QUARTILES } from '../lib/outreach/campaignStats.js';
 import { CARD_THEMES } from '../lib/outreach/profileCard.js';
+import { chosenModel, chooseModel, modelStates, clearSpeechModel } from '../lib/outreach/modelManager.js';
 import { createCallWindow, showIncomingCall } from './outreach/LiveCallPanel.js';
 
 // Caption translation languages (src/lib/editor/ml/modelRegistry.js TRANSLATE_LANGUAGES).
@@ -701,6 +702,43 @@ export function OutreachStudio() {
 
   // ---- Captions: Whisper in the browser, free translations (src/lib/outreach/transcript.js) ----
   let captionLang = 'es';
+  // Which speech model to use, and what is stored on this device (with a way to remove it).
+  function renderModelPanel() {
+    const d = el('details', 'rounded-lg border border-white/10 bg-white/[0.02] p-3 text-xs');
+    d.setAttribute('data-outreach-models', '');
+    d.appendChild(el('summary', 'cursor-pointer font-bold text-white/80', 'Speech model on this device'));
+    const body = el('div', 'mt-2 flex flex-col gap-2');
+    const msg = el('p', 'text-[11px] text-white/55'); msg.setAttribute('role', 'status');
+    const paint = async () => {
+      const states = await modelStates().catch(() => []);
+      body.replaceChildren(el('p', 'text-white/55', 'Captions are made on your computer. The speech model downloads once, after you agree, and stays in this browser until you remove it.'));
+      states.forEach((m) => {
+        const row = el('div', 'flex flex-wrap items-center gap-2');
+        row.setAttribute('data-model-row', m.id);
+        const pick = el('input'); pick.type = 'radio'; pick.name = 'outreach-speech-model'; pick.checked = m.chosen; pick.setAttribute('aria-label', `Use ${m.label}`);
+        pick.addEventListener('change', () => { chooseModel(m.id); msg.textContent = `Using ${m.label}.`; });
+        const state = m.files ? `on this device (${m.files} file${m.files === 1 ? '' : 's'})` : m.agreed ? 'agreed, not downloaded yet' : 'not downloaded';
+        const label = el('label', 'flex flex-1 items-center gap-2'); label.append(pick, el('span', '', `${m.label}: ${state}`));
+        row.appendChild(label);
+        if (m.files || m.agreed) {
+          const rm = button('Remove', { small: true });
+          rm.setAttribute('data-model-clear', m.id);
+          rm.setAttribute('aria-label', `Remove ${m.label} from this device`);
+          rm.addEventListener('click', async () => {
+            try { const r = await clearSpeechModel(m.id); msg.textContent = `Removed ${m.label} (${r.removed} file${r.removed === 1 ? '' : 's'}). You will be asked before it downloads again.`; } catch (err) { msg.textContent = err?.message || 'Could not remove it.'; }
+            paint();
+          });
+          row.appendChild(rm);
+        }
+        body.appendChild(row);
+      });
+      body.appendChild(msg);
+    };
+    paint();
+    d.appendChild(body);
+    return d;
+  }
+
   function renderCaptionsPanel() {
     const box = el('div', 'flex flex-col gap-3 rounded-xl border border-white/10 p-4');
     box.setAttribute('data-outreach-captions', '');
@@ -712,7 +750,7 @@ export function OutreachStudio() {
       make.setAttribute('data-captions-make', '');
       make.disabled = !!busy;
       make.addEventListener('click', makeCaptions);
-      box.appendChild(make);
+      box.append(make, renderModelPanel());
       return box;
     }
     const find = el('input', 'w-full rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs text-white placeholder:text-white/35 outline-none focus:border-primary/60');
@@ -771,7 +809,7 @@ export function OutreachStudio() {
     trRow.append(el('span', 'text-secondary', 'Captions in other languages:'), sel, tr, el('span', 'text-white/50', langs.length ? `Added: ${langs.map((l) => TRANSLATE_LANGS.find(([x]) => x === l)?.[1] || l).join(', ')}` : ''));
     const redo = button('Make again', { small: true });
     redo.addEventListener('click', makeCaptions);
-    box.append(trRow, redo);
+    box.append(trRow, redo, renderModelPanel());
     return box;
   }
 
@@ -784,7 +822,7 @@ export function OutreachStudio() {
         import('../lib/outreach/transcript.js'),
       ]);
       const { captions } = await transcribeInBrowser(source().url, {
-        signal: abort.signal,
+        signal: abort.signal, model: chosenModel(),
         onProgress: (p) => { busy = p.stage === 'download' ? `Downloading the speech model… ${Math.round((p.progress || 0) * 100)}%` : 'Making captions…'; const b = container.querySelector('[data-outreach-busy]'); if (b) b.textContent = busy; },
       });
       draft.captions = { lang: 'en', lines: transcriptLines(captions), translations: {} };
