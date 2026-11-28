@@ -184,8 +184,19 @@ export function createGuestLine({ videoId, contactId = null, join = joinChannel,
  * While you're available. `campaigns`: [{ videoId, contacts: [{ id, firstName, lastName, email }] }].
  * onUpdate(state) with { incoming: { videoId, callId, name } | null, phase, local, remote, error }.
  */
-export function createHostLine({ campaigns = [], hostName = '', join = joinChannel, getMedia = getCallMedia, makePeer, onUpdate = () => {}, now = () => Date.now() }) {
+export function createHostLine({ campaigns = [], hostName = '', join = joinChannel, getMedia = getCallMedia, makePeer, onUpdate = () => {}, onCallLog = () => {}, now = () => Date.now() }) {
   const state = { incoming: null, phase: 'idle', local: null, remote: null, error: '' };
+  // Call history: one entry per ring this tab handled, once its outcome is known
+  // ({ videoId, callId, contactId, name, outcome: 'answered'|'missed'|'declined'|'failed', rangAt, answeredAt, endedAt, durationSeconds }).
+  const rings = new Map(); // callId -> entry being built
+  const log = (callId, outcome) => {
+    const e = rings.get(callId);
+    if (!e) return;
+    rings.delete(callId);
+    const endedAt = now();
+    const durationSeconds = e.answeredAt ? Math.max(0, Math.round((endedAt - e.answeredAt) / 1000)) : 0;
+    try { onCallLog({ ...e, outcome, endedAt, durationSeconds }); } catch { /* history is best effort */ }
+  };
   const lobbies = new Map(); // videoId -> channel
   let call = null; let session = null; let active = null; // { videoId, callId }
   const recent = []; // ring times, to ignore a flood
@@ -195,6 +206,7 @@ export function createHostLine({ campaigns = [], hostName = '', join = joinChann
     return (c && ([c.firstName, c.lastName].filter(Boolean).join(' ') || c.email)) || 'A prospect';
   };
   const end = (phase) => {
+    if (active) log(active.callId, rings.get(active.callId)?.answeredAt && phase !== 'failed' ? 'answered' : 'failed');
     session?.close(); session = null;
     call?.leave(); call = null;
     stopStream(state.local);
@@ -209,8 +221,12 @@ export function createHostLine({ campaigns = [], hostName = '', join = joinChann
       if (recent.length >= 6) return; // more than 6 rings a minute: ignore
       recent.push(t);
       if (active || state.incoming) { join(callName(videoId, msg.callId)).then((ch) => { ch.send({ type: 'busy' }); setTimeout(() => ch.leave(), 1000); }).catch(() => {}); return; }
-      update({ incoming: { videoId, callId: msg.callId, contactId: msg.contactId || null, name: nameFor(videoId, msg.contactId) } });
+      const incoming = { videoId, callId: msg.callId, contactId: msg.contactId || null, name: nameFor(videoId, msg.contactId) };
+      rings.set(msg.callId, { ...incoming, rangAt: t, answeredAt: null });
+      update({ incoming });
     } else if ((msg.type === 'cancel' || msg.type === 'taken') && state.incoming?.callId === msg.callId) {
+      // They gave up before you answered (missed); "taken" means another of your tabs answered and logs it.
+      if (msg.type === 'cancel') log(msg.callId, 'missed'); else rings.delete(msg.callId);
       update({ incoming: null }); // they hung up, or you answered in another tab
     }
   };
@@ -228,6 +244,7 @@ export function createHostLine({ campaigns = [], hostName = '', join = joinChann
       try { local = await getMedia(); } catch (err) { update({ error: err?.name === 'NotAllowedError' ? 'Allow your camera and microphone to take the call.' : 'Your camera or microphone isn’t available.' }); return; }
       active = { videoId: inc.videoId, callId: inc.callId };
       update({ incoming: null, phase: 'connecting', local, error: '' });
+      const ring = rings.get(inc.callId); if (ring) ring.answeredAt = now();
       try {
         call = await join(callName(inc.videoId, inc.callId), {
           onSignal: (msg) => { if (msg.type === 'bye') end('ended'); else session?.handle(msg).catch(() => end('failed')); },
@@ -241,6 +258,7 @@ export function createHostLine({ campaigns = [], hostName = '', join = joinChann
       const inc = state.incoming;
       if (!inc) return;
       update({ incoming: null });
+      log(inc.callId, 'declined');
       try { const ch = await join(callName(inc.videoId, inc.callId)); await ch.send({ type: 'decline' }); setTimeout(() => ch.leave(), 1000); } catch { /* they'll time out */ }
     },
     hangup() { if (!active) return; call?.send({ type: 'bye' }); end('ended'); },
