@@ -163,3 +163,18 @@ export async function createStudioDesignOverlay(startSec: number, timelineSecond
     return base; // designs unavailable: the clip can still be set up in its settings
   }
 }
+
+/** Motion-graphics templates and HyperFrames animations run in a separate sandboxed frame, below the overlay container. */
+export const isSandboxOverlay = (o: { type: string }) => o.type === 'mg-template' || o.type === 'hyperframes';
+
+/**
+ * Studio designs the editor preview must keep BELOW the sandboxed animations: the ones that start before every animation
+ * (so the published video draws them underneath). The animation frame is one layer, so it cannot be interleaved per design;
+ * every other design is stacked with the overlays inside their container, above the frame.
+ */
+export function designsBelowSandbox(overlays: Array<{ id: string | number; type: string; start: number }>, ranks: Map<string, number>): Set<string> {
+  const sandboxRanks = overlays.filter(isSandboxOverlay).map((o) => ranks.get(String(o.id)) ?? 0);
+  if (!sandboxRanks.length) return new Set();
+  const first = Math.min(...sandboxRanks);
+  return new Set(overlays.filter((o) => o.type === 'overlay-studio-design' && (ranks.get(String(o.id)) ?? 0) < first).map((o) => String(o.id)));
+}

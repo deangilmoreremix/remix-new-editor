@@ -15,6 +15,10 @@ interface Props {
   overlays: OverlayClip[];
   /** overlay id -> its place in the published paint order (see overlayPaintRanks) */
   ranks: Map<string, number>;
+  /** designs that must stay under the sandboxed animations (see designsBelowSandbox) */
+  below: Set<string>;
+  /** 'inside': stacked with the overlays in their container (OverlayLayer's `behind` slot); 'below': under the animation frame */
+  mode: 'inside' | 'below';
   profile?: Record<string, unknown> | null;
   profileVersion?: number;
   currentTime: number;
@@ -22,7 +26,7 @@ interface Props {
   aspect?: string;
 }
 
-function DesignPlayer({ overlay, rank, profile, profileVersion, currentTime, timelineSeconds, aspect }: Omit<Props, 'overlays' | 'ranks'> & { overlay: OverlayClip; rank: number }) {
+function DesignPlayer({ overlay, rank, profile, profileVersion, currentTime, timelineSeconds, aspect }: Omit<Props, 'overlays' | 'ranks' | 'below' | 'mode'> & { overlay: OverlayClip; rank: number }) {
   const ref = useRef<PlayerRef>(null);
   const model = useMemo(
     () => studioDesignModel([overlay as never], profile ?? null, timelineSeconds, aspect),
@@ -43,13 +47,18 @@ function DesignPlayer({ overlay, rank, profile, profileVersion, currentTime, tim
   );
 }
 
-/** Mounted inside the overlay container (OverlayLayer's `behind` slot) so its players share that container's stacking context. */
-export function StudioDesignPreviewLayer({ overlays, ranks, ...rest }: Props) {
-  const designs = overlays.filter((o) => o.type === STUDIO_DESIGN_TYPE);
+/** 'inside' is mounted in the overlay container so its players share that container's stacking context; 'below' sits under the animation frame. */
+export function StudioDesignPreviewLayer({ overlays, ranks, below, mode, ...rest }: Props) {
+  const designs = overlays.filter((o) => o.type === STUDIO_DESIGN_TYPE && below.has(String(o.id)) === (mode === 'below'));
   if (!designs.length) return null;
+  const players = designs.map((o) => <DesignPlayer key={String(o.id)} overlay={o} rank={ranks.get(String(o.id)) ?? 0} {...rest} />);
+  if (mode === 'below') {
+    // z-index 3: its own stacking context under the animation frame (4) and the overlay container (5)
+    return <div style={{ position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none' }} data-testid="studio-design-preview-below">{players}</div>;
+  }
   return (
     <div data-studio-design-preview style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} data-testid="studio-design-preview">
-      {designs.map((o) => <DesignPlayer key={String(o.id)} overlay={o} rank={ranks.get(String(o.id)) ?? 0} {...rest} />)}
+      {players}
     </div>
   );
 }
