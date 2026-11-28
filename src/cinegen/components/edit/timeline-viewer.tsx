@@ -11,6 +11,7 @@ import { OverlayLayer } from './overlay-layer';
 import { PreviewAsPicker } from './preview-as-picker';
 import { usePreviewContact } from '@cinegen/lib/personalize/preview-contact';
 import { resolveFit, aspectRatio, frameFor } from '@cinegen/lib/occ/frame-geometry';
+import { overlayPaintRanks, designsBelowSandbox } from '@cinegen/lib/overlays/overlays';
 import { GlGroupLayer } from './gl-group-layer';
 import { GlClipLayer } from './gl-clip-layer';
 import { CaptionsPreviewLayer } from './captions-preview-layer';
@@ -91,6 +92,10 @@ export function TimelineViewer({
   onToggleInspector,
 }: TimelineViewerProps) {
   const previewContact = usePreviewContact(); // [remix] the contact whose details the overlays show
+  // [remix] Studio design previews are stacked with the other overlays in the published paint order
+  const designRanks = overlayPaintRanks(overlays ?? []);
+  const designsBelow = designsBelowSandbox(overlays ?? [], designRanks);
+  const designPreview = (mode: 'inside' | 'below') => <StudioDesignPreviewLayer overlays={overlays ?? []} ranks={designRanks} below={designsBelow} mode={mode} profile={previewContact.profile} profileVersion={previewContact.version} currentTime={currentTime} timelineSeconds={duration} aspect={timeline?.aspect} />;
   const scrubRef = useRef<HTMLDivElement>(null);
   const scrubDragging = useRef(false);
 
@@ -245,9 +250,10 @@ export function TimelineViewer({
         {glTransition?.outClip && glTransition.inClip
           ? [glTransition.outClip, glTransition.inClip].map((c) => <CaptionsPreviewLayer key={c.id} captions={c.captions ?? null} currentTime={currentTime} aspect={aspectRatio(timeline?.aspect)} />)
           : <CaptionsPreviewLayer captions={activeClip?.captions ?? null} currentTime={currentTime} aspect={aspectRatio(timeline?.aspect)} />}
-        {/* [remix] Studio designs drawn for real (the labelled box below only moves and resizes them) */}
-        <StudioDesignPreviewLayer overlays={overlays ?? []} profile={previewContact.profile} profileVersion={previewContact.version} currentTime={currentTime} timelineSeconds={duration} aspect={timeline?.aspect} />
-        <OverlayLayer overlays={overlays} profile={previewContact.profile} profileVersion={previewContact.version} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} onResume={onPlayPause} onEditText={onOverlayText} onGeometry={onOverlayGeometry} frame={frameFor(timeline?.aspect)} />
+        {designPreview('below')}
+        <OverlayLayer overlays={overlays} profile={previewContact.profile} profileVersion={previewContact.version} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} onResume={onPlayPause} onEditText={onOverlayText} onGeometry={onOverlayGeometry} frame={frameFor(timeline?.aspect)}
+          /* [remix] Studio designs drawn for real: stacked with the other overlays (the labelled box above them only moves and resizes) */
+          behind={designPreview('inside')} />
         </div>
         {timeline && timeline.clips.length === 0 && !overlays?.length && <EmptyStart />}{/* [remix] blank project: three ways to start */}
       </div>
