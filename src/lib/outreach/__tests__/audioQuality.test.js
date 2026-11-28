@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { analyzeAudio } from '../audioQuality.js';
+import { analyzeAudio, soundCheckFor } from '../audioQuality.js';
 
 const RATE = 16000;
 // A "voice": a 220 Hz tone in bursts (speech) with pauses, over steady low noise.
@@ -58,5 +58,16 @@ describe('audio quality check', () => {
     const r = analyzeAudio(take({ speech: 0.9, noise: 0.4, clipEvery: 10 }), RATE);
     expect(r.score).toBeGreaterThanOrEqual(0);
     expect(r.score).toBeLessThanOrEqual(100);
+  });
+});
+
+describe('which recording a sound check belongs to', () => {
+  const check = { state: 'done', url: 'https://cdn.x/a.webm', result: { score: 90 } };
+  it('shows the result only for the recording it was measured on', () => {
+    expect(soundCheckFor(check, 'https://cdn.x/a.webm')).toBe(check);
+    expect(soundCheckFor(check, 'https://cdn.x/b.webm')).toBeNull(); // a replacement recording starts clean
+    expect(soundCheckFor(check, '')).toBeNull();
+    expect(soundCheckFor(null, 'https://cdn.x/a.webm')).toBeNull();
+    expect(soundCheckFor({ state: 'done', result: {} }, 'https://cdn.x/a.webm')).toBeNull(); // no recording recorded with it
   });
 });

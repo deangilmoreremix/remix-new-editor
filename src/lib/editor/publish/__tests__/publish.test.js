@@ -562,3 +562,30 @@ describe('watch page button text test (Video Outreach)', () => {
     window.history.replaceState(null, '', '/');
   });
 });
+
+describe('the second button text survives publishing', () => {
+  it('cleanLanding keeps a different second text, trimmed and limited, and drops one that adds nothing', () => {
+    const cta = { label: 'Book a call', url: 'https://cal.com/x' };
+    expect(cleanLanding({ cta: { ...cta, labelB: '  Get my demo ' } }).cta).toEqual({ ...cta, labelB: 'Get my demo' });
+    expect(cleanLanding({ cta: { ...cta, labelB: 'x'.repeat(100) } }).cta.labelB).toHaveLength(60);
+    expect(cleanLanding({ cta: { ...cta, labelB: 'BOOK A CALL' } }).cta).not.toHaveProperty('labelB');
+    expect(cleanLanding({ cta: { ...cta, labelB: '   ' } }).cta).not.toHaveProperty('labelB');
+    expect(cleanLanding({ cta: { ...cta, labelB: 42 } }).cta).not.toHaveProperty('labelB');
+    expect(cleanLanding({ cta: { label: 'Go', url: 'http://insecure.example/x', labelB: 'Other' } }).cta).toBeNull();
+  });
+});
+
+describe('watch page with blocked site storage and a button text test', () => {
+  it('still plays: reading localStorage throws, so the pick is simply not remembered', async () => {
+    const landing = { header: 'Hi', message: '', fallbacks: {}, cta: { label: 'Book a call', labelB: 'Get my demo', url: 'https://cal.com/me/intro' } };
+    window.history.replaceState(null, '', '/watch/abcdefgh12');
+    const spy = vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => { throw new DOMException('blocked', 'SecurityError'); });
+    const box = document.createElement('div');
+    document.body.appendChild(box);
+    try {
+      const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Campaign', project: { ...project(), kind: 'outreach', landing } }), createEngine: fakeEngine().create, analytics: { track: vi.fn(), onPlayerChange: vi.fn(), destroy: vi.fn() }, onLead: vi.fn() });
+      expect(['Book a call', 'Get my demo']).toContain(box.querySelector('[data-landing-cta]').textContent);
+      player.destroy();
+    } finally { spy.mockRestore(); window.history.replaceState(null, '', '/'); }
+  });
+});

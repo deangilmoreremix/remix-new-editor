@@ -39,6 +39,9 @@ function message(container, title, text) {
  * @param {string|{business:string,slug:string}} ref  a video id (/watch/<id>) or a readable link (/v/<business>/<slug>)
  * @param {object} deps  (tests) { fetchVideo, createEngine, onLead, analytics, attribution }
  */
+// Reading localStorage itself can throw (storage blocked): then there is simply no storage.
+const browserStorage = () => { try { return globalThis.localStorage; } catch { return null; } };
+
 async function startLiveCalls({ button, videoId, contactId, host, analytics, player, container }) {
   const { liveCallSupported, createGuestLine } = await import('../lib/outreach/liveCall.js');
   if (!liveCallSupported()) return;
@@ -146,7 +149,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
   // mode, so a returning viewer sees the same one; in the other modes nothing is stored (a new pick each visit).
   const ctaLabelA = String(landing?.cta?.label || '');
   const ctaLabelB = String(landing?.cta?.labelB || '');
-  const ctaShown = ctaLabelB && ctaLabelA ? (pickVariant(`cta:${video.id}`, { storage: consentMode() === 'full' ? globalThis.localStorage : null }) === 'B' ? ctaLabelB : ctaLabelA) : ctaLabelA;
+  const ctaShown = ctaLabelB && ctaLabelA ? (pickVariant(`cta:${video.id}`, { storage: consentMode() === 'full' ? browserStorage() : null }) === 'B' ? ctaLabelB : ctaLabelA) : ctaLabelA;
   const ctaHref = (() => { try { const u = new URL(String(landing?.cta?.url || '')); return u.protocol === 'https:' ? u.toString() : null; } catch { return null; } })();
   // The booking page itself, shown under the button, for known calendar hosts only.
   const calendarSrc = landing?.cta?.embed && ctaHref ? calendarEmbedUrl(ctaHref) : null;

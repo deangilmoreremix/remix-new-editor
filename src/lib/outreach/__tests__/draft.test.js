@@ -4,6 +4,7 @@ import {
   speakRequest, buildCampaignProject, campaignLinks, isHttpsUrl,
   parseCsv, guessMapping, contactsFromRows, makeContact, mergeContacts, contactProfile, siteKey, sitesToCapture,
 } from '../draft.js';
+import { preparePublishProject } from '../../editor/publish/publishClient.js';
 import { personalLink, resolveLineFor } from '../../editor/personalize/perContact.js';
 import { encodeWav, encodeWavBuffer, mixToMono } from '../voiceSample.js';
 
@@ -343,5 +344,15 @@ describe('button text test', () => {
   it('puts the second text on the page only when the test is on', () => {
     expect(buildCampaignProject(readyDraft({ cta: { ...base.cta, abTest: true, labelB: ' Get my demo ' } })).landing.cta.labelB).toBe('Get my demo');
     expect(buildCampaignProject(readyDraft({ cta: { ...base.cta, abTest: false, labelB: 'Get my demo' } })).landing.cta).not.toHaveProperty('labelB');
+  });
+});
+
+describe('button text test, built to published', () => {
+  it('the second text is still on the page after the project is prepared for publishing', () => {
+    const d = readyDraft({ cta: { enabled: true, label: 'Book a call', url: 'https://cal.com/me/intro', abTest: true, labelB: 'Get my demo' } });
+    const published = preparePublishProject(buildCampaignProject(d), { title: 'Campaign' });
+    expect(published.landing.cta).toMatchObject({ label: 'Book a call', labelB: 'Get my demo' });
+    const off = preparePublishProject(buildCampaignProject(readyDraft({ cta: { enabled: true, label: 'Book a call', url: 'https://cal.com/me/intro', abTest: false, labelB: 'Get my demo' } })), { title: 'Campaign' });
+    expect(off.landing.cta).not.toHaveProperty('labelB');
   });
 });

@@ -184,7 +184,9 @@ export function cleanLanding(landing = {}) {
     let url = null;
     try { const u = new URL(String(landing.cta.url)); if (u.protocol === 'https:') url = u.toString(); } catch { url = null; }
     const label = str(landing.cta.label, 60);
-    if (url && label) cta = { label, url, ...(landing.cta.embed === true ? { embed: true } : {}) };
+    // A second button text (for a text test) is kept only when it really differs from the first.
+    const labelB = typeof landing.cta.labelB === 'string' ? str(landing.cta.labelB, 60) : '';
+    if (url && label) cta = { label, url, ...(landing.cta.embed === true ? { embed: true } : {}), ...(labelB && labelB.toLowerCase() !== label.toLowerCase() ? { labelB } : {}) };
   }
   return { header: str(landing.header, 200), message: String(landing.message ?? '').trim().slice(0, 1000), fallbacks, cta };
 }

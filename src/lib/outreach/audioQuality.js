@@ -56,3 +56,6 @@ export function analyzeAudio(samples, sampleRate = 16000) {
   if (!notes.length) notes.push('The sound looks good: clear, not distorted, and quiet in the background.');
   return { seconds: round1(n / sampleRate), loudnessDb, peakDb, clippedPercent, noiseFloorDb, snrDb, score, level: score >= 80 ? 'good' : score >= 55 ? 'ok' : 'poor', notes };
 }
+
+/** A saved check only counts for the recording it was measured on; for any other recording there is no result yet. */
+export const soundCheckFor = (check, url) => (check && url && check.url === url ? check : null);

@@ -27,7 +27,7 @@ import { onOwnerNotification, isOutreachAlertFor } from '../lib/liveAlerts.js';
 import { createHostLine, liveCallSupported } from '../lib/outreach/liveCall.js';
 import { summarizeCampaign, combineSummaries, QUARTILES } from '../lib/outreach/campaignStats.js';
 import { CARD_THEMES } from '../lib/outreach/profileCard.js';
-import { analyzeAudio } from '../lib/outreach/audioQuality.js';
+import { analyzeAudio, soundCheckFor } from '../lib/outreach/audioQuality.js';
 import { preflight, summarizePreflight, lookupFacts } from '../lib/outreach/preflight.js';
 import { chosenModel, chooseModel, modelStates, clearSpeechModel } from '../lib/outreach/modelManager.js';
 import { createCallWindow, showIncomingCall } from './outreach/LiveCallPanel.js';
@@ -1120,17 +1120,21 @@ export function OutreachStudio() {
     box.appendChild(el('div', 'text-sm font-bold', 'Sound check of your recording'));
     const status = el('div', 'flex flex-col gap-1 text-xs'); status.setAttribute('role', 'status');
     const has = !!draft.video?.url;
+    // A result belongs to the recording it was measured on: a different recording starts clean.
+    soundCheck = soundCheckFor(soundCheck, source()?.url);
     const run = button(soundCheck?.state === 'working' ? 'Checking…' : soundCheck?.state === 'done' ? 'Check again' : 'Check the sound', { small: true });
     run.setAttribute('data-sound-check-run', '');
     run.disabled = !has || soundCheck?.state === 'working';
     run.addEventListener('click', async () => {
-      soundCheck = { state: 'working' }; render();
+      const checked = source().url;
+      soundCheck = { state: 'working', url: checked }; render();
       try {
         const { decodeAudio } = await import('../lib/captionStudio/transcribeClient.js');
         const samples = await decodeAudio(source().url);
         const result = analyzeAudio(samples, 16000);
-        soundCheck = result ? { state: 'done', result } : { state: 'error', message: 'There is no sound in this recording to check.' };
-      } catch (err) { soundCheck = { state: 'error', message: err?.message || 'The sound could not be read.' }; }
+        if (!soundCheckFor({ url: checked }, source()?.url)) return; // the recording changed while this was running: ignore the answer
+        soundCheck = result ? { state: 'done', url: checked, result } : { state: 'error', url: checked, message: 'There is no sound in this recording to check.' };
+      } catch (err) { if (!soundCheckFor({ url: checked }, source()?.url)) return; soundCheck = { state: 'error', url: checked, message: err?.message || 'The sound could not be read.' }; }
       render();
     });
     if (!has) status.appendChild(el('p', 'text-white/50', 'Record or add a video first.'));
