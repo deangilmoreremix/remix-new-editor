@@ -4,7 +4,7 @@
   "intro": "Smart Video Scheduler is an early page for publishing a video to your social accounts. Its Publish tab opens Publish to Social, and a post goes out right away.",
   "features": {
     "calendar-tab": "The Calendar tab is open when the page loads. It is a placeholder for a future calendar of your posts.",
-    "schedule-tab": "The Publish tab has a Publish to Social button. It opens the window where you add your video, create a thumbnail, write the copy and publish to a connected account right away.",
+    "publish-tab": "The Publish tab has a Publish to Social button. It opens the window where you add your video, create a thumbnail, write the copy and publish to a connected account right away.",
     "analytics-tab": "The Analytics tab previews the area where you'll track how your posts perform across platforms."
   },
   "outro": "That's the scheduler. Publish from the Publish tab, and your post goes out right away."

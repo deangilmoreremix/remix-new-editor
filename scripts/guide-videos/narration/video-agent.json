@@ -1,7 +1,7 @@
 {
   "slug": "video-agent",
-  "name": "Video Agent",
-  "intro": "Video Agent turns a plain description into a motion graphics animation. You preview it live, tune it by chatting, and render it to an MP4.",
+  "name": "Animation Agent",
+  "intro": "Animation Agent turns a plain description into a motion graphics animation. You preview it live, tune it by chatting, and render it to an MP4.",
   "features": {
     "describe-your-animation": "Start by describing the animation you want in the box, then press Enter. It's the fastest way to a first draft with no code.",
     "model-picker": "The model picker next to the input sets how much the AI thinks before it builds. Choose a higher level for complex animations.",
@@ -11,5 +11,5 @@
     "settings-duration-and-fps": "The Settings button lets you set the duration and frame rate, and shows the resulting video length before you render.",
     "render-and-download": "Render and Download creates the MP4 right in your browser, and a finished render is saved to your library automatically."
   },
-  "outro": "That's Video Agent. Describe it, tune it, and render it, all without touching a line of animation code."
+  "outro": "That's Animation Agent. Describe it, tune it, and render it, all without touching a line of animation code."
 }

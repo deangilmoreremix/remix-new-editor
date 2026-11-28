@@ -252,7 +252,7 @@ export function OutreachStudio() {
     hostKey = key;
     hostLine?.destroy(); hostLine = null;
     ringBox?.close(); ringBox = null;
-    if (list.length) hostLine = createHostLine({ campaigns: list, hostName: String(draft.sender?.name || '').trim().split(/\s+/)[0], onUpdate: onHostUpdate });
+    if (list.length) hostLine = createHostLine({ campaigns: list, hostName: String(draft.sender?.name || '').trim().split(/\s+/)[0], onUpdate: onHostUpdate, onCallLog: saveLiveCall });
   }
   cleanups.push(() => { hostKey = ''; hostLine?.destroy(); hostLine = null; ringBox?.close(); ringBox = null; callWin?.destroy(); callWin = null; });
   const replaceDraft = (next) => { for (const k of Object.keys(draft)) delete draft[k]; Object.assign(draft, next); edit = startEdit(draft.edit); stopPreview(); linkStats = { id: null, loading: false, byContact: null }; pendingCsv = null; pendingLeads = null; persist(); };
@@ -2288,6 +2288,7 @@ export function OutreachStudio() {
       wrap.appendChild(renderLandingCard());
       wrap.appendChild(renderEmailCard());
       wrap.appendChild(renderAlertsCard());
+      if (draft.cta?.live) wrap.appendChild(renderLiveCallsCard());
     }
     return wrap;
   }
@@ -2721,6 +2722,71 @@ export function OutreachStudio() {
     } catch (err) { alerts.error = err?.message || 'Could not load your alert settings.'; }
     alerts.loaded = true; alerts.loading = false;
     if (step === 5 && !busy) render();
+  }
+
+  // ---- Talk live call history (table outreach_live_calls) ---------------------------------------
+  const liveCalls = { videoId: null, loading: false, rows: [], error: '' };
+  async function saveLiveCall(e) {
+    const iso = (ms) => (ms ? new Date(ms).toISOString() : null);
+    const row = {
+      video_id: e.videoId, call_id: e.callId, contact_id: e.contactId || null, caller_name: String(e.name || '').slice(0, 200) || null,
+      outcome: e.outcome, rang_at: iso(e.rangAt), answered_at: iso(e.answeredAt), ended_at: iso(e.endedAt), duration_seconds: e.durationSeconds || 0,
+    };
+    try {
+      const db = await ownerClient();
+      const { error } = await db.from('outreach_live_calls').insert(row);
+      if (error && !/duplicate key/i.test(error.message || '')) throw error;
+    } catch (err) { console.warn('[outreach] live call not saved:', err?.message || err); }
+    if (e.videoId === draft.campaign?.id) {
+      liveCalls.rows = [{ ...row, id: `local-${e.callId}` }, ...liveCalls.rows.filter((r) => r.call_id !== e.callId)].slice(0, 20);
+      if (step === 5 && !busy && container.isConnected) render();
+    }
+  }
+  async function loadLiveCalls() {
+    const id = draft.campaign?.id;
+    if (!id) return;
+    liveCalls.videoId = id; liveCalls.loading = true;
+    try {
+      const db = await ownerClient();
+      const { data, error } = await db.from('outreach_live_calls')
+        .select('id, call_id, contact_id, caller_name, outcome, rang_at, duration_seconds').eq('video_id', id)
+        .order('rang_at', { ascending: false }).limit(20);
+      if (error) throw error;
+      liveCalls.rows = data || []; liveCalls.error = '';
+    } catch (err) {
+      liveCalls.rows = [];
+      liveCalls.error = /outreach_live_calls|relation|schema cache/i.test(err?.message || '') ? 'Call history isn\u2019t switched on for this account yet.' : (err?.message || 'Could not load your calls.');
+    }
+    liveCalls.loading = false;
+    if (step === 5 && !busy && container.isConnected) render();
+  }
+  function renderLiveCallsCard() {
+    const box = card('Live calls', 'Every Talk live call on this campaign: who called, when, and how it went.');
+    box.setAttribute('data-outreach-live-calls', '');
+    if (liveCalls.videoId !== draft.campaign?.id && !liveCalls.loading) setTimeout(loadLiveCalls, 0);
+    if (liveCalls.loading && !liveCalls.rows.length) { box.appendChild(el('p', 'text-xs text-white/50', 'Loading\u2026')); return box; }
+    if (liveCalls.error) box.appendChild(el('p', 'text-xs text-amber-300', liveCalls.error));
+    if (!liveCalls.rows.length) {
+      if (!liveCalls.error) box.appendChild(el('p', 'text-xs text-white/50', 'No calls yet. Switch on \u201cAvailable for live calls\u201d and prospects can call you from their page.'));
+      return box;
+    }
+    const LABEL = { answered: 'Answered', missed: 'Missed', declined: 'Declined', failed: 'Didn\u2019t connect' };
+    const TONE = { answered: 'text-emerald-300', missed: 'text-amber-300', declined: 'text-white/60', failed: 'text-rose-300' };
+    const list = el('ul', 'flex flex-col divide-y divide-white/5 text-sm');
+    for (const r of liveCalls.rows) {
+      const li = el('li', 'flex items-center gap-3 py-2');
+      li.setAttribute('data-live-call', r.outcome);
+      const when = r.rang_at ? new Date(r.rang_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+      const mins = Math.floor((r.duration_seconds || 0) / 60); const secs = (r.duration_seconds || 0) % 60;
+      li.append(
+        el('span', 'flex-1 truncate', r.caller_name || 'A prospect'),
+        el('span', `text-xs ${TONE[r.outcome] || 'text-white/60'}`, r.outcome === 'answered' ? `${LABEL.answered} \u00b7 ${mins}:${String(secs).padStart(2, '0')}` : (LABEL[r.outcome] || r.outcome)),
+        el('span', 'w-28 text-right text-xs text-white/45', when),
+      );
+      list.appendChild(li);
+    }
+    box.appendChild(list);
+    return box;
   }
 
   function renderAlertsCard() {
