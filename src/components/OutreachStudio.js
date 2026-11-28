@@ -231,6 +231,7 @@ export function OutreachStudio() {
   // A second copy of the draft in this browser's IndexedDB (src/lib/outreach/draftBackup.js), local to this device.
   let backupTimer = null;
   let restoreOffer = null;
+  let restoreStillValid = null; // draftBackup's shouldOfferRestore, once loaded
   const backupSoon = () => {
     clearTimeout(backupTimer);
     backupTimer = setTimeout(() => { import('../lib/outreach/draftBackup.js').then((m) => m.backupDraft(draft)).catch(() => {}); }, 1500);
@@ -3500,6 +3501,8 @@ export function OutreachStudio() {
     const lib = [...listLibrary()].sort((a, b) => (librarySort === 'name' ? String(a.name).localeCompare(String(b.name)) : librarySort === 'watched' ? statsFor(b.id).watched - statsFor(a.id).watched : new Date(b.savedAt) - new Date(a.savedAt)));
     const box = el('div', 'flex flex-col gap-4');
     box.setAttribute('data-outreach-library', '');
+    // Work added since the offer was made takes the offer away (the backup is never allowed to replace it).
+    if (restoreOffer && restoreStillValid && !restoreStillValid(draft, restoreOffer)) restoreOffer = null;
     if (restoreOffer) box.appendChild(renderRestoreOffer());
     // Like Sendspark's Dynamic Videos page: who you are, what it does, and Create Dynamic Video.
     const head = el('div', 'flex flex-wrap items-center gap-5 border-b border-white/10 pb-6 pt-4');
@@ -4000,6 +4003,7 @@ export function OutreachStudio() {
 
   import('../lib/outreach/draftBackup.js').then(async (m) => {
     const b = await m.loadBackup();
+    restoreStillValid = m.shouldOfferRestore;
     if (m.shouldOfferRestore(draft, b)) { restoreOffer = b; if (container.isConnected && step === STEPS.length) render(); }
   }).catch(() => {});
   render();
