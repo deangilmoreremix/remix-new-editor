@@ -1,5 +1,6 @@
 'use client'
 
+import { TranscriptToolsPanel } from './SmartTools'
 import { AssetUsagePanel } from './AssetUsagePanel'
 import { CopySuggestionsPanel } from './CopySuggestionsPanel'
 import { useEffect, useRef, useState } from 'react'
@@ -267,6 +268,7 @@ export function StepPersonalize({
           </div>
         </div>
         <CopySuggestionsPanel client={clientForm} onPick={(field, value, layer) => setField(field, value, layer)} />
+        <TranscriptToolsPanel />
         <FreeContentPanel onPick={(field, value, layer) => setField(field, value, layer)} />
       </div>
 

@@ -10,7 +10,7 @@ import { loadPixels } from '../intelligence/pixelLoader'
 import { analyzeAudioSamples, decodeMediaAudio, recommendGain } from '../intelligence/audioIntel'
 import { detectSceneCuts, recommendOverlayWindow, scenesFromCuts } from '../intelligence/sceneDetect'
 import { probeVideo, sampleVideo } from '../intelligence/videoIntel'
-import { setVideoAnalysis, useVideoAnalysis, type VideoAnalysis } from '../intelligence/analysisStore'
+import { setVideoAnalysis, useLastAnalysis, useVideoAnalysis, type VideoAnalysis } from '../intelligence/analysisStore'
 import { ASPECTS, planCrops, zoneCenter, type CropAspect } from '../intelligence/smartCrop'
 import { checkTextFit, findUnresolvedTokens, isPromotionalClaim, tightenOffer } from '../intelligence/textIntel'
 import { extractKeywords } from '../intelligence/transcriptIntel'
@@ -19,6 +19,20 @@ import { checkLocalAvailability, translateOnDevice } from '../intelligence/local
 import { buildPreflight, type CheckStatus } from '../intelligence/preflight'
 import { PLATFORM_ZONES, platformsOverlapping } from '../intelligence/safeZones'
 import { shareOrCopy } from '../intelligence/share'
+import { productCropFromDetections, type PixelRect } from '../intelligence/productCrop'
+import { improveLook, canApplyImprove } from '../intelligence/grade'
+import { classifyOcrLines, ocrImage, type OcrLine } from '../intelligence/ocrIntel'
+import { suggestThumbnails, composeThumbnail } from '../intelligence/thumbnailCompose'
+import type { ThumbPick } from '../intelligence/thumbnailIntel'
+import { searchTranscript, suggestChapters, suggestHighlights, extractKeywords as kw, type Cue } from '../intelligence/transcriptIntel'
+import { detectObjects, grabFramePixels } from '../localAI/engine'
+import { useLocalAI } from '../localAI/useLocalAI'
+import { LocalAINotice } from './LocalAINotice'
+import { loadImageBlob } from '../backgroundRemoval/loadImageBlob'
+import { blobToFile, fileToFileList } from '../preview/imageUpscale'
+import { seekPreviewTo } from '../preview/PreviewControls'
+import { SocialPublishContext } from '../../../components/SocialPublishProvider'
+import { useContext } from 'react'
 import { AUTO_SUBJECT_ZONE_ID } from '../preview/placement/subjectDetect'
 import type { PreviewInputProps } from '../preview/types'
 import type { LayoutQualityState } from './useLayoutQuality'
@@ -72,14 +86,58 @@ const STATUS_ICON: Record<CheckStatus, React.JSX.Element> = {
 
 /** B1/B2/B5/B6: one-click report on the discovered pictures. Nothing is changed until the customer clicks an action. */
 export function AssetIntelligencePanel({ advanced = false }: { advanced?: boolean }): React.JSX.Element | null {
-  const { discoveredAssets = [], setDiscoveredAssets, previewSettings, updatePreviewBrandColors, updatePreviewLayer, assets, addLogoUrl } = useDemoPersonalize()
+  const { discoveredAssets = [], setDiscoveredAssets, previewSettings, updatePreviewBrandColors, updatePreviewLayer, assets, addLogoUrl, addProductFiles, addProductUrl } = useDemoPersonalize()
   const job = useJob()
   const [report, setReport] = useState<AssetReport | null>(null)
   const [unreadable, setUnreadable] = useState(0)
   const [confirmColors, setConfirmColors] = useState(false)
   const [note, setNote] = useState<string | null>(null)
+  const detr = useLocalAI('detr')
+  const [crops, setCrops] = useState<Record<string, { rect: PixelRect; w: number; h: number } | null>>({})
+  const [ocrAsk, setOcrAsk] = useState<string | null>(null)
+  const [ocr, setOcr] = useState<{ id: string; lines: OcrLine[]; none: boolean } | null>(null)
+  const [ocrOk, setOcrOk] = useState<Record<string, boolean>>({})
+  const [copied, setCopied] = useState<string | null>(null)
   const candidates = discoveredAssets.filter((a) => !a.rejected)
   if (candidates.length === 0 && !report) return null
+
+  const detectProduct = async (id: string, url: string) => {
+    const out = await detr.request(async ({ signal }) => {
+      const frame = await grabFramePixels(url, 0, { image: true, maxSize: 640, signal })
+      return { dets: await detectObjects(frame, { signal }), w: frame.width, h: frame.height }
+    })
+    if (!out) return
+    const rect = productCropFromDetections(out.dets, out.w, out.h)
+    setCrops((c) => ({ ...c, [id]: rect ? { rect, w: out.w, h: out.h } : null }))
+    setNote(rect ? null : 'No clear product was found in that picture, or it already fills the frame.')
+  }
+  const cropToProduct = async (id: string, url: string) => {
+    const c = crops[id]; if (!c) return
+    try {
+      const bmp = await createImageBitmap(await loadImageBlob(url))
+      const sx = bmp.width / c.w, sy = bmp.height / c.h
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.round(c.rect.w * sx); canvas.height = Math.round(c.rect.h * sy)
+      canvas.getContext('2d')!.drawImage(bmp, c.rect.x * sx, c.rect.y * sy, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height)
+      bmp.close?.()
+      const blob: Blob = await new Promise((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error('crop failed'))), 'image/png'))
+      const list = fileToFileList(blobToFile(blob, `product-crop-${id}.png`))
+      if (list) addProductFiles(list); else addProductUrl(URL.createObjectURL(blob))
+      setNote('Added a cropped copy to your product pictures. The original is unchanged.')
+      setCrops((x) => ({ ...x, [id]: null }))
+    } catch { setNote('This picture could not be cropped in your browser.') }
+  }
+  const readText = (id: string, url: string) => {
+    setOcrAsk(null); setOcr(null)
+    void job.run(async (signal, progress) => {
+      progress(0, 1, 'Reading the text (first use downloads the reader)…')
+      const r = await ocrImage(url, { signal, onProgress: (p) => progress(p, 1, 'Reading the text…') })
+      if (!signal.aborted) setOcr({ id, lines: r.lines, none: r.lines.length === 0 })
+    })
+  }
+  const copyLine = async (l: OcrLine) => {
+    try { await navigator.clipboard.writeText(l.text); setCopied(l.text) } catch { setCopied(null); setNote('Copying is not available here. Select the text and copy it.') }
+  }
 
   const optimize = () => job.run(async (signal, progress) => {
     setNote(null); setConfirmColors(false)
@@ -151,8 +209,33 @@ export function AssetIntelligencePanel({ advanced = false }: { advanced?: boolea
               <span style={badgeStyle(it.role === 'unknown' ? 'muted' : 'cyan')}>{it.role === 'unknown' ? 'unsure' : `likely ${it.role}`}</span>
               <span>score {it.score}</span>
               <span style={{ color: C.muted, flex: 1 }}>{it.flags.map((f) => f.message).join(' ') || (advanced ? `${it.width}×${it.height}px` : '')}</span>
+              {it.role !== 'logo' && <button type="button" data-testid="detect-product" disabled={detr.phase !== 'idle'} onClick={() => void detectProduct(it.id, it.url)} style={{ ...small, minHeight: 24, fontSize: 10 }}>Detect product</button>}
+              {crops[it.id] && <><button type="button" data-testid="crop-product" onClick={() => void cropToProduct(it.id, it.url)} style={{ ...small, minHeight: 24, fontSize: 10 }}>Crop to product</button>
+                <button type="button" data-testid="reset-product-crop" onClick={() => setCrops((x) => ({ ...x, [it.id]: null }))} style={{ ...small, minHeight: 24, fontSize: 10 }}>Reset crop</button></>}
+              <button type="button" data-testid="read-text" disabled={job.busy} onClick={() => setOcrAsk(it.id)} style={{ ...small, minHeight: 24, fontSize: 10 }}>Read text</button>
             </div>
           ))}
+          <LocalAINotice ai={detr} doing="finds the product in a picture so it can be cropped" />
+          {ocrAsk && (
+            <div data-testid="ocr-consent" style={{ ...hintStyle, color: C.text }}>
+              Reading text uses a free on-device reader (Tesseract, Apache-2.0). The first use downloads roughly 15 MB (the reader and English language data) from a public CDN, then your browser keeps it. The picture itself is not uploaded.{' '}
+              <button type="button" data-testid="ocr-go" onClick={() => readText(ocrAsk, report.items.find((i) => i.id === ocrAsk)!.url)} style={{ ...small, minHeight: 26 }}>Download and read</button>{' '}
+              <button type="button" onClick={() => setOcrAsk(null)} style={{ ...small, minHeight: 26 }}>Not now</button>
+            </div>
+          )}
+          {ocr && (
+            <div data-testid="ocr-result" style={{ display: 'grid', gap: 4 }}>
+              <div style={{ ...hintStyle, color: C.text, margin: 0 }}>{ocr.none ? 'No readable text was found.' : 'Text found. This is machine reading and may contain mistakes: check it before using it. Prices and offers need your confirmation.'}</div>
+              {ocr.lines.map((l, n) => (
+                <div key={`${l.text}-${n}`} data-testid="ocr-line" data-kind={l.kind} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 11, color: C.text }}>
+                  <span style={badgeStyle(l.needsConfirm ? 'muted' : 'cyan')}>{l.kind}</span>
+                  <span style={{ flex: 1 }}>{l.text}</span>
+                  {l.needsConfirm && <label style={{ ...hintStyle, margin: 0 }}><input type="checkbox" data-testid="ocr-confirm" checked={!!ocrOk[l.text]} onChange={(e) => setOcrOk((o) => ({ ...o, [l.text]: e.target.checked }))} /> accurate</label>}
+                  <button type="button" data-testid="ocr-copy" disabled={l.needsConfirm && !ocrOk[l.text]} onClick={() => void copyLine(l)} style={{ ...small, minHeight: 24, fontSize: 10 }}>{copied === l.text ? 'Copied' : 'Copy'}</button>
+                </div>
+              ))}
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             {(report.bestByRole.logo || report.bestByRole.product) && <button type="button" data-testid="assign-best" onClick={assignBest} style={small}>Assign best pictures to the video</button>}
             {report.summary.duplicates > 0 && <button type="button" data-testid="hide-duplicates" onClick={hideDuplicates} style={small}>Hide {report.summary.duplicates} duplicate{report.summary.duplicates === 1 ? '' : 's'}</button>}
@@ -194,6 +277,7 @@ export function VideoCheckPanel({ advanced = false }: { advanced?: boolean }): R
   const analysis = useVideoAnalysis(url)
   const job = useJob()
   const [note, setNote] = useState<string | null>(null)
+  const [prevLook, setPrevLook] = useState<{ look: typeof previewSettings.look } | null>(null)
   if (!url) return null
 
   const analyze = () => job.run(async (signal, progress) => {
@@ -223,6 +307,15 @@ export function VideoCheckPanel({ advanced = false }: { advanced?: boolean }): R
     updatePreviewComposition({ videoVolume: Math.round(cur * gain.gain * 100) / 100 })
     setNote(`Video sound lowered by ${Math.abs(gain.gainDb)} dB to avoid distortion. Change it any time in Audio.`)
   }
+  const improve = () => {
+    if (!a) return
+    if (!canApplyImprove(previewSettings.look)) { setNote('You already have a look applied, so it was left alone. Reset it in Look first if you want the automatic one.'); return }
+    setPrevLook({ look: previewSettings.look })
+    const look = improveLook(a.brightness)
+    updatePreviewComposition({ look })
+    setNote(`Applied a gentle improvement (brightness ${look.exposure >= 0 ? '+' : ''}${look.exposure} stops, a little contrast and colour). Undo it below.`)
+  }
+  const undoImprove = () => { if (prevLook) { updatePreviewComposition({ look: prevLook.look }); setPrevLook(null); setNote('Look restored.') } }
   const subjectZone = (previewSettings.protectedZones ?? []).find((z) => z.id === AUTO_SUBJECT_ZONE_ID || z.id === 'customer-subject')
   const focus = previewSettings.videoFocus
   const followSubject = () => {
@@ -256,6 +349,8 @@ export function VideoCheckPanel({ advanced = false }: { advanced?: boolean }): R
           {overlayWindow && <div style={{ color: C.muted }}>Longest steady scene: {clock(overlayWindow.start)}–{clock(overlayWindow.end)}, a good time for your logo and call to action.</div>}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {a.audio && !a.audio.silent && <button type="button" data-testid="fix-audio" onClick={fixAudio} style={small}>Fix audio</button>}
+            <button type="button" data-testid="improve-video" onClick={improve} style={small}>Improve video</button>
+            {prevLook && <button type="button" data-testid="undo-improve" onClick={undoImprove} style={small}>Undo</button>}
             <button type="button" data-testid="follow-subject" onClick={followSubject} style={small}>Smart crop: follow subject</button>
             {focus && <button type="button" data-testid="reset-crop" onClick={() => updatePreviewComposition({ videoFocus: undefined })} style={small}>Reset crop</button>}
           </div>
@@ -404,10 +499,11 @@ export function FreeContentPanel({ onPick }: { onPick: (field: Field, value: str
 // ───────────────────────── Step 4 — Final checks ─────────────────────────
 
 /** F3/F4/F6/G2/G5: the preflight list (verified vs not checked), social safe zones, and a share handoff. */
-export function FinalChecksPanel({ inputProps, quality, advanced = false }: { inputProps: PreviewInputProps; quality: LayoutQualityState; advanced?: boolean }): React.JSX.Element {
+export function FinalChecksPanel({ inputProps, quality, advanced = false, mediaUrl, description }: { inputProps: PreviewInputProps; quality: LayoutQualityState; advanced?: boolean; /** The finished video, once it exists. */ mediaUrl?: string | null; description?: string }): React.JSX.Element {
   const { previewSettings, assets, discoveredAssets = [] } = useDemoPersonalize()
   const analysis = useVideoAnalysis(inputProps?.videoUrl && !inputProps.isImageSource ? inputProps.videoUrl : null)
   const [shareNote, setShareNote] = useState<string | null>(null)
+  const publish = useContext(SocialPublishContext)
   const brand = inputProps?.brand ?? { businessName: '', headline: '', offer: '', cta: '', phone: '', website: '', logoUrl: null, productUrl: null, serviceUrl: null }
   const layers = (previewSettings?.layers ?? []).filter((l) => l.visible)
   const texts = [...layers.map((l) => l.text ?? ''), brand.businessName, brand.headline, brand.offer, brand.cta].filter(Boolean)
@@ -455,9 +551,118 @@ export function FinalChecksPanel({ inputProps, quality, advanced = false }: { in
       <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
         <button type="button" data-testid="final-share" onClick={() => void share()} style={{ ...small, display: 'inline-flex', alignItems: 'center', gap: 5 }}><Share2 size={12} /> Share or copy link</button>
         {shareNote && <span data-testid="final-share-note" style={hintStyle}>{shareNote}</span>}
+        <button type="button" data-testid="final-publish" disabled={!mediaUrl || !publish || !result.ready}
+          title={!mediaUrl ? 'Create the video first' : !publish ? 'Social publishing is not available here' : !result.ready ? 'Fix the items above first' : ''}
+          onClick={() => publish?.openPublish({ mediaUrl: mediaUrl!, mediaType: 'video', title: brand.businessName || undefined, caption: description || [brand.headline, brand.cta].filter(Boolean).join(' — ') || undefined })}
+          style={{ ...small, opacity: !mediaUrl || !publish || !result.ready ? 0.5 : 1 }}>Send to social publishing</button>
       </div>
+      <ThumbnailPanel inputProps={inputProps} />
     </div>
   )
 }
 
 export { ASPECTS }
+
+
+// ───────────────────────── Thumbnails (A5, G3) ─────────────────────────
+
+/** Suggests strong frames from the footage and composes an editable 1280×720 thumbnail. No image generation service. */
+export function ThumbnailPanel({ inputProps }: { inputProps: PreviewInputProps }): React.JSX.Element | null {
+  const { previewSettings } = useDemoPersonalize()
+  const job = useJob()
+  const url = inputProps?.videoUrl && !inputProps.isImageSource ? inputProps.videoUrl : null
+  const [picks, setPicks] = useState<(ThumbPick & { preview: string })[]>([])
+  const [chosen, setChosen] = useState<number | null>(null)
+  const [title, setTitle] = useState('')
+  const [made, setMade] = useState<{ href: string } | null>(null)
+  useEffect(() => () => { if (made) URL.revokeObjectURL(made.href) }, [made])
+  if (!url) return null
+  const brand = inputProps.brand
+  const colors = previewSettings?.brandColors
+  const suggest = () => job.run(async (signal, progress) => {
+    const probe = await probeVideo(url)
+    if (!probe) throw new Error('This browser cannot read this video, so thumbnails cannot be suggested.')
+    const out = await suggestThumbnails(url, probe.duration, { signal, onProgress: (d, t) => progress(d, t, `Looking at frame ${d} of ${t}…`) })
+    if (signal.aborted) return
+    if (!out.length) throw new Error('No usable frames could be read from this video.')
+    setPicks(out); setChosen(0); setMade(null)
+  })
+  const make = () => job.run(async (signal) => {
+    if (chosen == null) return
+    const blob = await composeThumbnail({ videoUrl: url, atSeconds: picks[chosen]!.t, title: title || brand.businessName || 'My business', subtitle: brand.headline || undefined, primary: colors?.primary || '#d9ff00', text: '#ffffff', logoUrl: brand.logoUrl }, signal)
+    if (signal.aborted) return
+    setMade({ href: URL.createObjectURL(blob) })
+  })
+  return (
+    <div data-testid="thumbnail-panel" style={{ marginTop: 10 }}>
+      <div style={{ ...hintStyle, marginBottom: 6 }}>Thumbnail: picks sharp, well-lit frames from your video (it does not detect faces) and adds your name, logo and colours. Free; made on this device.</div>
+      <button type="button" data-testid="suggest-thumbnails" disabled={job.busy} onClick={() => void suggest()} style={small}>{picks.length ? 'Suggest again' : 'Suggest thumbnails'}</button>
+      <JobStatus job={job} />
+      {picks.length > 0 && (
+        <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {picks.map((p, i) => (
+              <button key={p.t} type="button" data-testid="thumb-pick" aria-pressed={chosen === i} onClick={() => { setChosen(i); setMade(null) }} style={{ padding: 0, border: `2px solid ${chosen === i ? C.cyan : C.border}`, borderRadius: 8, background: 'none', cursor: 'pointer' }}>
+                <img src={p.preview} alt={`Frame at ${p.t.toFixed(1)} seconds`} width={150} style={{ display: 'block', borderRadius: 6 }} />
+              </button>
+            ))}
+          </div>
+          <input aria-label="Thumbnail title" data-testid="thumb-title" placeholder={brand.businessName || 'Title'} value={title} onChange={(e) => { setTitle(e.target.value); setMade(null) }} style={{ ...inputStyle, maxWidth: 360 }} />
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <button type="button" data-testid="make-thumbnail" disabled={job.busy} onClick={() => void make()} style={small}>Make thumbnail</button>
+            {made && <a data-testid="thumb-download" href={made.href} download="thumbnail.png" style={{ ...small, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Download PNG</a>}
+          </div>
+          {made && <img src={made.href} alt="Thumbnail preview" style={{ maxWidth: 360, borderRadius: 8 }} />}
+        </div>
+      )}
+    </div>
+  )
+}
+
+
+// ───────────────────────── Transcript tools (A6, E4, E5) ─────────────────────────
+
+const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
+
+/** Find words in the captions and jump there; suggested chapters and highlights. Suggestions only; chapters are copied after you confirm. */
+export function TranscriptToolsPanel(): React.JSX.Element | null {
+  const { previewSettings } = useDemoPersonalize()
+  const analysis = useLastAnalysis()
+  const [q, setQ] = useState('')
+  const [confirm, setConfirm] = useState(false)
+  const [note, setNote] = useState<string | null>(null)
+  const caps = previewSettings?.captions
+  const cues: Cue[] = useMemo(() => (caps?.enabled ? caps.cues ?? [] : []).map((c) => ({ text: c.text, startMs: c.start * 1000, endMs: c.end * 1000 })), [caps])
+  const fps = previewSettings?.fps ?? 30
+  const chapters = useMemo(() => suggestChapters(cues), [cues])
+  const highlights = useMemo(() => suggestHighlights(cues, { keywords: kw(cues.map((c) => c.text).join('. '), 5), cutTimesSec: analysis?.scenes.slice(1).map((s) => s.start) }), [cues, analysis])
+  const hits = searchTranscript(cues, q)
+  if (!cues.length) return null
+  const go = (ms: number) => seekPreviewTo(Math.round((ms / 1000) * fps))
+  const copyChapters = async () => {
+    const text = chapters.map((c) => `${mmss(c.startMs / 1000)} ${c.title}`).join('\n')
+    try { await navigator.clipboard.writeText(text); setNote('Chapters copied. Paste them into your video description.') } catch { setNote('Copying is not available here.') }
+    setConfirm(false)
+  }
+  return (
+    <div data-testid="transcript-tools" style={{ ...panelStyle, marginTop: 12 }}>
+      <h3 style={h3}>Find in transcript</h3>
+      <input aria-label="Search the transcript" data-testid="transcript-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a word…" style={{ ...inputStyle, maxWidth: 320 }} />
+      {q.trim() && <div data-testid="transcript-hits" style={{ marginTop: 6, display: 'grid', gap: 4 }}>
+        {hits.length === 0 && <span style={hintStyle}>No match.</span>}
+        {hits.slice(0, 8).map((h) => <button key={h.startMs} type="button" data-testid="transcript-hit" onClick={() => go(h.startMs)} style={{ ...small, justifyContent: 'flex-start', textAlign: 'left' }}>{mmss(h.startMs / 1000)} · {h.text}</button>)}
+      </div>}
+      {highlights.length > 0 && <div data-testid="highlights" style={{ marginTop: 8 }}>
+        <div style={hintStyle}>Moments worth a look (a guess from speech and scene changes, not a prediction of what performs well):</div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>{highlights.map((h) => <button key={h.startMs} type="button" data-testid="highlight" onClick={() => go(h.startMs)} style={small} title={h.reason}>{mmss(h.startMs / 1000)}</button>)}</div>
+      </div>}
+      {chapters.length > 1 && <div data-testid="chapters" style={{ marginTop: 8 }}>
+        <div style={hintStyle}>Suggested chapters (check the titles before you publish):</div>
+        <ul style={{ margin: '4px 0', paddingLeft: 16, fontSize: 12, color: C.text }}>{chapters.map((c) => <li key={c.startMs}>{mmss(c.startMs / 1000)} {c.title}</li>)}</ul>
+        {!confirm ? <button type="button" data-testid="copy-chapters" onClick={() => setConfirm(true)} style={small}>Copy chapters</button>
+          : <span style={{ ...hintStyle, color: C.text }}>These titles are automatic. Copy them anyway? <button type="button" data-testid="copy-chapters-yes" onClick={() => void copyChapters()} style={{ ...small, minHeight: 26 }}>Yes, copy</button></span>}
+      </div>}
+      {note && <p style={{ ...hintStyle, margin: '6px 0 0', color: C.text }}>{note}</p>}
+    </div>
+  )
+}

@@ -303,7 +303,7 @@ export function StepPreviewApprove(): React.JSX.Element {
         belowStage={<LayoutQualityPanel compact quality={quality} layers={previewSettings.layers} />}
       />
 
-      <FinalChecksPanel inputProps={inputProps} quality={quality} />
+      <FinalChecksPanel inputProps={inputProps} quality={quality} mediaUrl={result?.url ?? null} />
 
       {/* ── Approve & create ────────────────────────────────────────────── */}
       <div style={{ ...panelStyle, border: `1px solid ${previewApproved ? 'rgba(34,197,94,.45)' : C.border}` }}>

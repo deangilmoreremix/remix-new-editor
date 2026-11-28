@@ -60,6 +60,16 @@ export function AudioPanel(): React.JSX.Element {
               <button type="button" data-testid="audio-video-mute" aria-pressed={previewSettings.videoMuted === true} onClick={() => updatePreviewComposition({ videoMuted: !previewSettings.videoMuted })} style={{ ...chipStyle(previewSettings.videoMuted === true), minHeight: 26, fontSize: 10 }}>Mute</button>
               <button type="button" data-testid="audio-video-solo" aria-pressed={solo === SOLO_VIDEO} onClick={() => toggleSolo(SOLO_VIDEO)} style={{ ...chipStyle(solo === SOLO_VIDEO), minHeight: 26, fontSize: 10 }}>Solo</button>
             </div>
+            <div data-testid="audio-video-fades" style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              {(['videoFadeIn', 'videoFadeOut'] as const).map((k) => (
+                <label key={k} style={{ ...hintStyle, margin: 0, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  {k === 'videoFadeIn' ? 'Fade in' : 'Fade out'}
+                  <input data-testid={`audio-${k}`} type="number" min={0} max={10} step={0.5} aria-label={k === 'videoFadeIn' ? 'Video sound fade in seconds' : 'Video sound fade out seconds'}
+                    value={previewSettings[k] ?? 0} onChange={(e) => updatePreviewComposition({ [k]: Math.max(0, Math.min(10, Number(e.target.value) || 0)) || undefined })}
+                    style={{ width: 54, background: C.field, color: C.text, border: `1px solid ${C.border}`, borderRadius: 6, padding: '2px 6px', fontSize: 11 }} /> s
+                </label>
+              ))}
+            </div>
           </div>
 
           {tracks.map((t) => (

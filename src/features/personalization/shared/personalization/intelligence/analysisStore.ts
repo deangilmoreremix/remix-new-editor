@@ -25,3 +25,6 @@ export const useVideoAnalysis = (url: string | null): VideoAnalysis | null => {
   const a = useSyncExternalStore(subscribe, getVideoAnalysis, getVideoAnalysis)
   return a && url && a.url === url ? a : null
 }
+
+/** The last analysis whatever its video: for tools that only need scene starts. */
+export const useLastAnalysis = (): VideoAnalysis | null => useSyncExternalStore(subscribe, getVideoAnalysis, getVideoAnalysis)

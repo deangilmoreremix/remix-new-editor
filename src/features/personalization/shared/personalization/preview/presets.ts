@@ -1345,6 +1345,10 @@ export function normalizePreviewSettings(raw: unknown): PersonalizationPreviewSe
   const videoVolume = normalizeVideoVolume(raw.videoVolume)
   if (videoVolume !== undefined) out.videoVolume = videoVolume
   if (raw.videoMuted === true) out.videoMuted = true
+  for (const k of ['videoFadeIn', 'videoFadeOut'] as const) {
+    const v = raw[k]
+    if (typeof v === 'number' && Number.isFinite(v) && v > 0) out[k] = Math.min(10, v)
+  }
   const focus = raw.videoFocus as { x?: unknown; y?: unknown } | undefined
   if (focus && typeof focus.x === 'number' && typeof focus.y === 'number' && Number.isFinite(focus.x) && Number.isFinite(focus.y)) {
     out.videoFocus = { x: Math.min(1, Math.max(0, focus.x)), y: Math.min(1, Math.max(0, focus.y)) }

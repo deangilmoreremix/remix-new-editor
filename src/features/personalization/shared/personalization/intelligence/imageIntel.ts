@@ -18,7 +18,7 @@ export interface ImageMetrics {
   /** Variance of the Laplacian on a downscaled copy: higher is sharper. */
   sharpness: number
   hasAlpha: boolean
-  /** Distinct colour buckets that hold >=1% of the opaque pixels (logos have few). */
+  /** Colour buckets needed to cover 90% of the opaque pixels (logos have few, photos many). */
   colorCount: number
   palette: PaletteColor[]
 }
@@ -122,7 +122,9 @@ export function extractPalette(buf: PixelBuffer, count = 5): { palette: PaletteC
   }
   if (!opaque) return { palette: [], colorCount: 0, hasAlpha }
   const all = [...buckets.values()].sort((a, b) => b.n - a.n)
-  const colorCount = all.filter((e) => e.n / opaque >= 0.01).length
+  // Colour breadth: how many 4-bit buckets it takes to cover 90% of the pixels. Logos need a handful; photos need dozens.
+  let covered = 0, colorCount = 0
+  for (const e of all) { covered += e.n; colorCount++; if (covered / opaque >= 0.9) break }
   const picked: { r: number; g: number; b: number; n: number }[] = []
   for (const e of all) {
     const c = { r: e.r / e.n, g: e.g / e.n, b: e.b / e.n, n: e.n }

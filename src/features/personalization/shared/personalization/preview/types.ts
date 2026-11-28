@@ -193,6 +193,9 @@ export interface PersonalizationPreviewSettings {
    * Moves the crop toward the subject for 9:16, 1:1 and 4:5 versions; preview and export use the same value.
    */
   videoFocus?: { x: number; y: number }
+  /** Fade of the footage's own sound in/out, seconds (0 or absent = none). */
+  videoFadeIn?: number
+  videoFadeOut?: number
   videoMuted?: boolean
   audioSolo?: string
   /**

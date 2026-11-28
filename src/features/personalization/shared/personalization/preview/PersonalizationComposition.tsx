@@ -24,7 +24,7 @@ import { rotateCss, rotatedExtent } from './rotation'
 import { isNeutralKeyframeState, keyframeStateFor, keyframeTransformParts } from './keyframes'
 import { layerEffectsFilter, lookFilter } from './effects'
 import { LookLayers } from './LookLayers'
-import { effectiveTracks, isAudible, trackGainAt, trackWindow, videoGain } from './audioMix'
+import { effectiveTracks, isAudible, trackGainAt, trackWindow, videoGainAt } from './audioMix'
 import { accentRuleStyle, ctaPillStyle, endCardBackground, isSingleLineBox, layerTextStyle, textAlignFor, type TextStyleKind } from './textStyle'
 import { hasTextScrim, scrimForBox, scrimPeakAt, scrimStyle } from './scrim'
 import { layerBoxMetrics } from '../guided/overlayGeometry'
@@ -367,7 +367,6 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
 
   // The audio mix: the video's own sound and any number of tracks, each with its own gain per frame (volume, fades, start,
   // mute and solo). The same numbers drive the live Player and the browser export.
-  const sourceGain = videoGain(settings)
   const mixTracks = effectiveTracks(settings, audioUrl)
 
   const renderBackground = () => {
@@ -377,7 +376,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
       return (
         <>
           <CutoutBackdrop videoUrl={videoUrl} cutout={settings.cutout} width={compW} height={compH} filter={lookCss} />
-          <Audio src={toPlayablePreviewMediaUrl(videoUrl)} volume={sourceGain} />
+          <Audio src={toPlayablePreviewMediaUrl(videoUrl)} volume={(f: number) => videoGainAt(settings, f)} />
         </>
       )
     }
@@ -403,7 +402,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           // streamed through the same-origin /api/media/remote proxy.
           src={toPlayablePreviewMediaUrl(videoUrl)}
           muted={false}
-          volume={sourceGain}
+          volume={(f: number) => videoGainAt(settings, f)}
           onError={handleMediaError}
           style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focusPosition, filter: lookCss }}
         />

@@ -37,6 +37,9 @@ export interface AudioMixSettings {
   /** The video's own sound, 0..1 (default 1). */
   videoVolume?: number
   videoMuted?: boolean
+  /** Seconds to fade the video's own sound in at the start and out at the end. */
+  videoFadeIn?: number
+  videoFadeOut?: number
   /** A track id or SOLO_VIDEO. Only that channel is audible. */
   audioSolo?: string
 }
@@ -118,6 +121,17 @@ export function isAudible(channel: { id: string; muted: boolean }, solo?: string
 export function videoGain(settings: AudioMixSettings): number {
   const volume = settings.videoVolume ?? 1
   return isAudible({ id: SOLO_VIDEO, muted: settings.videoMuted === true }, settings.audioSolo) ? clamp(volume, 0, 1) : 0
+}
+
+/** Gain of the video's own sound at a frame, including its fade-in and fade-out (0..1). */
+export function videoGainAt(settings: AudioMixSettings & { fps: number; durationInFrames: number }, frame: number): number {
+  const base = videoGain(settings)
+  const fi = Math.max(0, settings.videoFadeIn ?? 0) * settings.fps
+  const fo = Math.max(0, settings.videoFadeOut ?? 0) * settings.fps
+  let g = 1
+  if (fi > 0 && frame < fi) g = Math.min(g, Math.max(0, frame / fi))
+  if (fo > 0 && frame > settings.durationInFrames - fo) g = Math.min(g, Math.max(0, (settings.durationInFrames - frame) / fo))
+  return base * g
 }
 
 export interface TrackWindow {

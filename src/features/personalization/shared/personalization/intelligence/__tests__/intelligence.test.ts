@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { analyzePixels, buildAssetReport, dHash, hammingDistance, sharpnessScore, suggestBrandPalette, extractPalette, type PixelBuffer } from '../imageIntel'
+import { analyzePixels, buildAssetReport, guessRole, dHash, hammingDistance, sharpnessScore, suggestBrandPalette, extractPalette, type PixelBuffer } from '../imageIntel'
 import { analyzeAudioSamples, fadeGainAt, recommendGain } from '../audioIntel'
 import { detectSceneCuts, scenesFromCuts } from '../sceneDetect'
 import { checkTextFit, findUnresolvedTokens, isPromotionalClaim, readingSeconds, resolveTokens, tightenOffer } from '../textIntel'
@@ -59,6 +59,15 @@ describe('image intelligence', () => {
     expect(report.items.find((i) => i.id === 'big')!.duplicateOf).toBeUndefined()
     expect(report.items.find((i) => i.id === 'small')!.flags.map((f) => f.code)).toEqual(expect.arrayContaining(['low-resolution', 'duplicate']))
     expect(report.summary.duplicates).toBe(1)
+  })
+})
+
+describe('role guess', () => {
+  it('calls a busy photo a product/photo, not a logo, and a two-colour graphic a logo', () => {
+    const busy = img(120, 120, (x, y) => [(x * 7 + y * 3) % 256, (x * 13) % 256, (y * 29) % 256, 255])
+    expect(guessRole({ width: 900, height: 900, metrics: analyzePixels(busy) })).toBe('product')
+    const logo = img(120, 120, (x) => (x < 60 ? [200, 20, 20, 255] : [255, 255, 255, 255]))
+    expect(guessRole({ width: 400, height: 400, metrics: analyzePixels(logo) })).toBe('logo')
   })
 })
 
