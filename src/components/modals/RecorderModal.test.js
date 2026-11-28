@@ -387,3 +387,69 @@ describe('the recorder screens: countdown, devices, audio settings, review and t
     expect(modal.trim).toEqual({ start: 0, end: null });
   });
 });
+
+describe('floating recording controls', () => {
+  const click = (modal, sel) => modal.overlay.querySelector(sel).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  const pipWindow = () => {
+    const doc = document.implementation.createHTMLDocument('pip');
+    const listeners = {};
+    return { document: doc, closed: false, close() { this.closed = true; listeners.pagehide?.(); }, addEventListener: (k, f) => { listeners[k] = f; } };
+  };
+  const withPip = (win) => { window.documentPictureInPicture = { requestWindow: vi.fn(async () => win) }; };
+
+  test('is offered only while recording, and only where the browser can float a window', async () => {
+    delete window.documentPictureInPicture;
+    const plain = new RecorderModal({ countdown: 0 });
+    plain.recordingType = 'camera'; plain.isRecording = true;
+    expect(plain.renderBody()).not.toContain('data-action="monitor"');
+    withPip(pipWindow());
+    const modal = new RecorderModal({ countdown: 0 });
+    modal.recordingType = 'camera'; modal.isRecording = true;
+    expect(modal.renderBody()).toContain('data-action="monitor"');
+    modal.isRecording = false;
+    expect(modal.renderBody()).not.toContain('data-action="monitor"');
+    delete window.documentPictureInPicture;
+  });
+
+  test('opens a window with the time and level, Stop there stops the take, and the window closes with it', async () => {
+    const win = pipWindow(); withPip(win);
+    const modal = new RecorderModal({ countdown: 0 });
+    modal.recordingType = 'camera';
+    modal.open();
+    await modal.startRecording();
+    click(modal, '[data-action="monitor"]');
+    await vi.waitFor(() => expect(win.document.querySelector('[data-recording-monitor]')).not.toBeNull());
+    modal.recordingTime = 7;
+    modal.paintMeter(0.4, 0.4, false);
+    expect(win.document.querySelector('[data-monitor-time]').textContent).toBe('0:07');
+    expect(win.document.querySelector('[data-monitor-level]').style.width).toBe('40%');
+    win.document.querySelector('[data-monitor-pause]').click();
+    expect(modal.isPaused).toBe(true);
+    expect(win.document.querySelector('[data-monitor-state]').textContent).toBe('Paused');
+    win.document.querySelector('[data-monitor-pause]').click();
+    expect(modal.isPaused).toBe(false);
+    win.document.querySelector('[data-monitor-stop]').click();
+    await vi.waitFor(() => expect(win.closed).toBe(true));
+    expect(modal.monitorWin).toBeNull();
+    modal.destroy();
+    delete window.documentPictureInPicture;
+  });
+
+  test('opening it closes the floating script (only one floating window per tab)', async () => {
+    const script = pipWindow(); const controls = pipWindow();
+    withPip(script);
+    const modal = new RecorderModal({ countdown: 0 });
+    modal.recordingType = 'camera';
+    modal.open();
+    await modal.startRecording();
+    await modal.openPrompterWindow();
+    expect(modal.pipWin).toBe(script);
+    withPip(controls);
+    await modal.toggleMonitorWindow();
+    expect(script.closed).toBe(true);
+    expect(modal.pipWin).toBeNull();
+    expect(modal.monitorWin).toBe(controls);
+    modal.destroy();
+    delete window.documentPictureInPicture;
+  });
+});

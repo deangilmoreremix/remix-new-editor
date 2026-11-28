@@ -4,6 +4,7 @@ import { keepAwake } from '../../lib/recorder/wakeLock.js';
 import { mediaPermissions, permissionMessage, watchMediaPermissions } from '../../lib/recorder/permissions.js';
 import { COLORS as DRAW_COLORS, pointOnPicture } from '../../lib/recorder/annotate.js';
 import { createTeleprompterClock, loadTeleprompter, readingPosition, saveTeleprompter, scriptLines, teleprompterSettings } from '../../lib/recorder/teleprompter.js';
+import { openMonitorWindow, monitorSupported } from '../../lib/recorder/monitorWindow.js';
 import { createLevelMeter, levelHint, loadAudioSettings, mixAudioTracks, recordMicTest, saveAudioSettings } from '../../lib/recorder/audio.js';
 import { createCountdown } from '../../lib/recorder/countdown.js';
 
@@ -428,6 +429,7 @@ export class RecorderModal extends BaseModal {
           </div>
           <div class="rec-bar-right">
             <span class="rec-keys">Space pause · Esc stop</span>
+            ${monitorSupported() ? `<button type="button" class="rec-btn" data-action="monitor" data-tooltip="A small window that stays on top of other windows, with the time, your sound level, Pause and Stop">${this.monitorWin ? 'Close floating controls' : 'Float controls'}</button>` : ''}
             <button type="button" class="rec-btn danger" data-action="delete-take" data-tooltip="Stop and throw this take away">${icon('trash')} Delete</button>
           </div>
         </div>`;
@@ -589,6 +591,7 @@ export class RecorderModal extends BaseModal {
   async openPrompterWindow() {
     const api = globalThis.window?.documentPictureInPicture;
     if (!api || this.pipWin) return;
+    this.closeMonitorWindow(); // one floating window per tab
     try {
       const w = await api.requestWindow({ width: 520, height: 240 });
       w.document.title = 'Teleprompter';
@@ -779,6 +782,7 @@ export class RecorderModal extends BaseModal {
     on('[data-action="pause"]', 'click', () => this.pauseRecording());
     on('[data-action="resume"]', 'click', () => this.resumeRecording());
     on('[data-action="stop"]', 'click', () => this.stopRecording());
+    on('[data-action="monitor"]', 'click', () => this.toggleMonitorWindow());
     on('[data-action="discard"]', 'click', () => this.discardRecording());
     on('[data-action="save"]', 'click', () => this.saveRecording());
     on('[data-action="use-recording"]', 'click', () => this.useRecording());
@@ -910,6 +914,7 @@ export class RecorderModal extends BaseModal {
   // Before recording it listens to its own microphone stream (with the chosen device and switches);
   // while recording it listens to the take's own sound.
   paintMeter(level, peak, clipped = false) {
+    if (this.monitor) this.paintMonitor(level, clipped);
     this.overlay?.querySelectorAll('[data-mic-level]').forEach((el) => {
       el.style.width = `${Math.round(level * 100)}%`;
       el.style.background = clipped ? '#ef4444' : level > 0.85 ? '#f5a524' : '#2fb344';
@@ -1189,6 +1194,7 @@ export class RecorderModal extends BaseModal {
         if (!this.isPaused) {
           this.recordingTime++;
           this.overlay?.querySelectorAll('.rec-time').forEach((el) => { el.textContent = this.formatTime(this.recordingTime); });
+          this.paintMonitor();
         }
       }, 1000);
       this.rerender();
@@ -1215,6 +1221,29 @@ export class RecorderModal extends BaseModal {
     }
   }
 
+  // The floating recording controls (src/lib/recorder/monitorWindow.js). One floating window per tab, so opening these
+  // closes the floating script, and the other way round.
+  async toggleMonitorWindow() {
+    if (this.monitorWin) { this.closeMonitorWindow(); this.rerender(); return; }
+    if (this.pipWin) this.closePrompterWindow();
+    const opened = await openMonitorWindow({ onStop: () => this.stopRecording(), onPause: () => this.pauseRecording(), onResume: () => this.resumeRecording() });
+    if (!opened) return;
+    this.monitorWin = opened.win; this.monitor = opened.monitor;
+    opened.win.addEventListener('pagehide', () => { this.monitorWin = null; this.monitor = null; if (!this.destroyed) this.rerender(); });
+    this.paintMonitor();
+    this.rerender();
+  }
+
+  closeMonitorWindow() {
+    try { this.monitorWin?.close(); } catch { /* gone */ }
+    this.monitorWin = null; this.monitor = null;
+  }
+
+  paintMonitor(level = this.lastLevel || 0, clipped = this.lastClipped || false) {
+    this.lastLevel = level; this.lastClipped = clipped;
+    this.monitor?.update({ seconds: this.recordingTime || 0, level, clipped, paused: !!this.isPaused });
+  }
+
   pauseRecording() {
     if (!this.session || this.isPaused) return;
     this.session.pause();
@@ -1223,6 +1252,7 @@ export class RecorderModal extends BaseModal {
     this.activeSince = null;
     this.prompterClock.pause();
     this.prompterRunning = false;
+    this.paintMonitor();
     this.rerender();
   }
 
@@ -1233,12 +1263,14 @@ export class RecorderModal extends BaseModal {
     this.activeSince = performance.now();
     this.prompterClock.start();
     this.prompterRunning = true;
+    this.paintMonitor();
     this.rerender();
   }
 
   async stopRecording() {
     if (!this.session || this.stopping) return;
     this.stopping = true;
+    this.closeMonitorWindow();
     this.stopFollowing();
     if (this.spotlightOn()) this.spotlights[this.spotlights.length - 1].end = this.takeSeconds();
     this.takeLength = this.takeSeconds();
@@ -1328,6 +1360,7 @@ export class RecorderModal extends BaseModal {
   // screen capture, otherwise the browser's recording indicators stay on.
   destroy() {
     this.destroyed = true;
+    this.closeMonitorWindow();
     this.counting?.cancel();
     clearInterval(this.recordingInterval);
     this.releaseWake?.();
