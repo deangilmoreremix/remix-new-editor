@@ -548,13 +548,13 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 ### rm.personalization — IMPLEMENTED_UNVERIFIED
 
 - Source (deangilmoreremix/remix-new-editor (own code / upstream strategic-limited/remix-new-editor)): src/components/personalize/*
-- Target: src/components/personalize/*
+- Target: src/components/personalize/*, src/cinegen/components/export/personalized-output.tsx, src/cinegen/adapters/web-api.ts (one MP4 per contact), src/lib/editor/addons/studioDesignAddon.js
 - Original: Personalization / Tokens / Batch Generator
 - Browser: yes · Backend: existing Netlify/Supabase
-- UI: Edit → Overlays lane 👤 opens the Personalization Suite (Upload Video, Import Contacts, Configure Tokens, Generate Videos, Create Landing Pages, View Analytics); Publish → Contacts and Email · Persistence: — · Preview: — · Export: —
-- Tests: publish-contacts*.test, publish-email*.test
-- Evidence: docs/evidence/merge-check/27 (personalization suite, in 25-27 contact sheet), 94-publish-contacts-list.png; commits 843e3ff9, 43661fb1
-- **Missing:** Per-contact video generation and landing pages need sign-in and provider keys; not run here
+- UI: Edit → Overlays lane 👤 opens the Personalization Suite (Upload Video, Import Contacts, Configure Tokens, Generate Videos, Create Landing Pages, View Analytics); Publish → Contacts and Email; Export tab → Personalized output (tick contacts, then Download MP4s and/or Create links); Add to timeline → Overlays & forms → Studio Design (a Personalization Studio design filled per contact) · Persistence: — · Preview: — · Export: One MP4 per chosen contact from the in-browser renderer; one stored personal link per contact (/watch/<id>?p=<link>)
+- Tests: publish-contacts*.test, publish-email*.test; personalized-export.test.ts (one MP4 per contact, unique names, a failure does not stop the rest), studio-design-overlay.test.ts, guestFields.test.js, linksOnlyPanel.test.js. Live on the PR 188 deploy preview, signed out: Download MP4s gave two H.264 MP4s named per contact, each with that contact's design text; two personal links each showed that contact's details to a viewer. Added and unit tested locally, not yet seen on a preview build: Studio Design drawn in the editor preview (studio-design-model.test.ts; rendered in Chromium for two contacts), Choose your path (pathChoice.test.js; a minimal definition, no upstream spec exists), getTimelineAsset (personalization-get-timeline-asset.test.js). Signed-in Clerk session: run by the owner, result pending
+- Evidence: docs/evidence/merge-check/27 (personalization suite, in 25-27 contact sheet), 94-publish-contacts-list.png; commits 843e3ff9, 43661fb1; PR #141 and PR #188 (deploy previews, live checks 18-23 Nov 2026)
+- **Missing:** Signed-in end-to-end run (Clerk session) not done: the signed-in database rules were checked on the live project with simulated claims only. Landing pages and per-contact video generation still need sign-in and provider keys; not run. The editor preview draws a Studio design as a labelled box; the published video and the MP4 draw the design itself
 
 ### rm.end-screens-connect — IMPLEMENTED_UNVERIFIED
 
@@ -570,13 +570,13 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 ### rm.share-publish — IMPLEMENTED_UNVERIFIED
 
 - Source (0xsline/OpenChatCut@9242a95): src/lib/editor/publish/{sharePanel,publishClient}.js
-- Target: src/cinegen/components/export/share-panel.tsx
+- Target: src/cinegen/components/export/share-panel.tsx, src/cinegen/components/leads/{use-publish.ts,personal-links-card.tsx}, src/lib/guestIdentity.js, netlify/functions/guest-{token,claim}.js
 - Original: Share / publish interactive video from the CineGen timeline + overlays
-- Browser: yes · Backend: none
-- UI: Publish tab → Share & Leads (the old Leads tab, same tab id); Export tab hint points to Publish · Persistence: — · Preview: — · Export: —
-- Tests: compiled; unit tests where noted
-- Evidence: this branch (commits after d684a343); docs/evidence/merge-check/91-publish-tab-share-and-leads.png; commit 440b44bd
-- **Missing:** Snapshot builder unit-tested; publishing needs a signed-in session and the published_videos table — not run; personal links / contacts not wired
+- Browser: yes · Backend: Netlify functions guest-token / guest-claim (need SUPABASE_JWT_SECRET); Supabase published_videos, video_personalizations and the guest rules (migrations 20261115000000, 20261115120000, 20261119000000)
+- UI: Publish tab → Share & Leads (publish, link, embed) and Personal links (edit what a link shows, new address, turn off or on, remove, CSV); works without an account (guest identity, content kept 30 days after last use, 10 videos and 200 links); Export tab → Personalized output creates the links; after sign-in the editor offers to move guest content to the account · Persistence: published_videos and video_personalizations; the guest credential stays in this browser's localStorage · Preview: — · Export: —
+- Tests: use-publish-guest.test.ts, linksOnlyPanel.test.js, guestPublishing.test.js, guest-token.test.js, guest-claim.test.js, guestIdentity.test.js; SQL assertions 51 and 52 (guest quotas, unlisted, claim, prune, quota lock). Live on deploy previews, signed out: publish, create links, open them as a viewer, edit, turn off, new address (old one stops), remove. Guest Analytics tab (analyticsGuest.test.js, code only). Signed-in Clerk session (publish, links, Analytics with Audience/Retarget/Alerts, moving guest content): run by the owner, result pending
+- Evidence: this branch (commits after d684a343); docs/evidence/merge-check/91-publish-tab-share-and-leads.png; commit 440b44bd; PR #141 and PR #188 (deploy previews, live checks 18-23 Nov 2026); screenshots in the PR discussion
+- **Missing:** Signed-in publishing not run live (database rules checked with simulated signed-in claims); the sign-in → 'move my guest videos' prompt not run live (claim function and database path tested separately); Analytics tab still needs an account
 
 ## CineGen Elements
 

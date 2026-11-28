@@ -1,5 +1,6 @@
 import { createSafeImage, createSafeVideo } from '../lib/security.js';
 import { canMakeLandingPage, openLandingPageFor } from './studio/landingPageAction.js';
+import { canRetarget, retargetFor } from './studio/retargetAction.js';
 
 let activeInstance = null;
 
@@ -289,6 +290,13 @@ export class MediaDetailView {
         </button>
       `);
     }
+    if (canRetarget({ url: this.mediaUrl, type: this.mediaType })) {
+      actions.push(`
+        <button class="mdv-action-btn mdv-action-ghost" data-action="retarget" title="Track viewers of this video and get follow-up suggestions">
+          <span>Retarget</span>
+        </button>
+      `);
+    }
     for (const action of this.actions) {
       actions.push(`
         <button class="mdv-action-btn mdv-action-ghost" data-action="${escapeHtml(action.id || '')}">
@@ -340,6 +348,10 @@ export class MediaDetailView {
       case 'create-landing-page':
         this.hide();
         void openLandingPageFor({ url: this.mediaUrl, type: this.mediaType, prompt: this.prompt, studio: this.source });
+        break;
+      case 'retarget':
+        this.hide();
+        void retargetFor({ url: this.mediaUrl, type: this.mediaType, prompt: this.prompt, studio: this.source });
         break;
       case 'toggle-prompt':
         this._togglePrompt();

@@ -15,7 +15,7 @@ import { normalizeListBuilder, leadFormToOptin } from '../addons/listBuilder.js'
 import { pickVariant, applyVariant, hasVariantB } from '../addons/abTest.js';
 import { addonOptions } from '../addons/registry.js';
 import { timelineToComposition } from '../remotion/timelineToComposition.js';
-import { showLeadForm, ctaElement, linkBoxElement, hotspotElement } from './viewerOverlays.js';
+import { showLeadForm, ctaElement, linkBoxElement, hotspotElement, pathChoiceElement } from './viewerOverlays.js';
 import { ctaTarget } from '../addons/ctaLink.js';
 import { profileWithAnswers } from '../personalize/perContact.js';
 
@@ -90,10 +90,12 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
   let playing = false;
   let time = 0;
   let gateOpen = false;
+  let pathCard = null; // "Choose your path" card on screen; it goes when the viewer picks or leaves the decision point
+  let route = null; // "Choose your path": { until, then } of the route being played
   let resumeTimer = null;
   let destroyed = false;
 
-  const emit = () => onChange?.({ playing, time, duration: model.durationInFrames / fps, gating: gateOpen });
+  const emit = () => onChange?.({ playing, time, duration: model.durationInFrames / fps, gating: gateOpen || !!pathCard }); // an open card, like a form, hides the big play button so it cannot cover the choices
 
   const interactiveClips = clips.filter((c) => c.type === 'click-to-call' || c.type === 'addon-hotspot' || ctaTarget(addonOptions(c)));
   const onCall = ({ clip, phone }) => {
@@ -127,6 +129,15 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
       if (playing) {
         const prev = time;
         time = now;
+        if (route && prev < route.until && route.until <= now) {
+          const to = route.then;
+          route = null;
+          seekEngine(to);
+          runtime.handleSeek(time, clips, T); // events ahead of the destination fire again
+          updateInteractive(time);
+          emit();
+          return;
+        }
         if (apply(runtime.tick(prev, now, { clips, timelineSeconds: T, listBuilder }))) return;
       } else {
         time = now;
@@ -134,7 +145,20 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
       updateInteractive(time);
       emit();
     },
-    onEnded: () => { playing = false; emit(); },
+    onEnded: () => {
+      // A route that runs to the very end of the video still continues where it was told to (the last frame is never `>= until`).
+      if (route && route.then < T - 0.05) {
+        const to = route.then;
+        route = null;
+        seekEngine(to);
+        runtime.handleSeek(time, clips, T);
+        play();
+        return;
+      }
+      route = null;
+      playing = false;
+      emit();
+    },
     onReady: () => engine?.seekToFrame?.(Math.round(time * fps)),
     onError: (err) => console.warn('[watch] playback error', err),
   });
@@ -152,6 +176,28 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
     if (gateOpen) return;
     seek(sec);
     play();
+  }
+
+  // "Choose your path": the card pauses the video; a pick jumps to that route and, if the route has an end,
+  // playback hops on to the clip's "continue at" time when it gets there.
+  const closePathCard = () => { pathCard?.remove(); pathCard = null; };
+  function openPathChoice(clip) {
+    closePathCard();
+    const el = pathChoiceElement(clip, {
+      onPick: ({ choice, label }) => {
+        closePathCard();
+        onHotspot?.({ clip, action: 'path', label: `Path: ${label}`, time });
+        const then = Number(addonOptions(clip).thenTime) || 0;
+        route = choice.until ? { until: choice.until, then } : null;
+        seekEngine(choice.from);
+        runtime.handleSeek(time, clips, T);
+        // A choice that starts right at the card has answered it: seeking there re-armed the card, which would stop playback again at once.
+        if (Math.abs(choice.from - clipTimeRange(clip, T).start) <= 0.05) runtime.firedPauses.add(String(clip.id));
+        play();
+      },
+    });
+    if (el) { layer.appendChild(el); pathCard = el; }
+    else play(); // fewer than two usable choices: nothing to ask
   }
 
   function pauseInternal() {
@@ -178,6 +224,8 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
         interrupted = true;
         if (action.overlay === 'pause-continue') {
           showPauseOverlay(layer, { text: addonOptions(action.clip).continueText || 'Click to continue', onContinue: () => play() });
+        } else if (action.overlay === 'path-choice') {
+          openPathChoice(action.clip);
         } else if (action.overlay === 'lead-form') {
           openLeadForm(action.clip);
         } else if (action.overlay === 'list-builder') {
@@ -273,7 +321,9 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
   }
 
   function seek(sec) {
-    if (gateOpen) return; // no scrubbing past an open form
+    if (gateOpen) return;
+    route = null; // a scrub cancels the route being followed
+    closePathCard(); // ...and leaves the decision point
     clearTimeout(resumeTimer);
     seekEngine(sec);
     runtime.handleSeek(time, clips, T);

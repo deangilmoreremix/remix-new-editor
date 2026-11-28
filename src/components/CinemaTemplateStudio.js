@@ -55,6 +55,7 @@ import { createResultHistory, createResultActions, createFrameScrubber, buildExt
 import { createAbortAwareGenerateButton, startGenerationProgress } from '../lib/studioHelpers.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
+import { createRetargetButton, retargetFor } from './studio/retargetAction.js';
 
 /**
  * Resolve the `W:H` aspect ratio for a generation request.
@@ -3281,6 +3282,10 @@ const firstChild = storyboardRoot.firstElementChild;
     const landingBtn = createLandingPageButton({ like: downloadBtn });
     landingBtn.onclick = () => { const url = generationResult || resultMedia.src || ''; if (url) void openLandingPageFor({ url, type: isVideoOutput ? 'video' : 'image', studio: 'cinema-template' }); };
     actions.appendChild(landingBtn);
+    const retargetBtn = createRetargetButton({ like: downloadBtn, toast: (m) => showToast(m, 'info') });
+    retargetBtn.onclick = () => { const url = generationResult || resultMedia.src || ''; if (url && isVideoOutput) void retargetFor({ url, type: 'video', studio: 'cinema-template' }, { toast: (m) => showToast(m, 'info') }); };
+    retargetBtn.hidden = !isVideoOutput;
+    actions.appendChild(retargetBtn);
 
     preview.appendChild(resultMedia);
     // Frame scrubber (Video Studio).

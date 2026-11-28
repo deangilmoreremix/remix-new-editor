@@ -21,6 +21,7 @@ import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
+import { createRetargetButton, retargetFor } from './studio/retargetAction.js';
 
 export function LipSyncStudio() {
     const container = document.createElement('div');
@@ -974,6 +975,8 @@ export function LipSyncStudio() {
     canvasControls.appendChild(publishBtn);
     const landingBtn = createLandingPageButton({ like: downloadBtn });
     canvasControls.appendChild(landingBtn);
+    const retargetBtn = createRetargetButton({ like: downloadBtn, toast: (m) => showToast(m, 'info') });
+    canvasControls.appendChild(retargetBtn);
 
     canvas.appendChild(videoContainer);
     canvas.appendChild(canvasControls);
@@ -991,6 +994,7 @@ export function LipSyncStudio() {
         };
         publishBtn.onclick = () => openSocialPublish({ mediaUrl: videoUrl, mediaType: 'video' });
         landingBtn.onclick = () => { void openLandingPageFor({ url: resultVideo.src || videoUrl, type: 'video', studio: 'lipsync' }); };
+        retargetBtn.onclick = () => { void retargetFor({ url: resultVideo.src || videoUrl, type: 'video', studio: 'lipsync' }, { toast: (m) => showToast(m, 'info') }); };
 
         const captionBtn = document.createElement('button');
         captionBtn.type = 'button';

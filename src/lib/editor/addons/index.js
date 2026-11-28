@@ -1,5 +1,5 @@
 export { registerAddon, getAddon, isAddonType, listAddons, createAddonClip, clipTimeRange, addonOptions } from './registry.js';
-export { INTERACTIVE_ADDONS, PROJECT_FORMS, PAUSE, LOOP, SKIP, HOTSPOT, LEAD_FORM, CTA_BUTTON } from './interactiveAddons.js';
+export { INTERACTIVE_ADDONS, PROJECT_FORMS, PAUSE, LOOP, SKIP, HOTSPOT, PATH_CHOICE, pathChoices, LEAD_FORM, CTA_BUTTON } from './interactiveAddons.js';
 export { AddonRuntime } from './runtime.js';
 export { renderAddonEditor, getPath, setPath } from './addonEditor.js';
 export { ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, showOptinOverlay, showThanks, safeWebUrl, AFTER_SUBMIT_ACTIONS, backdropStyle, buildOptinForm, buildArrowHint, startPointer, formBackground } from './addonOverlay.js';

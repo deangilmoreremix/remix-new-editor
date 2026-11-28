@@ -273,12 +273,12 @@
     "blurb": "Agents and tools that plan, build, personalize and send video for you.",
     "guides": [
       {
-        "slug": "animation-agent",
+        "slug": "video-agent",
         "name": "Animation Agent",
         "route": "video-agent",
         "shortDescription": "Describe an animation and the agent writes, previews and renders it as an MP4.",
         "features": 8,
-        "thumbnail": "/thumbnails/heroes/videoagent.webp.png"
+        "thumbnail": "/guides/video-agent/overview.webp"
       },
       {
         "slug": "director",
