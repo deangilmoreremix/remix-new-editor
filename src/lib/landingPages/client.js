@@ -73,8 +73,14 @@ export async function updatePage(client, id, patch = {}) {
 
 export const setPagePublished = (client, id, published) => updatePage(client, id, { published });
 
-export async function listPages(client) {
-  const { data, error } = await client.from('landing_pages').select(PAGE_COLUMNS).order('updated_at', { ascending: false });
+/**
+ * The signed-in owner's pages. Filtered by owner, not left to row security alone: anyone may read a published page
+ * (that is what makes its public link work), so an unfiltered list would show everyone's published pages as "My pages".
+ */
+export async function listPages(client, ownerId) {
+  if (!ownerId) return [];
+  const { data, error } = await client.from('landing_pages').select(PAGE_COLUMNS).eq('clerk_user_id', ownerId)
+    .order('updated_at', { ascending: false });
   fail(error, 'Could not load your pages');
   return Array.isArray(data) ? data : [];
 }
