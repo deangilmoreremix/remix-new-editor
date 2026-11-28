@@ -30,6 +30,15 @@ export function scoreProspect(st, { now = Date.now() } = {}) {
 }
 
 /**
+ * When a campaign's links are rebuilt (a retry or a republish), keep the "followed up" mark you set on each prospect,
+ * matched by contact id, so they do not drop back into the follow-up queue.
+ */
+export function carryFollowUps(oldLinks, newLinks) {
+  const marked = new Map((Array.isArray(oldLinks) ? oldLinks : []).filter((l) => l?.followedUpAt).map((l) => [l.contactId, l.followedUpAt]));
+  return (Array.isArray(newLinks) ? newLinks : []).map((l) => (marked.has(l.contactId) && !l.followedUpAt ? { ...l, followedUpAt: marked.get(l.contactId) } : l));
+}
+
+/**
  * Prospects in follow-up order: highest score first, then most recent activity, then the original order.
  * @param {{ contactId:string, name?:string }[]} links
  * @param {Record<string, object>|null} statsByContact

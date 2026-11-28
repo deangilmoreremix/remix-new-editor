@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { scoreProspect, rankProspects, WEIGHTS } from '../followUp.js';
+import { scoreProspect, rankProspects, carryFollowUps, WEIGHTS } from '../followUp.js';
 
 const NOW = Date.parse('2026-11-28T12:00:00Z');
 
@@ -50,5 +50,21 @@ describe('the activity time from fetchVideoStats', () => {
     const links = [{ contactId: 'old' }, { contactId: 'new' }];
     const stats = { old: { plays: 1, lastSeen: '2026-11-20T00:00:00Z' }, new: { plays: 1, lastSeen: '2026-11-27T00:00:00Z' } };
     expect(rankProspects(links, stats, { now: NOW }).map((r) => r.link.contactId)).toEqual(['new', 'old']);
+  });
+});
+
+describe('keeping follow-up marks when links are rebuilt', () => {
+  it('carries each prospect\'s mark over by contact id', () => {
+    const before = [{ contactId: 'a', followedUpAt: '2026-11-28T09:00:00Z' }, { contactId: 'b' }, { contactId: 'gone', followedUpAt: 'x' }];
+    const after = [{ contactId: 'a', link: 'new-a' }, { contactId: 'b', link: 'new-b' }, { contactId: 'c', link: 'new-c' }];
+    const out = carryFollowUps(before, after);
+    expect(out[0]).toEqual({ contactId: 'a', link: 'new-a', followedUpAt: '2026-11-28T09:00:00Z' });
+    expect(out[1]).toEqual({ contactId: 'b', link: 'new-b' });
+    expect(out[2]).toEqual({ contactId: 'c', link: 'new-c' });
+    expect(out).toHaveLength(3);
+  });
+  it('copes with no previous links', () => {
+    expect(carryFollowUps(undefined, [{ contactId: 'a' }])).toEqual([{ contactId: 'a' }]);
+    expect(carryFollowUps([{ contactId: 'a', followedUpAt: 'x' }], undefined)).toEqual([]);
   });
 });

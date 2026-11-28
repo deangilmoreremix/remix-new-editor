@@ -151,7 +151,7 @@ export function loadDraft(storage = globalThis.localStorage) {
  * the same URL, the lip-sync cache (keyed by that URL) also hits on the next run.
  * `make(line)` generates and uploads one greeting -> { url, duration }; the caller saves the draft afterwards.
  */
-export async function voiceFromCache(draft, line, make, { max = 200 } = {}) {
+export async function voiceFromCache(draft, line, make, { max = MAX_CONTACTS + 100 } = {}) { // room for every greeting of the largest campaign
   const key = JSON.stringify(speakRequest(draft, line));
   const hit = draft.voiceCache?.[key];
   if (hit && typeof hit.url === 'string' && hit.url && !hit.url.startsWith('blob:')) return { url: hit.url, duration: hit.duration, reused: true };

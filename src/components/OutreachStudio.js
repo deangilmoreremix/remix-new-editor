@@ -18,7 +18,7 @@ import { renderProspectTable } from './outreach/ProspectTable.js';
 import { hasPaidAccess } from '../lib/clerkEntitlements.js';
 import { createTabGuard } from '../lib/outreach/tabGuard.js';
 import { validateContacts, dedupeContacts, restoreDuplicates, mergeFieldReport } from '../lib/outreach/contactQa.js';
-import { rankProspects } from '../lib/outreach/followUp.js';
+import { rankProspects, carryFollowUps } from '../lib/outreach/followUp.js';
 import { searchLines, firstPlayableMatch } from '../lib/outreach/transcriptSearch.js';
 import { suggestHeaders, suggestMessages, suggestCtas } from '../lib/outreach/copySuggest.js';
 import { detectCapabilities, summarizeCapabilities } from '../lib/outreach/capabilities.js';
@@ -2524,14 +2524,15 @@ export function OutreachStudio() {
       // A landing page chosen earlier keeps showing the campaign; its contact links are rebuilt.
       const page = draft.campaign?.id === id ? draft.campaign.page : null;
       const { landingLink } = await import('../lib/outreach/landingPage.js');
+      const rebuilt = campaignLinks(draft, url, personalLink, variants).map((l) => ({
+        ...l,
+        ...(lipsync?.clips?.[l.contactId] ? { lipsynced: true } : {}),
+        ...(lipsync?.errors?.[l.contactId] ? { lipsyncError: lipsync.errors[l.contactId] } : {}),
+        ...(page ? { pageLink: landingLink(page.url, l.link, draft.contacts.find((c) => c.id === l.contactId) || {}) } : {}),
+      }));
       draft.campaign = {
         id, url, publishedAt: new Date().toISOString(), ...(page ? { page } : {}),
-        links: campaignLinks(draft, url, personalLink, variants).map((l) => ({
-          ...l,
-          ...(lipsync?.clips?.[l.contactId] ? { lipsynced: true } : {}),
-          ...(lipsync?.errors?.[l.contactId] ? { lipsyncError: lipsync.errors[l.contactId] } : {}),
-          ...(page ? { pageLink: landingLink(page.url, l.link, draft.contacts.find((c) => c.id === l.contactId) || {}) } : {}),
-        })),
+        links: carryFollowUps(draft.campaign?.links, rebuilt), // "followed up" marks survive a retry
       };
       persist();
       campaigns.loaded = false; // refresh the Campaigns list next time it opens

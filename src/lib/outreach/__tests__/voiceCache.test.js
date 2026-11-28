@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { voiceFromCache, loadDraft } from '../draft.js';
+import { voiceFromCache, loadDraft, MAX_CONTACTS } from '../draft.js';
 import { paidJobCount, clipKey, introSeconds } from '../lipsync.js';
 
 const draftWith = (over = {}) => ({ ...loadDraft({ getItem: () => null }), voiceCache: {}, ...over });
@@ -38,6 +38,14 @@ describe('reusing greetings that were already voiced', () => {
     const d = draftWith();
     for (let i = 0; i < 12; i += 1) await voiceFromCache(d, `Hi ${i}!`, make(`https://cdn.x/${i}.mp3`), { max: 5 });
     expect(Object.keys(d.voiceCache)).toHaveLength(5);
+  });
+  it('holds a whole campaign: the largest campaign voices nothing twice on a retry', async () => {
+    const d = draftWith();
+    const m = vi.fn(async (line) => ({ url: `https://cdn.x/${encodeURIComponent(line)}.mp3`, duration: 1 }));
+    for (let i = 0; i < MAX_CONTACTS; i += 1) await voiceFromCache(d, `Hi ${i}!`, m);
+    expect(m).toHaveBeenCalledTimes(MAX_CONTACTS);
+    for (let i = 0; i < MAX_CONTACTS; i += 1) await voiceFromCache(d, `Hi ${i}!`, m); // the retry
+    expect(m).toHaveBeenCalledTimes(MAX_CONTACTS); // nothing was generated again
   });
   it('survives a reload of the saved draft', () => {
     const saved = { voiceCache: { k: { url: 'https://cdn.x/a.mp3', duration: 1 } } };
