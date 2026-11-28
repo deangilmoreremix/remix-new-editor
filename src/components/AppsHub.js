@@ -37,7 +37,7 @@ const MENU_APPS = [
   { id: 'influencer', name: 'AI Influencer', description: 'Create a consistent AI persona and post-ready content', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>', badge: 'Influencer', color: 'bg-pink-500/10 text-pink-400 border-pink-500/20' },
   { id: 'motion-director', name: 'Motion Director', description: 'Chat with an AI to build motion graphics', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>', badge: 'Motion', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
   { id: 'leadfinder', name: 'Lead Finder', description: 'Find prospects to send personalized videos to', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>', badge: 'Leads', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
-  { id: 'outreach', name: 'Video Outreach', description: 'Send personalized video outreach campaigns', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16v12H5.17L4 17.17V4z"/></svg>', badge: 'Outreach', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20' },
+  { id: 'outreach', name: 'Video Outreach', description: 'Send personalized video outreach campaigns', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16v12H5.17L4 17.17V4z"/></svg>', badge: 'Outreach', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20', extraLink: { label: 'Feature pages →', href: '/email-warmup/' } },
   { id: 'recorder', name: 'Recorder', description: 'Record your screen and camera', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>', badge: 'Record', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
   { id: 'find-my-brand', name: 'Find My Brand', description: 'Discover and capture your brand style', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l2.4 7.2H22l-6 4.4 2.3 7.2L12 16.4 5.7 20.8 8 13.6 2 9.2h7.6z"/></svg>', badge: 'Brand', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' },
   { id: 'cinema-template', name: 'Cinema Templates', description: 'Ready-made cinematic templates: add your media and generate', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>', badge: 'Templates', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
@@ -222,6 +222,16 @@ export function createSection(title, items, isStudio = false) {
       ${item.badge ? `<div class="text-[10px] font-bold text-muted mt-1 ml-11">${item.badge}</div>` : ''}
     `;
     card.appendChild(content);
+    if (item.extraLink) {
+      // A second link on the card (e.g. SmartWarmupAI's public feature pages) without triggering the card's own click.
+      const extra = document.createElement('a');
+      extra.href = item.extraLink.href;
+      extra.textContent = item.extraLink.label;
+      extra.className = 'block text-[11px] font-bold text-primary hover:underline ml-14 mb-3';
+      extra.onclick = (e) => e.stopPropagation();
+      extra.onkeydown = (e) => e.stopPropagation();
+      card.appendChild(extra);
+    }
 
     card.onclick = item.onClick;
     card.onkeydown = (e) => {

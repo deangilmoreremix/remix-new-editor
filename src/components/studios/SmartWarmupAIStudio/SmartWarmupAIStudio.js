@@ -101,6 +101,10 @@ export function SmartWarmupAIStudio() {
     return b;
   };
   const tabApp = mkTab('Dashboard', 'app'); const tabHelp = mkTab('Help', 'help'); bar.append(tabApp, tabHelp);
+  // Public feature pages for SmartWarmupAI (built by scripts/build-warmup-pages.mjs), one click from the studio.
+  const features = document.createElement('a'); features.href = '/email-warmup/'; features.textContent = 'Features';
+  Object.assign(features.style, { marginLeft: 'auto', padding: '4px 12px', borderRadius: '8px', color: 'inherit', textDecoration: 'none', fontSize: '13px', opacity: '.7' });
+  bar.append(features);
   const host = document.createElement('div');
   Object.assign(host.style, { position: 'relative', flex: '1 1 0%', minHeight: '0', height: '100%' });
   container.append(bar, host);
