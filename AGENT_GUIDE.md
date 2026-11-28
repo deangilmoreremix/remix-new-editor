@@ -76,6 +76,7 @@ Both users have `legacy_access: true` and `qa_test_account: true` in Clerk publi
    await page.evaluate(async (email) => {
      const si = await window.Clerk.client.signIn.create({ identifier: email });
      const f = si.supportedFirstFactors.find((x) => x.strategy === 'email_code');
+     if (!f) throw new Error('email_code sign-in is not available for this account');
      await si.prepareFirstFactor({ strategy: 'email_code', emailAddressId: f.emailAddressId });
    }, process.env.QA_TEST_EMAIL);
    ```
@@ -87,11 +88,15 @@ Both users have `legacy_access: true` and `qa_test_account: true` in Clerk publi
    ```js
    await page.evaluate(async (code) => {
      const r = await window.Clerk.client.signIn.attemptFirstFactor({ strategy: 'email_code', code });
-     if (r.status === 'complete') await window.Clerk.setActive({ session: r.createdSessionId });
+     if (r.status !== 'complete') throw new Error(`sign-in not complete: ${r.status}`);
+     await window.Clerk.setActive({ session: r.createdSessionId });
    }, code);
    ```
    If the code is rejected or has expired, ask Clerk for a new one (step 3). Don't retry the same code.
-6. Save the session with Playwright's `await context.storageState({ path: 'state.json' })`, and reuse it (`browser.newContext({ storageState: 'state.json' })`) for the rest of the session.
+6. Save the session with Playwright's `await context.storageState({ path })`, and reuse it (`browser.newContext({ storageState: path })`) for the rest of the session. The file holds a live full-access session:
+   - put it outside the repository, in your scratchpad or temp directory, never in the working tree;
+   - never commit, upload or print it;
+   - delete it when you're done.
 
 **Things you will meet as a new account:**
 - smartvid.app opens "Welcome — set up your API keys": click "Skip for now".
