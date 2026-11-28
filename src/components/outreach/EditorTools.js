@@ -452,12 +452,12 @@ function devicePresets(o) {
   const row = el('div', 'flex flex-wrap gap-2');
   Object.entries(PERF_PRESETS).forEach(([id, p]) => {
     const b = btn(p.label, { selected: now === id, attr: 'data-device-preset' });
-    b.dataset.devicePreset = id; b.setAttribute('aria-pressed', String(now === id)); b.title = p.help;
+    b.dataset.devicePreset = id; b.setAttribute('aria-pressed', String(now === id)); b.title = p.about;
     b.addEventListener('click', () => { choosePreset(id); o.update((e) => { e.quality = p.quality; }); });
     row.appendChild(b);
   });
   wrap.appendChild(row);
-  wrap.appendChild(el('p', 'text-[11px] text-white/45', PERF_PRESETS[now].help));
+  wrap.appendChild(el('p', 'text-[11px] text-white/45', PERF_PRESETS[now].about));
   return wrap;
 }
 

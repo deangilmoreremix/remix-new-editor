@@ -5,9 +5,9 @@
 // measured by running a test and nothing is sent anywhere. The user can always choose another.
 
 export const PERF_PRESETS = Object.freeze({
-  light: { label: 'Light', quality: 'small', suggestFrames: 4, help: 'Smaller files and fewer frames to look at. Best for older phones and slow connections.' },
-  balanced: { label: 'Balanced', quality: 'standard', suggestFrames: 8, help: 'The usual settings.' },
-  best: { label: 'Best quality', quality: 'high', suggestFrames: 12, help: 'Larger files and more frames. Needs a recent computer.' },
+  light: { label: 'Light', quality: 'small', suggestFrames: 4, about: 'Smaller files and fewer frames to look at. Best for older phones and slow connections.' },
+  balanced: { label: 'Balanced', quality: 'standard', suggestFrames: 8, about: 'The usual settings.' },
+  best: { label: 'Best quality', quality: 'high', suggestFrames: 12, about: 'Larger files and more frames. Needs a recent computer.' },
 });
 export const PERF_KEY = 'outreach-perf-preset';
 
