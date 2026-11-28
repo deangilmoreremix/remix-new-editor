@@ -1265,6 +1265,12 @@ export class RecorderModal extends BaseModal {
         this.trackBlobs = {};
         this.recordedBlob = blobs.audio || blobs.webcam || blobs.display || null;
       }
+      // MediaRecorder leaves the length out of WebM files: write it in, so a downloaded take seeks
+      // and shows its length everywhere (unchanged for MP4 or a file that cannot be patched safely).
+      if (this.recordedBlob) {
+        const { withWebmDuration } = await import('../../lib/recorder/webmDuration.js');
+        this.recordedBlob = await withWebmDuration(this.recordedBlob, (this.recordingTime || 0) * 1000);
+      }
     } catch (err) {
       console.error('Stopping the recording failed:', err);
       this.notice = `The recording could not be saved: ${err?.message || err}`;
