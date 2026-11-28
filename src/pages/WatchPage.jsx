@@ -145,14 +145,29 @@ export async function mountWatchPage(container, ref, deps = {}) {
   const calendarSrc = landing?.cta?.embed && ctaHref ? calendarEmbedUrl(ctaHref) : null;
   // "Talk live" (src/lib/outreach/liveCall.js): the button shows only while the sender is available.
   const liveOn = !!(landing?.live && !embed);
-  const landingBody = landing && !embed && (landing.message || (ctaHref && landing.cta?.label) || liveOn)
-    ? `<section class="watch-landing">
-        ${landing.message ? `<p class="watch-landing-msg">${esc(fill(landing.message))}</p>` : ''}
+  const hasActions = !!(landing && !embed && ((ctaHref && landing.cta?.label) || liveOn));
+  // The row under the player: Talk live (while the sender is available) and the booking button.
+  const landingBody = hasActions
+    ? `<section class="watch-landing watch-actions" aria-label="Next step">
         ${liveOn ? `<button type="button" class="watch-live-btn" data-live-call hidden><span class="watch-live-dot" aria-hidden="true"></span><span data-live-label>Talk live now</span></button>` : ''}
         ${ctaHref && landing.cta?.label ? `<a class="watch-landing-cta" data-landing-cta href="${esc(ctaHref)}" target="_blank" rel="noopener noreferrer">${esc(landing.cta.label)}</a>` : ''}
-        ${calendarSrc ? `<iframe class="watch-landing-calendar" data-landing-calendar src="${esc(calendarSrc)}" title="${esc(landing.cta.label || 'Book a time')}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>` : ''}
       </section>`
     : '';
+  // The booking page itself, right under the player, with a plain title.
+  const calendarBody = calendarSrc && !embed
+    ? `<section class="watch-calendar" aria-labelledby="watch-calendar-title">
+        <h2 id="watch-calendar-title">Pick a time that suits you</h2>
+        <iframe class="watch-landing-calendar" data-landing-calendar src="${esc(calendarSrc)}" title="${esc(landing.cta.label || 'Book a time')}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>
+      </section>`
+    : '';
+  // Who the page is from (sender details when the campaign carries them): brand row on top, credit in the footer.
+  const sender = landing?.sender && typeof landing.sender === 'object' ? landing.sender : {};
+  const brand = String(sender.company || sender.name || video.project.campaign?.name || '').trim().slice(0, 80);
+  const logoUrl = (() => { try { const u = new URL(String(sender.logo || '')); return u.protocol === 'https:' ? u.toString() : ''; } catch { return ''; } })();
+  const brandRow = !embed && (brand || logoUrl)
+    ? `<div class="watch-brand">${logoUrl ? `<img class="watch-brand-logo" src="${esc(logoUrl)}" alt="" />` : brand ? `<span class="watch-brand-mark" aria-hidden="true">${esc(brand.charAt(0).toUpperCase())}</span>` : ''}${brand ? `<span class="watch-brand-name">${esc(brand)}</span>` : ''}</div>`
+    : '';
+  const intro = landing && !embed && landing.message ? `<p class="watch-landing-msg">${esc(fill(landing.message))}</p>` : '';
 
   // The transcript (Video Outreach captions), under the video: each line jumps the video to its moment, the line
   // being spoken is highlighted, and translations can be picked. Not in the embedded player.
@@ -176,10 +191,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
     ? `<nav class="watch-chapters" data-chapters aria-label="Chapters"><h2>Chapters</h2><ol>${chapters.map((c, i) => `<li><button type="button" class="watch-chapter" data-chapter="${i}"><span class="watch-transcript-time">${esc(clock(c.startMs))}</span><span>${esc(c.title)}</span></button></li>`).join('')}</ol></nav>`
     : '';
 
-  container.innerHTML = `
-    <main class="watch">
-      ${embed ? '' : `<header class="watch-head"><h1>${esc(heading)}</h1></header>`}
-      <section class="watch-player" aria-label="${esc(title)}">
+  const playerBody = `<section class="watch-player" aria-label="${esc(title)}">
         <div class="watch-frame" data-frame>
           <div class="watch-stage" data-stage></div>
           <button type="button" class="watch-bigplay" data-bigplay aria-label="Play video"><span aria-hidden="true">▶</span></button>
@@ -192,10 +204,27 @@ export async function mountWatchPage(container, ref, deps = {}) {
           <span class="watch-time" data-dur>0:00</span>
           <button type="button" class="watch-btn" data-fs aria-label="Full screen">⛶</button>
         </div>
-      </section>
-      ${chaptersBody}
-      ${landingBody}
-      ${transcriptBody}
+      </section>`;
+  const sideBody = chaptersBody || transcriptBody ? `<aside class="watch-side">${chaptersBody}${transcriptBody}</aside>` : '';
+  container.innerHTML = embed
+    ? `<main class="watch">${playerBody}</main>`
+    : `<main class="watch">
+      <div class="watch-page">
+        <header class="watch-head">
+          ${brandRow}
+          <h1>${esc(heading)}</h1>
+          ${intro}
+        </header>
+        <div class="watch-layout${sideBody ? ' watch-layout--side' : ''}">
+          <div class="watch-main">
+            ${playerBody}
+            ${landingBody}
+            ${calendarBody}
+          </div>
+          ${sideBody}
+        </div>
+        ${brand ? `<footer class="watch-foot">Video message by <strong>${esc(brand)}</strong></footer>` : ''}
+      </div>
     </main>`;
   const $ = (s) => container.querySelector(s);
   const frame = $('[data-frame]');

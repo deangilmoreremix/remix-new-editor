@@ -12,7 +12,7 @@ import { goTo } from '../lib/routeUrl.js';
 
 import { createEditorBanner, demoteBannerHeading } from '../lib/thumbnails.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { emailFor, mailtoUrl, mailMergeCsv, gmailUrl, outlookUrl, linkedinMessage } from '../lib/outreach/email.js';
+import { emailFor, mailtoUrl, mailMergeCsv, gmailUrl, outlookUrl, linkedinMessage, csvCell } from '../lib/outreach/email.js';
 import { WRITER_LANGUAGES } from '../lib/outreach/aiWriter.js';
 import { renderProspectTable } from './outreach/ProspectTable.js';
 import { hasPaidAccess } from '../lib/clerkEntitlements.js';
@@ -51,7 +51,7 @@ const BTN_LOOK = {
 };
 function button(label, { primary = false, selected = false, small = false } = {}) {
   const b = el('button', [
-    'inline-flex items-center justify-center gap-2 rounded-[10px] font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed',
+    'inline-flex items-center justify-center gap-2 rounded-full font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed',
     small ? 'px-3 py-1.5 text-xs' : 'px-4 py-2.5 text-sm',
     BTN_LOOK[selected ? 'selected' : primary ? 'primary' : 'plain'],
   ].join(' '), label);
@@ -68,7 +68,7 @@ function field(labelText, input, hint) {
 }
 
 function textInput(value, placeholder = '') {
-  const i = el('input', 'w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:border-primary/60 outline-none');
+  const i = el('input', 'w-full rounded-full border border-white/10 bg-white/[0.04] px-5 py-3 text-sm text-white placeholder:text-white/35 focus:border-primary/60 outline-none');
   i.value = value ?? '';
   i.placeholder = placeholder;
   return i;
@@ -99,10 +99,15 @@ function variableChips(input, { onInsert, only } = {}) {
   return row;
 }
 
-function card(title, sub) {
-  const c = el('section', 'rounded-2xl border border-white/10 bg-panel-bg p-5 flex flex-col gap-4');
-  if (title) c.appendChild(el('h2', 'text-base font-extrabold text-white', title));
-  if (sub) c.appendChild(el('p', 'text-sm text-secondary -mt-3', sub));
+function card(title, sub, n) {
+  const c = el('section', 'rounded-3xl border border-white/10 bg-panel-bg p-6 flex flex-col gap-5 shadow-[0_24px_60px_-28px_rgba(0,0,0,0.9)]');
+  if (title) {
+    const h = el('h2', 'flex items-center gap-3 text-lg font-semibold text-white');
+    if (n) h.appendChild(el('span', 'grid h-7 w-7 shrink-0 place-items-center rounded-full border border-primary/40 bg-primary/10 text-xs font-bold text-primary', String(n)));
+    h.appendChild(el('span', '', title));
+    c.appendChild(h);
+  }
+  if (sub) c.appendChild(el('p', 'rounded-2xl bg-white/[0.04] px-4 py-2.5 text-sm text-white/60 -mt-2', sub));
   return c;
 }
 
@@ -185,9 +190,10 @@ export function OutreachStudio() {
   const stepper = el('div', 'flex flex-wrap gap-2 px-4 md:px-8 pt-5');
   const scroll = el('div', 'studio-short-body flex-1 overflow-y-auto');
   // Bottom padding keeps the footer buttons clear of the floating Ask SmartVideo button.
-  const inner = el('div', 'max-w-6xl mx-auto w-full px-4 md:px-8 pt-6 pb-28 flex flex-col gap-5');
+  const inner = el('div', 'max-w-[1400px] mx-auto w-full px-4 md:px-8 pt-5 pb-4 flex flex-col gap-5');
   scroll.appendChild(inner);
-  container.append(demoteBannerHeading(createEditorBanner('outreach', 'Video Outreach', 'Personalized videos for every prospect')), stepper, scroll);
+  const banner = demoteBannerHeading(createEditorBanner('outreach', 'Video Outreach', 'Personalized videos for every prospect'));
+  container.append(banner, stepper, scroll);
   // The step's content slides in when the step changes (View Transitions; see goStep).
   inner.style.viewTransitionName = 'outreach-step';
   ensureStepTransitionStyle();
@@ -866,25 +872,31 @@ export function OutreachStudio() {
   const icon = (k, size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[k]}</svg>`;
   // An on/off switch: outlined, the "on" side tinted lime (never filled).
   function toggle(on, onChange, { label, disabled = false } = {}) {
-    const b = el('button', `relative h-6 w-11 shrink-0 rounded-full border transition-colors disabled:opacity-35 ${on ? 'border-primary/50 bg-primary/[0.18]' : 'border-white/15 bg-white/[0.04]'}`);
+    const b = el('button', `relative h-6 w-11 shrink-0 rounded-full border transition-colors disabled:opacity-35 ${on ? 'border-primary/50 bg-primary/[0.18]' : 'border-transparent bg-white/[0.14]'}`);
     b.type = 'button'; b.setAttribute('role', 'switch'); b.setAttribute('aria-checked', String(on)); b.disabled = disabled;
     if (label) b.setAttribute('aria-label', label);
-    b.appendChild(el('span', `absolute top-0.5 h-[18px] w-[18px] rounded-full transition-all ${on ? 'left-[22px] bg-primary' : 'left-0.5 bg-white/50'}`));
+    b.appendChild(el('span', `absolute top-0.5 h-[18px] w-[18px] rounded-full transition-all ${on ? 'left-[22px] bg-primary' : 'left-0.5 bg-white/80'}`));
     b.addEventListener('click', () => onChange(!on));
     return b;
   }
 
   function renderRecord() {
-    const wrap = el('div', 'flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-panel-bg');
+    // Like Sendspark's editor: it takes the whole window (own top bar, Share video and Close), not a card inside the page.
+    const wrap = el('div', 'fixed inset-0 z-[900] flex flex-col overflow-hidden bg-app-bg text-white');
+    let paintPage = () => {};
     wrap.setAttribute('data-outreach-editor', '');
 
     // ---- Tools along the top.
-    const bar = el('div', 'flex flex-wrap items-center gap-1.5 border-b border-white/10 px-4 py-3');
-    const title = el('div', 'mr-auto min-w-0 truncate text-sm font-bold text-white/80', draft.name || 'Untitled dynamic video');
-    bar.appendChild(title);
+    const bar = el('div', 'flex shrink-0 flex-wrap items-center gap-1.5 border-b border-white/10 bg-panel-bg px-5 py-3');
+    const brandMark = el('div', 'mr-auto flex min-w-0 items-center gap-3');
+    const logo = el('span', 'grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary text-black'); logo.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>';
+    brandMark.append(logo, el('span', 'text-[15px] font-extrabold', 'SmartVideo'), el('span', 'text-white/25', '/'), el('span', 'min-w-0 truncate text-sm font-semibold text-white/70', draft.name || 'Untitled dynamic video'));
+    bar.appendChild(brandMark);
+    bar.appendChild(el('span', 'mx-2 h-6 w-px bg-white/10'));
+    const TOOL_LABELS = { captions: 'Captions', language: 'Language', script: 'Script', trim: 'Edit', thumbnail: 'Thumbnail', link: 'Copy link', preview: 'Preview' };
     const tool = (key, k, tip, onClick, { active = false, disabled = false } = {}) => {
-      const b = el('button', `grid h-9 w-9 place-items-center rounded-[10px] border transition-colors disabled:opacity-30 ${active ? 'border-primary/40 bg-primary/[0.1] text-white' : 'border-transparent text-white/65 hover:border-white/15 hover:text-white'}`);
-      b.type = 'button'; b.innerHTML = icon(k); b.title = tip; b.setAttribute('aria-label', tip); b.disabled = disabled;
+      const b = el('button', `inline-flex h-10 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors disabled:opacity-30 ${active ? 'border-primary/40 bg-primary/[0.1] text-white' : 'border-transparent text-white/70 hover:border-white/15 hover:text-white'}`);
+      b.type = 'button'; b.innerHTML = `${icon(k)}<span>${TOOL_LABELS[key] || tip}</span>`; b.title = tip; b.setAttribute('aria-label', tip); b.disabled = disabled;
       b.setAttribute('data-editor-tool', key);
       if (active) b.setAttribute('aria-pressed', 'true');
       b.addEventListener('click', onClick);
@@ -905,30 +917,32 @@ export function OutreachStudio() {
     }, { disabled: !live });
     tool('preview', 'eye', 'Preview the prospect page', () => { goStep(3, ''); });
     const share = button('Share video', { primary: true, small: true });
+    share.classList.add('ml-2', 'rounded-full', 'px-4');
     share.setAttribute('data-editor-share', '');
     share.disabled = !has || !!busy;
     share.addEventListener('click', () => { goStep(draft.kind === 'same' ? 3 : 2, ''); });
     const close = button('Close', { small: true });
+    close.classList.add('rounded-full', 'px-4');
     close.setAttribute('data-editor-close', '');
     close.addEventListener('click', () => { goStep(STEPS.length, ''); });
     bar.append(share, close);
 
     // ---- Left: the video, the template and what the page says.
-    const body = el('div', 'grid lg:grid-cols-[380px_1fr]');
-    const side = el('div', 'flex flex-col gap-6 border-b border-white/10 p-5 lg:border-b-0 lg:border-r');
+    const body = el('div', 'grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-[380px_1fr] lg:overflow-hidden');
+    const side = el('div', 'flex flex-col gap-7 border-b border-white/10 p-6 lg:min-h-0 lg:overflow-y-auto lg:border-b-0 lg:border-r');
     const modes = el('div', 'grid grid-cols-3 gap-2');
     [['camera', 'user', 'Camera'], ['screen', 'screen', 'Screen'], ['both', 'both', 'Both']].forEach(([mode, k, label]) => {
-      const b = el('button', 'flex flex-col items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] py-4 text-xs font-bold text-white/80 hover:border-primary/40 hover:text-white disabled:opacity-40');
+      const b = el('button', 'flex flex-col items-center gap-2 rounded-2xl border border-transparent bg-white/[0.05] py-5 text-xs font-bold text-primary hover:border-primary/40 hover:bg-white/[0.08] disabled:opacity-40');
       b.type = 'button'; b.disabled = !!busy;
       b.setAttribute('data-editor-record', mode);
-      b.innerHTML = `<span class="text-primary">${icon(k, 20)}</span><span>${label}</span>`;
+      b.innerHTML = `<span>${icon(k, 22)}</span><span>${label}</span>`;
       b.addEventListener('click', () => openRecorder(mode));
       modes.appendChild(b);
     });
     const file = el('input'); file.type = 'file'; file.accept = 'video/*'; file.hidden = true;
     file.addEventListener('change', () => { const f = file.files?.[0]; if (f) addVideo(f, { type: 'upload', name: f.name }); file.value = ''; });
-    const drop = el('div', 'flex flex-wrap items-center justify-center gap-1 rounded-xl border border-dashed border-white/20 px-3 py-3 text-sm text-white/70');
-    const up = el('button', 'font-semibold text-primary hover:underline', 'Upload');
+    const drop = el('div', 'flex flex-wrap items-center justify-center gap-1 rounded-xl border border-dashed border-white/20 px-3 py-3.5 text-sm text-white/80');
+    const up = el('button', 'font-semibold text-primary underline-offset-2 hover:underline', 'Upload');
     up.type = 'button'; up.setAttribute('data-editor-upload', ''); up.addEventListener('click', () => file.click());
     const pick = el('button', 'font-semibold text-primary hover:underline', 'select a video you made');
     pick.type = 'button'; pick.setAttribute('data-editor-select', ''); pick.addEventListener('click', selectMadeVideo);
@@ -940,12 +954,12 @@ export function OutreachStudio() {
 
     // Template: the landing page prospects open.
     const tpl = el('div', 'flex flex-col gap-2');
-    tpl.appendChild(el('div', 'text-[15px] font-bold', 'Template'));
-    const apply = el('button', 'flex items-center justify-between gap-2 rounded-xl border border-white/10 px-4 py-3 text-sm font-semibold text-white/85 hover:border-primary/40');
+    tpl.appendChild(el('div', 'text-base font-medium text-white', 'Template'));
+    const apply = el('button', 'flex items-center justify-between gap-2 rounded-xl border border-white/10 px-4 py-3.5 text-sm font-semibold text-primary hover:border-primary/40 hover:bg-white/[0.03]');
     apply.type = 'button'; apply.setAttribute('data-editor-template', '');
     if (draft.page && !designs.loaded) loadDesigns();
     const tplName = draft.page ? (designs.list.find((t) => t.id === draft.page.template)?.name || 'Your landing page') : '';
-    apply.innerHTML = `<span class="truncate">${draft.page ? '' : 'Apply template…'}</span><span class="text-primary">${icon('plus', 18)}</span>`;
+    apply.innerHTML = `<span class="flex-1 truncate text-center">${draft.page ? '' : 'Apply template…'}</span><span class="text-primary">${icon('plus', 18)}</span>`;
     if (draft.page) apply.firstChild.textContent = `Template: ${tplName}${draft.page.editor ? ' (edited)' : ''}`;
     apply.addEventListener('click', chooseLandingPage);
     tpl.appendChild(apply);
@@ -953,14 +967,14 @@ export function OutreachStudio() {
 
     // Customize: what the page says, its button, calendar and transcript.
     const cz = el('div', 'flex flex-col gap-4');
-    cz.appendChild(el('div', 'text-[15px] font-bold', 'Customize'));
+    cz.appendChild(el('div', 'text-base font-medium text-white', 'Customize'));
     const UNDER = 'w-full border-0 border-b border-white/15 bg-transparent px-0 py-2 text-sm text-white placeholder:text-white/30 outline-none focus:border-primary/60';
     const line = (label, value, onInput, { area = false, ph = '' } = {}) => {
       const w = el('label', 'flex flex-col gap-1');
       w.appendChild(el('span', 'text-xs text-white/50', label));
       const i = el(area ? 'textarea' : 'input', `${UNDER} ${area ? 'min-h-[56px] resize-y' : ''}`);
       i.value = value || ''; i.placeholder = ph;
-      i.addEventListener('input', () => { onInput(i.value); persist(); });
+      i.addEventListener('input', () => { onInput(i.value); persist(); paintPage(); });
       w.appendChild(i);
       return w;
     };
@@ -1001,8 +1015,8 @@ export function OutreachStudio() {
     side.append(addBlock, tpl, cz);
 
     // ---- Right: the video, and the open tool under it.
-    const main = el('div', 'flex min-w-0 flex-col items-center gap-4 p-5 md:p-8');
-    const stage = el('div', 'grid aspect-video w-full max-w-3xl place-items-center overflow-hidden rounded-2xl border border-white/10 bg-black');
+    const main = el('div', 'flex min-w-0 flex-col items-center gap-4 bg-white/[0.02] p-5 md:p-10 lg:min-h-0 lg:overflow-y-auto [&>*]:shrink-0');
+    const stage = el('div', 'grid aspect-video w-full max-w-3xl place-items-center overflow-hidden rounded-2xl bg-white/[0.06]');
     stage.setAttribute('data-editor-video', '');
     const editing = editorTool === 'trim' && has;
     if (!editing && preview) stopPreview();
@@ -1016,7 +1030,40 @@ export function OutreachStudio() {
       ph.appendChild(el('span', 'text-sm', 'Record or upload your video'));
       stage.appendChild(ph);
     }
-    main.appendChild(stage);
+    // The page a prospect opens (header, video, message, button), like Sendspark's editor preview.
+    const pc = el('div', 'flex w-full max-w-3xl flex-col items-center gap-5 rounded-3xl border border-white/10 bg-panel-bg px-6 py-8 shadow-[0_24px_60px_-28px_rgba(0,0,0,0.9)]');
+    pc.setAttribute('data-editor-page-preview', '');
+    const pHead = el('h2', 'text-center text-2xl font-extrabold');
+    const pMsg = el('p', 'max-w-xl text-center text-sm text-white/70');
+    const pCta = el('span', 'inline-flex rounded-full bg-primary px-7 py-3 text-sm font-extrabold text-black');
+    paintPage = () => {
+      pHead.textContent = fillTemplate(draft.header, {}, draft.fallbacks) || 'Your header';
+      pMsg.textContent = fillTemplate(draft.message, {}, draft.fallbacks);
+      pMsg.hidden = !pMsg.textContent;
+      pCta.textContent = draft.cta?.label || 'Book a call';
+      pCta.hidden = !draft.cta?.enabled;
+    };
+    paintPage();
+    if (draft.page) {
+      // A landing page design is chosen: show that page (what each prospect gets), with your video above it.
+      main.appendChild(stage);
+      const lp = el('div', 'flex w-full max-w-3xl flex-col gap-3');
+      lp.setAttribute('data-editor-page-preview', 'design');
+      const lpHead = el('div', 'flex items-center justify-between gap-3');
+      const lpName = designs.list.find((t) => t.id === draft.page.template)?.name || 'Your landing page';
+      lpHead.append(el('div', 'text-sm font-semibold text-white/80', `Landing page: ${lpName}`));
+      const lpEdit = button('Edit page', { small: true });
+      lpEdit.addEventListener('click', openPageEditor);
+      lpHead.appendChild(lpEdit);
+      const lpHost = el('div', 'w-full overflow-hidden rounded-3xl border border-white/10 bg-panel-bg');
+      lpHost.style.minHeight = '240px';
+      pagePreview(lpHost);
+      lp.append(lpHead, lpHost);
+      main.appendChild(lp);
+    } else {
+      main.appendChild(pc);
+      pc.append(el('div', 'text-sm font-extrabold text-white/80', 'SmartVideo'), pHead, stage, pMsg, pCta);
+    }
     if (editing) {
       const ctl = el('div', 'flex items-center gap-2 text-xs text-white/60');
       ctl.setAttribute('data-edit-controls', '');
@@ -1048,9 +1095,16 @@ export function OutreachStudio() {
       drawer.appendChild(box);
     }
     if (draft.video && !draft.video.hasAudio) drawer.appendChild(el('p', 'mt-3 text-xs text-amber-300', 'This video has no sound, so it cannot be used as your voice sample. You can still record a separate sample in the next step.'));
+    // An open tool goes above the preview, so it is seen at once without scrolling.
+    if (drawer.childElementCount) { drawer.classList.add('order-first'); drawer.setAttribute('data-editor-drawer', editorTool); }
     main.appendChild(drawer);
     body.append(side, main);
-    wrap.append(bar, body);
+    // What is missing or in progress, since the page footer sits behind the full-screen editor.
+    const errs = stepErrors(draft, 1);
+    const stMsg = busy || notice || errs[0] || '';
+    const st = el('p', `shrink-0 empty:hidden border-t border-white/10 bg-panel-bg px-5 py-2 text-sm ${busy ? 'text-primary' : notice && !errs.length ? 'text-emerald-300' : 'text-amber-300'}`, stMsg);
+    st.setAttribute('data-outreach-busy', '');
+    wrap.append(bar, body, st);
     return wrap;
   }
 
@@ -1176,9 +1230,9 @@ export function OutreachStudio() {
     const grid = el('div', 'grid gap-5 lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)]');
     const left = el('div', 'flex min-w-0 flex-col gap-4');
     const sectionCard = (title, attr) => {
-      const c = el('div', 'flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-5');
+      const c = el('div', 'flex flex-col gap-3 rounded-3xl border border-white/10 bg-white/[0.02] p-6');
       c.setAttribute(attr, '');
-      c.appendChild(el('div', 'text-xs font-extrabold uppercase tracking-[0.14em] text-primary', title));
+      c.appendChild(el('div', 'text-lg font-semibold text-white', title));
       return c;
     };
 
@@ -1415,7 +1469,7 @@ export function OutreachStudio() {
     // Background: the recording as it is, or each contact's own website behind a round camera bubble.
     const bg = el('div', 'flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-5');
     bg.setAttribute('data-outreach-background-card', '');
-    bg.appendChild(el('div', 'text-xs font-extrabold uppercase tracking-[0.14em] text-primary', 'Background'));
+    bg.appendChild(el('div', 'text-lg font-semibold text-white', 'Background'));
     const bgModes = el('div', 'flex flex-wrap gap-2');
     for (const [mode, label] of [['website', 'Website'], ['profile', 'Profile card'], ['map', 'Maps'], ['image', 'Image'], ['recording', 'None']]) {
       const b = button(label, { selected: draft.background.mode === mode, small: true });
@@ -1837,7 +1891,7 @@ export function OutreachStudio() {
 
   function renderContacts() {
     const grid = el('div', 'grid gap-5 lg:grid-cols-[1fr_380px]');
-    const main = card('Add contacts', 'Upload a CSV, or add people one at a time. Each contact gets their own link.');
+    const main = card('Add contacts', 'Upload a CSV, or add people one at a time. Each contact gets their own link.', 1);
     const nameInput = textInput(draft.name, 'Campaign name, e.g. Cold outreach November');
     nameInput.addEventListener('input', () => { draft.name = nameInput.value; persist(); });
     main.appendChild(field('Campaign name', nameInput));
@@ -1919,10 +1973,19 @@ export function OutreachStudio() {
     main.appendChild(field('Or add one', one));
 
     // The list.
-    const side = card(`Contacts (${draft.contacts.length})`, draft.contacts.length ? 'Contacts without a first name hear the fallback greeting.' : 'No contacts yet.');
+    const side = card(`Prospects (${draft.contacts.length})`, draft.contacts.length ? 'Contacts without a first name hear the fallback greeting.' : 'No contacts yet.', 2);
+    let searchBox = null;
+    if (draft.contacts.length > 1) {
+      searchBox = el('input', 'w-full rounded-full border border-white/10 bg-white/[0.04] px-5 py-2.5 text-sm text-white placeholder:text-white/35 outline-none focus:border-primary/60');
+      searchBox.type = 'search'; searchBox.placeholder = 'Search prospect by name, email or company'; searchBox.setAttribute('aria-label', 'Search prospects');
+      searchBox.setAttribute('data-outreach-contact-search', '');
+      side.appendChild(searchBox);
+    }
     const list = el('div', 'flex flex-col divide-y divide-white/5 max-h-[460px] overflow-y-auto');
-    draft.contacts.forEach((c) => {
-      const row = el('div', `flex ${draft.background.mode === 'website' ? 'items-start' : 'items-center'} gap-3 py-2 text-sm`);
+    draft.contacts.forEach((c, idx) => {
+      const row = el('div', `flex ${draft.background.mode === 'website' ? 'items-start' : 'items-center'} gap-3 py-2.5 text-sm`);
+      row.setAttribute('data-contact-row', [c.firstName, c.lastName, c.email, c.company].filter(Boolean).join(' ').toLowerCase());
+      row.appendChild(el('span', 'w-6 shrink-0 text-xs tabular-nums text-white/40', String(idx + 1).padStart(2, '0')));
       const who = el('div', 'min-w-0 flex-1');
       who.append(el('div', 'truncate font-semibold', [c.firstName, c.lastName].filter(Boolean).join(' ') || '(no name)'),
         el('div', 'truncate text-xs text-white/50', [c.email, c.company].filter(Boolean).join(' · ')));
@@ -1933,12 +1996,26 @@ export function OutreachStudio() {
       row.append(who, rm);
       list.appendChild(row);
     });
+    searchBox?.addEventListener('input', () => {
+      const q = searchBox.value.trim().toLowerCase();
+      list.querySelectorAll('[data-contact-row]').forEach((r) => { r.hidden = !!q && !r.getAttribute('data-contact-row').includes(q); });
+    });
     side.appendChild(list);
     if (draft.background.mode === 'website' && draft.contacts.length) side.appendChild(renderSiteCheck());
     if (draft.contacts.length) {
+      const foot = el('div', 'flex flex-wrap items-center gap-2 border-t border-white/10 pt-4');
+      const more = button('Add more contacts', { small: true });
+      more.setAttribute('data-outreach-add-more', '');
+      more.addEventListener('click', () => file.click());
+      const dl = button('Download .CSV', { small: true });
+      dl.setAttribute('data-outreach-contacts-csv', '');
+      dl.addEventListener('click', () => {
+        downloadText(`${(draft.name || 'contacts').replace(/[^\w-]+/g, '_')}-contacts.csv`, [CONTACT_FIELDS.map(([f]) => f).join(','), ...draft.contacts.map((c) => CONTACT_FIELDS.map(([f]) => csvCell(c[f])).join(','))].join('\n'));
+      });
       const clear = button('Remove all', { small: true });
       clear.addEventListener('click', () => { if (window.confirm('Remove every contact from this campaign?')) { draft.contacts = []; draft.campaign = null; persist(); render(); } });
-      side.appendChild(clear);
+      foot.append(more, dl, clear);
+      side.appendChild(foot);
     }
     grid.append(main, side);
     return grid;
@@ -2199,10 +2276,10 @@ export function OutreachStudio() {
 
   function renderGenerate() {
     const wrap = el('div', 'flex flex-col gap-5');
-    const top = card(draft.campaign ? 'Your campaign is live' : 'Generate the campaign',
+    const top = card(draft.campaign ? 'Your campaign is live' : 'Generate videos',
       draft.campaign
         ? 'Send each contact their own link. It opens your video with their greeting and your booking button.'
-        : 'Each contact’s greeting is voiced, the video is published, and every contact gets a personal link.');
+        : 'Each contact’s greeting is voiced, the video is published, and every contact gets a personal link.', 1);
     const facts = el('div', 'grid grid-cols-2 md:grid-cols-4 gap-3');
     const personal = draft.kind !== 'same' && tokensIn(draft.greeting).length > 0;
     const named = draft.contacts.filter((c) => c.firstName).length;
@@ -2246,7 +2323,14 @@ export function OutreachStudio() {
       });
       const open = button('Open landing page');
       open.addEventListener('click', () => window.open(draft.campaign.links[0] ? linkOf(draft.campaign.links[0]) : draft.campaign.url, '_blank', 'noopener'));
-      actions.append(csv, open);
+      const engage = button('See engagement');
+      engage.setAttribute('data-outreach-see-engagement', '');
+      engage.addEventListener('click', () => container.querySelector('[data-outreach-prospects]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      const shareAll = button('Share campaign', { primary: true });
+      shareAll.setAttribute('data-outreach-share-campaign', '');
+      shareAll.disabled = !draft.campaign.links[0];
+      shareAll.addEventListener('click', () => { if (draft.campaign.links[0]) openShare(draft.campaign.links[0]); });
+      actions.append(csv, open, engage, shareAll);
     }
     top.appendChild(actions);
     wrap.appendChild(top);
@@ -2255,7 +2339,8 @@ export function OutreachStudio() {
     if (draft.campaign) {
       if (linkStats.id !== draft.campaign.id && !linkStats.loading) setTimeout(loadLinkStats, 0);
       // The prospect table (src/components/outreach/ProspectTable.js), like Sendspark's dynamic-video prospect list.
-      const list = card('Prospects', 'Each prospect\u2019s own video, thumbnail and page. Share or send it from their row; you\u2019ll see who watched and how much.');
+      const list = card('Generated videos', 'Each prospect\u2019s own video, thumbnail and page. Share or send it from their row; you\u2019ll see who watched and how much.', 2);
+      list.setAttribute('data-outreach-prospects', '');
       const contactOfLink = (l) => draft.contacts.find((c) => c.id === l.contactId) || {};
       const links = draft.campaign.links.map((l) => ({ ...l, heard: l.voiced ? fillTemplate(draft.greeting, contactValues(contactOfLink(l)), draft.fallbacks).trim() : '' }));
       list.appendChild(renderProspectTable({
@@ -2378,10 +2463,20 @@ export function OutreachStudio() {
   // Live page previews; dropped whenever the step is drawn again.
   const previewHandles = [];
   const dropPreviewHandles = () => previewHandles.splice(0).forEach((h) => h.destroy());
+  // Your own video (and the first prospect's name) in the page, so a design is judged with the real thing in it.
+  const previewWith = () => {
+    const url = String(draft.video?.url || '');
+    const first = draft.contacts[0];
+    const poster = draft.campaign?.links?.find((l) => l.thumbnailUrl && !/\.gif(\?|$)/i.test(l.thumbnailUrl))?.thumbnailUrl || null;
+    return {
+      ...(/^https:\/\//i.test(url) ? { page: { title: draft.name || '', video_url: url, poster_url: poster } } : {}),
+      ...(first ? { tokens: { ...(first.firstName ? { firstname: first.firstName } : {}), ...(first.company ? { company: first.company } : {}) } } : {}),
+    };
+  };
   const pagePreview = (host, width) => {
     const data = pageEditorData();
     if (!data) return;
-    import('../lib/landingPages/designPreview.js').then((m) => { previewHandles.push(m.attachDesignPreview(host, data)); if (width) host.style.width = width; });
+    import('../lib/landingPages/designPreview.js').then((m) => { previewHandles.push(m.attachDesignPreview(host, data, previewWith())); if (width) host.style.width = width; });
   };
   const PLAIN_CARD = { id: '', name: 'Plain video page', description: 'Just the personal video, header, message and your booking button.', theme: { bg: '#111318', accent: '#d9ff00' }, layout: 'minimal' };
 
@@ -2403,6 +2498,7 @@ export function OutreachStudio() {
       subtitle: 'The page belongs to this video. After choosing, click Edit page to change its words, pictures and sections; your recording plays in it, and each prospect sees their own video.',
       groups: [['No landing page', [PLAIN_CARD]], ['Your landing pages', designs.list]],
       selected: page?.template || '',
+      preview: previewWith(),
       onPick: (id) => {
         if (id === (page?.template || '')) return;
         if (page?.editor && !window.confirm('Replace your edited page? Your changes to it will be lost.')) return;
@@ -2942,24 +3038,50 @@ export function OutreachStudio() {
   }
 
   // The Videos home: your dynamic videos as cards (like Sendspark's library), then the results table.
+  let librarySort = 'new';
+  let libraryQuery = '';
   function renderLibrary() {
-    const lib = listLibrary();
+    const statsFor = (id) => summarize(campaigns.stats[id]);
+    const lib = [...listLibrary()].sort((a, b) => (librarySort === 'name' ? String(a.name).localeCompare(String(b.name)) : librarySort === 'watched' ? statsFor(b.id).watched - statsFor(a.id).watched : new Date(b.savedAt) - new Date(a.savedAt)));
     const box = el('div', 'flex flex-col gap-4');
     box.setAttribute('data-outreach-library', '');
     // Like Sendspark's Dynamic Videos page: who you are, what it does, and Create Dynamic Video.
-    const head = el('div', 'flex flex-wrap items-center gap-4 border-b border-white/10 pb-5');
+    const head = el('div', 'flex flex-wrap items-center gap-5 border-b border-white/10 pb-6 pt-4');
     const me = globalThis.window?.Clerk?.user || null;
-    const face = el('div', 'grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-primary/10 text-lg font-black text-primary');
+    const face = el('div', 'grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-primary/10 text-lg font-black text-primary');
     if (me?.imageUrl && /^https:\/\//.test(me.imageUrl)) { const im = el('img', 'h-full w-full object-cover'); im.src = me.imageUrl; im.alt = ''; face.appendChild(im); }
     else face.textContent = (me?.firstName || 'S').slice(0, 1).toUpperCase();
     const title = el('div', 'min-w-0 flex-1');
-    title.append(el('h2', 'text-2xl font-black', 'Dynamic Videos'), el('p', 'text-sm text-secondary', 'Scale yourself: record once, and each prospect gets their own intro, page, thumbnail and link.'));
+    title.append(el('h2', 'text-[26px] font-extrabold leading-tight', 'Dynamic Videos'), el('p', 'text-sm text-white/50', 'Scale yourself: record once, and each prospect gets their own intro, page, thumbnail and link.'));
     const fresh = button('Create Dynamic Video', { primary: true });
     fresh.setAttribute('data-outreach-new', '');
     fresh.disabled = !!busy;
+    fresh.classList.add('rounded-full');
     fresh.addEventListener('click', () => openCreateDynamic());
     head.append(face, title, fresh);
     box.appendChild(head);
+    let filterRow = null;
+    if (lib.length) {
+      // Search and sort your campaigns (like Sendspark's filter row).
+      filterRow = el('div', 'flex flex-wrap items-center justify-end gap-2');
+      filterRow.setAttribute('data-library-filters', '');
+      const q = el('input', 'min-w-[220px] flex-1 rounded-full border border-white/10 bg-white/[0.04] px-5 py-2 text-sm text-white placeholder:text-white/35 outline-none focus:border-primary/60 sm:flex-none');
+      q.type = 'search'; q.placeholder = 'Search your videos'; q.setAttribute('aria-label', 'Search your videos'); q.value = libraryQuery;
+      const sort = el('select', 'rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-white outline-none focus:border-primary/60');
+      sort.setAttribute('aria-label', 'Sort');
+      [['new', 'Newest first'], ['name', 'Name A to Z'], ['watched', 'Most watched']].forEach(([v, l]) => { const o = el('option', 'bg-neutral-900', l); o.value = v; o.selected = v === librarySort; sort.appendChild(o); });
+      sort.addEventListener('change', () => { librarySort = sort.value; render(); });
+      const clearF = button('Clear filters', { small: true });
+      clearF.addEventListener('click', () => { librarySort = 'new'; libraryQuery = ''; render(); });
+      const applyQuery = () => {
+        const t = q.value.trim().toLowerCase();
+        box.querySelectorAll('[data-library-item]').forEach((c) => { c.hidden = !!t && !String(c.getAttribute('data-library-name') || '').includes(t); });
+      };
+      q.addEventListener('input', () => { libraryQuery = q.value; applyQuery(); });
+      setTimeout(applyQuery, 0);
+      filterRow.append(q, sort, clearF);
+      box.appendChild(filterRow);
+    }
 
     const grid = el('div', 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3');
     // The one being set up (not generated yet).
@@ -2977,6 +3099,7 @@ export function OutreachStudio() {
     lib.forEach((e) => {
       const c = el('div', 'flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-panel-bg');
       c.setAttribute('data-library-item', e.id);
+      c.setAttribute('data-library-name', String(e.name || '').toLowerCase());
       const media = el('div', 'relative aspect-video bg-black');
       if (e.thumbnailUrl) { const im = el('img', 'h-full w-full object-cover'); im.src = e.thumbnailUrl; im.alt = ''; media.appendChild(im); } else if (e.video) { const v = el('video', 'h-full w-full object-cover'); v.src = `${e.video}#t=1`; v.muted = true; v.preload = 'metadata'; media.appendChild(v); }
       if (draft.campaign?.id === e.id) media.appendChild(el('span', 'absolute bottom-2 right-2 rounded-full border border-primary/40 bg-black/70 px-2 py-0.5 text-[10px] font-bold text-primary', 'Open now'));
@@ -3122,9 +3245,13 @@ export function OutreachStudio() {
     dropPreviewHandles();
     syncHostLine();
     renderStepper();
+    // Like Sendspark, the editor and the videos page have no hero banner: the page itself is the header.
+    banner.hidden = true;
+    stepper.classList.add('pt-4');
     inner.replaceChildren();
     const elsewhere = !guard.active();
-    stepper.inert = elsewhere;
+    stepper.inert = elsewhere || step === 1;
+    let tabBar = null;
     if (elsewhere || changedElsewhere) {
       const bar = el('div', 'sticky top-0 z-20 flex flex-wrap items-center gap-3 rounded-xl border border-amber-300/40 bg-[#2a2410] px-4 py-3 text-sm shadow-lg');
       bar.setAttribute('data-outreach-other-tab', elsewhere ? 'blocked' : 'changed');
@@ -3137,7 +3264,7 @@ export function OutreachStudio() {
       bar.append(el('span', 'flex-1 text-amber-100', elsewhere
         ? 'This campaign is open in another tab. You can look here; changes are made in the other tab.'
         : 'This campaign was changed in another tab.'), btn);
-      inner.appendChild(bar);
+      tabBar = bar;
     }
     if (!paid()) {
       // Preview: everything can be seen; recording, generating and sharing ask for the upgrade.
@@ -3150,10 +3277,17 @@ export function OutreachStudio() {
       inner.appendChild(bar);
     }
     const view = VIEWS[step]();
-    if (elsewhere) view.inert = true; // read-only while another tab edits
+    // The full-screen editor covers the page, so the other-tab banner (and its button) goes inside it, above the locked content.
+    const fullscreen = view.hasAttribute('data-outreach-editor');
+    if (elsewhere) { if (fullscreen) [...view.children].forEach((c) => { c.inert = true; }); else view.inert = true; } // read-only while another tab edits
+    if (tabBar) {
+      if (fullscreen) { tabBar.classList.remove('sticky', 'top-0', 'z-20', 'rounded-xl'); tabBar.classList.add('shrink-0', 'rounded-none', 'border-x-0', 'border-t-0'); view.prepend(tabBar); }
+      else inner.insertBefore(tabBar, inner.firstChild);
+    }
     inner.appendChild(view);
 
-    const footer = el('div', 'flex flex-wrap items-center gap-3');
+    // Pinned to the bottom of the view: Back / Continue and what is missing stay visible however long the step is.
+    const footer = el('div', 'sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center gap-3 border-t border-white/10 bg-app-bg/90 px-4 py-3 backdrop-blur md:-mx-8 md:px-8');
     const errors = step <= SETUP_STEPS + 1 ? stepErrors(draft, step) : [];
     const msg = busy || notice || errors[0] || '';
     const status = el('p', `flex-1 text-sm ${busy ? 'text-primary' : notice && !errors.length ? 'text-emerald-300' : 'text-amber-300'}`, msg);
@@ -3181,6 +3315,7 @@ export function OutreachStudio() {
     }
     footer.appendChild(status);
     if (elsewhere) footer.inert = true;
+    footer.hidden = step === 1;
     inner.appendChild(footer);
   }
 
@@ -3324,9 +3459,9 @@ export function OutreachStudio() {
   // then a new dynamic video starts on the Record step.
   function openCreateDynamic(prefill = {}) {
     const inProgress = !draft.campaign && (draft.video || draft.contacts.length);
-    const overlay = el('div', 'fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4');
+    const overlay = el('div', 'fixed inset-0 z-[1000] flex justify-center overflow-y-auto bg-black/70 p-4');
     overlay.setAttribute('data-outreach-create', '');
-    const box = el('div', 'flex w-full max-w-3xl flex-col gap-5 rounded-2xl border border-white/10 bg-[#0b0c10] p-6 text-white shadow-2xl');
+    const box = el('div', 'my-auto flex w-full max-w-2xl flex-col gap-5 rounded-3xl border border-white/10 bg-[#0b0c10] p-7 text-white shadow-2xl');
     box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Create Dynamic Videos');
     const head = el('div', 'flex items-center justify-between');
     const x = el('button', 'rounded-lg px-2 py-1 text-xl leading-none text-white/60 hover:text-white', '\u00d7');

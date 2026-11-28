@@ -7,7 +7,11 @@ const PAGE_WIDTH = 1280;
 const PREVIEW_PAGE = { id: 'preview', title: 'Preview', video_url: '', poster_url: null };
 const TOKENS = { firstname: 'Alex', company: 'Brightline' };
 
-export function attachDesignPreview(host, data, { aspect = 0.72, deps = {} } = {}) {
+/**
+ * `page` ({ video_url, poster_url, title }) puts the user's own video in the page's video slot and `tokens` fills the
+ * personal words (first name, company), so a chosen design shows the real page instead of the empty placeholder.
+ */
+export function attachDesignPreview(host, data, { aspect = 0.72, deps = {}, page = null, tokens = null } = {}) {
   host.style.position = 'relative';
   host.style.overflow = 'hidden';
   host.style.width = '100%';
@@ -34,7 +38,7 @@ export function attachDesignPreview(host, data, { aspect = 0.72, deps = {} } = {
     try {
       const mount = deps.mountEditablePage || (await import('./editor/mount.jsx')).mountEditablePage;
       if (gone) return;
-      mounted = mount(inner, { page: PREVIEW_PAGE, data, tokens: TOKENS, preview: true });
+      mounted = mount(inner, { page: page ? { ...PREVIEW_PAGE, ...page } : PREVIEW_PAGE, data, tokens: tokens ? { ...TOKENS, ...tokens } : TOKENS, preview: true });
     } catch { /* a failed preview just leaves the card without a picture */ }
   };
 

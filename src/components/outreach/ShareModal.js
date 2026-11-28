@@ -41,9 +41,9 @@ async function copyHtml(html, plain, b, done) {
 
 export function openShareModal({ name = '', link, thumbnailUrl = '', stillUrl = '', videoUrl = '', tab = 'link', actions = {}, onClose = () => {} } = {}) {
   let current = tab;
-  const overlay = el('div', 'fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4');
+  const overlay = el('div', 'fixed inset-0 z-[1000] flex justify-center overflow-y-auto bg-black/70 p-4');
   overlay.setAttribute('data-share-modal', '');
-  const box = el('div', 'flex w-full max-w-xl flex-col gap-4 rounded-2xl border border-white/10 bg-[#0b0c10] p-6 text-white shadow-2xl');
+  const box = el('div', 'my-auto flex w-full max-w-xl flex-col gap-4 rounded-3xl border border-white/10 bg-[#0b0c10] p-6 text-white shadow-2xl');
   box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', `Share ${name || 'video'}`);
   const head = el('div', 'flex items-center justify-between');
   const x = el('button', 'rounded-lg px-2 py-1 text-xl leading-none text-white/60 hover:text-white', '×');
