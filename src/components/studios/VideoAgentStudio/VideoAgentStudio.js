@@ -14,6 +14,7 @@ import { apiKeyManager } from '../../../lib/apiKeyManager.js';
 import { saveGeneration } from '../../../lib/generationHistory.js';
 import { uploadFileToSupabase } from '../../../lib/uploadService.js';
 import { createLandingPageButton, openLandingPageFor } from '../../studio/landingPageAction.js';
+import { createRetargetButton, retargetFor } from '../../studio/retargetAction.js';
 import { consumeStudioPrefill } from '../../../lib/studioPrefill.js';
 
 // Explicit index.html: the dev server's SPA fallback would otherwise serve the main app.
@@ -81,11 +82,16 @@ export function VideoAgentStudio() {
 
   // After the video is saved: a text button in the same style as the status line.
   let landingBtn = null;
+  let retargetBtn = null;
   const showLandingButton = (url) => {
     landingBtn?.remove();
+    retargetBtn?.remove();
     landingBtn = createLandingPageButton({ className: 'text-xs font-bold text-primary hover:underline mr-3' });
     landingBtn.onclick = () => { void openLandingPageFor({ url, type: 'video', studio: 'videoagent' }); };
+    retargetBtn = createRetargetButton({ className: 'text-xs font-bold text-primary hover:underline mr-3' });
+    retargetBtn.onclick = () => { void retargetFor({ url, type: 'video', studio: 'videoagent' }); };
     status.after(landingBtn);
+    landingBtn.after(retargetBtn);
   };
 
   async function saveExport(blob, name, prompt) {

@@ -31,6 +31,7 @@ import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
+import { createRetargetButton, retargetFor } from './studio/retargetAction.js';
 
 const EFFECT_TABS = [
   { id: 'image-effects', label: 'Image Effects', type: 'i2i', field: 'name' },
@@ -355,6 +356,17 @@ async function EffectsCatalogStudio() {
     void openLandingPageFor({ url, type: lastResultType === 'video' ? 'video' : 'image', studio: 'effects' }, { toast: (m) => showToast(m, 'warning') });
   };
   outputActions.appendChild(landingActionBtn);
+
+  // Retarget: track viewers of a video result and open its follow-up suggestions
+  const retargetActionBtn = createRetargetButton({ like: downloadActionBtn });
+  retargetActionBtn.textContent = '\u21BB Retarget';
+  retargetActionBtn.onclick = () => {
+    const url = outputPreview.getUrl();
+    if (!url) { showToast('No result yet', 'warning'); return; }
+    if (lastResultType !== 'video') { showToast('Retarget works on videos.', 'info'); return; }
+    void retargetFor({ url, type: 'video', studio: 'effects' }, { toast: (m) => showToast(m, 'info') });
+  };
+  outputActions.appendChild(retargetActionBtn);
 
   const addToLibraryBtn = document.createElement('button');
   addToLibraryBtn.type = 'button';

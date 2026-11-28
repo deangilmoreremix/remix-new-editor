@@ -113,3 +113,33 @@ describe('the observer', () => {
     stop();
   });
 });
+
+describe('Retarget button beside the landing page button', () => {
+  const retargetIn = (root) => root.querySelectorAll('[data-action="retarget"]');
+  it('a video download link gets both buttons, in the studio\'s own style, landing page first', () => {
+    const root = html('<div><a href="https://cdn.test/r.mp4" download class="btn-secondary-modern text-xs">Download</a></div>');
+    scan(root);
+    const a = root.querySelector('a');
+    expect(a.nextElementSibling.dataset.action).toBe('create-landing-page');
+    expect(a.nextElementSibling.nextElementSibling.dataset.action).toBe('retarget');
+    expect(retargetIn(root)[0].className).toBe('btn-secondary-modern text-xs');
+  });
+  it('a picture gets only the landing page button (pictures have no viewers)', () => {
+    const root = html('<div><a href="https://cdn.test/r.png" download class="x">Download</a></div>');
+    scan(root);
+    expect(btnsIn(root)).toHaveLength(1);
+    expect(retargetIn(root)).toHaveLength(0);
+  });
+  it('scanning again does not add a second Retarget button', () => {
+    const root = html('<div><a href="https://cdn.test/r.mp4" download class="x">Download</a></div>');
+    scan(root); scan(root);
+    expect(retargetIn(root)).toHaveLength(1);
+  });
+  it('hides the Retarget button when the link stops being a video', () => {
+    const root = html('<div><a href="https://cdn.test/r.mp4" download class="x">Download</a></div>');
+    scan(root);
+    root.querySelector('a').setAttribute('href', 'https://cdn.test/r.png');
+    attachTo(root.querySelector('a'), {});
+    expect(retargetIn(root)[0].hidden).toBe(true);
+  });
+});

@@ -446,6 +446,13 @@ export function renderProjectsPanel(host, deps) {
       if (best) openDetail(best.id, 'notifications');
       return best?.id || null;
     },
+    /** A studio's Retarget button: jump to one project's tab (default Retarget) once the list has loaded. Resolves to whether it was found. */
+    async openProject(id, tab = 'retarget') {
+      for (let i = 0; i < 100 && loading && alive; i += 1) await new Promise((r) => setTimeout(r, 50)); // bounded wait (5 s)
+      if (!alive || !cards.some((c) => c.id === id)) return false;
+      openDetail(id, tab);
+      return true;
+    },
     destroy() { alive = false; if (tabCleanup) { try { tabCleanup(); } catch { /* noop */ } tabCleanup = null; } },
     _state: () => ({ ui, cards }),
   };
