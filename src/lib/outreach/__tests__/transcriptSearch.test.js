@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { searchLines, highlightPieces, queryWords } from '../transcriptSearch.js';
+import { searchLines, highlightPieces, queryWords, firstPlayableMatch } from '../transcriptSearch.js';
 
 const lines = [
   { startMs: 0, endMs: 2000, text: 'Hi Maya, I took a quick look at BrightLine.' },
@@ -32,4 +32,28 @@ describe('transcript search', () => {
     expect(highlightPieces(m.text, m.ranges).map((p) => p.text).join('')).toBe(m.text);
   });
   it('splits a query into words', () => { expect(queryWords("  Don't stop, believing! ")).toEqual(["don't", 'stop', 'believing']); });
+});
+
+describe('jumping to a match in an edited video', () => {
+  const src = [
+    { startMs: 5000, endMs: 7000, text: 'Welcome to the intro.' },
+    { startMs: 15000, endMs: 17000, text: 'The pricing is simple.' },
+    { startMs: 25000, endMs: 27000, text: 'Pricing questions? Ask me.' },
+  ];
+  // the first 10 seconds were removed: later lines move 10 s earlier, and the intro is gone
+  const cutFirst10 = (l) => (l.endMs <= 10000 ? null : { ...l, startMs: l.startMs - 10000, endMs: l.endMs - 10000 });
+  it('uses the time in the edited video, not the original recording', () => {
+    expect(firstPlayableMatch(src, 'pricing', cutFirst10)).toMatchObject({ index: 1, startMs: 5000 });
+  });
+  it('skips a match that was cut out and takes the next one', () => {
+    expect(firstPlayableMatch(src, 'intro welcome', cutFirst10)).toBeNull();
+    expect(firstPlayableMatch(src, 'the', cutFirst10)?.index).toBe(1); // "Welcome to the intro" was cut; "The pricing" is the first one left
+  });
+  it('with no edits the time is the original time', () => {
+    expect(firstPlayableMatch(src, 'pricing')).toMatchObject({ index: 1, startMs: 15000 });
+  });
+  it('finds nothing for an empty query or no match', () => {
+    expect(firstPlayableMatch(src, '  ')).toBeNull();
+    expect(firstPlayableMatch(src, 'zebra')).toBeNull();
+  });
 });

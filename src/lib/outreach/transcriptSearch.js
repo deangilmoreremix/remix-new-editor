@@ -46,3 +46,17 @@ export function highlightPieces(text, ranges) {
   if (at < s.length) parts.push({ text: s.slice(at), hit: false });
   return parts;
 }
+
+/**
+ * The first match you can really jump to. Transcript times are in the original recording, but an edited video
+ * (trims, cuts, added clips) plays on a different timeline: `remap(line)` returns the line as it is in the video
+ * being played, or null when that part was cut out. Matches that were cut out are skipped.
+ * @returns {{ index:number, startMs:number, text:string } | null}
+ */
+export function firstPlayableMatch(lines, query, remap = (l) => l) {
+  for (const m of searchLines(lines, query, { limit: 400 })) {
+    const line = remap(lines[m.index]);
+    if (line && Number.isFinite(line.startMs)) return { index: m.index, startMs: Math.max(0, line.startMs), text: m.text };
+  }
+  return null;
+}

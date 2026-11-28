@@ -19,7 +19,7 @@ import { hasPaidAccess } from '../lib/clerkEntitlements.js';
 import { createTabGuard } from '../lib/outreach/tabGuard.js';
 import { validateContacts, dedupeContacts, restoreDuplicates, mergeFieldReport } from '../lib/outreach/contactQa.js';
 import { rankProspects } from '../lib/outreach/followUp.js';
-import { searchLines } from '../lib/outreach/transcriptSearch.js';
+import { searchLines, firstPlayableMatch } from '../lib/outreach/transcriptSearch.js';
 import { suggestHeaders, suggestMessages, suggestCtas } from '../lib/outreach/copySuggest.js';
 import { detectCapabilities, summarizeCapabilities } from '../lib/outreach/capabilities.js';
 import { withRetry } from '../lib/outreach/retry.js';
@@ -739,9 +739,11 @@ export function OutreachStudio() {
     find.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter') return;
       e.preventDefault();
-      const first = searchLines(c.lines, captionQuery, { limit: 1 })[0];
+      // The lines keep the original recording's times; the preview plays the edited video, so map the match onto it
+      // (and skip a match that was cut out).
+      const hit = firstPlayableMatch(c.lines, captionQuery, (l) => outLines([l])[0] || null);
       const v = container.querySelector('[data-editor-video] video');
-      if (first && v) { v.currentTime = first.startMs / 1000; v.play?.().catch(() => {}); }
+      if (hit && v) { v.currentTime = hit.startMs / 1000; v.play?.().catch(() => {}); }
     });
     applySearch();
     const dl = el('div', 'flex flex-wrap items-center gap-2 text-xs');
