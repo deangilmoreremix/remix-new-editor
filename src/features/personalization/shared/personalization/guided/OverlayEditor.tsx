@@ -1,5 +1,6 @@
 'use client'
 
+import { VideoCheckPanel } from './SmartTools'
 import { SavedStylesBar } from './SavedStylesBar'
 import { PLAYBACK_RATES } from '../preview/playbackRate'
 import { applyTextStyle, captureTextStyle } from '../preview/textStyles'
@@ -1083,6 +1084,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
           <LookPanel inputProps={inputProps} />
           <AudioPanel />
           <CaptionsPanel inputProps={inputProps} />
+          <VideoCheckPanel advanced />
           <CutoutPanel inputProps={inputProps} />
           <div style={labelStyle}>Layers</div>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onReorderEnd}>

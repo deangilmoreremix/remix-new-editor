@@ -22,6 +22,7 @@ const SIMPLE_MODE_DROP_ZONES: DiscoveredAssetDropZone[] = [
   { section: 'brand', label: 'Brand' },
 ]
 import { C, badgeStyle, hintStyle, inputStyle, labelStyle, panelStyle, primaryButtonStyle, secondaryButtonStyle, softPanelStyle } from './tokens'
+import { AssetIntelligencePanel } from './SmartTools'
 
 const RADIUS_OPTIONS = [5, 15, 50]
 
@@ -531,6 +532,7 @@ export function StepFindBusiness({
                   void importDiscoveredAssets({ ids: [id], section })
                 }}
               />
+              <AssetIntelligencePanel />
               {discoveryStatus === 'importing' && (
                 <p style={{ margin: '8px 0 0', color: C.cyan, fontSize: 11 }}>Importing assets…</p>
               )}

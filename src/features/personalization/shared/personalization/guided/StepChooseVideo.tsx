@@ -40,6 +40,7 @@ import {
 import type { VideoDemo } from '@ohb/data/types'
 import type { SharedMediaEntry } from '../types'
 import type { PreviewVideoRef } from '../preview/types'
+import { VideoCheckPanel } from './SmartTools'
 
 function isVideoUrl(url: string | null | undefined): boolean {
   if (!url || url.startsWith('blob:')) return false
@@ -862,6 +863,9 @@ export function StepChooseVideo(): React.JSX.Element {
 
       {/* Optional AI recast: skipping keeps the original video (the default). */}
       {Boolean(selectedUrl) && source?.mediaType === 'video' && <RecastOption />}
+
+      {/* Free on-device checks: scenes, sharpness, loudness, clipping, silence, subject-following crop. */}
+      <VideoCheckPanel />
     </div>
   )
 }

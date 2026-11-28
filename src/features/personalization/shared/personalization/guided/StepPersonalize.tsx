@@ -14,6 +14,7 @@ import { ColorField } from './editor/ColorField'
 import { LayoutThumbnails } from './LayoutThumbnails'
 import type { ClientProfile } from '../types'
 import type { PreviewLayerKind, PreviewLayoutId } from '../preview/types'
+import { FreeContentPanel } from './SmartTools'
 
 const LAYER_LABELS: Record<PreviewLayerKind, string> = {
   logo: 'Logo',
@@ -266,6 +267,7 @@ export function StepPersonalize({
           </div>
         </div>
         <CopySuggestionsPanel client={clientForm} onPick={(field, value, layer) => setField(field, value, layer)} />
+        <FreeContentPanel onPick={(field, value, layer) => setField(field, value, layer)} />
       </div>
 
       {/* ── Brand colors ────────────────────────────────────────────────── */}

@@ -1345,6 +1345,10 @@ export function normalizePreviewSettings(raw: unknown): PersonalizationPreviewSe
   const videoVolume = normalizeVideoVolume(raw.videoVolume)
   if (videoVolume !== undefined) out.videoVolume = videoVolume
   if (raw.videoMuted === true) out.videoMuted = true
+  const focus = raw.videoFocus as { x?: unknown; y?: unknown } | undefined
+  if (focus && typeof focus.x === 'number' && typeof focus.y === 'number' && Number.isFinite(focus.x) && Number.isFinite(focus.y)) {
+    out.videoFocus = { x: Math.min(1, Math.max(0, focus.x)), y: Math.min(1, Math.max(0, focus.y)) }
+  }
   if (typeof raw.audioSolo === 'string' && raw.audioSolo) out.audioSolo = raw.audioSolo
 
    // The applied Remotion design. Absent in projects saved before the design

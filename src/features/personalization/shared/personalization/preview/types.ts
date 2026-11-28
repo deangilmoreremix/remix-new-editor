@@ -188,6 +188,11 @@ export interface PersonalizationPreviewSettings {
    */
   audioTracks?: import('./audioMix').AudioTrack[]
   videoVolume?: number
+  /**
+   * Where the footage is anchored when the frame is narrower than the video (0..1 from the left/top; default centre).
+   * Moves the crop toward the subject for 9:16, 1:1 and 4:5 versions; preview and export use the same value.
+   */
+  videoFocus?: { x: number; y: number }
   videoMuted?: boolean
   audioSolo?: string
   /**

@@ -362,6 +362,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
   }
   // The footage's look: a filter on the picture itself, plus color overlays and a vignette drawn over it (LookLayers).
   const lookCss = lookFilter(settings.look)
+  const focusPosition = settings.videoFocus ? `${Math.round(settings.videoFocus.x * 100)}% ${Math.round(settings.videoFocus.y * 100)}%` : undefined
   const cutoutActive = Boolean(settings.cutout?.enabled && videoUrl && !isImageSource && !mediaFailed)
 
   // The audio mix: the video's own sound and any number of tracks, each with its own gain per frame (volume, fades, start,
@@ -385,7 +386,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
       return (
         <Img
           src={posterUrl}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', filter: lookCss }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focusPosition, filter: lookCss }}
         />
       )
     }
@@ -404,7 +405,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           muted={false}
           volume={sourceGain}
           onError={handleMediaError}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', filter: lookCss }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focusPosition, filter: lookCss }}
         />
       )
     }
@@ -412,7 +413,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
       return (
         <Img
           src={posterUrl}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', filter: lookCss }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focusPosition, filter: lookCss }}
         />
       )
     }

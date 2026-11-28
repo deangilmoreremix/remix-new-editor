@@ -23,6 +23,7 @@ import { PREVIEW_ASPECT_RATIOS } from '../preview/types'
 import { PREVIEW_LAYOUTS } from '../preview/presets'
 import { chooseFinalOutputPath } from '../finalOutput'
 import { ExtraFormatsExport } from './ExtraFormatsExport'
+import { FinalChecksPanel } from './SmartTools'
 
 /**
  * Simple Mode step 4 — free Before/After preview, direct on-video overlay
@@ -301,6 +302,8 @@ export function StepPreviewApprove(): React.JSX.Element {
         liveStage
         belowStage={<LayoutQualityPanel compact quality={quality} layers={previewSettings.layers} />}
       />
+
+      <FinalChecksPanel inputProps={inputProps} quality={quality} />
 
       {/* ── Approve & create ────────────────────────────────────────────── */}
       <div style={{ ...panelStyle, border: `1px solid ${previewApproved ? 'rgba(34,197,94,.45)' : C.border}` }}>
