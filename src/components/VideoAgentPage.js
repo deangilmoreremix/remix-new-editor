@@ -9,6 +9,7 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { saveGeneration } from '../lib/generationHistory.js';
 import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
+import { createRetargetButton, retargetFor } from './studio/retargetAction.js';
 
 // Backend wiring
 function getBackendBase() {
@@ -1097,6 +1098,10 @@ export function VideoAgentPage() {
                 lpBtn.textContent = '▤ Create landing page';
                 lpBtn.onclick = () => { void openLandingPageFor({ url: String(videoUrl), type: 'video', studio: 'video-agent' }); };
                 resultEl.appendChild(lpBtn);
+                const rtBtn = createRetargetButton({ like: dlBtn });
+                rtBtn.textContent = '\u21BB Retarget';
+                rtBtn.onclick = () => { void retargetFor({ url: String(videoUrl), type: 'video', studio: 'video-agent' }, { toast: (m) => showToast(m, 'info') }); };
+                resultEl.appendChild(rtBtn);
             }
         }
 

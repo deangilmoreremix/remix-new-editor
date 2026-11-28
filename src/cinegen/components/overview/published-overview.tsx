@@ -12,6 +12,7 @@ import '../../../../styles/projects-panel.css';
 import '../../styles/analytics-tab.css';
 
 const OPEN_FLAG = 'remix_open_projects'; // set by the header bell
+const OPEN_RETARGET_PROJECT = 'remix_open_retarget_project'; // set by a studio's Retarget button (components/studio/retargetAction.js)
 
 export function PublishedOverview({ onOpenProject, onPublish }: { onOpenProject?: (id: string) => void; onPublish?: () => void }) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -24,6 +25,11 @@ export function PublishedOverview({ onOpenProject, onPublish }: { onOpenProject?
     // The header bell lands here (home screen) on the project with the most unread alerts.
     const showAlerts = () => { try { sessionStorage.removeItem(OPEN_FLAG); } catch { /* ignore */ } void panel.openMostUnread?.(); };
     try { if (sessionStorage.getItem(OPEN_FLAG)) showAlerts(); } catch { /* storage unavailable */ }
+    // A studio's Retarget button: open that video's Retarget view (the studio leaves its project row id here).
+    try {
+      const id = sessionStorage.getItem(OPEN_RETARGET_PROJECT);
+      if (id) { sessionStorage.removeItem(OPEN_RETARGET_PROJECT); void panel.openProject?.(id, 'retarget'); }
+    } catch { /* storage unavailable */ }
     window.addEventListener('remix:open-projects', showAlerts);
     return () => { window.removeEventListener('remix:open-projects', showAlerts); panel.destroy?.(); };
   }, [onOpenProject, onPublish, refresh]);

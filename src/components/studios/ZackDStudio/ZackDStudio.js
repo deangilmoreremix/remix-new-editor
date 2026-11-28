@@ -19,6 +19,7 @@ import { call, runJob, pollJob, pool } from '../../../lib/zackd/api.js';
 import { runAssembly, buildSrt, DEFAULT_TRANSITION_SEC } from '../../../lib/zackd/assemble.js';
 import { TEMPLATES, TEMPLATE_ATTRIBUTION, templateToProject } from '../../../lib/zackd/templates.js';
 import { openLandingPageFor } from '../../studio/landingPageAction.js';
+import { canRetarget, retargetFor } from '../../studio/retargetAction.js';
 import {
   SEED_TOPICS, LOOKS, DEFAULT_LOOK, TTS_VOICES, DEFAULT_VOICE, DEFAULT_TTS_SPEED, UPSTREAM_VOICE, DEFAULT_EXTRAS,
   characterSheetPrompt, keyframePrompt, clipPrompt, narrationText, allShots, totalDuration,
@@ -300,6 +301,7 @@ export function ZackDStudio() {
     if (url) {
       actions.push(['Download', ICON.download, () => { const a = el('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.download = `${key.replace(/[^a-z0-9]+/gi, '-')}.${kind === 'video' ? 'mp4' : 'png'}`; a.click(); }]);
       if (/^https:\/\//i.test(String(url))) actions.push(['Landing page', ICON.page, () => { void openLandingPageFor({ url, type: kind === 'video' ? 'video' : 'image', prompt, studio: 'zackd' }); }]);
+      if (canRetarget({ url, type: kind === 'video' ? 'video' : 'image' })) actions.push(['Retarget', ICON.page, () => { void retargetFor({ url, type: 'video', prompt, studio: 'zackd' }); }]);
       if (prompt) actions.push(['Copy prompt', ICON.copy, () => { navigator.clipboard?.writeText(prompt).then(() => showToast('Prompt copied', 'success', 1800)).catch(() => {}); }]);
     }
     if (onRedo) actions.push([url ? 'Redo' : 'Generate', ICON.redo, onRedo]);
