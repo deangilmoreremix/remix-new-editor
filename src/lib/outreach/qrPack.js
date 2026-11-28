@@ -64,7 +64,8 @@ export function downloadBlob(blob, name, doc = globalThis.document) {
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
 
-const who = (r) => safeFileName([r.contact?.firstName, r.contact?.lastName].filter(Boolean).join('-') || r.contact?.company || r.contact?.email || 'prospect', 'prospect');
+// At most 60 characters, so "(99)" and "-qr.svg" still fit inside the 80-character file name limit.
+const who = (r) => safeFileName([r.contact?.firstName, r.contact?.lastName].filter(Boolean).join('-') || r.contact?.company || r.contact?.email || 'prospect', 'prospect').slice(0, 60).replace(/[.\s-]+$/g, '') || 'prospect';
 
 /**
  * Everything to send one prospect, as files for a zip:
@@ -79,6 +80,7 @@ export async function buildSharePack(rows, { png = (l) => qrPngBlob(l) } = {}) {
   const head = ['First name', 'Last name', 'Email', 'Company', 'Link', 'Thumbnail', 'QR file'];
   const lines = [head.join(',')];
   const emails = [];
+  // Names are compared ignoring upper and lower case, as most file systems do: "Alex-Lee" and "alex-lee" collide.
   const used = new Map();
   // The same name twice must still give two different files, and the CSV must name the right one.
   const uniqueBase = (r) => {

@@ -38,6 +38,6 @@ export function scoreProspect(st, { now = Date.now() } = {}) {
 export function rankProspects(links, statsByContact, { now = Date.now(), followedUp = [] } = {}) {
   const done = new Set(followedUp);
   return (Array.isArray(links) ? links : [])
-    .map((l, order) => ({ link: l, order, followedUp: done.has(l.contactId), ...scoreProspect(statsByContact?.[l.contactId], { now }), lastAt: lastOf(statsByContact?.[l.contactId]) || 0 }))
-    .sort((a, b) => (a.followedUp - b.followedUp) || (b.score - a.score) || (b.lastAt - a.lastAt) || (a.order - b.order));
+    .map((l, order) => ({ link: l, order, followedUp: done.has(l.contactId), ...scoreProspect(statsByContact?.[l.contactId], { now }), lastActivity: lastOf(statsByContact?.[l.contactId]) || 0 }))
+    .sort((a, b) => (a.followedUp - b.followedUp) || (b.score - a.score) || (b.lastActivity - a.lastActivity) || (a.order - b.order));
 }

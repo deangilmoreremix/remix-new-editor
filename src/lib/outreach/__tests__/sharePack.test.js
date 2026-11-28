@@ -34,6 +34,31 @@ describe('zip writer', () => {
   });
 });
 
+describe('long file names', () => {
+  it('shortens the name but never the extension', () => {
+    const name = `${'A'.repeat(100)}-qr.svg`;
+    const safe = safeFileName(name);
+    expect(safe.length).toBeLessThanOrEqual(80);
+    expect(safe.endsWith('.svg')).toBe(true);
+    expect(safeFileName(`${'B'.repeat(120)}.png`).endsWith('.png')).toBe(true);
+    expect(safeFileName('short.svg')).toBe('short.svg');
+  });
+  it('a very long prospect name still gives a CSV reference that matches the zip entry', async () => {
+    const rows = [
+      { contact: { firstName: 'A'.repeat(75), lastName: 'Lee', email: 'a@x.com' }, link: 'https://smartvid.app/watch/a?c=1' },
+      { contact: { firstName: 'A'.repeat(75), lastName: 'Lee', email: 'b@y.com' }, link: 'https://smartvid.app/watch/a?c=2' },
+    ];
+    const { files } = await buildSharePack(rows, { png: async () => null });
+    const svgs = files.filter((f) => f.name.endsWith('.svg')).map((f) => f.name);
+    expect(svgs).toHaveLength(2);
+    for (const n of svgs) { expect(n.length).toBeLessThanOrEqual(80); expect(safeFileName(n)).toBe(n); } // the zip would not rename them
+    expect(new Set(svgs).size).toBe(2);
+    const csv = files.find((f) => f.name === 'links.csv').data.split('\r\n');
+    expect(csv[1].endsWith(svgs[0])).toBe(true);
+    expect(csv[2].endsWith(svgs[1])).toBe(true);
+  });
+});
+
 describe('QR codes', () => {
   it('accepts only secure links to a real host, with no credentials', () => {
     expect(qrTarget('https://smartvid.app/watch/abc?c=1')).toBe('https://smartvid.app/watch/abc?c=1');

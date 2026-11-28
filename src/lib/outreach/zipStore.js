@@ -17,15 +17,21 @@ export function crc32(bytes) {
   return (c ^ 0xFFFFFFFF) >>> 0;
 }
 
+const MAX_NAME = 80;
+
 /** A file name safe on every system: no paths, no control or reserved characters, never empty. */
 export function safeFileName(name, fallback = 'file') {
   const cleaned = String(name ?? '')
     .normalize('NFKC')
     .replace(/\p{C}/gu, '')
     .replace(/[\\/:*?"<>|]+/g, '-')
-    .replace(/^[.\s-]+|[.\s]+$/g, '')
-    .slice(0, 80);
-  return cleaned || fallback;
+    .replace(/^[.\s-]+|[.\s]+$/g, '');
+  if (cleaned.length <= MAX_NAME) return cleaned || fallback;
+  // Too long: shorten the part before the extension, so ".svg" and "-qr.png" are never cut off.
+  const dot = cleaned.lastIndexOf('.');
+  const ext = dot > 0 && cleaned.length - dot <= 12 ? cleaned.slice(dot) : '';
+  const stem = (ext ? cleaned.slice(0, dot) : cleaned).slice(0, MAX_NAME - ext.length).replace(/[.\s-]+$/g, '');
+  return `${stem}${ext}` || fallback;
 }
 
 const dosTime = (d) => ((d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1)) & 0xFFFF;

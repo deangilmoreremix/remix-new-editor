@@ -117,6 +117,21 @@ describe('share window (Link, GIF, Embed)', () => {
       expect(sent).toHaveBeenCalledTimes(2);
     });
 
+    it('the copy-it-yourself prompt does not count as sent, because nothing was copied', async () => {
+      const sent = vi.fn();
+      const prompt = vi.spyOn(window, 'prompt').mockImplementation(() => null);
+      const original = navigator.clipboard;
+      Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: vi.fn(async () => { throw new Error('denied'); }) } });
+      setShare(vi.fn(async () => { throw new Error('boom'); }));
+      openShareModal({ name: 'Mike', link, actions: { sent } });
+      $('[data-share-native]').click();
+      await flush();
+      expect(prompt).toHaveBeenCalled();
+      expect(sent).not.toHaveBeenCalled();
+      prompt.mockRestore();
+      Object.defineProperty(navigator, 'clipboard', { configurable: true, value: original });
+    });
+
     it('QR: note for http links, SVG preview and downloads for https', async () => {
       setShare(undefined);
       openShareModal({ name: 'Mike', link: 'http://example.com/p/abc' });
