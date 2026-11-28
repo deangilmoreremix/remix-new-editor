@@ -18,6 +18,7 @@ import { fillTemplate, calendarEmbedUrl } from '../lib/outreach/draft.js';
 import { cleanTranscript, clock } from '../lib/outreach/transcript.js';
 import { searchLines, highlightPieces } from '../lib/outreach/transcriptSearch.js';
 import { captureEarlyPlay } from '../lib/editor/publish/earlyPlay.js';
+import { pickVariant } from '../lib/editor/addons/abTest.js';
 import { trackersFor, fireLeadTrackers } from '../lib/editor/publish/pixel.js';
 import { captureAttribution } from '../lib/editor/publish/attribution.js';
 
@@ -141,24 +142,29 @@ export async function mountWatchPage(container, ref, deps = {}) {
   const linkValues = profileFromQuery()?.variables || {};
   const fill = (text) => fillTemplate(text, linkValues, landing?.fallbacks || {});
   const heading = landing?.header ? fill(landing.header) || title : title;
+  // Button text test: a second wording, chosen at random per viewer. Remembered in the browser only for the full tracking
+  // mode, so a returning viewer sees the same one; in the other modes nothing is stored (a new pick each visit).
+  const ctaLabelA = String(landing?.cta?.label || '');
+  const ctaLabelB = String(landing?.cta?.labelB || '');
+  const ctaShown = ctaLabelB && ctaLabelA ? (pickVariant(`cta:${video.id}`, { storage: consentMode() === 'full' ? globalThis.localStorage : null }) === 'B' ? ctaLabelB : ctaLabelA) : ctaLabelA;
   const ctaHref = (() => { try { const u = new URL(String(landing?.cta?.url || '')); return u.protocol === 'https:' ? u.toString() : null; } catch { return null; } })();
   // The booking page itself, shown under the button, for known calendar hosts only.
   const calendarSrc = landing?.cta?.embed && ctaHref ? calendarEmbedUrl(ctaHref) : null;
   // "Talk live" (src/lib/outreach/liveCall.js): the button shows only while the sender is available.
   const liveOn = !!(landing?.live && !embed);
-  const hasActions = !!(landing && !embed && ((ctaHref && landing.cta?.label) || liveOn));
+  const hasActions = !!(landing && !embed && ((ctaHref && ctaShown) || liveOn));
   // The row under the player: Talk live (while the sender is available) and the booking button.
   const landingBody = hasActions
     ? `<section class="watch-landing watch-actions" aria-label="Next step">
         ${liveOn ? `<button type="button" class="watch-live-btn" data-live-call hidden><span class="watch-live-dot" aria-hidden="true"></span><span data-live-label>Talk live now</span></button>` : ''}
-        ${ctaHref && landing.cta?.label ? `<a class="watch-landing-cta" data-landing-cta href="${esc(ctaHref)}" target="_blank" rel="noopener noreferrer">${esc(landing.cta.label)}</a>` : ''}
+        ${ctaHref && ctaShown ? `<a class="watch-landing-cta" data-landing-cta href="${esc(ctaHref)}" target="_blank" rel="noopener noreferrer">${esc(ctaShown)}</a>` : ''}
       </section>`
     : '';
   // The booking page itself, right under the player, with a plain title.
   const calendarBody = calendarSrc && !embed
     ? `<section class="watch-calendar" aria-labelledby="watch-calendar-title">
         <h2 id="watch-calendar-title">Pick a time that suits you</h2>
-        <iframe class="watch-landing-calendar" data-landing-calendar src="${esc(calendarSrc)}" title="${esc(landing.cta.label || 'Book a time')}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>
+        <iframe class="watch-landing-calendar" data-landing-calendar src="${esc(calendarSrc)}" title="${esc(ctaShown || 'Book a time')}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>
       </section>`
     : '';
   // Who the page is from (sender details when the campaign carries them): brand row on top, credit in the footer.
@@ -403,7 +409,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
   }, true);
   // The landing page's booking button (Video Outreach) counts as a CTA click.
   container.querySelector('[data-landing-cta]')?.addEventListener('click', () => {
-    analytics.track('cta_click', { t: player.time, props: { label: String(landing.cta.label).slice(0, 60) } });
+    analytics.track('cta_click', { t: player.time, props: { label: String(ctaShown).slice(0, 60) } });
   });
   // Talk live with the sender while they are available (WebRTC; signalling over Supabase Realtime).
   const liveBtn = container.querySelector('[data-live-call]');

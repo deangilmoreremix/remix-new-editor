@@ -514,3 +514,51 @@ describe('watch page transcript (Video Outreach captions)', () => {
     expect((await mount('?embed=1', { transcript })).box.querySelector('[data-transcript]')).toBeNull();
   });
 });
+
+describe('watch page button text test (Video Outreach)', () => {
+  const landing = { header: 'Hi', message: '', fallbacks: {}, cta: { label: 'Book a call', labelB: 'Get my demo', url: 'https://cal.com/me/intro' } };
+  const mount = async (search, lan = landing) => {
+    window.history.replaceState(null, '', `/watch/abcdefgh12${search}`);
+    const box = document.createElement('div');
+    document.body.appendChild(box);
+    const analytics = { track: vi.fn(), onPlayerChange: vi.fn(), destroy: vi.fn() };
+    const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Campaign', project: { ...project(), kind: 'outreach', landing: lan } }), createEngine: fakeEngine().create, analytics, onLead: vi.fn() });
+    return { box, analytics, player };
+  };
+  const withRandom = async (value, fn) => { const spy = vi.spyOn(Math, 'random').mockReturnValue(value); try { return await fn(); } finally { spy.mockRestore(); } };
+
+  it('shows one of the two texts and records the text that was clicked', async () => {
+    localStorage.clear();
+    const a = await withRandom(0.2, () => mount(''));
+    expect(a.box.querySelector('[data-landing-cta]').textContent).toBe('Book a call');
+    a.player.destroy(); localStorage.clear();
+    const b = await withRandom(0.9, () => mount(''));
+    const cta = b.box.querySelector('[data-landing-cta]');
+    expect(cta.textContent).toBe('Get my demo');
+    cta.addEventListener('click', (ev) => ev.preventDefault());
+    cta.click();
+    expect(b.analytics.track).toHaveBeenCalledWith('cta_click', expect.objectContaining({ props: { label: 'Get my demo' } }));
+    b.player.destroy();
+  });
+
+  it('a returning viewer sees the same text (full tracking), and nothing is stored in anonymous mode', async () => {
+    localStorage.clear();
+    const first = await withRandom(0.9, () => mount(''));
+    first.player.destroy();
+    const again = await withRandom(0.1, () => mount(''));
+    expect(again.box.querySelector('[data-landing-cta]').textContent).toBe('Get my demo');
+    again.player.destroy(); localStorage.clear();
+    const anon = await withRandom(0.9, () => mount('?consent=anonymous'));
+    expect(anon.box.querySelector('[data-landing-cta]').textContent).toBe('Get my demo');
+    expect(localStorage.getItem('remix-ab:cta:abcdefgh12')).toBeNull();
+    anon.player.destroy();
+    window.history.replaceState(null, '', '/');
+  });
+
+  it('without a second text the page is unchanged', async () => {
+    const one = await withRandom(0.9, () => mount('', { ...landing, cta: { label: 'Book a call', url: 'https://cal.com/me/intro' } }));
+    expect(one.box.querySelector('[data-landing-cta]').textContent).toBe('Book a call');
+    one.player.destroy();
+    window.history.replaceState(null, '', '/');
+  });
+});

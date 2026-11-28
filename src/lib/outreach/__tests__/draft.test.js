@@ -28,7 +28,7 @@ describe('outreach draft', () => {
     store.setItem(DRAFT_KEY, JSON.stringify({ header: 'Yo {{firstname}}', cta: { label: 'Call me' } }));
     const d = loadDraft(store);
     expect(d.header).toBe('Yo {{firstname}}');
-    expect(d.cta).toEqual({ enabled: true, label: 'Call me', url: '', live: false });
+    expect(d.cta).toEqual({ enabled: true, label: 'Call me', url: '', live: false, abTest: false, labelB: '' });
     expect(d.voice.mode).toBe('clone');
     saveDraft({ ...d, header: 'Saved' }, store);
     expect(loadDraft(store).header).toBe('Saved');
@@ -326,5 +326,22 @@ describe('transcript switch', () => {
   it('the page shows the transcript unless it is switched off', () => {
     expect(buildCampaignProject(readyDraft({ captions })).transcript).toEqual(captions);
     expect(buildCampaignProject(readyDraft({ captions, showTranscript: false })).transcript).toBeUndefined();
+  });
+});
+
+describe('button text test', () => {
+  const base = { cta: { enabled: true, label: 'Book a call', url: 'https://cal.com/me/intro' } };
+  it('needs a second text, not the same one, within the limit', () => {
+    expect(stepErrors(readyDraft({ cta: { ...base.cta, abTest: true, labelB: '' } }), 3)[0]).toMatch(/second button text/);
+    expect(stepErrors(readyDraft({ cta: { ...base.cta, abTest: true, labelB: 'book a CALL' } }), 3)[0]).toMatch(/same/);
+    expect(stepErrors(readyDraft({ cta: { ...base.cta, abTest: true, labelB: 'x'.repeat(41) } }), 3)[0]).toMatch(/up to 40/);
+    expect(stepErrors(readyDraft({ cta: { ...base.cta, abTest: true, labelB: 'Get my demo' } }), 3)).toEqual([]);
+  });
+  it('is ignored while the test is off', () => {
+    expect(stepErrors(readyDraft({ cta: { ...base.cta, abTest: false, labelB: '' } }), 3)).toEqual([]);
+  });
+  it('puts the second text on the page only when the test is on', () => {
+    expect(buildCampaignProject(readyDraft({ cta: { ...base.cta, abTest: true, labelB: ' Get my demo ' } })).landing.cta.labelB).toBe('Get my demo');
+    expect(buildCampaignProject(readyDraft({ cta: { ...base.cta, abTest: false, labelB: 'Get my demo' } })).landing.cta).not.toHaveProperty('labelB');
   });
 });

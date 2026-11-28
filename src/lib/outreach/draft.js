@@ -61,7 +61,7 @@ export function defaultDraft() {
     message: 'Excited to show how we can help {{company}}.',
     fallbacks: { firstname: 'there', company: 'your company' },
     // live: "Talk live" on the landing page (src/lib/outreach/liveCall.js) while you're available in the studio.
-    cta: { enabled: true, label: 'Schedule a demo', url: '', live: false },
+    cta: { enabled: true, label: 'Schedule a demo', url: '', live: false, abTest: false, labelB: '' },
     // Who sent it (Customize step): shown on the landing page and in the page's menu bar.
     sender: { name: '', title: '', company: '', logo: '', photo: '' },
     // The landing page of this dynamic video (like Sendspark, the page belongs to the video): null = the plain
@@ -268,6 +268,12 @@ export function stepErrors(draft, step) {
       const label = String(draft.cta.label || '').trim();
       if (!label) errors.push('Give the button a label.');
       else if (label.length > CTA_LIMIT) errors.push(`The button label can be up to ${CTA_LIMIT} characters.`);
+      if (draft.cta.abTest) {
+        const b = String(draft.cta.labelB || '').trim();
+        if (!b) errors.push('Write the second button text, or turn the button test off.');
+        else if (b.length > CTA_LIMIT) errors.push(`The second button text can be up to ${CTA_LIMIT} characters.`);
+        else if (b.toLowerCase() === label.toLowerCase()) errors.push('The second button text is the same as the first, so there is nothing to compare.');
+      }
       if (!isHttpsUrl(draft.cta.url)) errors.push('The booking link must be an https:// address.');
       else if (draft.cta.embed && !calendarEmbedUrl(draft.cta.url)) errors.push('Only Calendly, Cal.com, Google Calendar appointment, HubSpot, SavvyCal and TidyCal booking pages can be shown on the page. Turn off "Show the calendar" or use one of those links.');
     }
@@ -713,7 +719,7 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, ext
       message: String(draft.message || '').trim(),
       fallbacks: { ...draft.fallbacks },
       cta: draft.cta?.enabled
-        ? { label: String(draft.cta.label).trim(), url: draft.cta.url, ...(draft.cta.embed && calendarEmbedUrl(draft.cta.url) ? { embed: true } : {}) }
+        ? { label: String(draft.cta.label).trim(), url: draft.cta.url, ...(draft.cta.embed && calendarEmbedUrl(draft.cta.url) ? { embed: true } : {}), ...(draft.cta.abTest && String(draft.cta.labelB || '').trim() ? { labelB: String(draft.cta.labelB).trim() } : {}) }
         : null,
       // "Talk live with Sam now" on the page while Sam is available (just the first name is shown).
       ...(draft.cta?.live ? { live: { host: String(draft.sender?.name || '').trim().split(/\s+/)[0].slice(0, 40) } } : {}),

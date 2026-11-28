@@ -1303,7 +1303,16 @@ export function OutreachStudio() {
     };
     const setCta = (patch) => { draft.cta = { ...draft.cta, ...patch }; persist(); render(); };
     const ctaFields = draft.cta.enabled ? el('div', 'flex flex-col gap-3 pl-8') : null;
-    if (ctaFields) ctaFields.append(line('Button label', draft.cta.label, (v) => { draft.cta.label = v; }, { ph: 'Book a call' }), line('Link (https)', draft.cta.url, (v) => { draft.cta.url = v.trim(); }, { ph: 'https://cal.com/you/intro' }));
+    if (ctaFields) {
+      ctaFields.append(line('Button label', draft.cta.label, (v) => { draft.cta.label = v; }, { ph: 'Book a call' }), line('Link (https)', draft.cta.url, (v) => { draft.cta.url = v.trim(); }, { ph: 'https://cal.com/you/intro' }));
+      // Test two button texts: each viewer sees one at random; the page records which text was clicked.
+      const abRow = el('label', 'flex items-center gap-2 text-xs text-white/70');
+      const abBox = el('input'); abBox.type = 'checkbox'; abBox.checked = !!draft.cta.abTest; abBox.setAttribute('data-editor-cta-ab', '');
+      abBox.addEventListener('change', () => setCta({ abTest: abBox.checked }));
+      abRow.append(abBox, el('span', '', 'Test a second button text (each viewer sees one at random)'));
+      ctaFields.appendChild(abRow);
+      if (draft.cta.abTest) ctaFields.appendChild(line('Second button text', draft.cta.labelB || '', (v) => { draft.cta.labelB = v; }, { ph: 'Get my demo' }));
+    }
     const ctaSw = toggle(!!draft.cta.enabled, (on) => setCta({ enabled: on }), { label: 'Call-to-action' });
     ctaSw.setAttribute('data-editor-cta', '');
     const calSw = toggle(!!draft.cta.embed, (on) => setCta({ embed: on, enabled: on ? true : draft.cta.enabled }), { label: 'Calendar embed' });
@@ -1885,22 +1894,27 @@ export function OutreachStudio() {
     const ctaOn = el('input'); ctaOn.type = 'checkbox'; ctaOn.checked = !!draft.cta.enabled;
     const ctaLabel = textInput(draft.cta.label, 'Schedule a demo');
     const ctaUrl = textInput(draft.cta.url, 'https://cal.com/you/intro');
+    const abOn = el('input'); abOn.type = 'checkbox'; abOn.checked = !!draft.cta.abTest; abOn.setAttribute('data-outreach-cta-ab', '');
+    const ctaLabelB = textInput(draft.cta.labelB || '', 'Get my demo'); ctaLabelB.setAttribute('data-outreach-cta-label-b', ''); ctaLabelB.hidden = !draft.cta.abTest;
     const calOn = el('input'); calOn.type = 'checkbox'; calOn.checked = !!draft.cta.embed; calOn.setAttribute('data-outreach-calendar', '');
     const liveOn = el('input'); liveOn.type = 'checkbox'; liveOn.checked = !!draft.cta.live; liveOn.setAttribute('data-outreach-live', '');
     const sync = () => {
       draft.header = header.value; draft.message = message.value; draft.fallbacks.company = company.value;
-      draft.cta = { ...draft.cta, enabled: ctaOn.checked, label: ctaLabel.value, url: ctaUrl.value.trim(), embed: calOn.checked, live: liveOn.checked };
+      draft.cta = { ...draft.cta, enabled: ctaOn.checked, label: ctaLabel.value, url: ctaUrl.value.trim(), embed: calOn.checked, live: liveOn.checked, abTest: abOn.checked, labelB: ctaLabelB.value };
+      ctaLabelB.hidden = !abOn.checked;
       persist(); updatePreview();
     };
-    [header, message, company, ctaLabel, ctaUrl].forEach((i) => i.addEventListener('input', sync));
+    [header, message, company, ctaLabel, ctaUrl, ctaLabelB].forEach((i) => i.addEventListener('input', sync));
+    abOn.addEventListener('change', sync);
     ctaOn.addEventListener('change', sync);
     calOn.addEventListener('change', sync);
     liveOn.addEventListener('change', sync);
+    const abRow = el('label', 'flex items-center gap-3 text-sm'); abRow.append(abOn, el('span', '', 'Test a second button text: each viewer sees one at random, and the page records which text was clicked'));
     const ctaRow = el('label', 'flex items-center gap-3 text-sm font-bold'); ctaRow.append(ctaOn, el('span', '', 'Call-to-action button'));
     const calRow = el('label', 'flex items-center gap-3 text-sm'); calRow.append(calOn, el('span', '', 'Plain video page only: show the calendar under the video so contacts can book without leaving the page'));
     const liveRow = el('label', 'flex items-center gap-3 text-sm'); liveRow.append(liveOn, el('span', '', 'Let prospects call me live: a \u201cTalk live\u201d button shows on their page (plain video page) whenever you switch on \u201cAvailable for live calls\u201d here'));
     main.append(field('Header', header, draft.page ? 'For the plain video page. Your landing page keeps its own words; change them with Edit page.' : ''), variableChips(header), field('Message', message), variableChips(message), field('If the company is missing, say', company), ctaRow,
-      field('Button label', ctaLabel), field('Booking link', ctaUrl, 'Your Cal.com, Calendly or other booking page (https).'), calRow, liveRow);
+      field('Button label', ctaLabel), abRow, ctaLabelB, field('Booking link', ctaUrl, 'Your Cal.com, Calendly or other booking page (https).'), calRow, liveRow);
 
 
     // Video background: on the AI intro step for AI voices; here for Same audio (which has no AI intro step).
