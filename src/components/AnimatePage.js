@@ -7,6 +7,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createStudioVideoPagesButton } from './studio/studioVideoPagesButton.js';
 import { listBrands, getBrand, saveAnimation, listAnimations, listCampaigns, listAssets, resolveBrandId } from '../lib/brandStore.js';
 import { createUploadPicker } from './UploadPicker.js';
+import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { showToast, createLoadingOverlay } from '../lib/loading.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { DEFAULT_PROMPTS, SOURCE_PROMPTS } from '../lib/animate.js';
@@ -225,22 +226,35 @@ export function AnimatePage() {
   const controls = document.createElement('div');
   controls.className = 'flex flex-col gap-4 mb-6';
 
-  // "Use My Brand" (OpenHiggsBolt Motion Studio): connect a business — name,
-  // colors, logos and reference frames — through the personalization modal.
-  const brandRow = document.createElement('div');
-  brandRow.className = 'flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3';
-  brandRow.innerHTML = '<div class="text-sm font-bold text-white">Use My Brand<div class="text-xs font-normal text-secondary">Connect your brand: business name, colors, logos and reference frames.</div></div>';
-  const brandBtn = document.createElement('button');
-  brandBtn.type = 'button';
-  brandBtn.className = 'btn-secondary-modern text-xs shrink-0';
-  brandBtn.textContent = 'Connect Personalization';
-  brandBtn.setAttribute('aria-haspopup', 'dialog');
-  brandBtn.addEventListener('click', async () => {
-    const { openMotionBrandPersonalization } = await import('../features/personalization/mount.jsx');
-    openMotionBrandPersonalization({ trigger: brandBtn });
+  // Personalize: the same shared trigger Video Studio uses, so it opens the identical
+  // personalization modal, loaded with this studio's prompt, source image and result.
+  const personalizeRow = document.createElement('div');
+  personalizeRow.className = 'flex items-center gap-3';
+  mountPersonalizeTrigger({
+    controlsContainer: personalizeRow,
+    label: 'Personalize',
+    tooltip: 'Personalize with a discovered contact',
+    appId: 'animate',
+    studioId: 'animate',
+    studioName: 'Animate Studio',
+    returnRoute: 'animate',
+    getTextarea: () => promptInput,
+    getAsset: () => {
+      const videoUrl = state.result?.videoUrl || '';
+      return {
+        type: videoUrl ? 'video' : 'image',
+        previewUrl: videoUrl || state.sourceImageUrl || '',
+        title: 'Animate Studio',
+        fields: [
+          { id: 'prompt', label: 'Motion Prompt', type: 'text', value: state.prompt || '', supportsPersonalization: true },
+          { id: 'duration', label: 'Duration', type: 'number', value: Number(state.duration) || null, supportsPersonalization: false },
+        ],
+      };
+    },
+    getResult: () => state.result?.videoUrl || '',
+    getProject: () => ({}),
   });
-  brandRow.appendChild(brandBtn);
-  controls.appendChild(brandRow);
+  controls.appendChild(personalizeRow);
 
   const promptRow = document.createElement('div');
   const promptLabel = document.createElement('label');

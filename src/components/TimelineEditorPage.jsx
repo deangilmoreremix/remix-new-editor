@@ -104,7 +104,6 @@ import { UrlVideoModal } from './modals/UrlVideoModal.jsx';
 import { PageShotModal } from './modals/PageShotModal.jsx';
 import { ContactImporterModal } from './modals/ContactImporterModal.jsx';
 import { AIVideoCreator } from './modals/AIVideoCreator.jsx';
-import { VideoPersonalizationHub } from './modals/VideoPersonalizationHub.jsx';
 import { LandingPageBuilder } from './modals/LandingPageBuilder.jsx';
 import { LeadGeneratorModal } from './modals/LeadGeneratorModal.jsx';
 import { RetakePanel } from './RetakePanel.jsx';
@@ -7828,28 +7827,27 @@ export function TimelineEditorPage() {
       }
     }
 
+    // Opens the same personalization modal Video Studio opens (shared mount),
+    // loaded with the most recently generated video when there is one.
     function openVideoPersonalizationHubModal(state, showToast) {
-      try {
-        const modal = new VideoPersonalizationHub({
-          preloadedVideo: state.lastGeneratedVideo, // Pass any recently generated video
-          onComplete: (result) => {
-            // After personalization, offer landing page builder
-            if (result && result.generations && result.generations.length > 0) {
-              setTimeout(() => {
-                setTimeout(() => {
-                  openLandingPageBuilderModal(state, showToast);
-                }, 1500);
-              }, 1000);
-            } else {
-            }
-          },
-          onError: (error) => console.log(`Personalization Suite error: ${error}`, 'error')
-        });
-        modal.open();
-      } catch (error) {
-        console.error('Personalization Suite error:', error);
-        showToast(`Personalization Suite error: ${error.message || error}`, 'error');
-      }
+      const last = state.lastGeneratedVideo;
+      const mediaUrl = typeof last === 'string' ? last : (last?.src || last?.url || '');
+      import('../features/personalization/mount.jsx').then((m) => m.openPersonalization({
+        studioId: 'timeline',
+        studioName: 'Timeline Editor',
+        appId: 'ai-video-agent',
+        mediaUrl: /^(blob:|data:)/i.test(mediaUrl) ? '' : mediaUrl,
+        mediaType: mediaUrl ? 'video' : undefined,
+        onComplete: (completion) => {
+          // After personalization, offer the landing page builder
+          if (completion && (completion.overlay || completion.generations?.length)) {
+            setTimeout(() => openLandingPageBuilderModal(state, showToast), 2500);
+          }
+        },
+      })).catch((error) => {
+        console.error('Personalization error:', error);
+        showToast(`Personalization error: ${error.message || error}`, 'error');
+      });
     }
 
     // Make personalization modal accessible globally for toast integration
