@@ -2,7 +2,7 @@
   "calendar-tab": {
     "selector": "button:text-is(\"Calendar\")"
   },
-  "schedule-tab": {
+  "publish-tab": {
     "selector": "button:text-is(\"Publish\")",
     "click": true
   },

@@ -429,7 +429,7 @@
   "smart-video-scheduler": {
     "features": {
       "calendar-tab": "/guides/smart-video-scheduler/calendar-tab.webp",
-      "schedule-tab": "/guides/smart-video-scheduler/schedule-tab.webp",
+      "publish-tab": "/guides/smart-video-scheduler/schedule-tab.webp",
       "analytics-tab": "/guides/smart-video-scheduler/analytics-tab.webp"
     },
     "overview": "/guides/smart-video-scheduler/overview.webp"
