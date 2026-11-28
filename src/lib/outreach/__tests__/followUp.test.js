@@ -39,3 +39,16 @@ describe('follow-up order', () => {
     expect(rankProspects(links, null).map((r) => r.link.contactId)).toEqual(['a', 'b', 'c', 'd']);
   });
 });
+
+describe('the activity time from fetchVideoStats', () => {
+  it('reads lastSeen, the field the stats client really returns', () => {
+    const recent = scoreProspect({ plays: 1, lastSeen: '2026-11-28T11:00:00Z' }, { now: NOW });
+    expect(recent.reasons).toContain('Active in the last day');
+    expect(recent.score).toBe(WEIGHTS.play + WEIGHTS.recent);
+  });
+  it('uses it as the tie-breaker when ranking', () => {
+    const links = [{ contactId: 'old' }, { contactId: 'new' }];
+    const stats = { old: { plays: 1, lastSeen: '2026-11-20T00:00:00Z' }, new: { plays: 1, lastSeen: '2026-11-27T00:00:00Z' } };
+    expect(rankProspects(links, stats, { now: NOW }).map((r) => r.link.contactId)).toEqual(['new', 'old']);
+  });
+});

@@ -48,11 +48,12 @@ async function nativeShare({ title, text, url }, b, link) {
   try {
     if (navigator.canShare && !navigator.canShare(data)) throw new Error('not shareable');
     await navigator.share(data);
+    return true;
   } catch (e) {
-    if (e?.name === 'AbortError') return;
+    if (e?.name === 'AbortError') return false; // closed the sheet: nothing was sent
     const note = b.closest('[data-share-modal]')?.querySelector('[data-share-note]');
     if (note) note.textContent = 'Sharing did not work here, so the link was copied instead.';
-    try { await navigator.clipboard.writeText(link); } catch { window.prompt('Copy this:', link); }
+    try { await navigator.clipboard.writeText(link); return true; } catch { window.prompt('Copy this:', link); return true; }
   }
 }
 
@@ -116,7 +117,7 @@ export function openShareModal({ name = '', link, thumbnailUrl = '', stillUrl = 
       row.append(copy, open);
       if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
         const sh = btn('Share', { attr: 'data-share-native' });
-        sh.addEventListener('click', () => { nativeShare({ title: name ? `Video for ${name}` : 'Video', text: name ? `A video for ${name}` : 'A video for you', url: link }, sh, link); actions.sent?.(); });
+        sh.addEventListener('click', async () => { if (await nativeShare({ title: name ? `Video for ${name}` : 'Video', text: name ? `A video for ${name}` : 'A video for you', url: link }, sh, link)) actions.sent?.(); });
         row.appendChild(sh);
       }
       const msg = el('p', 'text-[11px] text-amber-300/80 empty:hidden'); msg.setAttribute('data-share-note', ''); msg.setAttribute('role', 'status');

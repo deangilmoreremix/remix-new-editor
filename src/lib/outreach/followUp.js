@@ -4,7 +4,9 @@
 // a form lead, a button click, finishing the video, how far they watched, plays and views. Nothing is guessed:
 // every point comes with the reason it was given, and a prospect with no recorded activity scores 0.
 //
-// stats per prospect (from fetchVideoStats): { views, plays, completes, ctaClicks, progress (0-100), leads?, lastAt? }
+// stats per prospect (from fetchVideoStats): { views, plays, completes, ctaClicks, progress (0-100), leads?, lastSeen }
+// (`lastAt` is accepted as an alias.)
+const lastOf = (s) => Date.parse(s?.lastSeen || s?.lastAt || '');
 
 export const WEIGHTS = Object.freeze({ lead: 60, cta: 50, complete: 25, progress75: 15, play: 10, view: 5, recent: 10 });
 const DAY = 24 * 3600 * 1000;
@@ -21,7 +23,7 @@ export function scoreProspect(st, { now = Date.now() } = {}) {
   else if ((s.progress || 0) >= 75) add(WEIGHTS.progress75, 'Watched at least 75%');
   if ((s.plays || 0) > 0) add(WEIGHTS.play, 'Played the video');
   else if ((s.views || 0) > 0) add(WEIGHTS.view, 'Opened the page');
-  const last = Date.parse(s.lastAt || '');
+  const last = lastOf(s);
   if (score > 0 && Number.isFinite(last) && now - last <= DAY && now >= last) add(WEIGHTS.recent, 'Active in the last day');
   if (!reasons.length) reasons.push('No activity recorded yet');
   return { score, reasons };
@@ -36,6 +38,6 @@ export function scoreProspect(st, { now = Date.now() } = {}) {
 export function rankProspects(links, statsByContact, { now = Date.now(), followedUp = [] } = {}) {
   const done = new Set(followedUp);
   return (Array.isArray(links) ? links : [])
-    .map((l, order) => ({ link: l, order, followedUp: done.has(l.contactId), ...scoreProspect(statsByContact?.[l.contactId], { now }), lastAt: Date.parse(statsByContact?.[l.contactId]?.lastAt || '') || 0 }))
+    .map((l, order) => ({ link: l, order, followedUp: done.has(l.contactId), ...scoreProspect(statsByContact?.[l.contactId], { now }), lastAt: lastOf(statsByContact?.[l.contactId]) || 0 }))
     .sort((a, b) => (a.followedUp - b.followedUp) || (b.score - a.score) || (b.lastAt - a.lastAt) || (a.order - b.order));
 }

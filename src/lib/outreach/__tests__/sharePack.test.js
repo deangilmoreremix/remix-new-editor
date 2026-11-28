@@ -73,6 +73,23 @@ describe('share pack', () => {
     expect(csv.split('\r\n')[0]).toBe('First name,Last name,Email,Company,Link,Thumbnail,QR file');
     expect(files.find((f) => f.name === 'emails.txt').data).toContain('Subject: Hi Mike');
   });
+  it('gives two prospects with the same name different files, and the CSV points at the right one', async () => {
+    const two = [
+      { contact: { firstName: 'Alex', lastName: 'Lee', email: 'a@x.com' }, link: 'https://smartvid.app/watch/a?c=1' },
+      { contact: { firstName: 'Alex', lastName: 'Lee', email: 'b@y.com' }, link: 'https://smartvid.app/watch/a?c=2' },
+    ];
+    const { files } = await buildSharePack(two, { png: async () => null });
+    const names = files.map((f) => f.name).filter((n) => n.endsWith('.svg'));
+    expect(names).toEqual(['Alex-Lee-qr.svg', 'Alex-Lee (2)-qr.svg']);
+    const rows = files.find((f) => f.name === 'links.csv').data.split('\r\n');
+    expect(rows[1]).toMatch(/,Alex-Lee-qr\.svg$/);
+    expect(rows[2]).toMatch(/,Alex-Lee \(2\)-qr\.svg$/);
+    // the zip keeps those exact names (it must not rename them again)
+    const { zip } = await buildSharePackZip(two, { png: async () => null });
+    const text = new TextDecoder().decode(zip);
+    expect(text).toContain('Alex-Lee (2)-qr.svg');
+    expect(text).not.toContain('(3)');
+  });
   it('includes a PNG when the browser can make one', async () => {
     const png = async () => ({ arrayBuffer: async () => new Uint8Array([137, 80, 78, 71]).buffer });
     const { files } = await buildSharePack([rows[0]], { png });

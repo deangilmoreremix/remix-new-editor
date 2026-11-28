@@ -93,6 +93,30 @@ describe('share window (Link, GIF, Embed)', () => {
       expect($('[data-share-note]').textContent).toContain('copied');
     });
 
+    it('counts a prospect as sent only after the share sheet worked, never when it was closed', async () => {
+      const sent = vi.fn();
+      // closed the sheet: not sent
+      setShare(vi.fn(async () => { throw Object.assign(new Error('x'), { name: 'AbortError' }); }));
+      openShareModal({ name: 'Mike', link, actions: { sent } });
+      $('[data-share-native]').click();
+      await flush();
+      expect(sent).not.toHaveBeenCalled();
+      // shared: sent
+      setShare(vi.fn(async () => {}));
+      document.body.innerHTML = '';
+      openShareModal({ name: 'Mike', link, actions: { sent } });
+      $('[data-share-native]').click();
+      await flush();
+      expect(sent).toHaveBeenCalledTimes(1);
+      // sharing failed but the link was copied instead: sent
+      setShare(vi.fn(async () => { throw new Error('boom'); }));
+      document.body.innerHTML = '';
+      openShareModal({ name: 'Mike', link, actions: { sent } });
+      $('[data-share-native]').click();
+      await flush();
+      expect(sent).toHaveBeenCalledTimes(2);
+    });
+
     it('QR: note for http links, SVG preview and downloads for https', async () => {
       setShare(undefined);
       openShareModal({ name: 'Mike', link: 'http://example.com/p/abc' });

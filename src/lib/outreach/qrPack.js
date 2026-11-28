@@ -79,8 +79,16 @@ export async function buildSharePack(rows, { png = (l) => qrPngBlob(l) } = {}) {
   const head = ['First name', 'Last name', 'Email', 'Company', 'Link', 'Thumbnail', 'QR file'];
   const lines = [head.join(',')];
   const emails = [];
+  const used = new Map();
+  // The same name twice must still give two different files, and the CSV must name the right one.
+  const uniqueBase = (r) => {
+    const b = who(r);
+    const n = (used.get(b.toLowerCase()) || 0) + 1;
+    used.set(b.toLowerCase(), n);
+    return n === 1 ? b : `${b} (${n})`;
+  };
   for (const r of rows || []) {
-    const base = who(r);
+    const base = uniqueBase(r);
     let qrFile = '';
     try {
       const svg = await qrSvg(r.link);
