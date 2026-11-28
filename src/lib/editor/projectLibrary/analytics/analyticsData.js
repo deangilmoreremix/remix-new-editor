@@ -101,9 +101,11 @@ const optionalRpc = (client, name, args) => rpc(client, name, args).catch(() => 
 export async function getProjectVideo(client, projectId, videoId = null) {
   // A project can have several publications (one per published timeline): when the caller knows which one it is
   // showing, use exactly that video instead of the most recently updated one.
+  // Someone publishing without an account has no cloud project row: the video is then found by its own id.
+  if (!projectId && !videoId) return null;
   let q = client.from('published_videos')
-    .select('id, title, published, project, slug, privacy, revision, updated_at')
-    .eq('project_id', projectId);
+    .select('id, title, published, project, slug, privacy, revision, updated_at');
+  if (projectId) q = q.eq('project_id', projectId);
   if (videoId) q = q.eq('id', videoId);
   const { data, error } = await q.order('updated_at', { ascending: false }).limit(1).maybeSingle();
   if (error) throw new Error(error.message || 'Could not load the published video');

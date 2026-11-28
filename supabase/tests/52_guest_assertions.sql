@@ -78,4 +78,16 @@ select t.ok('claimed rows now belong to the account', (select count(*) from publ
   and (select count(*) from video_personalizations where clerk_user_id='user_claimed') = 200
   and (select count(*) from published_videos where clerk_user_id like 'guest\_%') = 0);
 select t.ok('claimed content is no longer pruned as guest content', (public.prune_guest_content(30)->>'videos') = '0');
+
+-- ===== review follow-up (20261119000000_guest_quota_locks.sql)
+select t.ok('quota triggers serialise a guest''s inserts with an advisory lock',
+  pg_get_functiondef('public.guest_quota_videos()'::regprocedure) like '%pg_advisory_xact_lock%'
+  and pg_get_functiondef('public.guest_quota_links()'::regprocedure) like '%pg_advisory_xact_lock%');
+set role authenticated; set request.jwt.claims = '{"sub":"user_nullcontact"}';
+insert into published_videos(id,title,project) values ('vidNC00001','v','{"timelineSeconds":1,"tracks":[]}');
+insert into video_personalizations(id,video_id,contact_id) values ('linkNC0000000001','vidNC00001',null);
+select t.fails('a second contact-less link on the same video is refused', $q$insert into video_personalizations(id,video_id,contact_id) values ('linkNC0000000002','vidNC00001',null)$q$);
+insert into video_personalizations(id,video_id,contact_id) values ('linkNC0000000003','vidNC00001','c1');
+select t.ok('links with a contact are unaffected', (select count(*) from video_personalizations where video_id='vidNC00001') = 2);
+reset role;
 \echo ALL GUEST ASSERTIONS PASSED

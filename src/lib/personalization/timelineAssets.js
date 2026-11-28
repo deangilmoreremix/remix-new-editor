@@ -319,6 +319,23 @@ export function assetForImageToken(profile, key) {
   }
 }
 
+/**
+ * One timeline image asset of a contact, in the same shape listTimelineImageAssets returns. `idOrToken` is the asset's id
+ * ('l1') or an image token ('logoUrl', '{{logoUrl}}' without the braces: the contact's primary logo). Null when the contact
+ * has no such image, so callers have one place to look an asset up.
+ *
+ * @returns {{id, name, role, roleLabel, src, saved, videoReady, discovered?}|null}
+ */
+export function getTimelineAsset(profile, idOrToken) {
+  if (!profile || idOrToken == null || idOrToken === '') return null;
+  const list = listTimelineImageAssets(profile);
+  const key = String(idOrToken).trim();
+  const byId = list.find((a) => a.id === key);
+  if (byId) return byId;
+  const viaToken = assetForImageToken(profile, key);
+  return viaToken ? list.find((a) => a.id === viaToken.id) || null : null;
+}
+
 /** The image token in a Personalized Image's source ({{logoUrl}} → 'logoUrl'), or null. */
 export function imageTokenOf(src) {
   const m = String(src || '').match(/\{\{\s*(?:d\s+)?([^\s{}"']+)/);

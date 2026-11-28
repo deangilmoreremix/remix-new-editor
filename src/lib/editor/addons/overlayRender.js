@@ -435,6 +435,11 @@ function hotspotPlaceholder(o) {
   return buildPlaceholder('hotspot', { title: `🎯 ${o.label || 'Hotspot'}`, sub: `Viewers click here · ${what} · not visible in the video` });
 }
 
+function pathPlaceholder(o) {
+  const names = ['1', '2', '3', '4'].map((n) => String(o[`choice${n}Label`] || '').trim()).filter(Boolean);
+  return buildPlaceholder('path', { title: `🔀 ${o.heading || 'Choose your path'}`, sub: `${names.join(' · ') || 'Add at least two choices'} · pauses the video on the published link` });
+}
+
 function designPlaceholder(o, ctx) {
   const texts = Object.values(o.slots || {})
     .map((v) => resolveOverlayText(String(v ?? ''), ctx.profile).replace(/\{\{[^}]*\}\}/g, '').trim())
@@ -449,6 +454,7 @@ function designPlaceholder(o, ctx) {
 const BUILDERS = {
   // Hotspot: clickable only on the published page, so in the editor it is a box you can place.
   'addon-hotspot': (o) => hotspotPlaceholder(o),
+  'addon-path-choice': (o) => pathPlaceholder(o),
   // Studio design: the player draws the design; this box lets you move and resize it.
   'overlay-studio-design': (o, ctx) => designPlaceholder(o, ctx || {}),
   'overlay-transition': (o) => buildOverlayTransition(o),
