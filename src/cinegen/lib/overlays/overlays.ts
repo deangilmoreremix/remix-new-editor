@@ -138,6 +138,17 @@ export const isConnectTemplate = (templateId: string): boolean => !!(TEMPLATE_LI
 export const overlaysAt = (overlays: OverlayClip[], time: number) => overlays.filter((o) => time >= o.start && time < o.end);
 
 /**
+ * Where each overlay sits in the paint order of the published video and the MP4 export: the composition draws the overlay
+ * track by start time, later on top (equal starts keep the list order). The editor preview uses it to stack its own layers
+ * (the DOM overlays and the Studio designs) the same way.
+ */
+export function overlayPaintRanks(overlays: Array<{ id: string | number; start: number }>): Map<string, number> {
+  return new Map(
+    overlays.map((o, i) => ({ o, i })).sort((a, b) => a.o.start - b.o.start || a.i - b.i).map(({ o }, rank) => [String(o.id), rank] as [string, number]),
+  );
+}
+
+/**
  * A Studio Design overlay with a design already chosen (so it shows something at once) and its text, logo and colours
  * set to the contact's {{tokens}}. The Studio's design catalogue loads on demand.
  */
