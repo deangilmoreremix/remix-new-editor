@@ -24,6 +24,7 @@ import { mountAskSmartVideo } from './features/ask-smartvideo/AskSmartVideo.js';
 import { mountGenerationNotifications } from './components/studio/generationNotifications.js';
 import { mountStudioTooltips } from './components/studio/tooltipLayer.js';
 import { mountLandingPageButtons } from './components/studio/landingPageAttach.js';
+import { mountStaleVersionGuard } from './lib/staleVersion.js';
 import { ensureClerkLoaded } from './lib/clerkInit.js';
 import { perfMonitor } from './lib/performance.js';
 import { analytics } from './lib/analytics.js';
@@ -39,6 +40,10 @@ console.log('[App] Starting initialization...');
 
 // Track initialization performance
 const initStart = performance.now();
+
+// A tab from before a deploy: "SmartVid was updated. Reload" instead of dead buttons. Mounted here, before any page
+// branch (public pages, sign-in/account pages, the app), so every page gets it.
+mountStaleVersionGuard();
 
 // Global error handlers for uncaught exceptions
 window.addEventListener('error', (event) => {
