@@ -4,6 +4,9 @@
 // or microphone and never shows a permission prompt. Each item is 'ok', 'warn' (you can still record) or 'fail' (recording
 // will not work), with one sentence on what to do.
 
+// Less free space than this and a long recording may not save (about 3 minutes of 1080p at a high bitrate).
+export const MIN_FREE_BYTES = 200 * 1048576;
+
 const CODECS = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
 
 /**
@@ -42,7 +45,7 @@ export function preflight(env = globalThis, known = {}) {
   if (est && est.quota > 0) {
     const free = est.quota - (est.usage || 0);
     const mb = Math.round(free / 1048576);
-    add('storage', 'Space for the recording', free < 200 * 1048576 ? 'warn' : 'ok', free < 200 * 1048576 ? `Only about ${mb} MB is free for this site. Long recordings may not save: free some space first.` : '');
+    add('storage', 'Space for the recording', free < MIN_FREE_BYTES ? 'warn' : 'ok', free < MIN_FREE_BYTES ? `Only about ${mb} MB is free for this site. Long recordings may not save: free some space first.` : '');
   } else add('storage', 'Space for the recording', 'warn', 'The browser does not say how much space is free.');
 
   const b = known.battery;

@@ -9,13 +9,16 @@ export const MAX_PRESETS = 20;
 export const MAX_ITEMS = 12;
 const KINDS = new Set(['text', 'lower', 'logo', 'image', 'sticker']);
 const uid = () => `ov-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+/** A picture address that is safe to keep and reuse: https://..., or a path on this site (not //host). */
+export const isReusableSrc = (s) => typeof s === 'string' && (/^https:\/\/[^\s/]+/i.test(s) || /^\/(?!\/)[^\s]*$/.test(s));
 const num = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
 const round = (v) => Math.round(v * 10) / 10;
 
 /** An overlay without its id, and only if it can be reused: a known kind, and no temporary (blob:) picture. */
 export function presetItem(o) {
   if (!o || !KINDS.has(o.kind)) return null;
-  if (['logo', 'image', 'sticker'].includes(o.kind) && (typeof o.src !== 'string' || !o.src || /^blob:/i.test(o.src))) return null;
+  // Pictures must be a secure link or one of this site's own files (the stickers): never a temporary blob: link, a data: or javascript: address.
+  if (['logo', 'image', 'sticker'].includes(o.kind) && !isReusableSrc(o.src)) return null;
   const { id: _id, ...rest } = o;
   return { ...rest, start: round(Math.max(0, num(o.start))), end: round(Math.max(num(o.start) + 0.5, num(o.end, num(o.start) + 5))) };
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { savePreset, listPresets, deletePreset, applyPreset, presetItem, MAX_PRESETS, MAX_ITEMS, PRESETS_KEY } from '../overlayPresets.js';
+import { isReusableSrc, savePreset, listPresets, deletePreset, applyPreset, presetItem, MAX_PRESETS, MAX_ITEMS, PRESETS_KEY } from '../overlayPresets.js';
 
 const memory = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
 const text = { id: 'a', kind: 'text', text: 'Hi {{firstname}}', color: '#fff', left: 15, top: 11, width: 70, height: 12, start: 2, end: 6 };
@@ -79,5 +79,21 @@ describe('using a preset', () => {
     expect(JSON.stringify(preset)).toBe(before);
     expect(applyPreset(null)).toEqual([]);
     expect(applyPreset({ items: [] })).toEqual([]);
+  });
+});
+
+describe('which picture addresses a preset may keep', () => {
+  it('keeps secure links and this site\'s own files, and nothing else', () => {
+    ['https://cdn.x/logo.png', 'HTTPS://cdn.x/a.png', '/assets/sticker/animated-emoji/wave.json'].forEach((s) => expect(isReusableSrc(s), s).toBe(true));
+    ['http://cdn.x/a.png', 'javascript:alert(1)', 'data:image/png;base64,AAAA', 'blob:abc', '//evil.example/a.png', 'ftp://x/a', 'https://', '', null, 5, '/a b'].forEach((s) => expect(isReusableSrc(s), String(s)).toBe(false));
+  });
+  it('a preset item with an unsafe picture is left out, and a text item needs no picture', () => {
+    const s = memory();
+    const r = savePreset('kit', [text, { ...logo, src: 'javascript:alert(1)' }, { ...logo, id: 'c', src: 'data:image/png;base64,AAAA' }], s);
+    expect(r.ok).toBe(true);
+    expect(r.preset.items.map((i) => i.kind)).toEqual(['text']);
+    expect(r.skipped).toBe(2);
+    s.setItem(PRESETS_KEY, JSON.stringify([{ id: 'x', name: 'Old', items: [{ ...logo, src: 'http://insecure.example/a.png' }, text] }]));
+    expect(listPresets(s)[0].items.map((i) => i.kind)).toEqual(['text']); // also cleaned when read back
   });
 });
