@@ -19,7 +19,7 @@
 //   corsHeaders() / handleCors(event) — house CORS pattern (matches
 //                              intelligence-api.js)
 
-import { createRemoteJWKSet, jwtVerify } from 'jose';
+import { createRemoteJWKSet, decodeJwt, jwtVerify } from 'jose';
 
 // ─── Instance / JWKS resolution ──────────────────────────────────────────────
 
@@ -80,6 +80,49 @@ function getJwks() {
   return jwksCache;
 }
 
+// ─── Optional development-instance test accounts (deploy previews only) ──────
+//
+// Clerk's test sessions exist only for the DEVELOPMENT instance, so a deploy preview cannot be tested signed in while it
+// trusts the production instance alone. When BOTH of these are set (they are set for the Deploy Previews context only, never
+// for production), a token issued by that development instance is accepted for the listed user ids and nobody else:
+//   CLERK_DEV_ISSUER         e.g. https://<name>.clerk.accounts.dev
+//   CLERK_DEV_TEST_USER_IDS  comma-separated Clerk user ids (user_...)
+// Unset (the default) this adds nothing: every token goes through the normal path below.
+
+function devTestAccess() {
+  const env = process.env || {};
+  const issuer = String(env.CLERK_DEV_ISSUER || '').trim().replace(/\/+$/, '');
+  const ids = String(env.CLERK_DEV_TEST_USER_IDS || '').split(',').map((x) => x.trim()).filter(Boolean);
+  return issuer && ids.length ? { issuer, ids: new Set(ids) } : null;
+}
+
+let devJwksCache = null; // { url, set }
+function getDevJwks(issuer) {
+  const url = `${issuer}/.well-known/jwks.json`;
+  if (!devJwksCache || devJwksCache.url !== url) devJwksCache = { url, set: createRemoteJWKSet(new URL(url)) };
+  return devJwksCache.set;
+}
+
+/** The unverified `iss` of a token (only used to choose which instance's keys to check it against). */
+function unverifiedIssuer(token) {
+  try { return String(decodeJwt(token).iss || '').replace(/\/+$/, ''); } catch { return ''; }
+}
+
+async function verifyDevTestToken(token, access) {
+  try {
+    const { payload } = await jwtVerify(token, getDevJwks(access.issuer), { issuer: access.issuer });
+    const userId = payload?.sub;
+    if (!userId || !access.ids.has(userId)) {
+      console.error('[clerkAuth] development-instance token is not for an allowed test account');
+      return null;
+    }
+    return { userId, workspaceId: payload.org_id || payload.workspace_id || 'personal', claims: payload };
+  } catch (err) {
+    console.error('[clerkAuth] development-instance token verification failed:', err?.message || err);
+    return null;
+  }
+}
+
 // ─── Token verification ──────────────────────────────────────────────────────
 
 /**
@@ -90,6 +133,10 @@ function getJwks() {
  */
 export async function verifyClerkToken(token) {
   if (!token || typeof token !== 'string') return null;
+
+  // Deploy previews only (see above): a development-instance token for an allowed test account.
+  const dev = devTestAccess();
+  if (dev && unverifiedIssuer(token) === dev.issuer) return verifyDevTestToken(token, dev);
 
   const env = process.env || {};
   const jwks = getJwks();
