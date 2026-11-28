@@ -178,6 +178,16 @@ describe('thumbnail designer', () => {
       expect(document.querySelectorAll('[data-thumb-suggestion]').length).toBe(0);
     });
 
+    it('a failure while setting up a run never leaves Suggest disabled', async () => {
+      const draft = withVideo();
+      openThumbnailDesigner({ draft });
+      Object.defineProperty(draft.video, 'duration', { get() { throw new Error('setup failed'); } });
+      $('[data-thumb-suggest]').click();
+      await vi.waitFor(() => expect($('[data-thumb-suggest-status]').textContent).toMatch(/cannot be analysed/));
+      expect($('[data-thumb-suggest]').disabled).toBe(false);
+      expect($('[data-thumb-suggest-cancel]').hidden).toBe(true);
+    });
+
     it('says so when the video cannot be read (tainted canvas)', async () => {
       T.grabFrames.mockImplementation(async () => [{ getContext: () => ({ getImageData: () => { throw new Error('tainted canvas'); } }) }]);
       openThumbnailDesigner({ draft: withVideo() });

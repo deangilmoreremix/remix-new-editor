@@ -115,9 +115,10 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
     // Only moments the scrubber can really select (a GIF needs room after its start), so a suggestion and the saved start match.
     const latest = Number(start.max);
     suggestedFor = Number.isFinite(latest) ? latest : null;
-    const times = [...new Set(sampleTimes(draft.video.duration || video?.duration || 0, PERF_PRESETS[chosenPreset()].suggestFrames).map((t) => (Number.isFinite(latest) ? Math.floor(Math.min(t, latest) * 10 + 1e-9) / 10 : t)))];
     const frames = [];
+    let times = [];
     try {
+      times = [...new Set(sampleTimes(draft.video.duration || video?.duration || 0, PERF_PRESETS[chosenPreset()].suggestFrames).map((t) => (Number.isFinite(latest) ? Math.floor(Math.min(t, latest) * 10 + 1e-9) / 10 : t)))];
       for (let i = 0; i < times.length; i += 1) {
         if (run.aborted) break;
         suggestStatus.textContent = `Looking at frame ${i + 1} of ${times.length}…`;
@@ -143,8 +144,10 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
       }
     } catch (err) {
       suggestStatus.textContent = run.aborted ? 'Stopped.' : 'This video cannot be analysed here. Pick a moment with the scrubber.';
+    } finally {
+      // Always release the button, whatever failed, so Suggest can be tried again.
+      suggest.disabled = false; cancelSuggest.hidden = true; suggestRun = null;
     }
-    suggest.disabled = false; cancelSuggest.hidden = true; suggestRun = null;
   };
   suggest.addEventListener('click', runSuggest);
   cancelSuggest.addEventListener('click', () => { if (suggestRun) suggestRun.aborted = true; });
