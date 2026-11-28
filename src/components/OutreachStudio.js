@@ -22,6 +22,7 @@ import { rankProspects } from '../lib/outreach/followUp.js';
 import { searchLines } from '../lib/outreach/transcriptSearch.js';
 import { suggestHeaders, suggestMessages, suggestCtas } from '../lib/outreach/copySuggest.js';
 import { detectCapabilities, summarizeCapabilities } from '../lib/outreach/capabilities.js';
+import { withRetry } from '../lib/outreach/retry.js';
 import { onOwnerNotification, isOutreachAlertFor } from '../lib/liveAlerts.js';
 import { createHostLine, liveCallSupported } from '../lib/outreach/liveCall.js';
 import { createCallWindow, showIncomingCall } from './outreach/LiveCallPanel.js';
@@ -119,12 +120,16 @@ function card(title, sub, n) {
 const fmtTime = (s) => `${Math.floor((s || 0) / 60)}:${String(Math.round(s || 0) % 60).padStart(2, '0')}`;
 const userId = () => globalThis.window?.Clerk?.user?.id || null;
 
-async function uploadToStorage(file) {
+// An upload that survives a dropped connection: up to 3 tries with a growing pause. A refusal (sign-in, a 4xx
+// other than 429) or a cancel is never retried. `onRetry` lets the studio say so.
+async function uploadToStorage(file, { onRetry, signal } = {}) {
   const { uploadFileToStorage } = await import('../lib/hybrid-supabase.js');
-  const out = await uploadFileToStorage(file);
-  const url = typeof out === 'string' ? out : out?.url;
-  if (!url || url.startsWith('blob:')) throw new Error('Upload failed. Sign in and try again.');
-  return url;
+  return withRetry(async () => {
+    const out = await uploadFileToStorage(file);
+    const url = typeof out === 'string' ? out : out?.url;
+    if (!url || url.startsWith('blob:')) throw new Error('Upload failed. Sign in and try again.');
+    return url;
+  }, { onRetry, signal });
 }
 
 function videoDuration(url) {
@@ -213,6 +218,14 @@ export function OutreachStudio() {
     if (!guard.active()) return; // another tab is editing this campaign: don't overwrite its work
     draft.edit = { ...edit, before: null, after: null }; saveDraft(draft); if (draft.campaign) saveToLibrary(draft);
     guard.saved();
+    backupSoon();
+  };
+  // A second copy of the draft in this browser's IndexedDB (src/lib/outreach/draftBackup.js), local to this device.
+  let backupTimer = null;
+  let restoreOffer = null;
+  const backupSoon = () => {
+    clearTimeout(backupTimer);
+    backupTimer = setTimeout(() => { import('../lib/outreach/draftBackup.js').then((m) => m.backupDraft(draft)).catch(() => {}); }, 1500);
   };
   // Load the draft another tab saved (without saving it back).
   const reloadDraft = () => {
@@ -232,7 +245,7 @@ export function OutreachStudio() {
     },
   });
   // Run when the studio is left (src/lib/router.js calls container.cleanup).
-  const cleanups = [() => guard.destroy()];
+  const cleanups = [() => guard.destroy(), () => clearTimeout(backupTimer), () => pushCardHandle?.destroy?.()];
   container.cleanup = () => { while (cleanups.length) { try { cleanups.pop()(); } catch { /* keep going */ } } };
 
   // "Talk live" (src/lib/outreach/liveCall.js): while "Available for live calls" is on, this tab answers
@@ -293,7 +306,7 @@ export function OutreachStudio() {
     try {
       recordingBlob = blob;
       const file = blob instanceof File ? blob : new File([blob], name, { type: blob.type || 'video/webm' });
-      const url = await uploadToStorage(file);
+      const url = await uploadWithRetry(file);
       const meta = await videoMeta(url);
       const seconds = duration || meta.duration;
       draft.video = { url, duration: Math.round(seconds), hasAudio, type };
@@ -478,6 +491,10 @@ export function OutreachStudio() {
       && !edit.overlays.some((o) => !tools.isPersonal(o)) && !edit.broll.some((o) => !tools.isPersonal(o));
   };
   const busyText = (t) => { busy = t; const b = container.querySelector('[data-outreach-busy]'); if (b) b.textContent = busy; };
+  const uploadWithRetry = (file) => uploadToStorage(file, {
+    signal: abort?.signal,
+    onRetry: ({ attempt, of }) => busyText(`The upload did not go through. Trying again (${attempt} of ${of})…`),
+  });
 
   // Apply edits: always from the original recording, so changing or removing a text later replaces it instead of
   // adding a second one. 1) the background (MediaPipe, kept for next time), 2) everything else on top, so text,
@@ -500,7 +517,7 @@ export function OutreachStudio() {
         busyText('Changing the background: loading MediaPipe…');
         const { backgroundVideo } = await import('../lib/outreach/mediaTools.js');
         const blob = await backgroundVideo(original.src, edit.background, { signal: abort.signal, onProgress: (p) => busyText(`Changing the background… ${Math.round(p * 100)}%`) });
-        const url = await uploadToStorage(new File([blob], 'background.webm', { type: 'video/webm' }));
+        const url = await uploadWithRetry(new File([blob], 'background.webm', { type: 'video/webm' }));
         draft.bgCache = { key: bgKey, url };
         persist();
       }
@@ -542,7 +559,7 @@ export function OutreachStudio() {
     const original = source();
     if (blob) {
       const name = `edited.${/webm/.test(blob.type) ? 'webm' : 'mp4'}`;
-      const url = await uploadToStorage(new File([blob], name, { type: blob.type || 'video/mp4' }));
+      const url = await uploadWithRetry(new File([blob], name, { type: blob.type || 'video/mp4' }));
       draft.video = { url, duration: Math.round(duration || original.duration), hasAudio: original.hasAudio, type: original.type, ...(size || {}) };
     } else {
       draft.video = { url: original.url, duration: original.duration, hasAudio: original.hasAudio, type: original.type, width: original.width, height: original.height };
@@ -608,7 +625,7 @@ export function OutreachStudio() {
   };
 
   async function uploadPicked(file) {
-    try { setBusy('Uploading…'); const url = await uploadToStorage(file); busy = ''; render(); return url; } catch (err) { fail(err); return null; }
+    try { setBusy('Uploading…'); const url = await uploadWithRetry(file); busy = ''; render(); return url; } catch (err) { fail(err); return null; }
   }
 
   const SILENCE = { light: { thresholdDb: -45, minSec: 1.5 }, normal: { thresholdDb: -40, minSec: 0.7 }, tight: { thresholdDb: -36, minSec: 0.4 } };
@@ -620,7 +637,7 @@ export function OutreachStudio() {
         setBusy(opts.removeBackground ? 'Removing the picture’s background (in your browser)…' : 'Preparing the picture…');
         const { preparePicture } = await import('../lib/outreach/mediaTools.js');
         const png = await preparePicture(file, { ...opts, onProgress: (p) => { if (p?.stage === 'background' && p.progress != null) busyText(`Removing the background… ${Math.round(p.progress * 100)}%`); } });
-        const url = await uploadToStorage(new File([png], `${(file.name || 'picture').replace(/\.[^.]+$/, '')}.png`, { type: 'image/png' }));
+        const url = await uploadWithRetry(new File([png], `${(file.name || 'picture').replace(/\.[^.]+$/, '')}.png`, { type: 'image/png' }));
         busy = ''; render();
         return url;
       } catch (err) { fail(err); return null; }
@@ -921,6 +938,67 @@ export function OutreachStudio() {
   }
 
   const card_ = (...a) => card(...a);
+
+  // What did not work in a generation, and a way to run it again. Nothing paid runs without the usual confirmation.
+  function attentionList() {
+    const out = [];
+    draft.contacts.forEach((c) => {
+      const k = c.website ? siteKey(c.website) : '';
+      const e = k && draft.siteErrors?.[k];
+      if (e) out.push({ name: [c.firstName, c.lastName].filter(Boolean).join(' ') || c.email || 'Prospect', reason: String(e) });
+    });
+    (draft.campaign?.links || []).forEach((l) => { if (l.lipsyncError) out.push({ name: l.name || 'Prospect', reason: String(l.lipsyncError) }); });
+    return out;
+  }
+  function renderAttention() {
+    const list = attentionList();
+    const card = card_('Needs attention', `${list.length} prospect${list.length === 1 ? '' : 's'} did not finish. Fix the cause if you can, then run it again.`);
+    card.setAttribute('data-outreach-attention', '');
+    const ul = el('ul', 'flex max-h-48 flex-col gap-1 overflow-y-auto text-sm');
+    list.slice(0, 30).forEach((f) => ul.appendChild(el('li', 'text-white/80', `${f.name}: ${f.reason}`)));
+    if (list.length > 30) ul.appendChild(el('li', 'text-white/45', `…and ${list.length - 30} more.`));
+    card.appendChild(ul);
+    const again = button('Try the failed ones again', { small: true, primary: true });
+    again.setAttribute('data-outreach-retry-failed', '');
+    again.disabled = !!busy;
+    again.addEventListener('click', () => generateCampaign());
+    card.append(again, el('p', 'text-[11px] text-white/45', 'Website pictures and lip-sync clips that already finished are reused. You are asked to confirm before any paid step runs.'));
+    return card;
+  }
+
+  // A backup of the draft kept in this browser (IndexedDB). Offered only when the normal copy is empty.
+  function renderRestoreOffer() {
+    const b = restoreOffer;
+    const bar = el('div', 'flex flex-wrap items-center gap-3 rounded-2xl border border-primary/25 bg-primary/[0.06] px-4 py-3 text-sm');
+    bar.setAttribute('data-outreach-restore', '');
+    bar.appendChild(el('span', 'flex-1 text-white/85', `We found a draft${b.draft?.name ? ` “${b.draft.name}”` : ''} backed up in this browser (${new Date(b.savedAt).toLocaleString()}). It is kept on this device only, not in your account.`));
+    const yes = button('Restore it', { small: true, primary: true });
+    yes.setAttribute('data-outreach-restore-yes', '');
+    yes.addEventListener('click', () => { saveDraft(b.draft); reloadDraft(); restoreOffer = null; notice = 'Draft restored.'; render(); });
+    const no = button('Not now', { small: true });
+    no.addEventListener('click', () => { restoreOffer = null; import('../lib/outreach/draftBackup.js').then((m) => m.clearBackup()).catch(() => {}); render(); });
+    bar.append(yes, no);
+    return bar;
+  }
+
+  // Browser notifications for real watch and click events: the existing push setup (src/lib/push), not a new one.
+  let pushCardHandle = null;
+  function renderPushCard() {
+    const card = card_('Get notified', 'A notification on this device when someone watches or clicks, even with this site closed.', 4);
+    card.setAttribute('data-outreach-push', '');
+    const host = el('div', 'sv-analytics sv-dark sv-editor');
+    card.appendChild(host);
+    (async () => {
+      try {
+        await import('../../styles/smartvideo-analytics.css');
+        const [{ mountPushCard }, prefsApi, client] = await Promise.all([import('../lib/push/pushCard.js'), import('../lib/editor/projectLibrary/tabsData.js'), ownerClient()]);
+        let prefs = await prefsApi.loadPreferences(client);
+        pushCardHandle?.destroy?.();
+        pushCardHandle = mountPushCard(host, { getClient: () => client, pushEnabled: prefs.push, onPushPref: async (v) => { prefs = await prefsApi.savePreferences(client, { ...prefs, push: v }); } });
+      } catch { host.replaceChildren(el('p', 'text-sm text-white/55', 'Sign in to turn on notifications.')); }
+    })();
+    return card;
+  }
 
   // Free suggestions (src/lib/outreach/copySuggest.js): fixed wording with your {{tokens}}; nothing is sent anywhere.
   function renderSuggestions() {
@@ -1375,7 +1453,7 @@ export function OutreachStudio() {
       const { extractVoiceSample } = await import('../lib/outreach/voiceSample.js');
       const { file } = await extractVoiceSample(blob);
       setBusy('Uploading your voice sample…');
-      const audioUrl = await uploadToStorage(file);
+      const audioUrl = await uploadWithRetry(file);
       setBusy('Cloning your voice (this can take a minute)…');
       const { cloneVoice } = await import('../lib/editor/agent/audioGen.js');
       const voiceId = draft.voice.cloneVoiceId || `voice_${Date.now().toString(36)}`;
@@ -1723,7 +1801,7 @@ export function OutreachStudio() {
         if (!file) return;
         try {
           setBusy('Uploading the image…');
-          const url = await uploadToStorage(file);
+          const url = await uploadWithRetry(file);
           draft.background = { ...draft.background, image: url }; draft.campaign = null; persist(); busy = ''; render();
         } catch (err) { fail(err); }
       });
@@ -1991,7 +2069,7 @@ export function OutreachStudio() {
       if (!(await gate('screenshots for your prospects'))) return;
       setBusy(`Uploading the screenshot for ${c.firstName || c.email || 'this prospect'}…`);
       try {
-        const url = await uploadToStorage(file);
+        const url = await uploadWithRetry(file);
         draft.contacts = draft.contacts.map((x) => (x.id === c.id ? { ...x, backgroundShot: url } : x));
         draft.campaign = null; busy = ''; notice = ''; persist();
       } catch (err) { busy = ''; notice = err.message; }
@@ -2058,7 +2136,7 @@ export function OutreachStudio() {
       share = await bc.startTabShare(captureTab);
       const { shots, failed } = await bc.captureInTab({
         tab: captureTab, share, urls, signal: abort.signal,
-        upload: (blob, i) => uploadToStorage(new File([blob], `prospect-page-${i + 1}.jpg`, { type: 'image/jpeg' })),
+        upload: (blob, i) => uploadWithRetry(new File([blob], `prospect-page-${i + 1}.jpg`, { type: 'image/jpeg' })),
         onShot: (url, imageUrl) => {
           draft.siteShots = { ...draft.siteShots, [url]: imageUrl };
           if (draft.siteErrors?.[url]) { const { [url]: _gone, ...rest } = draft.siteErrors; draft.siteErrors = rest; }
@@ -2322,7 +2400,7 @@ export function OutreachStudio() {
       const { c, d, k } = todo[i];
       const logoUrl = c.website ? draft.siteLogos?.[siteKey(c.website)] || '' : '';
       const blob = await renderProfileCard(d, { logoUrl, side });
-      const url = await uploadToStorage(new File([blob], 'profile-card.jpg', { type: 'image/jpeg' }));
+      const url = await uploadWithRetry(new File([blob], 'profile-card.jpg', { type: 'image/jpeg' }));
       draft.profileShots = { ...(draft.profileShots || {}), [k]: url };
       persist();
     }
@@ -2514,6 +2592,7 @@ export function OutreachStudio() {
       facts.appendChild(f);
     }
     top.appendChild(facts);
+    top.appendChild(el('p', 'text-xs text-white/50', 'What your prospects\u2019 pages record: that the page was opened, how far the video was watched and which buttons were clicked, tied to the personal link you send. Nothing is recorded for viewers whose browser sends Do Not Track or Global Privacy Control.'));
     if (personal) {
       const syncRow = el('label', 'flex items-start gap-3 text-sm');
       const syncOn = el('input'); syncOn.type = 'checkbox'; syncOn.checked = !!draft.voice.lipsync; syncOn.className = 'mt-1';
@@ -2558,6 +2637,7 @@ export function OutreachStudio() {
     }
     top.appendChild(actions);
     wrap.appendChild(top);
+    if (attentionList().length) wrap.appendChild(renderAttention());
     if (!draft.campaign && draft.contacts.length) wrap.appendChild(renderMergeQa());
     if (busy && progress) wrap.appendChild(renderProgress());
 
@@ -2596,6 +2676,7 @@ export function OutreachStudio() {
       }));
       wrap.appendChild(list);
       wrap.appendChild(renderFollowUp());
+      wrap.appendChild(renderPushCard());
       wrap.appendChild(renderLandingCard());
       wrap.appendChild(renderEmailCard());
       wrap.appendChild(renderAlertsCard());
@@ -2925,8 +3006,8 @@ export function OutreachStudio() {
           // A GIF also gets its first frame as a still, for Outlook on Windows (which shows only that frame).
           const set = await T.renderThumbnailSet({ frames, siteUrl: site, logoUrl: logo, text, settings, seconds: duration, signal });
           const stamp = `${Date.now()}-${made.size}`;
-          const mainUrl = await uploadToStorage(new File([set.main], `thumb-${stamp}.${still ? 'jpg' : 'gif'}`, { type: set.main.type }));
-          const stillUrl = set.still ? await uploadToStorage(new File([set.still], `thumb-${stamp}-still.jpg`, { type: 'image/jpeg' })) : mainUrl;
+          const mainUrl = await uploadWithRetry(new File([set.main], `thumb-${stamp}.${still ? 'jpg' : 'gif'}`, { type: set.main.type }));
+          const stillUrl = set.still ? await uploadWithRetry(new File([set.still], `thumb-${stamp}-still.jpg`, { type: 'image/jpeg' })) : mainUrl;
           made.set(key, { mainUrl, stillUrl });
         }
         links[i] = { ...links[i], thumbnailUrl: made.get(key).mainUrl, stillUrl: made.get(key).stillUrl };
@@ -3271,6 +3352,7 @@ export function OutreachStudio() {
     const lib = [...listLibrary()].sort((a, b) => (librarySort === 'name' ? String(a.name).localeCompare(String(b.name)) : librarySort === 'watched' ? statsFor(b.id).watched - statsFor(a.id).watched : new Date(b.savedAt) - new Date(a.savedAt)));
     const box = el('div', 'flex flex-col gap-4');
     box.setAttribute('data-outreach-library', '');
+    if (restoreOffer) box.appendChild(renderRestoreOffer());
     // Like Sendspark's Dynamic Videos page: who you are, what it does, and Create Dynamic Video.
     const head = el('div', 'flex flex-wrap items-center gap-5 border-b border-white/10 pb-6 pt-4');
     const me = globalThis.window?.Clerk?.user || null;
@@ -3469,6 +3551,7 @@ export function OutreachStudio() {
 
   function render() {
     dropPreviewHandles();
+    pushCardHandle?.destroy?.(); pushCardHandle = null;
     syncHostLine();
     renderStepper();
     // Like Sendspark, the editor and the videos page have no hero banner: the page itself is the header.
@@ -3742,6 +3825,10 @@ export function OutreachStudio() {
     name.focus();
   }
 
+  import('../lib/outreach/draftBackup.js').then(async (m) => {
+    const b = await m.loadBackup();
+    if (m.shouldOfferRestore(draft, b)) { restoreOffer = b; if (container.isConnected && step === STEPS.length) render(); }
+  }).catch(() => {});
   render();
   // Back and Forward move between the studio's steps (each step change is a history entry).
   try { globalThis.history.replaceState({ ...(globalThis.history.state || {}), outreachStep: step }, '', location.href); } catch { /* sandboxed */ }

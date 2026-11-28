@@ -9,7 +9,7 @@
 import '../../styles/timeline-addons.css';
 import '../../styles/watch.css';
 import { fetchPublishedVideo, canonicalUrl, submitViewerLead, profileFromQuery, profileFromLink, personalLinkIdFromQuery, fetchPersonalization } from '../lib/editor/publish/publishClient.js';
-import { createAnalytics } from '../lib/editor/publish/analyticsClient.js';
+import { createAnalytics, consentMode } from '../lib/editor/publish/analyticsClient.js';
 import { projectSections, ctaLabels, isPricingLabel } from '../lib/editor/publish/sections.js';
 import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
 import { createHeatmapCapture, singleLeadClipId } from '../lib/editor/publish/heatmapCapture.js';
@@ -165,6 +165,15 @@ export async function mountWatchPage(container, ref, deps = {}) {
   const sender = landing?.sender && typeof landing.sender === 'object' ? landing.sender : {};
   const brand = String(sender.company || sender.name || video.project.campaign?.name || '').trim().slice(0, 80);
   const logoUrl = (() => { try { const u = new URL(String(sender.logo || '')); return u.protocol === 'https:' ? u.toString() : ''; } catch { return ''; } })();
+  // Plain words about what this page records, matching what the analytics client really does (analyticsClient.js).
+  const recordMode = consentMode();
+  const personalLink = new URLSearchParams(globalThis.location?.search || '').has('c');
+  const privacyNote = `<details class="watch-privacy" data-privacy>
+          <summary>What this page records</summary>
+          <p>${recordMode === 'off'
+    ? 'Tracking is off for this visit (your browser or this link asks for that), so nothing about your visit is recorded.'
+    : `The sender can see that this page was opened, whether the video was played and how far, and which buttons were clicked. ${personalLink ? ' Because this link was made for you, they can tell it was you.' : ''}${recordMode === 'anonymous' ? ' Nothing is kept in your browser.' : ' A random code is kept in your browser so a return visit is recognised; it is not your name or email.'} Nothing is recorded if your browser sends Do Not Track or Global Privacy Control.`}</p>
+        </details>`;
   const brandRow = !embed && (brand || logoUrl)
     ? `<div class="watch-brand">${logoUrl ? `<img class="watch-brand-logo" src="${esc(logoUrl)}" alt="" />` : brand ? `<span class="watch-brand-mark" aria-hidden="true">${esc(brand.charAt(0).toUpperCase())}</span>` : ''}${brand ? `<span class="watch-brand-name">${esc(brand)}</span>` : ''}</div>`
     : '';
@@ -229,6 +238,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
           ${sideBody}
         </div>
         ${brand ? `<footer class="watch-foot">Video message by <strong>${esc(brand)}</strong></footer>` : ''}
+        ${embed ? '' : privacyNote}
       </div>
     </main>`;
   const $ = (s) => container.querySelector(s);

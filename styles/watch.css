@@ -132,3 +132,8 @@ html.watch-root #app { height: auto; min-height: 100vh; background: transparent;
 .watch-live-dot { width: 9px; height: 9px; border-radius: 50%; background: #2fb344; animation: watch-live-pulse 1.2s ease-in-out infinite; }
 @keyframes watch-live-pulse { 50% { opacity: .3; } }
 @media (prefers-reduced-motion: reduce) { .watch-live-dot { animation: none; } }
+
+.watch-privacy { margin: 4px auto 0; max-width: 560px; text-align: center; font-size: 12px; color: #8b8b94; }
+.watch-privacy summary { cursor: pointer; display: inline-block; padding: 4px 10px; border-radius: 999px; }
+.watch-privacy summary:hover, .watch-privacy summary:focus-visible { color: #e4e4e7; outline: none; box-shadow: 0 0 0 2px rgba(217, 255, 0, 0.45); }
+.watch-privacy p { margin: 8px 0 0; line-height: 1.5; text-align: left; }
