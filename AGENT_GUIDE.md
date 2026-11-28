@@ -70,22 +70,28 @@ Both users have `legacy_access: true` and `qa_test_account: true` in Clerk publi
 **Signing in.** Both sites sign in with an emailed code. The sign-in form on smartvid.app only offers a password, so use Clerk's browser library:
 1. Open the site in Playwright: `https://smartvid.app/sign-in` or `https://go.smartvid.app/academy`.
 2. Wait for `window.Clerk.loaded`.
-3. Ask Clerk for a code:
+3. Ask Clerk for a code. The address comes from the environment variable and is passed into the page:
    ```js
-   const si = await Clerk.client.signIn.create({ identifier: QA_TEST_EMAIL });
-   const f = si.supportedFirstFactors.find((x) => x.strategy === 'email_code');
-   await si.prepareFirstFactor({ strategy: 'email_code', emailAddressId: f.emailAddressId });
+   // Playwright (Node): `page` is the open page.
+   await page.evaluate(async (email) => {
+     const si = await window.Clerk.client.signIn.create({ identifier: email });
+     const f = si.supportedFirstFactors.find((x) => x.strategy === 'email_code');
+     await si.prepareFirstFactor({ strategy: 'email_code', emailAddressId: f.emailAddressId });
+   }, process.env.QA_TEST_EMAIL);
    ```
 4. Read the code with the Gmail connector:
-   - search `to:<QA_TEST_EMAIL> newer_than:1h`;
+   - search `to:` followed by the value of `QA_TEST_EMAIL`, plus `newer_than:1h`;
    - the subject is "NNNNNN is your verification code";
    - read only that message.
-5. Finish signing in:
+5. Finish signing in, with the code passed into the page the same way:
    ```js
-   const r = await Clerk.client.signIn.attemptFirstFactor({ strategy: 'email_code', code });
-   await Clerk.setActive({ session: r.createdSessionId });
+   await page.evaluate(async (code) => {
+     const r = await window.Clerk.client.signIn.attemptFirstFactor({ strategy: 'email_code', code });
+     if (r.status === 'complete') await window.Clerk.setActive({ session: r.createdSessionId });
+   }, code);
    ```
-6. Save `context.storageState()` and reuse it for the rest of the session.
+   If the code is rejected or has expired, ask Clerk for a new one (step 3). Don't retry the same code.
+6. Save the session with Playwright's `await context.storageState({ path: 'state.json' })`, and reuse it (`browser.newContext({ storageState: 'state.json' })`) for the rest of the session.
 
 **Things you will meet as a new account:**
 - smartvid.app opens "Welcome — set up your API keys": click "Skip for now".
