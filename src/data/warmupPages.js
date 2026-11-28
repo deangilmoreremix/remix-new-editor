@@ -1,13 +1,13 @@
 // Public SmartWarmupAI feature pages (/email-warmup and /email-warmup/<slug>/).
 // Pure data: rendered by src/components/guides/renderWarmupPages.js and written to static HTML by
-// scripts/build-warmup-pages.mjs. Screenshots are the studio's own captures in public/guides/smartwarmupai/.
+// scripts/build-warmup-pages.mjs. Screenshots are dark-mode captures of the dashboard in public/email-warmup/img/.
 // Copy is written for SmartWarmupAI and only claims what the studio does (see src/data/askKb/smartwarmupai.json):
 // it runs on recorded demo data unless a real backend is configured, and warmup never guarantees inbox placement.
 
 export const WARMUP_BASE = '/email-warmup';
 export const STUDIO_PATH = '/smartwarmupai';
 export const PRODUCT = 'SmartWarmupAI';
-const SHOT = (name) => `/guides/smartwarmupai/${name}.webp`;
+const SHOT = (name) => `/email-warmup/img/${name}.webp`;
 
 /** @typedef {{ slug:string, nav:string, studio:string, studioLabel:string, title:string, h1:string, lead:string,
  *   shot:string, description:string, cards:{title:string, text:string}[], steps:string[], note?:string,
