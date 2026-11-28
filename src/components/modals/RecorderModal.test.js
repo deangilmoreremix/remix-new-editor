@@ -438,6 +438,23 @@ describe('floating recording controls', () => {
     delete window.documentPictureInPicture;
   });
 
+  test('deleting or restarting the take closes the floating controls (their Stop would have nothing to stop)', async () => {
+    for (const restart of [false, true]) {
+      const win = pipWindow(); withPip(win);
+      const modal = new RecorderModal({ countdown: 0 });
+      modal.recordingType = 'camera';
+      modal.open();
+      await modal.startRecording();
+      await modal.toggleMonitorWindow();
+      expect(modal.monitorWin).toBe(win);
+      await modal.discardTake({ restart });
+      expect(win.closed).toBe(true);
+      expect(modal.monitorWin).toBeNull();
+      modal.destroy();
+    }
+    delete window.documentPictureInPicture;
+  });
+
   test('opening it closes the floating script (only one floating window per tab)', async () => {
     const script = pipWindow(); const controls = pipWindow();
     withPip(script);
@@ -498,6 +515,46 @@ describe('Even out my voice', () => {
     modal.micEnabled = false;
     await modal.startRecording();
     expect(levelSources).not.toHaveBeenCalled();
+    await modal.stopRecording();
+  });
+
+  test('if the leveling step fails for any reason, the take still records with the normal sound', async () => {
+    levelSources.mockRejectedValueOnce(new Error('module would not load'));
+    const { modal } = makeModal('camera');
+    modal.audio = { ...modal.audio, voiceLeveler: true };
+    await modal.startRecording();
+    expect(modal.isRecording).toBe(true);
+    expect(modal.notice).toMatch(/not available right now/);
+    expect(modal.liveStreams.length).toBeGreaterThan(0);
+    await modal.stopRecording();
+  });
+
+  test('closing the window while the leveler is starting releases the microphone and starts nothing', async () => {
+    const stop = vi.fn();
+    const { modal } = makeModal('camera');
+    modal.audio = { ...modal.audio, voiceLeveler: true };
+    levelSources.mockImplementationOnce(async (sources) => { modal.destroy(); return { sources, stops: [stop], leveled: 1, failed: false }; });
+    await modal.startRecording();
+    expect(stop).toHaveBeenCalledTimes(1);
+    expect(modal.isRecording).toBe(false);
+    expect(modal.session).toBeFalsy();
+    expect(FakeRecorder.all).toHaveLength(0);
+    expect(FakeTrack.all.every((t) => t.stopped)).toBe(true); // nothing is left running
+  });
+
+  test('if the original microphone ends (unplugged), a leveled take stops instead of recording silence', async () => {
+    const { modal } = makeModal('camera');
+    modal.audio = { ...modal.audio, voiceLeveler: true };
+    const originalMic = new FakeTrack('audio');
+    levelSources.mockImplementationOnce(async (sources) => ({
+      sources: sources.map((s) => { const out = new FakeStream([...s.stream.getVideoTracks(), new FakeTrack('audio')]); out.sourceTracks = [originalMic]; return { ...s, stream: out }; }),
+      stops: [], leveled: 1, failed: false,
+    }));
+    await modal.startRecording();
+    expect(modal.isRecording).toBe(true);
+    const stopping = vi.spyOn(modal, 'stopRecording');
+    originalMic.end();
+    expect(stopping).toHaveBeenCalledTimes(1);
     await modal.stopRecording();
   });
 });

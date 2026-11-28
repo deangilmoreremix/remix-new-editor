@@ -33,18 +33,19 @@ describe('capability detection', () => {
     expect(s.unavailable).toBeGreaterThan(10);
     expect(s.supported + s.permission + s.unavailable + s.unknown).toBe(detectCapabilities({}).length);
   });
-  it('reports insertable streams and transparent WebM from what the browser really has', () => {
+  it('reports insertable streams and VP9 recording support from what the browser really has', () => {
     const none = byId(detectCapabilities({}));
     expect(none.insertable.status).toBe('unavailable');
-    expect(none.alpha.status).toBe('unavailable');
+    expect(none.vp9.status).toBe('unavailable');
     const MR = Object.assign(class {}, { isTypeSupported: (t) => t === 'video/webm;codecs=vp9' });
     const yes = byId(detectCapabilities({ MediaStreamTrackProcessor: class {}, MediaStreamTrackGenerator: class {}, MediaRecorder: MR }));
     expect(yes.insertable.status).toBe('supported');
     expect(yes.insertable.detail).toMatch(/not used/i); // honest: detected, but recording stays on MediaRecorder
-    expect(yes.alpha.status).toBe('supported');
+    expect(yes.vp9.status).toBe('supported');
+    expect(yes.vp9.detail).toMatch(/not tested/i); // honest: the format is checked, transparency is not
     const onlyProcessor = byId(detectCapabilities({ MediaStreamTrackProcessor: class {} }));
     expect(onlyProcessor.insertable.status).toBe('unavailable'); // needs both halves
     const noVp9 = byId(detectCapabilities({ MediaRecorder: Object.assign(class {}, { isTypeSupported: () => false }) }));
-    expect(noVp9.alpha.status).toBe('unavailable');
+    expect(noVp9.vp9.status).toBe('unavailable');
   });
 });

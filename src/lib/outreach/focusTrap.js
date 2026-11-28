@@ -7,7 +7,15 @@ const FOCUSABLE = 'a[href], button, input, select, textarea, video[controls], [t
 
 /** The controls inside `root` that can take focus right now, in tab order. */
 export function focusables(root) {
-  return [...root.querySelectorAll(FOCUSABLE)].filter((n) => !n.disabled && !n.hidden && n.getAttribute('tabindex') !== '-1' && n.type !== 'hidden' && !n.closest('[hidden]') && !n.closest('[inert]'));
+  return [...root.querySelectorAll(FOCUSABLE)].filter((n) => !n.disabled && !n.hidden && n.getAttribute('tabindex') !== '-1' && n.type !== 'hidden' && !n.closest('[hidden]') && !n.closest('[inert]') && isRendered(n, root));
+}
+
+/** False for a control that is not drawn (display: none on it or a parent inside the dialog, or visibility: hidden): it cannot take focus. */
+function isRendered(n, root) {
+  const view = n.ownerDocument?.defaultView;
+  if (!view?.getComputedStyle) return true;
+  for (let e = n; e && e !== root.parentElement; e = e.parentElement) if (view.getComputedStyle(e).display === 'none') return false;
+  return view.getComputedStyle(n).visibility !== 'hidden';
 }
 
 /**

@@ -25,6 +25,7 @@ export function summarizeCampaign(rows) {
     leads: list.reduce((a, r) => a + n(r?.leads), 0),
     finished: reach[100],
     opened: named.filter((r) => n(r.views) > 0).length,
+    progressSum: watched.reduce((a, r) => a + progressOf(r), 0), // kept unrounded so campaigns can be combined exactly
     avgProgress: watched.length ? Math.round(watched.reduce((a, r) => a + progressOf(r), 0) / watched.length) : 0,
     hasProgress: named.some((r) => n(r.progress) > 0 || n(r.completes) > 0),
     reach,
@@ -38,7 +39,8 @@ export function combineSummaries(list) {
   const watched = sum('watched');
   return {
     watched, views: sum('views'), clicks: sum('clicks'), leads: sum('leads'), finished: sum('finished'), opened: sum('opened'),
-    avgProgress: watched ? Math.round(items.reduce((a, s) => a + n(s.avgProgress) * n(s.watched), 0) / watched) : 0,
+    progressSum: sum('progressSum'),
+    avgProgress: watched ? Math.round(sum('progressSum') / watched) : 0,
     hasProgress: items.some((s) => s.hasProgress),
     reach: Object.fromEntries(QUARTILES.map((q) => [q, items.reduce((a, s) => a + n(s.reach?.[q]), 0)])),
   };

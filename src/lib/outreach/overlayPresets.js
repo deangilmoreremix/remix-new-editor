@@ -3,6 +3,7 @@
 // Saved overlay presets: a set of text, name straps, logos, pictures and stickers you place on one video and reuse on the
 // next ("my intro kit"). Kept in this browser only (localStorage), never uploaded. A preset keeps positions, colours, texts
 // and pictures (https links only) and how long each item shows; applying it makes fresh copies starting where you are.
+import { browserStorage } from './safeStorage.js';
 
 export const PRESETS_KEY = 'outreach-overlay-presets-v1';
 export const MAX_PRESETS = 20;
@@ -23,7 +24,7 @@ export function presetItem(o) {
   return { ...rest, start: round(Math.max(0, num(o.start))), end: round(Math.max(num(o.start) + 0.5, num(o.end, num(o.start) + 5))) };
 }
 
-export function listPresets(storage = globalThis.localStorage) {
+export function listPresets(storage = browserStorage()) {
   try {
     const raw = JSON.parse(storage?.getItem(PRESETS_KEY) || '[]');
     return (Array.isArray(raw) ? raw : [])
@@ -40,7 +41,7 @@ const write = (storage, list) => { try { storage.setItem(PRESETS_KEY, JSON.strin
  * Save the given overlays as a named preset. Same name (ignoring case) replaces the old one.
  * @returns {{ ok:true, preset, skipped:number } | { ok:false, reason:string }}
  */
-export function savePreset(name, overlays, storage = globalThis.localStorage) {
+export function savePreset(name, overlays, storage = browserStorage()) {
   const clean = String(name ?? '').replace(/\s+/g, ' ').trim().slice(0, 40);
   if (!clean) return { ok: false, reason: 'Give the preset a name.' };
   const all = (Array.isArray(overlays) ? overlays : []);
@@ -53,7 +54,7 @@ export function savePreset(name, overlays, storage = globalThis.localStorage) {
   return { ok: true, preset, skipped: all.length - items.length };
 }
 
-export function deletePreset(id, storage = globalThis.localStorage) {
+export function deletePreset(id, storage = browserStorage()) {
   return write(storage, listPresets(storage).filter((p) => p.id !== id));
 }
 
@@ -70,5 +71,5 @@ export function applyPreset(preset, { at = 0, seconds = 0 } = {}) {
   return items
     .map((i) => ({ ...i, id: uid(), start: round(base + (i.start - first)), end: round(base + (i.end - first)) }))
     .filter((i) => i.start < limit - 0.1)
-    .map((i) => ({ ...i, end: round(Math.min(i.end, limit)) }));
+    .map((i) => ({ ...i, end: Math.min(i.end, limit) })); // i.end is already rounded; the video length stays an upper bound
 }

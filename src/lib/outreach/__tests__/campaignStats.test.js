@@ -47,3 +47,14 @@ describe('combining campaigns', () => {
     expect(combineSummaries([])).toMatchObject({ watched: 0, avgProgress: 0 });
   });
 });
+
+describe('combining without rounding twice', () => {
+  it('averages the exact totals, not averages that were already rounded', () => {
+    const a = summarizeCampaign([row({ contactId: 'a', progress: 0 }), row({ contactId: 'b', progress: 1 })]); // 0.5 -> shown as 1
+    const b = summarizeCampaign([row({ contactId: 'c', progress: 0 })]);
+    expect(a.avgProgress).toBe(1);
+    expect(b.avgProgress).toBe(0);
+    expect(combineSummaries([a, b]).avgProgress).toBe(0); // (0 + 1 + 0) / 3 = 0.33, not the 0.67 that two rounded averages give
+    expect(combineSummaries([a, b]).progressSum).toBe(1);
+  });
+});

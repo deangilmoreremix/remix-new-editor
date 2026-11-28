@@ -33,7 +33,7 @@ Status key: **PRESENT** (exists, covered by tests or by reading the code), **PAR
 | 22 | Smart thumbnail selection | ABSENT | `thumbnail.js` `frameTimes` | No scoring | **added in this PR** |
 | 23 | GIF optimisation | PRESENT | `gifEncode.js`, `gif.worker.js`, `GIF_MAX_BYTES` | none | done |
 | 24 | Aspect-ratio export | PARTIAL | `ASPECTS`, `renderSegments` | No 4:5; no "export a copy" | **partly added** (4:5) |
-| 25 | Background removal / alpha | PARTIAL | `mediaTools.js` `preparePicture`, `videoMatte.js` | WebM alpha partly checked | **partly added** (support detection only) |
+| 25 | Background removal / alpha | PARTIAL | `mediaTools.js` `preparePicture`, `videoMatte.js` | WebM alpha partly checked | **partly added** (VP9 format detection only; transparency itself is not tested) |
 | 26 | Profile card themes | PARTIAL | `profileCard.js` single look + accent | No named themes | **added in this PR** |
 | 27 | Personalised page previews | PRESENT | `designPreview.js` `attachDesignPreview({page,tokens})` | First contact only | done |
 | 28 | Reusable brand overlays | PARTIAL | `editTools.js` overlays, stickers, brand kit | No saved presets | **added in this PR** |
@@ -122,7 +122,6 @@ Record (camera, screen or both) -> silence cuts and trim -> local captions (Whis
 | 38 | Merge-field QA for every prospect before generating | `contactQa.js` `mergeFieldReport`, "Check the personal fields" | Unit tests; browser |
 | 40 | Follow-up order with the reason for every point, "Mark followed up" | `outreach/followUp.js`, Generate step | Unit tests; browser (list shows once activity exists) |
 | 48 | Browser capability check (19 features), nothing requested | `outreach/capabilities.js`, "Browser check" tool in the editor | Unit tests; browser: 19 rows |
-
 | 43 | Draft backup in IndexedDB (local to this browser, restore offered when the normal copy is empty), upload retry with a status message | `outreach/draftBackup.js`, `outreach/retry.js`, studio Videos page banner | Unit tests; browser: backup written, localStorage cleared, banner shown, restore brings the draft back |
 | 45 | "Needs attention" list of prospects whose website capture or lip-sync failed, with "Try the failed ones again" (finished work reused, paid steps still ask for confirmation) | Generate step | Browser with seeded failures. **Partial:** it re-runs the campaign generation (which reuses finished pictures and clips); it does not retry single prospects in isolation |
 | 41 | Browser notifications toggle inside the studio (the existing push card and preferences, not a new push setup) | Generate step "Get notified" | Browser: card renders; the real subscribe flow needs a signed-in session and VAPID key and was **not exercised here** |
@@ -140,6 +139,6 @@ Record (camera, screen or both) -> silence cuts and trim -> local captions (Whis
 | 9 | Floating recording controls (time, level, Pause, Stop) in an always-on-top window | `recorder/monitorWindow.js`, `RecorderModal.jsx` | Unit tests with a fake window. Chromium only (Document Picture-in-Picture); not run in a real browser |
 | 2 | "Even out my voice": noise gate, slow level normalizer and limiter in an AudioWorklet, off by default, recorded as usual when it cannot run | `recorder/voiceLeveler.js`, `voiceLeveler.worklet.js`, `levelStream.js`, `RecorderModal.jsx` | Unit tests; real Chromium with a fake microphone: the worklet loaded and a peak of 1.03 came out at 0.88 (ceiling 0.89). Not tried in Safari or Firefox |
 
-Assessed, nothing built (10, 25, 47): the live capture path stays on MediaRecorder (insertable streams are detected and reported, not used); transparent WebM is detected but its playback was not verified; a worker for the sound check is not needed (a 30 minute recording is measured in about 0.1 s on the main thread).
+Assessed, nothing built (10, 25, 47): the live capture path stays on MediaRecorder (insertable streams are detected and reported, not used); the WebM VP9 recording format is detected, but whether transparency survives recording and playback is not tested; a worker for the sound check is not needed (a 30 minute recording is measured in about 0.1 s on the main thread).
 
 Not done (still **next** or **blocked** above): voice-activity detection (3), eye contact (6), gestures (7), face-aware framing (5), a download dialog of our own instead of the browser confirm (13, 49), per-text button totals (34), isolated per-prospect retry (45), and a full accessibility audit of the recorder (12, 51).

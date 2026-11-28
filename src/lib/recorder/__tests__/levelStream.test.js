@@ -39,6 +39,13 @@ describe('levelStream', () => {
     r.stop();
     expect(made.closed).toBe(1);
   });
+  it('keeps the mixer behind the stream, so computer sound + microphone are closed with the take', async () => {
+    const input = new Stream([new Track('audio')]);
+    const stopMix = vi.fn();
+    input.stopMix = stopMix;
+    const r = await levelStream(input, fakeContext().deps);
+    expect(r.stream.stopMix).toBe(stopMix);
+  });
   it('falls back to the untouched stream when the browser has no AudioWorklet', async () => {
     const input = new Stream([new Track('audio')]);
     for (const deps of [fakeContext({ noWorklet: true }).deps, { ...fakeContext().deps, NodeCtor: undefined }, { ...fakeContext().deps, AudioCtx: undefined }]) {

@@ -536,6 +536,7 @@ export class RecorderModal extends BaseModal {
   // Delete: stop and throw the take away. Restart: the same, then record again.
   async discardTake({ restart = false } = {}) {
     if (!this.session) return;
+    this.closeMonitorWindow(); // its Stop would have nothing left to stop
     clearInterval(this.recordingInterval);
     const session = this.session;
     this.session = null;
@@ -1152,14 +1153,23 @@ export class RecorderModal extends BaseModal {
     if (this.micTestUrl) { URL.revokeObjectURL(this.micTestUrl); this.micTestUrl = null; }
     try {
       let sources = await this.buildSources();
+      // Register what was acquired first, so closing the window during any later step can still release the camera and microphone.
+      this.liveStreams = sources.map(s => s.stream);
       this.levelerStops?.forEach((f) => f()); this.levelerStops = [];
       if (this.audio.voiceLeveler && sources.some((s) => s.stream?.getAudioTracks?.().length)) {
-        const { levelSources } = await import('../../lib/recorder/levelStream.js');
-        const leveled = await levelSources(sources);
-        sources = leveled.sources; this.levelerStops = leveled.stops;
-        if (leveled.failed) this.notice = 'Even out my voice is not available in this browser, so this take uses your normal sound.';
+        try {
+          const { levelSources } = await import('../../lib/recorder/levelStream.js');
+          const leveled = await levelSources(sources);
+          if (this.destroyed) { leveled.stops.forEach((f) => f()); this.stopAllStreams(); return; }
+          sources = leveled.sources; this.levelerStops = leveled.stops;
+          this.liveStreams = sources.map(s => s.stream);
+          if (leveled.failed) this.notice = 'Even out my voice is not available in this browser, so this take uses your normal sound.';
+        } catch {
+          // The optional module would not load: carry on with the normal sound rather than lose the take.
+          this.notice = 'Even out my voice is not available right now, so this take uses your normal sound.';
+        }
       }
-      this.liveStreams = sources.map(s => s.stream);
+      if (this.destroyed) { this.stopAllStreams(); return; }
       this.hasAudio = sources.some(s => s.stream.getAudioTracks().length > 0);
       if (this.micEnabled && !this.hasAudio) this.notice = 'Microphone was unavailable, so this take has no sound.';
       this.liveCam = sources.find(s => s.prefix === 'webcam')?.stream || null;
@@ -1181,9 +1191,11 @@ export class RecorderModal extends BaseModal {
       }
 
       const { startSession } = await import('../../lib/recorder/session.js');
+      if (this.destroyed) { this.stopAllStreams(); return; }
       this.session = await startSession(sources);
       // Like Recorder: when any track ends (e.g. the browser's "Stop sharing" button), stop everything.
-      for (const s of this.liveStreams) for (const t of s.getTracks()) t.addEventListener('ended', () => { if (this.isRecording) this.stopRecording(); }, { once: true });
+      // A leveled stream has a processed track, so also watch the original microphone: if it is unplugged, the take stops instead of recording silence.
+      for (const s of this.liveStreams) for (const t of [...s.getTracks(), ...(s.sourceTracks || [])]) t.addEventListener('ended', () => { if (this.isRecording) this.stopRecording(); }, { once: true });
 
       this.isRecording = true;
       this.isPaused = false;

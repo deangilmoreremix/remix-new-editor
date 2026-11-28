@@ -3,6 +3,7 @@
 // Performance presets (requirement 50): three named settings and a suggestion for this device. The suggestion only
 // reads what the browser already says about itself (memory, processor count, a data-saver or slow connection); nothing is
 // measured by running a test and nothing is sent anywhere. The user can always choose another.
+import { browserStorage } from './safeStorage.js';
 
 export const PERF_PRESETS = Object.freeze({
   light: { label: 'Light', quality: 'small', suggestFrames: 4, about: 'Smaller files and fewer frames to look at. Best for older phones and slow connections.' },
@@ -27,9 +28,10 @@ export function recommendPreset(env = globalThis) {
 }
 
 /** The preset chosen on this device (remembered in this browser), or Balanced. */
-export function chosenPreset(storage = globalThis.localStorage) {
+export function chosenPreset(storage = browserStorage()) {
   try { return presetId(storage?.getItem(PERF_KEY)); } catch { return 'balanced'; }
 }
-export function choosePreset(id, storage = globalThis.localStorage) {
-  try { storage?.setItem(PERF_KEY, presetId(id)); return true; } catch { return false; }
+export function choosePreset(id, storage = browserStorage()) {
+  if (!storage) return false;
+  try { storage.setItem(PERF_KEY, presetId(id)); return true; } catch { return false; }
 }

@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+// @vitest-environment jsdom
+import { describe, it, expect, vi } from 'vitest';
 import { PERF_PRESETS, PERF_KEY, recommendPreset, chosenPreset, choosePreset, presetId } from '../perfPresets.js';
 import { QUALITY } from '../editTools.js';
 
@@ -36,5 +37,15 @@ describe('performance presets', () => {
     const blocked = { getItem: () => { throw new Error('x'); }, setItem: () => { throw new Error('x'); } };
     expect(chosenPreset(blocked)).toBe('balanced');
     expect(choosePreset('best', blocked)).toBe(false);
+  });
+});
+
+describe('blocked site storage', () => {
+  it('falls back to Balanced when localStorage throws as soon as it is looked at', () => {
+    const spy = vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => { throw Object.assign(new Error('blocked'), { name: 'SecurityError' }); });
+    try {
+      expect(chosenPreset()).toBe('balanced');
+      expect(choosePreset('light')).toBe(false);
+    } finally { spy.mockRestore(); }
   });
 });

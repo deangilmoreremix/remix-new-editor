@@ -326,7 +326,10 @@ function presetsRow(o, push) {
     });
     const del = btn('Delete', { attr: 'data-preset-delete' });
     del.setAttribute('aria-label', `Delete the preset ${p.name}`);
-    del.addEventListener('click', () => { deletePreset(p.id); msg.textContent = `Deleted “${p.name}”.`; o.update(() => {}); });
+    del.addEventListener('click', () => {
+      if (!deletePreset(p.id)) { msg.textContent = `Could not delete “${p.name}”: this browser would not save the change. Try again.`; return; }
+      msg.textContent = `Deleted “${p.name}”.`; o.update(() => {});
+    });
     row.append(use, del);
     wrap.appendChild(row);
   });

@@ -25,7 +25,7 @@ export function detectCapabilities(env = globalThis) {
   add('webcodecs', 'Media', 'WebCodecs (fast MP4 export)', yes(has(env.VideoEncoder) && has(env.VideoDecoder)), 'Without it, exports use the slower path or WebM.');
   add('insertable', 'Media', 'Insertable streams (frame-level capture)', yes(has(env.MediaStreamTrackProcessor) && has(env.MediaStreamTrackGenerator)), 'Assessed, not used: recording stays on MediaRecorder, which is steadier across browsers and gives a finished file.');
   const vp9 = typeof env.MediaRecorder?.isTypeSupported === 'function' && env.MediaRecorder.isTypeSupported('video/webm;codecs=vp9');
-  add('alpha', 'Media', 'Transparent video (WebM VP9)', yes(!!vp9), 'Whether this browser can record and play WebM that keeps transparency. A page that shows it still needs a browser that plays it.');
+  add('vp9', 'Media', 'WebM VP9 video (needed for transparent video)', yes(!!vp9), 'Only the format is checked. Whether transparency survives recording and playback is not tested here.');
   add('audioworklet', 'Media', 'AudioWorklet (live audio processing)', yes(has(env.AudioWorklet) || has(env.AudioContext?.prototype?.audioWorklet) || (has(env.AudioContext) && 'audioWorklet' in (env.AudioContext.prototype || {}))));
   add('webgpu', 'On-device AI', 'WebGPU (faster local models)', yes(has(nav.gpu)), 'Without it, local models use WebAssembly and run slower.');
   add('wasm', 'On-device AI', 'WebAssembly', yes(typeof env.WebAssembly === 'object'));

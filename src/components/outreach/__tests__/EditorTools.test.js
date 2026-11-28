@@ -158,6 +158,21 @@ describe('Video Outreach editor tools', () => {
       $('[data-preset-delete]').click();
       expect(JSON.parse(localStorage.getItem('outreach-overlay-presets-v1'))).toEqual([]);
     });
+    it('does not claim a preset was deleted when the browser would not save the change', () => {
+      const { o } = mount('add');
+      $('[data-add-text]').click();
+      document.body.replaceChildren(renderEditorTools(o));
+      const prompt = vi.spyOn(window, 'prompt').mockReturnValue('Kit');
+      $('[data-preset-save]').click();
+      prompt.mockRestore();
+      document.body.replaceChildren(renderEditorTools(o));
+      const set = vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => { throw new Error('full'); });
+      try {
+        $('[data-preset-delete]').click();
+        expect(document.querySelector('[data-overlay-presets] [role="status"]').textContent).toMatch(/Could not delete/);
+        expect(document.querySelector('[data-preset-use]')).not.toBeNull(); // still there, so it can be tried again
+      } finally { set.mockRestore(); }
+    });
     it('says why a preset could not be saved', () => {
       const { o } = mount('add');
       $('[data-add-text]').click();

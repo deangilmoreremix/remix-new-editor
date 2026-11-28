@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+// @vitest-environment jsdom
+import { describe, it, expect, vi } from 'vitest';
 import { isReusableSrc, savePreset, listPresets, deletePreset, applyPreset, presetItem, MAX_PRESETS, MAX_ITEMS, PRESETS_KEY } from '../overlayPresets.js';
 
 const memory = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
@@ -95,5 +96,22 @@ describe('which picture addresses a preset may keep', () => {
     expect(r.skipped).toBe(2);
     s.setItem(PRESETS_KEY, JSON.stringify([{ id: 'x', name: 'Old', items: [{ ...logo, src: 'http://insecure.example/a.png' }, text] }]));
     expect(listPresets(s)[0].items.map((i) => i.kind)).toEqual(['text']); // also cleaned when read back
+  });
+});
+
+describe('details', () => {
+  it('never lets an end time pass the length of the video, even by a rounding step', () => {
+    const preset = { id: 'p', name: 'kit', items: [{ ...logo, id: undefined, start: 0, end: 30 }] };
+    const out = applyPreset(preset, { at: 10, seconds: 12.06 });
+    expect(out[0].end).toBe(12.06);
+    expect(out[0].end).toBeLessThanOrEqual(12.06);
+  });
+  it('survives a localStorage that throws when it is looked at', () => {
+    const spy = vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => { throw Object.assign(new Error('blocked'), { name: 'SecurityError' }); });
+    try {
+      expect(listPresets()).toEqual([]);
+      expect(savePreset('kit', [text])).toMatchObject({ ok: false, reason: expect.stringMatching(/storage/) });
+      expect(deletePreset('x')).toBe(false);
+    } finally { spy.mockRestore(); }
   });
 });

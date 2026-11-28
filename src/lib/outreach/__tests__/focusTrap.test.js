@@ -42,6 +42,16 @@ describe('focus trap', () => {
     trapFocus(dlg, { initial: document.getElementById('b') });
     expect(document.activeElement.id).toBe('b');
   });
+  it('skips controls that are not drawn (display: none on them or a parent), so focus really lands inside', () => {
+    document.body.innerHTML = '<button id="opener">o</button><div id="dlg"><button id="a" style="display:none">A</button><div style="display:none"><button id="b">B</button></div><button id="c">C</button><button id="d" style="visibility:hidden">D</button></div>';
+    const dlg = document.getElementById('dlg');
+    expect(focusables(dlg).map((n) => n.id)).toEqual(['c']);
+    document.getElementById('opener').focus();
+    trapFocus(dlg);
+    expect(document.activeElement.id).toBe('c');
+    expect(tab().defaultPrevented).toBe(true); // c is both first and last: Tab stays on it
+    expect(document.activeElement.id).toBe('c');
+  });
   it('handles a dialog with nothing to focus, and releasing twice', () => {
     document.body.innerHTML = '<div id="dlg"><p>just text</p></div>';
     const dlg = document.getElementById('dlg');

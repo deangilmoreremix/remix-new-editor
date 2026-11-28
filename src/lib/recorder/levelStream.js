@@ -35,6 +35,7 @@ export async function levelStream(stream, {
     const out = new Stream([...(stream.getVideoTracks?.() || []), processed]);
     // Stopping the take stops the original microphone too (the recorder stops every sourceTrack).
     out.sourceTracks = [...(stream.sourceTracks || []), track];
+    out.stopMix = stream.stopMix; // a mixer behind this stream (computer sound + microphone) is still closed with the take
     return { stream: out, leveled: true, stop() { try { source.disconnect(); node.disconnect(); } catch { /* gone */ } ctx.close?.().catch?.(() => {}); } };
   } catch {
     try { ctx?.close?.(); } catch { /* gone */ }

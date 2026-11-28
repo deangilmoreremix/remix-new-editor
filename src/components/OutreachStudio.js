@@ -718,7 +718,7 @@ export function OutreachStudio() {
         const row = el('div', 'flex flex-wrap items-center gap-2');
         row.setAttribute('data-model-row', m.id);
         const pick = el('input'); pick.type = 'radio'; pick.name = 'outreach-speech-model'; pick.checked = m.chosen; pick.setAttribute('aria-label', `Use ${m.label}`);
-        pick.addEventListener('change', () => { chooseModel(m.id); msg.textContent = `Using ${m.label}.`; });
+        pick.addEventListener('change', () => { const kept = chooseModel(m.id); msg.textContent = kept ? `Using ${m.label}.` : `Using ${m.label} for now. This browser would not keep the choice for next time.`; });
         const state = m.files ? `on this device (${m.files} file${m.files === 1 ? '' : 's'})` : m.agreed ? 'agreed, not downloaded yet' : 'not downloaded';
         const label = el('label', 'flex flex-1 items-center gap-2'); label.append(pick, el('span', '', `${m.label}: ${state}`));
         row.appendChild(label);
@@ -1024,7 +1024,12 @@ export function OutreachStudio() {
     const yes = button('Restore it', { small: true, primary: true });
     yes.setAttribute('data-outreach-restore-yes', '');
     // Straight into memory (shaped like any saved draft): this must work even when localStorage is full or blocked, which is when a backup is needed.
-    yes.addEventListener('click', () => { adoptDraft(loadDraft({ getItem: () => JSON.stringify(b.draft) })); restoreOffer = null; persist(); notice = 'Draft restored.'; render(); });
+    yes.addEventListener('click', async () => {
+      // The offer was made when the studio opened; check again now, so work added since is never replaced.
+      const m = await import('../lib/outreach/draftBackup.js');
+      if (!m.shouldOfferRestore(draft, b)) { restoreOffer = null; notice = 'Your draft already has work in it, so the backup was not restored.'; render(); return; }
+      adoptDraft(loadDraft({ getItem: () => JSON.stringify(b.draft) })); restoreOffer = null; persist(); notice = 'Draft restored.'; render();
+    });
     const no = button('Not now', { small: true });
     no.addEventListener('click', () => { restoreOffer = null; import('../lib/outreach/draftBackup.js').then((m) => m.clearBackup()).catch(() => {}); render(); });
     bar.append(yes, no);
