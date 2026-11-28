@@ -25,7 +25,6 @@ import { mountGenerationNotifications } from './components/studio/generationNoti
 import { mountStudioTooltips } from './components/studio/tooltipLayer.js';
 import { mountLandingPageButtons } from './components/studio/landingPageAttach.js';
 import { mountStaleVersionGuard } from './lib/staleVersion.js';
-import { mountSchedulePostButtons } from './components/studio/socialPostAttach.js';
 import { ensureClerkLoaded } from './lib/clerkInit.js';
 import { perfMonitor } from './lib/performance.js';
 import { analytics } from './lib/analytics.js';
@@ -237,7 +236,6 @@ try {
   mountStudioTooltips();
   mountStaleVersionGuard(); // a tab from before a deploy: "SmartVid was updated. Reload" instead of dead buttons
   mountLandingPageButtons(); // "Create landing page" beside every studio's Download link, in that studio's own style
-  mountSchedulePostButtons(); // "Schedule post" (AI-written social post) beside it, same mechanism
   mountAskSmartVideo({ navigate: (page) => navigate(page), getPage: () => getCurrentPage() || '' });
 
   const body = document.createElement('div');

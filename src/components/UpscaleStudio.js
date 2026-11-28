@@ -1,6 +1,7 @@
 import { muapi } from '../lib/muapi.js';
 import { registerGeneration } from '../lib/generationHistory.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { createStudioVideoPagesButton } from './studio/studioVideoPagesButton.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
@@ -246,6 +247,7 @@ const triggerBtn = document.createElement('button');
   // Action row — unified Image Studio layout (Thumbnail · Advanced · Tools · Personalize)
   const advanced = createAdvancedPanel({ id: 'upscale-advanced-btn', elements: [factorGroup] });
   arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button });
+  actionRow.appendChild(createStudioVideoPagesButton({ studioId: 'upscale', getResult: () => lastOutputUrl || '', getAsset: () => ({ type: 'image' }) }));
 
   const genBtn = document.createElement('button');
 genBtn.type = 'button';

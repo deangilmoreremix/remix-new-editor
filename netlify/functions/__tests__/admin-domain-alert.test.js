@@ -39,8 +39,8 @@ describe('e-mail content', () => {
   it('names the domain and carries the approve / refuse SQL', () => {
     const m = buildDomainAlertEmail({ domain: 'videos.acme.com', business: 'acme', displayName: 'Acme Dental', ownerEmail: 'owner@acme.com' });
     expect(m.subject).toBe('Custom domain requested: videos.acme.com (acme)');
-    expect(m.text).toContain("update public.video_owner_profiles set custom_domain_verified = true where custom_domain = 'videos.acme.com';");
-    expect(m.text).toContain("set custom_domain = null where custom_domain = 'videos.acme.com';");
+    expect(m.text).toContain("update public.video_owner_profiles set custom_domain_verified = true where custom_domain = 'videos.acme.com' and business_slug = 'acme';");
+    expect(m.text).toContain("set custom_domain = null where custom_domain = 'videos.acme.com' and business_slug = 'acme';");
     expect(m.text).toContain('owner@acme.com');
   });
   it('escapes HTML, strips control characters and quotes in SQL', () => {
@@ -48,11 +48,87 @@ describe('e-mail content', () => {
     expect(m.html).not.toContain('<img');
     expect(m.html).toContain('&lt;img');
     expect(m.subject).not.toMatch(/[\r\n]/);
-    expect(m.text).toContain("custom_domain = 'x.com''; drop table t;--'");
+    expect(m.text).toContain("custom_domain = 'x.com''; drop table t;--' and business_slug = 'acme'");
     expect(m.text).not.toMatch(/\r/);
   });
   it('omits the owner line when there is no verified address', () => {
     expect(buildDomainAlertEmail({ domain: 'videos.acme.com', business: 'acme' }).text).not.toContain('Owner:');
+  });
+});
+
+describe('hardening', () => {
+  const OWNED = { ...ALERT, owner_id: 'user_1' };
+  const clerk = (s, answer) => vi.fn(async (url, init) => (String(url).includes('api.clerk.com') ? answer : s.fake.fetchImpl(url, init)));
+  const withClerk = { CLERK_SECRET_KEY: 'sk' };
+
+  it('still finds the owner after the business was renamed (looked up by owner id)', async () => {
+    const s = setup({ alerts: [OWNED], profiles: [{ ...PROFILE, business_slug: 'acme-dental' }] });
+    expect(await go(s)).toEqual({ sent: 1, skipped: 0, failed: 0 });
+    expect(s.sent[0].subject).toContain('(acme-dental)'); // the current name, not the stale one
+    expect(s.sent[0].text).toContain("business_slug = 'acme-dental'");
+  });
+
+  it('never prints "[object Object]" when Clerk is temporarily unavailable; the e-mail just has no owner line', async () => {
+    const s = setup({ alerts: [OWNED] });
+    const fetchImpl = clerk(s, { ok: false, status: 503, json: async () => ({}) });
+    expect(await go(s, { fetchImpl, env: { ...ENV, ...withClerk } })).toEqual({ sent: 1, skipped: 0, failed: 0 });
+    expect(s.sent[0].text).not.toMatch(/object Object|Owner:/);
+    expect(s.sent[0].html).not.toMatch(/object Object/);
+  });
+
+  it('says how many businesses claim the same domain', async () => {
+    const rival = { ...PROFILE, clerk_user_id: 'user_2', business_slug: 'rival' };
+    const s = setup({ alerts: [OWNED], profiles: [PROFILE, rival] });
+    await go(s);
+    expect(s.sent[0].text).toContain('2 businesses have asked for this domain');
+    expect(s.sent[0].html).toContain('2 businesses have asked for this domain');
+  });
+
+  it('counts the attempt before sending, so a crash during sending cannot loop forever', async () => {
+    const s = setup({ alerts: [OWNED] });
+    let attemptsWhenSending;
+    s.adapter.send = vi.fn(async () => { attemptsWhenSending = s.row().attempts; throw new Error('boom'); });
+    await go(s);
+    expect(attemptsWhenSending).toBe(1);
+    expect(s.row().sent_at).toBeNull();
+  });
+
+  it('sends to all recipients at the same time', async () => {
+    const s = setup({ alerts: [OWNED] });
+    let open = 0; let peak = 0;
+    s.adapter.send = vi.fn(async () => { open += 1; peak = Math.max(peak, open); await new Promise((r) => setTimeout(r, 5)); open -= 1; return { ok: true }; });
+    await go(s);
+    expect(peak).toBe(2);
+  });
+
+  it('marks the alert as given up on the last failed attempt, and reports it', async () => {
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const s = setup({ alerts: [{ ...OWNED, attempts: MAX_ATTEMPTS - 1 }], send: async () => ({ ok: false, error: 'resend_http_500' }) });
+    expect(await go(s)).toEqual({ sent: 0, skipped: 0, failed: 1, gaveUp: 1 });
+    expect(s.row().attempts).toBe(MAX_ATTEMPTS);
+    expect(s.row().last_error).toBe('gave_up:resend_http_500');
+    expect(errors).toHaveBeenCalledTimes(1);
+    expect(String(errors.mock.calls[0][0])).not.toMatch(/@/);
+    errors.mockRestore();
+  });
+
+  it('handles at most 10 alerts per sweep and stops starting new ones after the deadline', async () => {
+    const many = Array.from({ length: 15 }, (_, i) => ({ ...OWNED, id: i + 1 }));
+    const s = setup({ alerts: many });
+    const res = await sweep({ env: ENV, fetchImpl: s.fetchImpl, adapter: s.adapter, now: NOW });
+    expect(res.sent).toBe(10);
+    const slow = setup({ alerts: many });
+    const done = await sendDomainAlerts({ sweep: true, env: ENV, fetchImpl: slow.fetchImpl, adapter: slow.adapter, now: NOW, deadlineMs: -1 });
+    expect(done.sent).toBe(0);
+  });
+
+  it('deletes alerts that were sent more than 90 days ago, and only those', async () => {
+    const old = { ...OWNED, id: 1, sent_at: '2026-06-01T00:00:00.000Z' };
+    const recent = { ...OWNED, id: 2, sent_at: '2026-11-10T00:00:00.000Z' };
+    const open = { ...OWNED, id: 3 };
+    const s = setup({ alerts: [old, recent, open] });
+    await sweep({ env: ENV, fetchImpl: s.fetchImpl, adapter: s.adapter, now: NOW });
+    expect(s.fake.db.custom_domain_alerts.map((a) => a.id).sort()).toEqual([2, 3]);
   });
 });
 

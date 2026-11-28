@@ -81,7 +81,7 @@ export function resolveGenerationAspectRatio(inputs, template) {
 
 export function CinemaTemplateStudio() {
   const container = document.createElement('div');
-  container.className = 'cinema-template-studio w-full h-full flex flex-col bg-black overflow-hidden';
+  container.className = 'cinema-template-studio studio-short-scroll w-full h-full flex flex-col bg-black overflow-hidden';
 
   // State
   const registry = getTemplateRegistry();
@@ -341,7 +341,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     }
 
     const grid = document.createElement('div');
-    grid.className = 'flex-1 overflow-auto p-6';
+    grid.className = 'studio-short-body flex-1 overflow-auto p-6';
 
     if (browseFilter !== 'all') {
       const filterHeader = document.createElement('div');
@@ -582,7 +582,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     // two-column grid (form card left, preview/output right) that stacks on
     // narrower screens.
     const content = document.createElement('div');
-    content.className = 'flex-1 overflow-auto px-4 py-6 sm:px-8 sm:py-10';
+    content.className = 'studio-short-body flex-1 overflow-auto px-4 py-6 sm:px-8 sm:py-10';
 
     const centeredContainer = document.createElement('div');
     centeredContainer.className = 'mx-auto max-w-[980px]';

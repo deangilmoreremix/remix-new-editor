@@ -5,6 +5,7 @@
   background: var(--bg-base);
   color: var(--text-primary);
   min-height: 0;
+  overflow-y: auto; /* short editors: scroll rather than clip when a drawer is open */
   /* Shared left-rail width: Script scenes panel, Breakdown scene nav, Shotlist/Generate structure rail. */
   --director-left-rail: 270px;
   --setup-0: #6d8fad;
@@ -458,6 +459,9 @@
 .director-tab__drawer--open {
   grid-template-rows: 1fr;
   border-bottom-color: var(--border-subtle);
+  /* An open drawer must never push the workbench out of a short editor: cap it and let it scroll. */
+  max-height: 58dvh;
+  overflow-y: auto;
 }
 .director-tab__drawer-clip { min-height: 0; overflow: hidden; }
 .director-tab__drawer--open .director-tab__drawer-clip { overflow: auto; }
@@ -631,7 +635,7 @@
 }
 
 /* ── Redesign: workbench (rail + stage) ─────────────── */
-.director-tab__workbench { position:relative; display:grid; grid-template-columns:var(--director-left-rail) minmax(0,1fr); grid-template-rows:minmax(0,1fr); min-height:0; flex:1; }
+.director-tab__workbench { position:relative; display:grid; grid-template-columns:var(--director-left-rail) minmax(0,1fr); grid-template-rows:minmax(0,1fr); min-height:min(300px,55dvh); flex:1; }
 .director-tab__workbench--norail { grid-template-columns:minmax(0,1fr); }
 .director-tab__rail { min-height:0; min-width:0; overflow:hidden; padding:12px; border-right:1px solid var(--border-subtle); display:flex; flex-direction:column; gap:8px; background:var(--bg-raised); }
 .director-tab__rail-scroll { flex:1; min-height:0; min-width:0; overflow-y:auto; overflow-x:hidden; scrollbar-gutter:stable; display:flex; flex-direction:column; gap:8px; }
@@ -1605,11 +1609,12 @@
   .dllm-trigger { min-height: 40px; }
   .dllm-menu {
     position: fixed;
-    top: auto;
+    /* Anchored from the top of the editor (not its bottom): the editor can extend below the fold until scrolled. */
+    top: 128px;
     right: 8px;
-    bottom: calc(var(--mobile-project-nav-height) + 8px);
+    bottom: auto;
     left: 8px;
-    max-height: min(64dvh, 520px);
+    max-height: min(56dvh, 460px);
     overflow-y: auto;
   }
   .dllm-item { min-height: 48px; }

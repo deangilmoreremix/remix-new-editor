@@ -4,7 +4,10 @@ import { createRoot } from 'react-dom/client';
 import { act } from 'react';
 
 const dispatch = vi.fn();
-vi.mock('@cinegen/components/workspace/workspace-shell', () => ({ useWorkspace: () => ({ state: { overlays: [], timelines: [], activeTimelineId: '' }, dispatch }) }));
+const timeline = vi.hoisted(() => ({ clips: 0 }));
+vi.mock('@cinegen/components/workspace/workspace-shell', () => ({
+  useWorkspace: () => ({ state: { overlays: [], activeTimelineId: 't', timelines: [{ id: 't', tracks: [{ id: 'tv', kind: 'video' }, { id: 'ta', kind: 'audio' }], clips: [...Array.from({ length: timeline.clips }, (_, i) => ({ id: `c${i}`, trackId: 'tv' })), { id: 'au', trackId: 'ta' }] }] }, dispatch }),
+}));
 vi.mock('@cinegen/lib/leads/qr-end-card', () => ({ createQrEndCard: vi.fn(), mp4WatchLink: () => '' }));
 
 import { PublishCard } from '../components/leads/publish-card';
@@ -21,7 +24,7 @@ const mount = (retarget: 'on' | 'guest' | 'failed' | null) => {
 };
 const q = (host: HTMLElement, id: string) => host.querySelector(`[data-testid="${id}"]`) as HTMLElement | null;
 
-beforeEach(() => { dispatch.mockClear(); });
+beforeEach(() => { dispatch.mockClear(); timeline.clips = 3; });
 
 describe('PublishCard Retarget status', () => {
   it('shows nothing before a publish has reported', () => {
@@ -52,3 +55,23 @@ describe('PublishCard Retarget status', () => {
     cleanup();
   });
 });
+
+describe('PublishCard scene hint', () => {
+  it('tells the owner Retarget needs two scenes when the timeline has fewer (audio clips do not count)', () => {
+    timeline.clips = 1;
+    const one = mount(null);
+    expect(q(one.host, 'retarget-scenes-hint')!.textContent).toMatch(/at least two scenes.*one/);
+    one.cleanup();
+    timeline.clips = 0;
+    const none = mount(null);
+    expect(q(none.host, 'retarget-scenes-hint')!.textContent).toMatch(/none/);
+    none.cleanup();
+  });
+  it('says nothing with two or more scenes', () => {
+    timeline.clips = 2;
+    const { host, cleanup } = mount(null);
+    expect(q(host, 'retarget-scenes-hint')).toBeNull();
+    cleanup();
+  });
+});
+

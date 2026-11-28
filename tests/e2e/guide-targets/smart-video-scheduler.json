@@ -3,7 +3,7 @@
     "selector": "button:text-is(\"Calendar\")"
   },
   "schedule-tab": {
-    "selector": "button:text-is(\"Schedule\")",
+    "selector": "button:text-is(\"Publish\")",
     "click": true
   },
   "analytics-tab": {

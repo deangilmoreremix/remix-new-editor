@@ -121,6 +121,8 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
     if (endAt && v.currentTime >= endAt - 0.05) v.currentTime = startAt;
   };
   const play = () => { const v = ref.current; if (v && src) { seekToStart(v); void v.play?.(); } };
+  // The page's video is also tracked as a published video (plays, watch time, retention), so report the player's state as it changes.
+  const report = (e) => { const v = e.currentTarget; if (!preview) handlers.onPlayerChange?.({ playing: !v.paused && !v.ended, time: v.currentTime, duration: v.duration }); };
   return (
     <div className={`pk-video${mock ? ' pk-video--mock' : ''}${still ? ' pk-video--still' : ''}`}>
       <video
@@ -134,9 +136,11 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
         src={src ? `${src}${fragment}` : undefined}
         poster={posterUrl || undefined}
         aria-label={viewer.alt ? t(viewer.alt) : still || mock ? (page?.title ? `Picture for ${page.title}` : 'Video placeholder') : (page?.title || 'Video')}
-        onPlay={(e) => { seekToStart(e.currentTarget); setStarted(true); once('play', () => handlers.onPlay?.()); }}
+        onPlay={(e) => { seekToStart(e.currentTarget); setStarted(true); once('play', () => handlers.onPlay?.()); report(e); }}
+        onPause={report}
         onTimeUpdate={(e) => {
           const v = e.currentTarget;
+          report(e);
           if (!started) return;   // a start-frame seek before play is not watching: no progress, no timed button
           if (ctaOn && v.currentTime >= ctaAt) setCtaShown(true);
           // Progress (25/50/75%) counts over the part that plays: from the start time to the stop time (or the end).
@@ -145,7 +149,7 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
           if (end > startAt) { const frac = (v.currentTime - startAt) / (end - startAt); MARKS.forEach((m) => { if (frac >= m.at) once(m.kind, handlers.onProgress); }); }
           if (endAt && v.currentTime >= endAt) { v.pause(); once('complete', () => handlers.onComplete?.()); if (viewer.loop === 'yes') { v.currentTime = startAt; void v.play?.(); } return; }
         }}
-        onEnded={(e) => { if (ctaOn) setCtaShown(true); once('complete', () => handlers.onComplete?.()); if (viewer.loop === 'yes' && startAt) { e.currentTarget.currentTime = startAt; void e.currentTarget.play?.(); } }}
+        onEnded={(e) => { report(e); if (ctaOn) setCtaShown(true); once('complete', () => handlers.onComplete?.()); if (viewer.loop === 'yes' && startAt) { e.currentTarget.currentTime = startAt; void e.currentTarget.play?.(); } }}
       >
         {subtitles ? <track kind="subtitles" src={subtitles} srcLang="en" label="Captions" default /> : null}
       </video>

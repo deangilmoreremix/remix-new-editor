@@ -24,7 +24,7 @@ export const STUDIO_DESCRIPTIONS = {
   lipsync: { name: 'Lip Sync Studio', text: 'Animate portraits or sync lips to audio with AI' },
   personalizer: { name: 'Personalizer', text: 'Personalize templates and assets with your data' },
   'video-pages': { name: 'Video Pages', text: 'Turn any video into a branded landing page with a CTA and lead form' },
-  'video-agent': { name: 'Video Agent', text: 'AI-powered video production assistant' },
+  'video-agent': { name: 'Animation Agent', text: 'Describe an animation and the agent writes, previews and renders it' },
   'ai-vfx': { name: 'AI VFX Studio', text: 'Camera moves, VFX and AI effects from one image' },
   brand: { name: 'Brand Studio', text: 'Brand-consistent content generation' },
   'cinema-template': { name: 'Cinema Templates', text: 'Ready-made cinematic templates: add your media and generate' },

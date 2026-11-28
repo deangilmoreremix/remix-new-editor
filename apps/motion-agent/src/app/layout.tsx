@@ -2,8 +2,8 @@ import { Metadata, Viewport } from "next";
 import "../../styles/global.css";
 
 export const metadata: Metadata = {
-  title: "Prompt to Motion Graphics - Remotion",
-  description: "Prompt to Motion Graphics - Remotion",
+  title: "Animation Agent",
+  description: "Animation Agent",
 };
 
 export const viewport: Viewport = {

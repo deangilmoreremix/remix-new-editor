@@ -28,8 +28,8 @@ import { useCallback } from 'react';
  * @param {string} [props.className]
  * @param {React.ReactNode} [props.children]  Button label. Defaults to "Free Captions".
  */
-/** OpenHiggsBolt's neutral near-black surfaces (app/globals.css: --bg-panel, --bg-card, --glass-border). */
-const OHB_SURFACES = { bg: '#0a0a0a', card: '#111111', bezel: '#111111', line: 'rgba(255,255,255,0.08)', ink: '#ffffff', mute: 'rgba(255,255,255,0.6)' };
+/** OpenHiggsBolt's surfaces (measured from the Personalization modal: dialog #101419, cards #151a20, inputs #0d1116). */
+const OHB_SURFACES = { bg: '#101419', card: '#151a20', field: '#0d1116', bezel: '#151a20', line: 'rgba(255,255,255,0.1)', ink: '#ffffff', mute: 'rgba(255,255,255,0.6)' };
 
 export default function CaptionStudioAction({ videoUrl, onComplete, onApply, onError, language = 'auto', accentColor = '#22d3ee', theme = OHB_SURFACES, className, children }) {
   const open = useCallback(async () => {

@@ -106,6 +106,22 @@ describe('mountVideoPage', () => {
     expect(track).toHaveBeenCalledWith('abc12345', { kind: 'view', contactId: 'contact_01' });
   });
 
+  it('reports the video player to the video analytics when the page video is linked, and not otherwise', async () => {
+    const analytics = { onPlayerChange: vi.fn() };
+    const linked = document.createElement('div');
+    const view = await mountVideoPage(linked, 'abc12345', { fetchPage: async () => page(defaultConfig('clean'), { source: { kind: 'link', videoId: 'vidabcdefg1' } }), recordEvent: vi.fn(), analytics });
+    const video = view.video;
+    Object.defineProperty(video, 'duration', { value: 60, configurable: true });
+    video.currentTime = 5;
+    video.dispatchEvent(new Event('timeupdate'));
+    expect(analytics.onPlayerChange).toHaveBeenCalledWith(expect.objectContaining({ time: 5, duration: 60 }));
+    // a page whose video was never linked records nothing to the video analytics
+    const other = { onPlayerChange: vi.fn() };
+    const plain = await mountVideoPage(document.createElement('div'), 'abc12345', { fetchPage: async () => page(defaultConfig('clean')), recordEvent: vi.fn(), analytics: other });
+    plain.video.dispatchEvent(new Event('timeupdate'));
+    expect(other.onPlayerChange).not.toHaveBeenCalled();
+  });
+
   it('ignores an invalid contact id and never looks it up', async () => {
     window.history.replaceState(null, '', '/p/abc12345?c=bad%20id!');
     const fetchTokens = vi.fn(async () => ({}));

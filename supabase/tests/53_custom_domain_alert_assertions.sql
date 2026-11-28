@@ -58,6 +58,10 @@ select t.sees_nothing('anon cannot read alerts', 'public.custom_domain_alerts');
 select t.fails('anon cannot save a domain', $q$select set_custom_domain('anon.example.com')$q$);
 reset role;
 
+-- (domain_claims_hardening allows 5 changes per business per hour: this script changes the domain more often than
+-- that on purpose, so the counter is reset here; supabase/tests/54 tests the limit itself)
+delete from public.custom_domain_changes;
+
 -- ===== the database call: made with the alert id and the shared secret; a failing call never blocks saving
 create schema if not exists net;
 create table t.http_calls (url text, body jsonb, headers jsonb);
