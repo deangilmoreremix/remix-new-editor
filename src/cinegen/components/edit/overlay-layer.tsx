@@ -1,7 +1,7 @@
 // [remix] Draws the overlays (Lead Generator, List Builder, CTA) over the video at the playhead. The forms are the old editor's own
 // renderers (publish/viewerOverlays.js `showLeadForm`, addons/addonOverlay.js `showListBuilderOverlay`), so they keep the old look
 // (red button, rounded black card). A form that gates playback pauses the video until it is submitted or skipped.
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import type { OverlayClip } from '@cinegen/types/workspace';
 // @ts-expect-error plain JS renderers from the main app
 import { showLeadForm } from '../../../lib/editor/publish/viewerOverlays.js';
@@ -18,7 +18,7 @@ import { attachDragResize } from '../../../lib/editor/addons/dragResize.js';
 // @ts-expect-error plain JS: the same CTA box helper the export uses
 import { ctaBox } from '../../../lib/editor/addons/ctaLottie.js';
 import { mgOverlayLayer } from '@cinegen/lib/occ/mg-templates';
-import { overlaysAt, isRegistryOverlay, gatesOnTimeline } from '@cinegen/lib/overlays/overlays';
+import { overlaysAt, isRegistryOverlay, gatesOnTimeline, overlayPaintRanks } from '@cinegen/lib/overlays/overlays';
 import { hyperframesOverlayLayer, hyperframesItem, defaultFit } from '@cinegen/lib/hyperframes/overlay';
 // @ts-expect-error plain JS placement helpers (same math the renderer and the export use)
 import { hfPlacement, isReactItem } from '../../../lib/hyperframes/placement.js';
@@ -27,9 +27,11 @@ import { beginInlineTextEdit } from '@cinegen/lib/overlays/inline-text-edit';
 import '../../../../styles/timeline-addons.css';
 import '../../../../styles/watch.css';
 
-interface Props { overlays: OverlayClip[]; /** [remix] the contact being previewed (Smart Text tokens, Personalized Image); null = none */ profile?: Record<string, unknown> | null; /** changes whenever that contact's data changes, so the previews redraw */ profileVersion?: number; currentTime: number; isPlaying: boolean; /** play animated add-ons (stickers, lottie, media) without making forms interactive: used by thumbnails */ previewPlaying?: boolean; onPause: () => void; /** play again once the form that held the video is submitted or skipped */ onResume?: () => void; /** click-to-edit text on the form while stopped: the option key and its new text */ onEditText?: (id: string, key: string, value: string) => void; onGeometry?: (id: string, geometry: Record<string, number>) => void; frame?: { width: number; height: number } }
+interface Props { overlays: OverlayClip[]; /** [remix] the contact being previewed (Smart Text tokens, Personalized Image); null = none */ profile?: Record<string, unknown> | null; /** changes whenever that contact's data changes, so the previews redraw */ profileVersion?: number; currentTime: number; isPlaying: boolean; /** play animated add-ons (stickers, lottie, media) without making forms interactive: used by thumbnails */ previewPlaying?: boolean; onPause: () => void; /** play again once the form that held the video is submitted or skipped */ onResume?: () => void; /** click-to-edit text on the form while stopped: the option key and its new text */ onEditText?: (id: string, key: string, value: string) => void; onGeometry?: (id: string, geometry: Record<string, number>) => void; frame?: { width: number; height: number }; /** [remix] drawn inside the add-on container, so its z-indexed children stack with the overlays (the Studio design previews) */ behind?: ReactNode }
 
 const GATES = new Set(['lead-form', 'list-builder']);
+/** The add-on container also holds React-rendered children (the Studio design previews): only the DOM-built overlays are rebuilt and destroyed. */
+const isOverlayChild = (c: Element) => !c.hasAttribute('data-studio-design-preview');
 
 async function sendLead(o: OverlayClip, data: Record<string, unknown>) {
   try {
@@ -77,7 +79,7 @@ function HfHandle({ overlay, frame, onGeometry }: { overlay: OverlayClip; frame:
   );
 }
 
-export function OverlayLayer({ overlays, profile = null, profileVersion = 0, currentTime, isPlaying, previewPlaying, onPause, onResume, onEditText, onGeometry, frame = { width: 1280, height: 720 } }: Props) {
+export function OverlayLayer({ overlays, profile = null, profileVersion = 0, currentTime, isPlaying, previewPlaying, onPause, onResume, onEditText, onGeometry, frame = { width: 1280, height: 720 }, behind }: Props) {
   const currentTimeRef = useRef(currentTime); currentTimeRef.current = currentTime;
   const hostRef = useRef<HTMLDivElement>(null);
   const addonRef = useRef<HTMLDivElement>(null);
@@ -90,6 +92,7 @@ export function OverlayLayer({ overlays, profile = null, profileVersion = 0, cur
   const addonPlaying = previewPlaying ?? isPlaying; // add-ons may animate while the forms stay in their non-interactive preview mode
   const active = overlaysAt(overlays, currentTime);
   const signature = active.map((o) => `${o.id}:${JSON.stringify(o)}`).join('|');
+  const ranks = overlayPaintRanks(overlays); // the published paint order, so the preview stacks the same way
 
   // A form shows again when the playhead is moved back before it.
   useEffect(() => {
@@ -150,18 +153,19 @@ export function OverlayLayer({ overlays, profile = null, profileVersion = 0, cur
   // [remix] id -> animation of the add-ons shown last time: an overlay that has just appeared while playing, or whose animation was just changed, plays its In / Idle effect (as the old editor did)
   const lastAnimations = useRef(new Map<string, string>());
   const wasPlaying = useRef(false);
-  const addonSignature = `${String(profile?.id ?? '')}#${profileVersion}|` + active.filter((o) => isRegistryOverlay(o.type)).map((o) => `${o.id}:${JSON.stringify(o.addon)}:${selected === o.id}`).join('|');
+  const addonSignature = `${String(profile?.id ?? '')}#${profileVersion}|` + active.filter((o) => isRegistryOverlay(o.type)).map((o) => `${o.id}:${ranks.get(String(o.id))}:${JSON.stringify(o.addon)}:${selected === o.id}`).join('|');
   useEffect(() => {
     const layer = addonRef.current;
     if (!layer) return;
     layer.style.setProperty('--ovl-w', `${layer.clientWidth}px`);
     layer.style.setProperty('--ovl-h', `${layer.clientHeight}px`);
-    [...layer.children].forEach((c) => destroyOverlayElement(c));
+    [...layer.children].filter(isOverlayChild).forEach((c) => destroyOverlayElement(c));
     const cleanups: Array<() => void> = [];
     const shown = new Map<string, string>();
     for (const o of active.filter((x) => isRegistryOverlay(x.type))) {
       const el = buildOverlayElement(o, { editor: true, profile }) as HTMLElement | null;
       if (!el) continue;
+      el.style.zIndex = String((ranks.get(String(o.id)) ?? 0) + 1); // same scale as the Studio design previews
       layer.appendChild(el);
       void finishOverlayElement(el, { playing: addonPlaying });
       const animation = (o.addon as { animation?: { in?: string; idle?: string } } | undefined)?.animation;
@@ -212,7 +216,7 @@ export function OverlayLayer({ overlays, profile = null, profileVersion = 0, cur
   // Release the add-on renderers (Lottie, GL, media) when the layer goes away: the effect above only does that when it rebuilds.
   useEffect(() => {
     const layer = addonRef.current;
-    return () => { if (layer) [...layer.children].forEach((c) => destroyOverlayElement(c)); };
+    return () => { if (layer) [...layer.children].filter(isOverlayChild).forEach((c) => destroyOverlayElement(c)); };
   }, []);
 
   // [remix] OpenChatCut motion-graphics templates: shown by the editor's sandboxed code-preview frame (never run in this page).
@@ -251,7 +255,7 @@ export function OverlayLayer({ overlays, profile = null, profileVersion = 0, cur
         if (!el || !o || !onEditText) return;
         selectOverlay(o.id);
         beginInlineTextEdit(el, String((o.addon as { text?: unknown } | undefined)?.text ?? ''), (text) => onEditText(o.id, 'text', text));
-      }} />
+      }}>{behind}</div>
       <div ref={mgRef} style={{ position: 'absolute', inset: 0, zIndex: 4, pointerEvents: 'none' }} />
       <div ref={hostRef} className="addon-overlay-layer wf-layer" style={{ zIndex: 6 }} />
       {active.filter((o) => o.type === 'hyperframes' && selected === o.id).map((o) => <HfHandle key={o.id} overlay={o} frame={frame} onGeometry={onGeometry} />)}

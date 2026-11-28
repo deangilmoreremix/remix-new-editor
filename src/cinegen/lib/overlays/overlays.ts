@@ -138,6 +138,17 @@ export const isConnectTemplate = (templateId: string): boolean => !!(TEMPLATE_LI
 export const overlaysAt = (overlays: OverlayClip[], time: number) => overlays.filter((o) => time >= o.start && time < o.end);
 
 /**
+ * Where each overlay sits in the paint order of the published video and the MP4 export: the composition draws the overlay
+ * track by start time, later on top (equal starts keep the list order). The editor preview uses it to stack its own layers
+ * (the DOM overlays and the Studio designs) the same way.
+ */
+export function overlayPaintRanks(overlays: Array<{ id: string | number; start: number }>): Map<string, number> {
+  return new Map(
+    overlays.map((o, i) => ({ o, i })).sort((a, b) => a.o.start - b.o.start || a.i - b.i).map(({ o }, rank) => [String(o.id), rank] as [string, number]),
+  );
+}
+
+/**
  * A Studio Design overlay with a design already chosen (so it shows something at once) and its text, logo and colours
  * set to the contact's {{tokens}}. The Studio's design catalogue loads on demand.
  */
@@ -151,4 +162,19 @@ export async function createStudioDesignOverlay(startSec: number, timelineSecond
   } catch {
     return base; // designs unavailable: the clip can still be set up in its settings
   }
+}
+
+/** Motion-graphics templates and HyperFrames animations run in a separate sandboxed frame, below the overlay container. */
+export const isSandboxOverlay = (o: { type: string }) => o.type === 'mg-template' || o.type === 'hyperframes';
+
+/**
+ * Studio designs the editor preview must keep BELOW the sandboxed animations: the ones that start before every animation
+ * (so the published video draws them underneath). The animation frame is one layer, so it cannot be interleaved per design;
+ * every other design is stacked with the overlays inside their container, above the frame.
+ */
+export function designsBelowSandbox(overlays: Array<{ id: string | number; type: string; start: number }>, ranks: Map<string, number>): Set<string> {
+  const sandboxRanks = overlays.filter(isSandboxOverlay).map((o) => ranks.get(String(o.id)) ?? 0);
+  if (!sandboxRanks.length) return new Set();
+  const first = Math.min(...sandboxRanks);
+  return new Set(overlays.filter((o) => o.type === 'overlay-studio-design' && (ranks.get(String(o.id)) ?? 0) < first).map((o) => String(o.id)));
 }
