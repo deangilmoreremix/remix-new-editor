@@ -5,6 +5,7 @@ import { pathChoiceElement } from '../viewerOverlays.js';
 import { mountWatchPage } from '../../../../pages/WatchPage.jsx';
 import { timelineToComposition } from '../../remotion/timelineToComposition.js';
 import { buildOverlayElement } from '../../addons/overlayRender.js';
+import { conversionRows } from '../../projectLibrary/analytics/analyticsData.js';
 
 const T = 30;
 const pct = (sec) => (sec / T) * 100;
@@ -62,6 +63,17 @@ describe('Choose your path addon', () => {
     const el = buildOverlayElement({ ...choice, left: 0 }, { editor: true });
     expect(el.textContent).toContain('Pricing');
     expect(el.textContent).toContain('Features');
+  });
+});
+
+describe('Choose your path in the analytics dashboard', () => {
+  it('lists a pick as "Path: <choice>" and still lists hotspots as "Hotspot: <label>"', () => {
+    const rows = conversionRows([
+      { type: 'overlay_click', clip_id: 'pc', label: 'Path: Pricing', sessions: 4 },
+      { type: 'overlay_click', clip_id: 'hs', label: 'Book a demo', sessions: 2 },
+    ]);
+    expect(rows.map((r) => r.label)).toEqual(['Path: Pricing', 'Hotspot: Book a demo']);
+    expect(rows[0]).toMatchObject({ clicks: 4, uniqueSessions: 4 });
   });
 });
 
