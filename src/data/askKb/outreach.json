@@ -228,7 +228,7 @@
     },
     {
       "feature": "Talk live",
-      "explanation": "Turn on “Let prospects call me live” in the Page step (or the editor's Talk live switch), then generate. Click “Live calls off” at the top of Video Outreach to make it “Available for live calls”. While that tab is open, the prospect's page shows “Talk live with <your first name> now”. When they click, you get “Mike Ross wants to talk live” with Accept and Decline; on Accept you are in a video call (Mute, Camera off, Hang up). If you don't answer in 30 seconds, decline, or the call can't connect, their page points them to your booking button.",
+      "explanation": "Turn on “Let prospects call me live” in the Page step (or the editor's Talk live switch), then generate. Click “Live calls off” at the top of Video Outreach to make it “Available for live calls”. While that tab is open, the prospect's page shows “Talk live with <your first name> now”. When they click, you get “Mike Ross wants to talk live” with Accept and Decline; on Accept you are in a video call (Mute, Camera off, Hang up). If you don't answer in 30 seconds, decline, or the call can't connect, their page points them to your booking button. Every call is listed under “Live calls” in Generate & share: who called, when, and whether it was answered (with how long it lasted), missed, declined or didn't connect.",
       "whyToUse": "Turn a warm viewer into a conversation on the spot."
     },
     {

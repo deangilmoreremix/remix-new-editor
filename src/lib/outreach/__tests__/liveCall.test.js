@@ -182,3 +182,52 @@ describe('Talk live settings', async () => {
     expect(liveCampaigns(storage, { name: 'Now', cta: { live: true }, campaign: { id: 'vidCCCC1' }, contacts: [] }).map((c) => c.videoId)).toEqual(['vidAAAA1', 'vidCCCC1']);
   });
 });
+
+describe('Talk live call history', () => {
+  async function hostWithLog() {
+    const bus = fakeBus();
+    const peers = [];
+    const entries = [];
+    let t = 1_000_000;
+    const host = createHostLine({ campaigns: [campaign], join: bus.join, getMedia: async () => media(), makePeer: () => fakePeer('host', peers), onCallLog: (e) => entries.push(e), now: () => t });
+    await host.ready;
+    const guest = createGuestLine({ videoId: 'vid12345', contactId: 'c_mike01', join: bus.join, getMedia: async () => media(), makePeer: () => fakePeer('guest', peers) });
+    await guest.ready;
+    return { bus, host, guest, entries, peers, advance: (ms) => { t += ms; } };
+  }
+
+  it('logs an answered call with who called and how long it lasted', async () => {
+    const { host, guest, entries, peers, advance } = await hostWithLog();
+    await guest.call();
+    advance(4000);
+    await host.accept();
+    await flush();
+    peers.forEach((p) => p.connect());
+    advance(95_000);
+    host.hangup();
+    expect(entries).toEqual([expect.objectContaining({ videoId: 'vid12345', contactId: 'c_mike01', name: 'Mike Ross', outcome: 'answered', durationSeconds: 95 })]);
+    expect(entries[0].answeredAt - entries[0].rangAt).toBe(4000);
+  });
+
+  it('logs a declined call and a missed one (the caller gave up), each once', async () => {
+    const { host, guest, entries } = await hostWithLog();
+    await guest.call();
+    await host.decline();
+    await flush();
+    await guest.call();
+    guest.hangup(); // hung up while it was still ringing: the host gets "cancel"
+    await flush();
+    expect(entries.map((e) => e.outcome)).toEqual(['declined', 'missed']);
+    expect(entries.every((e) => e.durationSeconds === 0)).toBe(true);
+  });
+
+  it('a call answered in another of your tabs is not logged by this one', async () => {
+    const { host, guest, entries, bus } = await hostWithLog();
+    await guest.call();
+    const callId = host.state().incoming.callId;
+    const otherTab = await bus.join(lobbyName('vid12345')); // your other studio tab, on the same lobby
+    await otherTab.send({ type: 'taken', callId });
+    expect(host.state().incoming).toBeNull();
+    expect(entries).toEqual([]);
+  });
+});
