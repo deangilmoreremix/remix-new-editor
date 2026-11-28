@@ -67,3 +67,13 @@ describe('abbreviations inside sentences', () => {
     expect(tightenScript('We help teams. It is quick. Reply any time.', { maxSeconds: 1 }).text).toBe('We help teams.');
   });
 });
+
+describe('company suffixes at the end of a sentence', () => {
+  it('ends the sentence after "Inc." when a capitalised word follows', () => {
+    expect(shortOpening('We work with Acme Inc. Book a time.', 5)).toBe('We work with Acme Inc.');
+    expect(tightenScript('We work with Acme Inc. Book a time.', { maxSeconds: 2 }).text).toBe('We work with Acme Inc.');
+  });
+  it('keeps "Inc." inside a sentence when a lowercase word follows', () => {
+    expect(tightenScript('We work with Acme Inc. today. Book a time.').text).toBe('We work with Acme Inc. today. Book a time.');
+  });
+});

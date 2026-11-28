@@ -52,9 +52,11 @@ const FILLERS = [
 ];
 const words = (t) => String(t || '').trim().split(/\s+/).filter(Boolean).length;
 // A sentence ends at . ! or ? followed by a space or the end, so "1.5 hours" and "example.com" stay in one piece.
-// A period after a common abbreviation ("Dr.", "Mr.", "Inc.", "e.g.") does not end one either.
-const ABBREV = 'Dr|Mr|Mrs|Ms|Prof|Sr|Jr|St|vs|Inc|Ltd|Co|e\\.g|i\\.e';
-const SENTENCE = new RegExp(`.+?(?:(?:(?<!\\b(?:${ABBREV}))\\.|[!?])[.!?]*(?=\\s|$)|$)\\s*`, 'gs');
+// A period after a title or similar ("Dr.", "Mr.", "vs.", "e.g.") never ends one. A company suffix ("Inc.", "Ltd.", "Co.")
+// ends one only when a capitalised word follows ("Acme Inc. Book a time."), not mid-sentence ("Acme Inc. today").
+const TITLES = 'Dr|Mr|Mrs|Ms|Prof|Sr|Jr|St|vs|e\\.g|i\\.e';
+const COMPANY = 'Inc|Ltd|Co';
+const SENTENCE = new RegExp(`.+?(?:(?:(?<!\\b(?:${TITLES}|${COMPANY}))\\.|(?<=\\b(?:${COMPANY}))\\.(?=\\s+[A-Z]|\\s*$)|[!?])[.!?]*(?=\\s|$)|$)\\s*`, 'gs');
 const sentences = (t) => String(t || '').match(SENTENCE)?.map((s) => s.trim()).filter(Boolean) || [];
 const WPM = 150;
 
