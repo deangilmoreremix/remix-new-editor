@@ -27,6 +27,8 @@ import { onOwnerNotification, isOutreachAlertFor } from '../lib/liveAlerts.js';
 import { createHostLine, liveCallSupported } from '../lib/outreach/liveCall.js';
 import { summarizeCampaign, combineSummaries, QUARTILES } from '../lib/outreach/campaignStats.js';
 import { CARD_THEMES } from '../lib/outreach/profileCard.js';
+import { analyzeAudio } from '../lib/outreach/audioQuality.js';
+import { preflight, summarizePreflight, lookupFacts } from '../lib/outreach/preflight.js';
 import { chosenModel, chooseModel, modelStates, clearSpeechModel } from '../lib/outreach/modelManager.js';
 import { createCallWindow, showIncomingCall } from './outreach/LiveCallPanel.js';
 
@@ -1086,11 +1088,70 @@ export function OutreachStudio() {
   }
 
   // What this browser can do (src/lib/outreach/capabilities.js): feature detection only, nothing is asked or downloaded.
+  // Before you record: one checklist. It never opens the camera or microphone and never asks for permission.
+  function renderPreflight() {
+    const box = el('div', 'flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.02] p-3');
+    box.setAttribute('data-outreach-preflight', '');
+    box.appendChild(el('div', 'text-sm font-bold', 'Before you record'));
+    const list = el('div', 'flex flex-col gap-1'); list.setAttribute('role', 'status');
+    const LOOK = { ok: ['Ready', 'bg-emerald-400'], warn: ['Check', 'bg-amber-400'], fail: ['Fix first', 'bg-red-400'] };
+    const paint = (items) => {
+      const sum = summarizePreflight(items);
+      list.replaceChildren(el('p', 'text-xs text-white/60', sum.ready ? (sum.warn ? `Ready to record, with ${sum.warn} thing${sum.warn === 1 ? '' : 's'} to look at.` : 'Ready to record.') : `Recording will not work yet: ${sum.fail} thing${sum.fail === 1 ? '' : 's'} to fix.`));
+      items.forEach((i) => {
+        const row = el('div', 'flex flex-wrap items-start gap-2 text-xs');
+        row.setAttribute('data-preflight', `${i.id}:${i.status}`);
+        row.append(el('span', `mt-1 h-2 w-2 shrink-0 rounded-full ${LOOK[i.status][1]}`), el('span', 'w-56 shrink-0 text-white/85', i.label), el('span', 'font-semibold text-white/70', LOOK[i.status][0]));
+        if (i.advice) row.appendChild(el('span', 'text-white/50', i.advice));
+        list.appendChild(row);
+      });
+    };
+    paint(preflight());
+    lookupFacts().then((facts) => paint(preflight(globalThis, facts))).catch(() => {});
+    box.appendChild(list);
+    return box;
+  }
+
+  // A sound check of the recording you have (measured in the browser; nothing is uploaded or sent).
+  let soundCheck = null; // { state:'idle'|'working'|'done'|'error', result?, message? }
+  function renderSoundCheck() {
+    const box = el('div', 'flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.02] p-3');
+    box.setAttribute('data-outreach-sound-check', '');
+    box.appendChild(el('div', 'text-sm font-bold', 'Sound check of your recording'));
+    const status = el('div', 'flex flex-col gap-1 text-xs'); status.setAttribute('role', 'status');
+    const has = !!draft.video?.url;
+    const run = button(soundCheck?.state === 'working' ? 'Checking…' : soundCheck?.state === 'done' ? 'Check again' : 'Check the sound', { small: true });
+    run.setAttribute('data-sound-check-run', '');
+    run.disabled = !has || soundCheck?.state === 'working';
+    run.addEventListener('click', async () => {
+      soundCheck = { state: 'working' }; render();
+      try {
+        const { decodeAudio } = await import('../lib/captionStudio/transcribeClient.js');
+        const samples = await decodeAudio(source().url);
+        const result = analyzeAudio(samples, 16000);
+        soundCheck = result ? { state: 'done', result } : { state: 'error', message: 'There is no sound in this recording to check.' };
+      } catch (err) { soundCheck = { state: 'error', message: err?.message || 'The sound could not be read.' }; }
+      render();
+    });
+    if (!has) status.appendChild(el('p', 'text-white/50', 'Record or add a video first.'));
+    if (soundCheck?.state === 'error') status.appendChild(el('p', 'text-amber-300', soundCheck.message));
+    if (soundCheck?.state === 'done') {
+      const r = soundCheck.result;
+      const tone = r.level === 'good' ? 'text-emerald-300' : r.level === 'ok' ? 'text-amber-300' : 'text-red-300';
+      status.appendChild(el('p', `text-sm font-bold ${tone}`, `${r.score} out of 100 · ${r.level === 'good' ? 'Good' : r.level === 'ok' ? 'Could be better' : 'Needs work'}`));
+      r.notes.forEach((n) => status.appendChild(el('p', 'text-white/70', n)));
+      status.appendChild(el('p', 'text-[11px] text-white/45', `Voice about ${r.loudnessDb} dB, background about ${r.noiseFloorDb} dB, ${r.clippedPercent}% distorted. A guide only: it does not predict replies.`));
+    }
+    box.append(run, status);
+    return box;
+  }
+
   function renderChecks() {
     const items = detectCapabilities();
     const sum = summarizeCapabilities(items);
     const box = el('div', 'flex flex-col gap-3 rounded-xl border border-white/10 p-4');
     box.setAttribute('data-editor-checks', '');
+    box.append(renderPreflight(), renderSoundCheck());
     box.appendChild(el('div', 'text-sm font-bold', 'What this browser can do'));
     box.appendChild(el('p', 'text-xs text-white/55', `${sum.supported} ready, ${sum.permission} need your OK first, ${sum.unavailable} not available here. Nothing is requested by this check.`));
     const LOOK = { supported: ['Ready', 'bg-emerald-400'], permission: ['Needs permission', 'bg-amber-400'], unavailable: ['Not available', 'bg-red-400'], unknown: ['Unknown', 'bg-white/40'] };
