@@ -83,3 +83,11 @@ describe('many cut-out matches before a playable one', () => {
     expect(firstPlayableMatch(many, 'pricing', remap)).toMatchObject({ index: 440 });
   });
 });
+
+describe('Greek final sigma', () => {
+  it('finds a word that ends in a capital sigma, and matches a lowercase final sigma', () => {
+    expect(searchLines([{ startMs: 0, text: 'ΌΣ' }], 'ΌΣ')).toHaveLength(1);
+    expect(searchLines([{ startMs: 0, text: 'λόγος' }], 'ΛΟΓΟΣ')).toHaveLength(1);
+    expect(searchLines([{ startMs: 0, text: 'ΛΌΓΟΣ' }], 'λόγος')).toHaveLength(1);
+  });
+});

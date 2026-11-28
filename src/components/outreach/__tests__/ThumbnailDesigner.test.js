@@ -140,6 +140,30 @@ describe('thumbnail designer', () => {
       expect(Number($('[data-thumb-start]').value)).toBe(times[4]);
     });
 
+    it('only suggests moments the scrubber can select, so the shown time is the saved start', async () => {
+      const kinds = ['flat', 'flat', 'flat', 'flat', 'flat', 'sharp', 'sharp', 'sharp'];
+      let n = 0;
+      T.grabFrames.mockImplementation(async () => [fake(kinds[n++])]);
+      const draft = withVideo(); draft.video.duration = 20.06; // GIF maximum start is 17.06
+      openThumbnailDesigner({ draft });
+      $('[data-thumb-suggest]').click();
+      await vi.waitFor(() => expect(document.querySelectorAll('[data-thumb-suggestion]').length).toBeGreaterThan(0));
+      const max = Number($('[data-thumb-start]').max);
+      const chips = [...document.querySelectorAll('[data-thumb-suggestion]')];
+      chips.forEach((c) => expect(Number(c.dataset.thumbSuggestion)).toBeLessThanOrEqual(max));
+      chips.forEach((c) => { c.click(); expect(draft.email.thumb.start).toBe(Number(c.dataset.thumbSuggestion)); });
+    });
+
+    it('clears suggestions when the thumbnail type changes the allowed range', async () => {
+      T.grabFrames.mockImplementation(async () => [fake('sharp')]);
+      const draft = withVideo();
+      openThumbnailDesigner({ draft });
+      $('[data-thumb-suggest]').click();
+      await vi.waitFor(() => expect(document.querySelectorAll('[data-thumb-suggestion]').length).toBe(3));
+      $('[data-thumb-type="static"]').click();
+      expect(document.querySelectorAll('[data-thumb-suggestion]').length).toBe(0);
+    });
+
     it('says so when the video cannot be read (tainted canvas)', async () => {
       T.grabFrames.mockImplementation(async () => [{ getContext: () => ({ getImageData: () => { throw new Error('tainted canvas'); } }) }]);
       openThumbnailDesigner({ draft: withVideo() });

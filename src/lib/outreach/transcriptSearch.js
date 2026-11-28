@@ -4,16 +4,16 @@
 // A line is { startMs, endMs, text }. Every word you type must appear in the line (any order, any case).
 
 const MARKS = /[̀-ͯ]/g;
-const norm = (s) => String(s || '').toLowerCase().normalize('NFKD').replace(MARKS, '');
 
-// The same folding, keeping where each folded character came from, so a match can be shown on the original text.
+// Lowercase, strip accents and treat final sigma as sigma. Done one character at a time (so offsets can be mapped
+// back to the original text) and used for both the text and the query, so the two always agree.
 function fold(s) {
   let text = '';
   const starts = [];
   const ends = [];
   let at = 0;
   for (const ch of String(s || '')) {
-    const out = ch.toLowerCase().normalize('NFKD').replace(MARKS, '');
+    const out = ch.toLowerCase().normalize('NFKD').replace(MARKS, '').replace(/ς/g, 'σ');
     for (let i = 0; i < out.length; i += 1) { starts.push(at); ends.push(at + ch.length); }
     if (!out.length && ends.length) ends[ends.length - 1] = at + ch.length; // an accent mark belongs to the letter before it
     text += out;
@@ -23,7 +23,7 @@ function fold(s) {
 }
 
 /** The words of a query (empty when there is nothing to search). */
-export const queryWords = (q) => norm(q).split(/[^\p{L}\p{N}']+/u).filter(Boolean);
+export const queryWords = (q) => fold(q).text.split(/[^\p{L}\p{N}']+/u).filter(Boolean);
 
 /**
  * @returns {{ index:number, startMs:number, text:string, ranges:[number,number][] }[]}

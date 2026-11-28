@@ -101,6 +101,7 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
   scrub.append(el('span', 'text-[11px] text-white/50', 'Select preview'), startRow, suggestHead, suggestList, suggestNote);
   const mss = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
   let suggestRun = null; // { aborted } while a run is going
+  let suggestedFor = null; // the latest selectable start these suggestions were made for
   const pickMoment = (time) => {
     start.value = String(Math.max(0, Math.min(Number(start.max), Math.round(time * 10) / 10)));
     applyStart();
@@ -111,7 +112,8 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
     suggest.disabled = true; cancelSuggest.hidden = false; suggestList.replaceChildren(); suggestNote.hidden = true;
     // Only moments the scrubber can really select (a GIF needs room after its start), so a suggestion and the saved start match.
     const latest = Number(start.max);
-    const times = [...new Set(sampleTimes(draft.video.duration || video?.duration || 0, 8).map((t) => (Number.isFinite(latest) ? Math.round(Math.min(t, latest) * 10) / 10 : t)))];
+    suggestedFor = Number.isFinite(latest) ? latest : null;
+    const times = [...new Set(sampleTimes(draft.video.duration || video?.duration || 0, 8).map((t) => (Number.isFinite(latest) ? Math.floor(Math.min(t, latest) * 10 + 1e-9) / 10 : t)))];
     const frames = [];
     try {
       for (let i = 0; i < times.length; i += 1) {
@@ -358,6 +360,11 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
     bgHelp.textContent = s.background === 'auto' ? 'Their website behind you when your video uses it, otherwise your video.' : s.background === 'video' ? 'Your recording fills the picture.' : 'Your image behind your camera bubble, for every prospect.';
     const dur = draft.video?.duration || 3;
     start.max = String(Math.max(0, dur - (s.type === 'gif' ? T.GIF_SECONDS : 0.1)));
+    // A GIF needs room after its start, a still does not: suggestions made for the other type could be out of range.
+    if (suggestedFor !== null && Number(start.max) !== suggestedFor) {
+      if (suggestRun) suggestRun.aborted = true;
+      suggestList.replaceChildren(); suggestNote.hidden = true; suggestedFor = null;
+    }
     start.value = String(Math.min(s.start, Number(start.max)));
     startLabel.textContent = `${Number(start.value).toFixed(1)}s`;
     const p = s.play;

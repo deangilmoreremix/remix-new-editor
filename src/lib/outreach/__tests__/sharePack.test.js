@@ -126,6 +126,17 @@ describe('share pack', () => {
   });
 });
 
+function readZipNames(zip) {
+  const v = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
+  const names = [];
+  for (let at = 0; v.getUint32(at, true) === 0x04034b50;) { // each local header: sizes at 18, name length at 26, extra length at 28
+    const size = v.getUint32(at + 18, true); const n = v.getUint16(at + 26, true); const x = v.getUint16(at + 28, true);
+    names.push(new TextDecoder().decode(zip.subarray(at + 30, at + 30 + n)));
+    at += 30 + n + x + size;
+  }
+  return names;
+}
+
 describe('names that collide with names already handed out', () => {
   const row = (firstName, n) => ({ contact: { firstName, email: `${n}@x.com` }, link: `https://smartvid.app/watch/${n}`, subject: 's', text: 't' });
   it('gives "Alex", "Alex" and "Alex (2)" three different files, each named by its CSV row', async () => {
@@ -141,6 +152,17 @@ describe('names that collide with names already handed out', () => {
     expect(safeFileName(svg)).toBe(svg);
     const csv = files.find((f) => f.name === 'links.csv').data.split('\r\n')[1];
     expect(csv.endsWith(svg)).toBe(true);
+  });
+  it('a long all-emoji name still matches the zip entry, for the SVG, PNG and CSV', async () => {
+    const png = async () => new Blob([new Uint8Array([1])], { type: 'image/png' });
+    const { files } = await buildSharePack([row('😀'.repeat(40), 1), row('😀'.repeat(40), 2)], { png });
+    const names = files.map((f) => f.name);
+    names.forEach((n) => { expect(n.length).toBeLessThanOrEqual(80); expect(safeFileName(n)).toBe(n); });
+    const zipNames = readZipNames(createZip(files));
+    expect(zipNames).toEqual(names); // nothing was renamed or cut by the zip
+    const csv = files.find((f) => f.name === 'links.csv').data.split('\r\n');
+    expect(names).toContain(csv[1].split(',').pop());
+    expect(names).toContain(csv[2].split(',').pop());
   });
   it('the zip never repeats a name, even when a later file already has a numbered one', () => {
     const zip = createZip([{ name: 'a.txt', data: 'x' }, { name: 'a.txt', data: 'y' }, { name: 'a (2).txt', data: 'z' }]);

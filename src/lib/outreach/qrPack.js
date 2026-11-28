@@ -4,7 +4,7 @@
 // `qrcode` package (MIT). A QR is only made for a real https link; the picture contains the link and nothing else.
 import QRCode from 'qrcode';
 import { csvCell } from './email.js';
-import { createZip, safeFileName } from './zipStore.js';
+import { createZip, safeFileName, cutUnits } from './zipStore.js';
 
 /** The link to encode, or throws. Only https links to a real host are accepted, with no credentials in them. */
 export function qrTarget(link) {
@@ -65,8 +65,9 @@ export function downloadBlob(blob, name, doc = globalThis.document) {
 }
 
 // At most 60 characters, so "(99)" and "-qr.svg" still fit inside the 80-character file name limit.
-// Cut by whole characters (never half of an emoji), then clean again, so the name is exactly what the zip will keep.
-const who = (r) => safeFileName(Array.from(safeFileName([r.contact?.firstName, r.contact?.lastName].filter(Boolean).join('-') || r.contact?.company || r.contact?.email || 'prospect', 'prospect')).slice(0, 60).join(''), 'prospect');
+// At most 60 UTF-16 units (the zip counts those), cut by whole characters, so "(99)" and "-qr.svg" still fit inside the
+// 80-unit file name limit and the name is exactly what the zip will keep.
+const who = (r) => safeFileName(cutUnits(safeFileName([r.contact?.firstName, r.contact?.lastName].filter(Boolean).join('-') || r.contact?.company || r.contact?.email || 'prospect', 'prospect'), 60), 'prospect');
 
 /**
  * Everything to send one prospect, as files for a zip:

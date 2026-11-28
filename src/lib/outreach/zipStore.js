@@ -19,6 +19,13 @@ export function crc32(bytes) {
 
 const MAX_NAME = 80;
 
+/** The most whole characters of `s` that fit in `units` UTF-16 units (never half of an emoji). */
+export function cutUnits(s, units) {
+  let out = '';
+  for (const ch of String(s)) { if (out.length + ch.length > units) break; out += ch; }
+  return out;
+}
+
 /** A file name safe on every system: no paths, no control or reserved characters, never empty. */
 export function safeFileName(name, fallback = 'file') {
   const cleaned = String(name ?? '')
@@ -30,7 +37,7 @@ export function safeFileName(name, fallback = 'file') {
   // Too long: shorten the part before the extension, so ".svg" and "-qr.png" are never cut off.
   const dot = cleaned.lastIndexOf('.');
   const ext = dot > 0 && cleaned.length - dot <= 12 ? cleaned.slice(dot) : '';
-  const stem = (ext ? cleaned.slice(0, dot) : cleaned).slice(0, MAX_NAME - ext.length).replace(/[.\s-]+$/g, '');
+  const stem = cutUnits(ext ? cleaned.slice(0, dot) : cleaned, MAX_NAME - ext.length).replace(/[.\s-]+$/g, '');
   return `${stem}${ext}` || fallback;
 }
 
