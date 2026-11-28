@@ -33,6 +33,11 @@ describe('recording preflight', () => {
     expect(by(items, 'online').status).toBe('warn');
     expect(summarizePreflight(items).ready).toBe(true);
   });
+  it('never shows negative free space when the browser reports usage above quota', () => {
+    const items = preflight(good(), facts({ storageEstimate: { quota: 1e8, usage: 3e8 } }));
+    expect(by(items, 'storage').advice).toMatch(/about 0 MB/);
+  });
+
   it('a charging or healthy battery is fine, and a missing battery API is simply not listed', () => {
     expect(by(preflight(good(), facts({ battery: { level: 0.05, charging: true } })), 'battery').status).toBe('ok');
     expect(by(preflight(good(), facts({ battery: null })), 'battery')).toBeUndefined();

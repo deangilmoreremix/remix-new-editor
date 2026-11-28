@@ -21,6 +21,7 @@ import { captureEarlyPlay } from '../lib/editor/publish/earlyPlay.js';
 import { pickVariant } from '../lib/editor/addons/abTest.js';
 import { trackersFor, fireLeadTrackers } from '../lib/editor/publish/pixel.js';
 import { captureAttribution } from '../lib/editor/publish/attribution.js';
+import { browserStorage } from '../lib/outreach/safeStorage.js';
 
 const FPS = 30;
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -39,8 +40,6 @@ function message(container, title, text) {
  * @param {string|{business:string,slug:string}} ref  a video id (/watch/<id>) or a readable link (/v/<business>/<slug>)
  * @param {object} deps  (tests) { fetchVideo, createEngine, onLead, analytics, attribution }
  */
-// Reading localStorage itself can throw (storage blocked): then there is simply no storage.
-const browserStorage = () => { try { return globalThis.localStorage; } catch { return null; } };
 
 async function startLiveCalls({ button, videoId, contactId, host, analytics, player, container }) {
   const { liveCallSupported, createGuestLine } = await import('../lib/outreach/liveCall.js');

@@ -43,7 +43,7 @@ export function preflight(env = globalThis, known = {}) {
 
   const est = known.storageEstimate;
   if (est && est.quota > 0) {
-    const free = est.quota - (est.usage || 0);
+    const free = Math.max(0, est.quota - (est.usage || 0)); // some browsers report usage above quota
     const mb = Math.round(free / 1048576);
     add('storage', 'Space for the recording', free < MIN_FREE_BYTES ? 'warn' : 'ok', free < MIN_FREE_BYTES ? `Only about ${mb} MB is free for this site. Long recordings may not save: free some space first.` : '');
   } else add('storage', 'Space for the recording', 'warn', 'The browser does not say how much space is free.');
