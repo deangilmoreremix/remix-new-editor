@@ -41,6 +41,10 @@ console.log('[App] Starting initialization...');
 // Track initialization performance
 const initStart = performance.now();
 
+// A tab from before a deploy: "SmartVid was updated. Reload" instead of dead buttons. Mounted here, before any page
+// branch (public pages, sign-in/account pages, the app), so every page gets it.
+mountStaleVersionGuard();
+
 // Global error handlers for uncaught exceptions
 window.addEventListener('error', (event) => {
   console.error('[Global Error]', event.error);
@@ -234,7 +238,6 @@ try {
   app.appendChild(headerEl);
   mountGenerationNotifications((page) => navigate(page));
   mountStudioTooltips();
-  mountStaleVersionGuard(); // a tab from before a deploy: "SmartVid was updated. Reload" instead of dead buttons
   mountLandingPageButtons(); // "Create landing page" beside every studio's Download link, in that studio's own style
   mountAskSmartVideo({ navigate: (page) => navigate(page), getPage: () => getCurrentPage() || '' });
 
