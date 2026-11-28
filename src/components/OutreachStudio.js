@@ -3249,6 +3249,7 @@ export function OutreachStudio() {
     inner.replaceChildren();
     const elsewhere = !guard.active();
     stepper.inert = elsewhere || step === 1;
+    let tabBar = null;
     if (elsewhere || changedElsewhere) {
       const bar = el('div', 'sticky top-0 z-20 flex flex-wrap items-center gap-3 rounded-xl border border-amber-300/40 bg-[#2a2410] px-4 py-3 text-sm shadow-lg');
       bar.setAttribute('data-outreach-other-tab', elsewhere ? 'blocked' : 'changed');
@@ -3261,7 +3262,7 @@ export function OutreachStudio() {
       bar.append(el('span', 'flex-1 text-amber-100', elsewhere
         ? 'This campaign is open in another tab. You can look here; changes are made in the other tab.'
         : 'This campaign was changed in another tab.'), btn);
-      inner.appendChild(bar);
+      tabBar = bar;
     }
     if (!paid()) {
       // Preview: everything can be seen; recording, generating and sharing ask for the upgrade.
@@ -3274,7 +3275,13 @@ export function OutreachStudio() {
       inner.appendChild(bar);
     }
     const view = VIEWS[step]();
-    if (elsewhere) view.inert = true; // read-only while another tab edits
+    // The full-screen editor covers the page, so the other-tab banner (and its button) goes inside it, above the locked content.
+    const fullscreen = view.hasAttribute('data-outreach-editor');
+    if (elsewhere) { if (fullscreen) [...view.children].forEach((c) => { c.inert = true; }); else view.inert = true; } // read-only while another tab edits
+    if (tabBar) {
+      if (fullscreen) { tabBar.classList.remove('sticky', 'top-0', 'z-20', 'rounded-xl'); tabBar.classList.add('shrink-0', 'rounded-none', 'border-x-0', 'border-t-0'); view.prepend(tabBar); }
+      else inner.insertBefore(tabBar, inner.firstChild);
+    }
     inner.appendChild(view);
 
     // Pinned to the bottom of the view: Back / Continue and what is missing stay visible however long the step is.
