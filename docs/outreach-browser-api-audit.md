@@ -70,8 +70,8 @@ Status key: **PRESENT** (exists, covered by tests or by reading the code), **PAR
 | `@huggingface/transformers` | 4.3.1 | Apache-2.0 | Each model needs its own licence check |
 | `onnxruntime-web` | dev build 1.31.0 | MIT | Transitive |
 | `mediabunny` | 1.64.0 | MPL-2.0 | File-level copyleft: keep modified Mediabunny files open |
-| `@remotion/web-renderer` | 4.0.540 | Remotion licence (not OSI) | Commercial conditions apply; confirm company licence before expanding use |
-| `@remotion/media` | 4.0.540 | no licence field | Treat as Remotion licence until confirmed |
+| `@remotion/web-renderer` | 4.0.540 | Remotion licence (not OSI) | **Accepted by the owner:** the team is under 3 people, which Remotion's free tier covers. Revisit and buy a company licence if the team grows past that |
+| `@remotion/media` | 4.0.540 | no licence field | Same Remotion licence and the same owner decision as above |
 | `gifenc` | 1.0.3 | MIT | |
 | `qrcode` | 1.5.4 | MIT | Installed, now used for requirement 30 |
 | `jszip` | 3.10.2 | MIT OR GPL-3.0-or-later | Use under MIT; transitive today |
