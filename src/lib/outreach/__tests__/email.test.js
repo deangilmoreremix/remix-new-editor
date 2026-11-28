@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { emailFor, mailtoUrl, mailMergeCsv, DEFAULT_EMAIL } from '../email.js';
+import { emailFor, mailtoUrl, mailMergeCsv, csvCell, DEFAULT_EMAIL } from '../email.js';
 import { thumbnailText, thumbnailKey, wrapLines, drawThumbnail, thumbSettings, frameTimes, encodeGif, GIF_SECONDS, GIF_FPS } from '../thumbnail.js';
 import { loadDraft } from '../draft.js';
 
@@ -141,5 +141,20 @@ describe('thumbnail share snippets', () => {
     const o = new URL(outlookUrl({ to: 'mike@x.co', subject: 'Hi Mike', text: `Watch: ${link}` }));
     expect(o.origin + o.pathname).toBe('https://outlook.office.com/mail/deeplink/compose');
     expect(Object.fromEntries(o.searchParams)).toEqual({ to: 'mike@x.co', subject: 'Hi Mike', body: `Watch: ${link}` });
+  });
+});
+
+describe('csvCell (spreadsheet-safe cells)', () => {
+  it('prefixes values that a spreadsheet would run as formulas', () => {
+    expect(csvCell('=1+1')).toBe("'=1+1");
+    expect(csvCell('+SUM(A1)')).toBe("'+SUM(A1)");
+    expect(csvCell('-2+3')).toBe("'-2+3");
+    expect(csvCell('@cmd')).toBe("'@cmd");
+  });
+  it('leaves ordinary values alone and keeps quote escaping', () => {
+    expect(csvCell('Mike')).toBe('Mike');
+    expect(csvCell(null)).toBe('');
+    expect(csvCell('say "hi"')).toBe('"say ""hi"""');
+    expect(csvCell('a,b')).toBe('"a,b"');
   });
 });

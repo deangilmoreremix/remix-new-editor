@@ -204,14 +204,16 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
   oneBox.append(result, el('p', 'text-[11px] text-white/45', 'This one logo goes on every prospect’s thumbnail. Search above or upload your own.'));
   const prettyName = (d) => { const h = d.replace(/^https?:\/\//i, '').replace(/^www\./i, '').split('/')[0]; const n = h.split('.')[0] || h; return n.charAt(0).toUpperCase() + n.slice(1); };
   const useLogo = (url) => { setThumb({ logoMode: 'one', logoUrl: url }); logoNote.textContent = 'This logo goes on every prospect’s thumbnail.'; paintControls(); loadImages(); };
+  let searching = false; // one lookup at a time, for the Find button and the Enter key
   const searchLogo = async () => {
+    if (searching) return;
     const d = domain.value.trim();
     if (!d) { domain.focus(); return; }
     if (!findLogo) { logoNote.textContent = 'Search is not available here. Upload a logo instead.'; return; }
-    find.disabled = true; logoNote.textContent = 'Looking for the logo on that website…';
+    searching = true; find.disabled = true; logoNote.textContent = 'Looking for the logo on that website…';
     try { const url = await findLogo(d); if (url) { foundDomain = d.replace(/^https?:\/\//i, '').replace(/^www\./i, '').split('/')[0]; useLogo(url); } else logoNote.textContent = 'No logo found on that website. Upload one instead.'; }
     catch (err) { logoNote.textContent = err?.message || 'The website could not be checked. Upload a logo instead.'; }
-    find.disabled = false;
+    searching = false; find.disabled = false;
   };
   find.addEventListener('click', searchLogo);
   domain.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); searchLogo(); } });

@@ -12,7 +12,7 @@ import { goTo } from '../lib/routeUrl.js';
 
 import { createEditorBanner, demoteBannerHeading } from '../lib/thumbnails.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { emailFor, mailtoUrl, mailMergeCsv, gmailUrl, outlookUrl, linkedinMessage } from '../lib/outreach/email.js';
+import { emailFor, mailtoUrl, mailMergeCsv, gmailUrl, outlookUrl, linkedinMessage, csvCell } from '../lib/outreach/email.js';
 import { WRITER_LANGUAGES } from '../lib/outreach/aiWriter.js';
 import { renderProspectTable } from './outreach/ProspectTable.js';
 import { hasPaidAccess } from '../lib/clerkEntitlements.js';
@@ -2010,8 +2010,7 @@ export function OutreachStudio() {
       const dl = button('Download .CSV', { small: true });
       dl.setAttribute('data-outreach-contacts-csv', '');
       dl.addEventListener('click', () => {
-        const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-        downloadText(`${(draft.name || 'contacts').replace(/[^\w-]+/g, '_')}-contacts.csv`, [CONTACT_FIELDS.map(([f]) => f).join(','), ...draft.contacts.map((c) => CONTACT_FIELDS.map(([f]) => q(c[f])).join(','))].join('\n'));
+        downloadText(`${(draft.name || 'contacts').replace(/[^\w-]+/g, '_')}-contacts.csv`, [CONTACT_FIELDS.map(([f]) => f).join(','), ...draft.contacts.map((c) => CONTACT_FIELDS.map(([f]) => csvCell(c[f])).join(','))].join('\n'));
       });
       const clear = button('Remove all', { small: true });
       clear.addEventListener('click', () => { if (window.confirm('Remove every contact from this campaign?')) { draft.contacts = []; draft.campaign = null; persist(); render(); } });
@@ -3040,6 +3039,7 @@ export function OutreachStudio() {
 
   // The Videos home: your dynamic videos as cards (like Sendspark's library), then the results table.
   let librarySort = 'new';
+  let libraryQuery = '';
   function renderLibrary() {
     const statsFor = (id) => summarize(campaigns.stats[id]);
     const lib = [...listLibrary()].sort((a, b) => (librarySort === 'name' ? String(a.name).localeCompare(String(b.name)) : librarySort === 'watched' ? statsFor(b.id).watched - statsFor(a.id).watched : new Date(b.savedAt) - new Date(a.savedAt)));
@@ -3066,17 +3066,19 @@ export function OutreachStudio() {
       filterRow = el('div', 'flex flex-wrap items-center justify-end gap-2');
       filterRow.setAttribute('data-library-filters', '');
       const q = el('input', 'min-w-[220px] flex-1 rounded-full border border-white/10 bg-white/[0.04] px-5 py-2 text-sm text-white placeholder:text-white/35 outline-none focus:border-primary/60 sm:flex-none');
-      q.type = 'search'; q.placeholder = 'Search your videos'; q.setAttribute('aria-label', 'Search your videos');
+      q.type = 'search'; q.placeholder = 'Search your videos'; q.setAttribute('aria-label', 'Search your videos'); q.value = libraryQuery;
       const sort = el('select', 'rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-white outline-none focus:border-primary/60');
       sort.setAttribute('aria-label', 'Sort');
       [['new', 'Newest first'], ['name', 'Name A to Z'], ['watched', 'Most watched']].forEach(([v, l]) => { const o = el('option', 'bg-neutral-900', l); o.value = v; o.selected = v === librarySort; sort.appendChild(o); });
       sort.addEventListener('change', () => { librarySort = sort.value; render(); });
       const clearF = button('Clear filters', { small: true });
-      clearF.addEventListener('click', () => { librarySort = 'new'; render(); });
-      q.addEventListener('input', () => {
+      clearF.addEventListener('click', () => { librarySort = 'new'; libraryQuery = ''; render(); });
+      const applyQuery = () => {
         const t = q.value.trim().toLowerCase();
         box.querySelectorAll('[data-library-item]').forEach((c) => { c.hidden = !!t && !String(c.getAttribute('data-library-name') || '').includes(t); });
-      });
+      };
+      q.addEventListener('input', () => { libraryQuery = q.value; applyQuery(); });
+      setTimeout(applyQuery, 0);
       filterRow.append(q, sort, clearF);
       box.appendChild(filterRow);
     }

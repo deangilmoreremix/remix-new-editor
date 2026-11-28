@@ -54,7 +54,7 @@ export function mailtoUrl({ to, subject, text }) {
   return `mailto:${encodeURIComponent(to || '')}?${q}`;
 }
 
-const csvCell = (v) => {
+export const csvCell = (v) => {
   const s = String(v ?? '');
   // Cells starting with = + - @ would run as formulas in a spreadsheet.
   const safe = /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;

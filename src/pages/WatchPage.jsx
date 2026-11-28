@@ -162,7 +162,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
     : '';
   // Who the page is from (sender details when the campaign carries them): brand row on top, credit in the footer.
   const sender = landing?.sender && typeof landing.sender === 'object' ? landing.sender : {};
-  const brand = String(sender.company || sender.name || video.business?.name || video.project.campaign?.name || '').trim().slice(0, 80);
+  const brand = String(sender.company || sender.name || video.project.campaign?.name || '').trim().slice(0, 80);
   const logoUrl = (() => { try { const u = new URL(String(sender.logo || '')); return u.protocol === 'https:' ? u.toString() : ''; } catch { return ''; } })();
   const brandRow = !embed && (brand || logoUrl)
     ? `<div class="watch-brand">${logoUrl ? `<img class="watch-brand-logo" src="${esc(logoUrl)}" alt="" />` : brand ? `<span class="watch-brand-mark" aria-hidden="true">${esc(brand.charAt(0).toUpperCase())}</span>` : ''}${brand ? `<span class="watch-brand-name">${esc(brand)}</span>` : ''}</div>`
