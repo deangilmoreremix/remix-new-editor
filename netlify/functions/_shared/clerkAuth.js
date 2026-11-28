@@ -87,10 +87,13 @@ function getJwks() {
 // for production), a token issued by that development instance is accepted for the listed user ids and nobody else:
 //   CLERK_DEV_ISSUER         e.g. https://<name>.clerk.accounts.dev
 //   CLERK_DEV_TEST_USER_IDS  comma-separated Clerk user ids (user_...)
-// Unset (the default) this adds nothing: every token goes through the normal path below.
+// Unset (the default) this adds nothing: every token goes through the normal path below. It is also switched off when
+// Netlify's CONTEXT is `production`.
 
 function devTestAccess() {
   const env = process.env || {};
+  // Defense in depth: never in a production context, even if the two settings were copied there by mistake.
+  if (String(env.CONTEXT || '').trim().toLowerCase() === 'production') return null;
   const issuer = String(env.CLERK_DEV_ISSUER || '').trim().replace(/\/+$/, '');
   const ids = String(env.CLERK_DEV_TEST_USER_IDS || '').split(',').map((x) => x.trim()).filter(Boolean);
   return issuer && ids.length ? { issuer, ids: new Set(ids) } : null;

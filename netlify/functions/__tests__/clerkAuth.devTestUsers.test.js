@@ -26,7 +26,9 @@ const sign = (pair, { iss, sub, exp = Math.floor(Date.now() / 1000) + 600 }) =>
 const saved = { ...process.env };
 async function load(env = {}) {
   vi.resetModules();
-  process.env = { ...saved, CLERK_ISSUER: PRIMARY_ISSUER, ...env };
+  // Start from the surrounding environment WITHOUT any Clerk settings, so a shell that already exports them cannot change a result.
+  const clean = Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^(VITE_)?CLERK_|^CONTEXT$/.test(k)));
+  process.env = { ...clean, CLERK_ISSUER: PRIMARY_ISSUER, ...env };
   return (await import('../_shared/clerkAuth.js')).verifyClerkToken;
 }
 
@@ -73,6 +75,19 @@ describe('deploy preview with a development test account allowed', () => {
     const verify = await load(env);
     expect(await verify(await sign(primary, { iss: PRIMARY_ISSUER, sub: 'user_real' }))).toMatchObject({ userId: 'user_real' });
     expect(await verify(await sign(other, { iss: PRIMARY_ISSUER, sub: TEST_USER }))).toBeNull();
+  });
+  it('is switched off in a production context even when both settings were copied there', async () => {
+    const verify = await load({ ...env, CONTEXT: 'production' });
+    expect(await verify(await sign(dev, { iss: DEV_ISSUER, sub: TEST_USER }))).toBeNull();
+  });
+  it('works in a deploy-preview context', async () => {
+    const verify = await load({ ...env, CONTEXT: 'deploy-preview' });
+    expect(await verify(await sign(dev, { iss: DEV_ISSUER, sub: TEST_USER }))).toMatchObject({ userId: TEST_USER });
+  });
+  it('is not affected by Clerk settings already present in the surrounding environment', async () => {
+    process.env.CLERK_DEV_ISSUER = DEV_ISSUER; process.env.CLERK_DEV_TEST_USER_IDS = TEST_USER;
+    const verify = await load(); // the helper clears inherited Clerk settings first
+    expect(await verify(await sign(dev, { iss: DEV_ISSUER, sub: TEST_USER }))).toBeNull();
   });
   it('rejects garbage', async () => {
     const verify = await load(env);
