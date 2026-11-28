@@ -122,6 +122,8 @@ const userId = () => globalThis.window?.Clerk?.user?.id || null;
 
 // An upload that survives a dropped connection: up to 3 tries with a growing pause. A refusal (sign-in, a 4xx
 // other than 429) or a cancel is never retried. `onRetry` lets the studio say so.
+// Tradeoff: if a try reached storage but its reply was lost, the retry uploads to a new path and the first copy stays
+// unused (a little wasted storage, no lost data). Making it idempotent needs a stable path from the shared helper.
 async function uploadToStorage(file, { onRetry, signal } = {}) {
   const { uploadFileToStorage } = await import('../lib/hybrid-supabase.js');
   return withRetry(async () => {
