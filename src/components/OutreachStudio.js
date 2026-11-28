@@ -36,7 +36,7 @@ import {
   buildCampaignProject, campaignLinks, siteKey, sitesToCapture, calendarEmbedUrl,
   SITE_ERROR, siteErrorFor, MISSING_MODES, onMissingOf, siteStatus, backgroundProblems,
   usesBackground, fallbackShotFor, backgroundShotFor, contactProfileFor, addressesToCapture, mapKey,
-  saveToLibrary, listLibrary, libraryDraft, newDynamicVideo, cleanPage, DYNAMIC_KINDS,
+  saveToLibrary, listLibrary, libraryDraft, newDynamicVideo, cleanPage, DYNAMIC_KINDS, voiceFromCache,
   BUBBLE_CORNERS, bubbleOf, cardSide,
 } from '../lib/outreach/draft.js';
 
@@ -228,12 +228,12 @@ export function OutreachStudio() {
     backupTimer = setTimeout(() => { import('../lib/outreach/draftBackup.js').then((m) => m.backupDraft(draft)).catch(() => {}); }, 1500);
   };
   // Load the draft another tab saved (without saving it back).
-  const reloadDraft = () => {
-    const fresh = loadDraft();
+  const adoptDraft = (fresh) => {
     for (const k of Object.keys(draft)) delete draft[k];
     Object.assign(draft, fresh);
     edit = startEdit(draft.edit); stopPreview(); pendingCsv = null; pendingLeads = null;
   };
+  const reloadDraft = () => adoptDraft(loadDraft());
   // One tab edits at a time (src/lib/outreach/tabGuard.js). The other shows a banner and follows the
   // editing tab's saves; "Edit here instead" takes over.
   let changedElsewhere = false;
@@ -962,7 +962,7 @@ export function OutreachStudio() {
     again.setAttribute('data-outreach-retry-failed', '');
     again.disabled = !!busy;
     again.addEventListener('click', () => generateCampaign());
-    card.append(again, el('p', 'text-[11px] text-white/45', 'Website pictures and lip-sync clips that already finished are reused. You are asked to confirm before any paid step runs.'));
+    card.append(again, el('p', 'text-[11px] text-white/45', 'Greetings, website pictures and lip-sync clips that already finished are reused; only what failed or changed is made again. You are still asked to confirm before any paid step runs.'));
     return card;
   }
 
@@ -974,7 +974,8 @@ export function OutreachStudio() {
     bar.appendChild(el('span', 'flex-1 text-white/85', `We found a draft${b.draft?.name ? ` “${b.draft.name}”` : ''} backed up in this browser (${new Date(b.savedAt).toLocaleString()}). It is kept on this device only, not in your account.`));
     const yes = button('Restore it', { small: true, primary: true });
     yes.setAttribute('data-outreach-restore-yes', '');
-    yes.addEventListener('click', () => { saveDraft(b.draft); reloadDraft(); restoreOffer = null; notice = 'Draft restored.'; render(); });
+    // Straight into memory (shaped like any saved draft): this must work even when localStorage is full or blocked, which is when a backup is needed.
+    yes.addEventListener('click', () => { adoptDraft(loadDraft({ getItem: () => JSON.stringify(b.draft) })); restoreOffer = null; persist(); notice = 'Draft restored.'; render(); });
     const no = button('Not now', { small: true });
     no.addEventListener('click', () => { restoreOffer = null; import('../lib/outreach/draftBackup.js').then((m) => m.clearBackup()).catch(() => {}); render(); });
     bar.append(yes, no);
@@ -2452,10 +2453,16 @@ export function OutreachStudio() {
           contacts: draft.contacts.map((c) => contactProfile(c)),
           signal: abort.signal,
           onProgress: ({ done, total, name }) => { progress = { total, done, phase: 'Voicing' }; onStage('voice', total ? done / total : 1); setBusy(`Voicing greetings: ${done} of ${total} (${name})…`); },
+          // A greeting voiced in an earlier run is reused (same voice, language and words), so a retry only
+          // pays for what is new or failed, and the lip-sync cache (keyed by the audio's URL) still hits.
           generate: async (line) => {
-            const remote = await audio.generateAudio('tts', speakRequest(draft, line), { signal: abort.signal });
-            const url = await audio.persistAudio(remote, { upload: uploadToStorage, name: 'greeting' });
-            return { url, duration: (await audio.probeDuration(url)) || 2 };
+            const out = await voiceFromCache(draft, line, async () => {
+              const remote = await audio.generateAudio('tts', speakRequest(draft, line), { signal: abort.signal });
+              const url = await audio.persistAudio(remote, { upload: uploadToStorage, name: 'greeting' });
+              return { url, duration: (await audio.probeDuration(url)) || 2 };
+            });
+            persist();
+            return { url: out.url, duration: out.duration };
           },
         }));
       }

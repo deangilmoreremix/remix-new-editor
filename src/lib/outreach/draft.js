@@ -135,6 +135,7 @@ export function loadDraft(storage = globalThis.localStorage) {
       profileShots: saved.profileShots && typeof saved.profileShots === 'object' ? saved.profileShots : {},
       siteLogos: saved.siteLogos && typeof saved.siteLogos === 'object' ? saved.siteLogos : {},
       lipsyncCache: saved.lipsyncCache && typeof saved.lipsyncCache === 'object' ? saved.lipsyncCache : {},
+      voiceCache: saved.voiceCache && typeof saved.voiceCache === 'object' ? saved.voiceCache : {},
       chapters: Array.isArray(saved.chapters) ? saved.chapters : [],
       email: { ...base.email, ...(saved.email || {}), thumb: { ...base.email.thumb, ...(saved.email?.thumb || {}) } },
       ...pageOf(saved),
@@ -142,6 +143,22 @@ export function loadDraft(storage = globalThis.localStorage) {
   } catch {
     return base;
   }
+}
+
+/**
+ * A greeting that was already voiced is reused, not paid for again. The key is the exact request sent to the voice
+ * service (voice, language, speed, text), so changing any of those makes a new greeting. Because the audio keeps
+ * the same URL, the lip-sync cache (keyed by that URL) also hits on the next run.
+ * `make(line)` generates and uploads one greeting -> { url, duration }; the caller saves the draft afterwards.
+ */
+export async function voiceFromCache(draft, line, make, { max = 200 } = {}) {
+  const key = JSON.stringify(speakRequest(draft, line));
+  const hit = draft.voiceCache?.[key];
+  if (hit && typeof hit.url === 'string' && hit.url && !hit.url.startsWith('blob:')) return { url: hit.url, duration: hit.duration, reused: true };
+  const made = await make(line);
+  const entries = Object.entries(draft.voiceCache && typeof draft.voiceCache === 'object' ? draft.voiceCache : {}).slice(-(max - 1));
+  draft.voiceCache = { ...Object.fromEntries(entries), [key]: { url: made.url, duration: made.duration } };
+  return { ...made, reused: false };
 }
 
 /** The three kinds of dynamic video (Create Dynamic Videos), with the greeting each starts with. */
