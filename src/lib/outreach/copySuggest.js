@@ -52,7 +52,10 @@ const FILLERS = [
 ];
 const words = (t) => String(t || '').trim().split(/\s+/).filter(Boolean).length;
 // A sentence ends at . ! or ? followed by a space or the end, so "1.5 hours" and "example.com" stay in one piece.
-const sentences = (t) => String(t || '').match(/.+?(?:[.!?]+(?=\s|$)|$)\s*/gs)?.map((s) => s.trim()).filter(Boolean) || [];
+// A period after a common abbreviation ("Dr.", "Mr.", "Inc.", "e.g.") does not end one either.
+const ABBREV = 'Dr|Mr|Mrs|Ms|Prof|Sr|Jr|St|vs|Inc|Ltd|Co|e\\.g|i\\.e';
+const SENTENCE = new RegExp(`.+?(?:(?:(?<!\\b(?:${ABBREV}))\\.|[!?])[.!?]*(?=\\s|$)|$)\\s*`, 'gs');
+const sentences = (t) => String(t || '').match(SENTENCE)?.map((s) => s.trim()).filter(Boolean) || [];
 const WPM = 150;
 
 /** Spoken length in seconds at a normal pace. */

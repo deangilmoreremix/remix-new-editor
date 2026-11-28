@@ -57,3 +57,13 @@ describe('decimals and addresses inside sentences', () => {
     expect(r.text.startsWith('See example.com for the demo.')).toBe(true);
   });
 });
+
+describe('abbreviations inside sentences', () => {
+  it('does not end a sentence after "Dr." or "Inc."', () => {
+    expect(shortOpening('Meet Dr. Smith today. Then book a time.', 4)).toMatch(/^Meet Dr\. Smith/);
+    expect(tightenScript('Meet Dr. Smith at Acme Inc. today. Book a time.').text).toBe('Meet Dr. Smith at Acme Inc. today. Book a time.');
+  });
+  it('still ends a sentence at a normal full stop', () => {
+    expect(tightenScript('We help teams. It is quick. Reply any time.', { maxSeconds: 1 }).text).toBe('We help teams.');
+  });
+});
