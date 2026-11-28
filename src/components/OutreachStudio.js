@@ -25,6 +25,7 @@ import { detectCapabilities, summarizeCapabilities } from '../lib/outreach/capab
 import { withRetry } from '../lib/outreach/retry.js';
 import { onOwnerNotification, isOutreachAlertFor } from '../lib/liveAlerts.js';
 import { createHostLine, liveCallSupported } from '../lib/outreach/liveCall.js';
+import { summarizeCampaign, combineSummaries, QUARTILES } from '../lib/outreach/campaignStats.js';
 import { createCallWindow, showIncomingCall } from './outreach/LiveCallPanel.js';
 
 // Caption translation languages (src/lib/editor/ml/modelRegistry.js TRANSLATE_LANGUAGES).
@@ -3355,14 +3356,7 @@ export function OutreachStudio() {
     }
   }
 
-  const summarize = (rows) => {
-    const list = Array.isArray(rows) ? rows : [];
-    return {
-      watched: list.filter((r) => r.contactId && r.plays > 0).length,
-      views: list.reduce((n, r) => n + r.views, 0),
-      clicks: list.reduce((n, r) => n + r.ctaClicks, 0),
-    };
-  };
+  const summarize = (rows) => summarizeCampaign(rows);
 
   // "+ New dynamic video": a fresh campaign that keeps your voice, details and button.
   function startNew({ from = draft, keepVideo = false } = {}) {
@@ -3476,6 +3470,30 @@ export function OutreachStudio() {
     return box;
   }
 
+  // How far prospects watched (from the viewing sessions the page recorded): how many reached each quarter, and leads.
+  function renderReach(t) {
+    const card2 = el('div', 'rounded-2xl border border-white/10 bg-panel-bg p-4 flex flex-col gap-3');
+    card2.setAttribute('data-outreach-reach', '');
+    card2.appendChild(el('div', 'text-sm font-bold', 'How far prospects watched'));
+    if (!t.opened && !t.watched) { card2.appendChild(el('p', 'text-xs text-white/55', 'Appears once prospects open their links.')); return card2; }
+    if (!t.hasProgress) { card2.appendChild(el('p', 'text-xs text-white/55', 'How far each prospect watched is not available for this account yet.')); }
+    else {
+      const base = Math.max(1, t.watched);
+      QUARTILES.forEach((q) => {
+        const n = t.reach[q];
+        const row2 = el('div', 'flex items-center gap-3 text-xs');
+        const bar = el('div', 'h-2 flex-1 overflow-hidden rounded-full bg-white/10');
+        const fill = el('div', 'h-full bg-primary'); fill.style.width = `${Math.min(100, Math.round((n / base) * 100))}%`;
+        bar.appendChild(fill);
+        row2.append(el('span', 'w-24 text-white/70', q === 100 ? 'Watched to the end' : `Reached ${q}%`), bar, el('span', 'w-8 text-right font-bold', String(n)));
+        card2.appendChild(row2);
+      });
+      card2.appendChild(el('p', 'text-[11px] text-white/45', `Average ${t.avgProgress}% of the video among ${t.watched} prospect${t.watched === 1 ? '' : 's'} who pressed play.`));
+    }
+    card2.appendChild(el('p', 'text-xs text-white/70', `${t.opened} opened their link \u00b7 ${t.leads} form lead${t.leads === 1 ? '' : 's'} \u00b7 ${t.clicks} button click${t.clicks === 1 ? '' : 's'}`));
+    return card2;
+  }
+
   function renderCampaigns() {
     if (!campaigns.loaded && !campaigns.loading && !campaigns.error) setTimeout(loadCampaigns, 0);
     const wrap = el('div', 'flex flex-col gap-5');
@@ -3493,6 +3511,7 @@ export function OutreachStudio() {
       totals.appendChild(f);
     }
     wrap.appendChild(totals);
+    wrap.appendChild(renderReach(combineSummaries(all.map((x) => x.s))));
 
     const table = card('Results');
     const head = el('div', 'flex flex-wrap gap-2 -mt-2');
