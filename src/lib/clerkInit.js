@@ -10,8 +10,23 @@
 // /signin to a studio page), ensureClerkLoaded will WAIT for that instance
 // to finish loading rather than creating a duplicate.
 import { Clerk } from '@clerk/clerk-js';
+import { loadClerkUIScript } from '@clerk/shared/loadClerkJsScript';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+// clerk-js v6 ships without its prebuilt components (UserButton, SignIn, pricing table...).
+// <ClerkProvider> fetches them from Clerk's CDN only when it loads Clerk itself; this module
+// loads Clerk first, so it must pass them in or every mounted component throws
+// "Clerk was not loaded with Ui components" (signed-in users lost their account menu).
+// Same script and version ClerkProvider would use. Clerk only awaits it when a component is
+// mounted, so a failed download leaves sign-in working, as before.
+export function loadClerkUI(publishableKey = PUBLISHABLE_KEY, loadScript = loadClerkUIScript) {
+  return loadScript({ publishableKey }).then(() => {
+    const ctor = globalThis.__internal_ClerkUICtor;
+    if (!ctor) throw new Error('Clerk UI did not load');
+    return ctor;
+  });
+}
 
 let clerkInstance = null;
 let clerkLoadPromise = null;
@@ -89,7 +104,7 @@ export async function ensureClerkLoaded() {
   // sees the instance immediately, even before `load()` resolves.
   window.Clerk = clerk;
 
-  clerkLoadPromise = clerk.load().then(() => clerk).catch((err) => {
+  clerkLoadPromise = clerk.load({ ui: { ClerkUI: loadClerkUI() } }).then(() => clerk).catch((err) => {
     console.error('[Clerk] Failed to load:', err);
     // Clean up the broken instance so <ClerkProvider> and other waiters
     // don't try to reuse an unloaded Clerk and trigger another CDN load.
