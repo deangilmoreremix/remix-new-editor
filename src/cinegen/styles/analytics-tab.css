@@ -96,3 +96,24 @@
 .cg-analytics__account{max-width:720px;margin:24px auto;padding:0 16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
 .cg-analytics__hint{margin:0;font-size:12px;color:var(--text-muted)}
 .cg-analytics__account .cg-analytics__host{width:100%}
+
+/* [remix] "Add a video from elsewhere": a stacked form card (labels above fields, Publish always at the bottom of the card). */
+.cg-ext{max-width:680px;margin:24px auto;padding:20px 22px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);display:flex;flex-direction:column;gap:14px;text-align:left}
+.cg-ext h3{margin:0;font-size:16px;color:var(--text-strong)}
+.cg-ext p{margin:0;font-size:13px;color:var(--text-muted)}
+.cg-ext--closed{flex-direction:row;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 18px}
+.cg-ext--closed p{flex:1 1 260px}
+.cg-ext label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--text)}
+.cg-ext input:not([type=file]),.cg-ext textarea{width:100%;background:var(--surface-sunken);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 12px;color:var(--text-strong);font:inherit;font-weight:400;font-size:13px}
+.cg-ext input[type=file]{width:100%;background:var(--surface-sunken);border:1px dashed var(--border-strong);border-radius:var(--r-md);padding:9px 12px;color:var(--text);font:inherit;font-weight:400;font-size:12px}
+.cg-ext textarea{resize:vertical;min-height:92px}
+.cg-ext input:focus-visible,.cg-ext textarea:focus-visible{outline:0;border-color:var(--cyan);box-shadow:var(--shadow-focus)}
+.cg-ext__grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+.cg-ext__hint{font-size:12px!important;color:var(--text-dim)!important}
+.cg-ext__error{padding:9px 12px;border-radius:var(--r-md);background:var(--danger-soft);color:#fecaca!important}
+.cg-ext__done{padding:9px 12px;border-radius:var(--r-md);background:var(--success-soft);color:var(--success-text)!important;word-break:break-all}
+.cg-ext__done a{color:inherit;text-decoration:underline}
+.cg-ext__actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.cg-ext__ghost{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:99px;padding:9px 18px;font:inherit;font-weight:700;cursor:pointer}
+.cg-ext__ghost:hover{border-color:var(--cyan)}
+@media (max-width:600px){.cg-ext__grid{grid-template-columns:1fr}.cg-ext{margin:16px 0;padding:16px}}

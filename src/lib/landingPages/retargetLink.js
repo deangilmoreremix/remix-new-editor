@@ -71,3 +71,23 @@ export async function refreshPageVideo(client, page, { readDuration = readVideoD
     }
   } catch { /* the page itself is already saved */ }
 }
+
+/**
+ * A page made before Retarget was linked to landing pages: give its video a tracked record now, the same way a new page gets one,
+ * and remember it on the page. Throws a readable message when it cannot be done. Resolves to the page with its new `source.videoId`.
+ */
+export async function linkExistingPage(client, page, { publish = publishPageVideo, readDuration = readVideoDuration } = {}) {
+  if (pageVideoId(page)) return page;
+  if (!/^https:\/\//i.test(String(page?.video_url || '')) || IMAGE_URL.test(String(page.video_url))) throw new Error('Retarget is for pages with a video. This page shows a picture.');
+  const duration = Number(page.duration) > 0 ? Number(page.duration) : await readDuration(page.video_url);
+  const videoId = await publish(client, { videoUrl: page.video_url, title: page.title, duration });
+  if (!videoId) throw new Error('Retarget could not be set up for this video. Check that you are signed in and the video link still works.');
+  const source = { ...(page.source && typeof page.source === 'object' ? page.source : {}), videoId };
+  const { error } = await client.from('landing_pages').update({ source }).eq('id', page.id);
+  if (error) throw new Error(error.message || 'Could not save the link to the page');
+  const linked = { ...page, source };
+  await mirrorPublished(client, linked, !!page.published); // a published page shows its video record too
+  return linked;
+}
+
+const IMAGE_URL = /\.(png|jpe?g|webp|gif|avif)(?:[?#]|$)/i;

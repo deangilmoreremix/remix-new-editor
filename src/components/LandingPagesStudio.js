@@ -16,6 +16,7 @@ import { AFTER_SUBMIT_OPTIONS } from '../lib/landingPages/afterSubmit.js';
 import { contactLabel } from '../lib/landingPages/csv.js';
 import { sampleSections } from '../lib/landingPages/sampleContent.js';
 import { ownPages } from '../lib/outreach/landingPage.js';
+import { pageVideoId, linkExistingPage } from '../lib/landingPages/retargetLink.js';
 import { createAiRewritePanel } from '../lib/landingPages/aiRewritePanel.js';
 import {
   listPages, updatePage, deletePage, pageUrl, embedCode, fetchPageStats, listContacts,
@@ -196,9 +197,29 @@ export function LandingPagesStudio({ embedded = false } = {}) {
     });
 
     const shareRow = el('div', 'flex flex-wrap items-center gap-2 text-xs text-secondary');
+    // Retarget for this page's video: on, or a button to turn it on for a page made before it was linked.
+    const retargetEl = () => {
+      if (current.source?.kind === 'outreach' || /\.(png|jpe?g|webp|gif|avif)(?:[?#]|$)/i.test(String(current.video_url || ''))) return null;
+      if (pageVideoId(current)) return el('span', 'text-xs text-secondary', '↻ Retarget is on for this page\u2019s video');
+      const b = el('button', BTN, '↻ Turn on Retarget');
+      b.type = 'button';
+      b.title = 'Track plays of this page\u2019s video in Analytics and get follow-up suggestions';
+      b.addEventListener('click', async () => {
+        b.disabled = true; b.textContent = 'Setting up…';
+        try {
+          current = { ...current, ...(await linkExistingPage(await ownerClient(), current)) };
+          showToast('Retarget is on for this page\u2019s video', 'success', 3500);
+        } catch (err) {
+          showToast(err.message || 'Could not turn on Retarget', 'error', 4500);
+        }
+        drawShare();
+      });
+      return b;
+    };
     const drawShare = () => {
       shareRow.replaceChildren();
-      if (!current.published) { shareRow.textContent = 'Draft: only you can see it. Publish to get a shareable link.'; return; }
+      const rt = retargetEl();
+      if (!current.published) { shareRow.textContent = 'Draft: only you can see it. Publish to get a shareable link.'; if (rt) shareRow.append(rt); return; }
       const url = pageUrl(current.id);
       const a = el('a', 'text-primary hover:underline break-all', url);
       a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
@@ -208,6 +229,7 @@ export function LandingPagesStudio({ embedded = false } = {}) {
       copyBtn.addEventListener('click', () => copy(url, 'Link'));
       embedBtn.addEventListener('click', () => copy(embedCode(current.id), 'Embed code'));
       shareRow.append(a, copyBtn, embedBtn);
+      if (rt) shareRow.append(rt);
     };
 
     const markDirty = () => { dirty = true; dirtyTag.textContent = 'Unsaved changes'; };
