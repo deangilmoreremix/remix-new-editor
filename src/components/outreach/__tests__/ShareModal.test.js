@@ -146,4 +146,19 @@ describe('share window (Link, GIF, Embed)', () => {
       expect($('[data-share-qr-svg-download]').textContent).toBe('Download SVG');
     });
   });
+
+  it('keeps keyboard focus inside the window, and gives it back to the button that opened it', () => {
+    const opener = document.createElement('button'); opener.textContent = 'Share'; document.body.appendChild(opener); opener.focus();
+    const m = openShareModal({ name: 'Mike', link, thumbnailUrl: 'https://cdn.x/mike.gif' });
+    const dialog = $('[role="dialog"]');
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    const enabled = [...dialog.querySelectorAll('button, input')].filter((n) => !n.disabled && !n.hidden);
+    enabled[enabled.length - 1].focus();
+    const e = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    document.dispatchEvent(e);
+    expect(e.defaultPrevented).toBe(true); // wrapped to the first control instead of leaving the window
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    m.close();
+    expect(document.activeElement).toBe(opener);
+  });
 });

@@ -9,6 +9,7 @@
 //
 // openShareModal({ name, link, thumbnailUrl, stillUrl, videoUrl, tab, actions: { download(kind) }, onClose })
 //   → { close }
+import { trapFocus } from '../../lib/outreach/focusTrap.js';
 import { thumbnailHtml, embedSnippet } from '../../lib/outreach/email.js';
 import { qrSvg, qrPngBlob, downloadBlob } from '../../lib/outreach/qrPack.js';
 import { safeFileName } from '../../lib/outreach/zipStore.js';
@@ -163,10 +164,12 @@ export function openShareModal({ name = '', link, thumbnailUrl = '', stillUrl = 
   paint();
 
   const onKey = (e) => { if (e.key === 'Escape') close(); };
-  function close() { overlay.remove(); document.removeEventListener('keydown', onKey, true); onClose(); }
+  let releaseFocus = null;
+  function close() { releaseFocus?.(); overlay.remove(); document.removeEventListener('keydown', onKey, true); onClose(); }
   x.addEventListener('click', close);
   overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) close(); });
   document.addEventListener('keydown', onKey, true);
   document.body.appendChild(overlay);
+  releaseFocus = trapFocus(box);
   return { close };
 }

@@ -1522,7 +1522,7 @@ export function OutreachStudio() {
     const errs = stepErrors(draft, 1);
     const stMsg = busy || notice || errs[0] || '';
     const st = el('p', `shrink-0 empty:hidden border-t border-white/10 bg-panel-bg px-5 py-2 text-sm ${busy ? 'text-primary' : notice && !errs.length ? 'text-emerald-300' : 'text-amber-300'}`, stMsg);
-    st.setAttribute('data-outreach-busy', '');
+    st.setAttribute('data-outreach-busy', ''); st.setAttribute('role', 'status'); st.setAttribute('aria-live', 'polite');
     wrap.append(bar, body, st);
     return wrap;
   }
@@ -3764,7 +3764,7 @@ export function OutreachStudio() {
     const errors = step <= SETUP_STEPS + 1 ? stepErrors(draft, step) : [];
     const msg = busy || notice || errors[0] || '';
     const status = el('p', `flex-1 text-sm ${busy ? 'text-primary' : notice && !errors.length ? 'text-emerald-300' : 'text-amber-300'}`, msg);
-    status.setAttribute('data-outreach-busy', '');
+    status.setAttribute('data-outreach-busy', ''); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
     // Buttons sit on the left so the floating Ask SmartVideo button (bottom right) never covers them.
     if (step > 1 && step < STEPS.length) {
       const back = button('Back'); back.disabled = !!busy;

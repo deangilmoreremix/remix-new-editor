@@ -107,6 +107,20 @@ describe('thumbnail designer', () => {
     expect(last).toMatchObject({ textColor: '#ffcc00', bannerColor: '#112233', seconds: 26.5 });
   });
 
+  it('keeps keyboard focus inside the designer and gives it back when it closes', () => {
+    const opener = document.createElement('button'); document.body.appendChild(opener); opener.focus();
+    openThumbnailDesigner({ draft: draftOf() });
+    const dialog = $('[role="dialog"]');
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    const e = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true });
+    dialog.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])').focus();
+    document.dispatchEvent(e);
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(document.querySelector('[data-thumb-designer]')).toBeNull();
+    expect(document.activeElement).toBe(opener);
+  });
+
   describe('Suggest best moments', () => {
     const fake = (kind) => {
       const w = 160; const h = 90; const data = new Uint8ClampedArray(w * h * 4);

@@ -10,6 +10,7 @@
 import * as T from '../../lib/outreach/thumbnail.js';
 import { rankFrames, sampleTimes } from '../../lib/outreach/thumbnailPick.js';
 import { PERF_PRESETS, chosenPreset } from '../../lib/outreach/perfPresets.js';
+import { trapFocus } from '../../lib/outreach/focusTrap.js';
 
 const el = (tag, cls = '', txt) => {
   const n = document.createElement(tag);
@@ -428,12 +429,14 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
     download.disabled = false; download.textContent = 'Download this picture';
   });
 
+  let releaseFocus = null;
   const onKey = (e) => { if (e.key === 'Escape') close(); };
   function close() {
     if (gone) return;
     gone = true;
     if (suggestRun) suggestRun.aborted = true;
     document.removeEventListener('keydown', onKey, true);
+    releaseFocus?.();
     try { video?.pause(); video?.removeAttribute('src'); video?.load?.(); } catch { /* gone */ }
     overlay.remove();
     onClose();
@@ -446,6 +449,7 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
   paintControls();
   showTab('main');
   loadImages();
+  releaseFocus = trapFocus(overlay);
   draw();
   return { close };
 }
