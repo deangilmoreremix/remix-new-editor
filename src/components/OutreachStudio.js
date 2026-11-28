@@ -986,16 +986,20 @@ export function OutreachStudio() {
 
   // Browser notifications for real watch and click events: the existing push setup (src/lib/push), not a new one.
   let pushCardHandle = null;
+  let pushHostLatest = null; // the host of the most recent render; older renders' async work is ignored
   function renderPushCard() {
     const card = card_('Get notified', 'A notification on this device when someone watches or clicks, even with this site closed.', 4);
     card.setAttribute('data-outreach-push', '');
     const host = el('div', 'sv-analytics sv-dark sv-editor');
     card.appendChild(host);
+    pushHostLatest = host;
     (async () => {
       try {
         await import('../../styles/smartvideo-analytics.css');
         const [{ mountPushCard }, prefsApi, client] = await Promise.all([import('../lib/push/pushCard.js'), import('../lib/editor/projectLibrary/tabsData.js'), ownerClient()]);
         let prefs = await prefsApi.loadPreferences(client);
+        // A newer render owns the visible card; a slow older one must not destroy its handle.
+        if (pushHostLatest !== host) return;
         pushCardHandle?.destroy?.();
         pushCardHandle = mountPushCard(host, { getClient: () => client, pushEnabled: prefs.push, onPushPref: async (v) => { prefs = await prefsApi.savePreferences(client, { ...prefs, push: v }); } });
       } catch { host.replaceChildren(el('p', 'text-sm text-white/55', 'Sign in to turn on notifications.')); }
