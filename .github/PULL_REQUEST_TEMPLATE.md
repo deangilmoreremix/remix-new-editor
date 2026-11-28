@@ -27,4 +27,5 @@ Closes #
 - [ ] The change is focused on a single logical concern.
 - [ ] I ran the relevant tests locally (`make test-contracts` / `make test`) where applicable.
 - [ ] I updated docs/README if behavior or usage changed.
+- [ ] If I added or changed a studio, page, feature or `apps/` folder, I updated its guide and ran `npm run docs:studios` (`npm run check:docs` passes).
 - [ ] No unrelated files (build artifacts, local config) are included in the diff.
