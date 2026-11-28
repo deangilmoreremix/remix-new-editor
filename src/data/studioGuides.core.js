@@ -37,7 +37,7 @@ const SLUG_OVERRIDES = {
   'muapi-studio': 'smartvid-studio',
   'content-library': 'content-library',
   academy: 'smart-video-academy',
-  // The studio is now called Animation Agent, but its guide URL, tour video and screenshots stay under video-agent.
+  // Renamed to Animation Agent; keep the guide's URL, screenshots and tour under the old slug.
   'video-agent': 'video-agent',
 };
 
