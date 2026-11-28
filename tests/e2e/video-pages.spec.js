@@ -1,6 +1,6 @@
 /* global process */
 // Video Pages, end to end, signed in (see playwright.video-pages.config.js for how to run it).
-//  1. In every studio: the top-bar Video Pages button opens the window, an uploaded video goes on the page,
+//  1. In every studio that shows it: the studio's Video Pages button opens the window, an uploaded video goes on the page,
 //     and a design opens in the page editor.
 //  2. Once, in depth: edit the headline, trim the video and set its poster, save, publish, then open the
 //     public page signed out and check the edit is there and the video actually loads.
@@ -11,12 +11,12 @@ import { mkdtempSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+// Studios whose action row shows the inline Video Pages button as soon as the studio opens.
 const STUDIOS = [
-  'explore', 'apps', 'smart-video-studio', 'academy', 'image', 'edit', 'upscale', 'commercial', 'brand', 'video', 'cinema',
-  'templates', 'cinema-template', 'storyboard', 'animate', 'effects', 'ai-vfx', 'videotools', 'audio', 'lipsync', 'avatar',
-  'character', 'influencer', 'zackd', 'video-agent', 'motion-director', 'director', 'timeline', 'workbench', 'personalizer',
-  'outreach', 'smartwarmupai', 'website-builder', 'viral', 'media-hub', 'library', 'content-library',
+  'image', 'upscale', 'commercial', 'video', 'cinema', 'animate', 'effects', 'videotools', 'audio', 'lipsync', 'avatar',
+  'character', 'influencer', 'personalizer',
 ];
+const BUTTON = '[data-studio-video-pages]';
 const HEADLINE = `Video Pages check ${Date.now() % 100000}`;
 
 // A tiny real MP4 made with ffmpeg (skips the suite when ffmpeg is missing).
@@ -29,14 +29,14 @@ test.skip(!existsSync(clip), 'needs ffmpeg to make the test clip');
 
 async function openStudio(page, route) {
   await page.goto(`/#/${route}`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
-  await page.locator('[data-video-pages-button]').first().waitFor({ state: 'visible', timeout: 30_000 });
+  await page.locator(BUTTON).filter({ visible: true }).first().waitFor({ state: 'visible', timeout: 30_000 });
   const keys = page.locator('[data-api-keys-modal] [aria-label="Close"]');
   if (await keys.count()) await keys.first().click().catch(() => {});
 }
 
 /** Click Video Pages, upload the clip, open the "Editable landing page" design. Returns the picker locator. */
 async function uploadAndOpenEditor(page) {
-  await page.locator('[data-video-pages-button]').first().click();
+  await page.locator(BUTTON).filter({ visible: true }).first().click();
   const picker = page.locator('[data-landing-picker]');
   await expect(picker).toBeVisible({ timeout: 20_000 });
   const chooser = page.locator('[data-video-chooser]');

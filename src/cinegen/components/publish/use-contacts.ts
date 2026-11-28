@@ -37,7 +37,9 @@ export function useContacts(): ContactsData {
     setLandingLoading(true); setLandingError('');
     try {
       const client = await getClient();
-      const pages = ((await listPages(client)) as Array<{ id: string; title?: string }>).slice(0, MAX_PAGES);
+      // Only the signed-in owner's pages (published pages of other users are readable too, for their public links).
+      const ownerId = (window as unknown as { Clerk?: { user?: { id?: string } } }).Clerk?.user?.id;
+      const pages = ((await listPages(client, ownerId)) as Array<{ id: string; title?: string }>).slice(0, MAX_PAGES);
       const rows = await Promise.all(pages.map(async (p) => ((await listLandingContacts(client, p.id)) as Array<{ id: string; fields?: Record<string, string>; created_at?: string }>).map((r) => fromLandingRow(r, p.title || 'Untitled page'))));
       setLanding(rows.flat());
     } catch (e) { setLanding([]); setLandingError(e instanceof Error ? e.message : 'Could not load landing page contacts'); }

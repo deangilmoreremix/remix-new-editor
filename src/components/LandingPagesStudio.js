@@ -99,7 +99,7 @@ export function LandingPagesStudio({ embedded = false } = {}) {
     inner.replaceChildren(el('p', 'text-sm text-secondary', 'Loading your pages…'));
     try {
       // A Video Outreach campaign's page belongs to that video (edited in Video Outreach), so it is not listed here.
-      state.pages = ownPages(await listPages(await ownerClient()));
+      state.pages = ownPages(await listPages(await ownerClient(), getClerkUserId()));
     } catch (err) {
       inner.replaceChildren(el('p', 'text-sm text-red-300', err.message || 'Could not load your pages.'));
       return;

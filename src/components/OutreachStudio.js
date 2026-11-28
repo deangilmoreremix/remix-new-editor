@@ -2364,7 +2364,7 @@ export function OutreachStudio() {
     if (!id) return;
     try {
       const { listPages } = await import('../lib/landingPages/client.js');
-      const row = (await listPages(await ownerClient())).find((r) => r.id === id);
+      const row = (await listPages(await ownerClient(), globalThis.window?.Clerk?.user?.id)).find((r) => r.id === id);
       if (row?.config?.editor) draft.page = cleanPage({ template: row.config.template, editor: row.config.editor });
     } catch { /* signed out or offline: the plain video page until a design is chosen */ }
     delete draft.pageId;
