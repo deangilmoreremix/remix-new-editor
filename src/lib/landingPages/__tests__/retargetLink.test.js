@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { publishPageVideo, mirrorPublished, pageVideoId, refreshPageVideo } from '../retargetLink.js';
+import { publishPageVideo, mirrorPublished, pageVideoId, refreshPageVideo, linkExistingPage } from '../retargetLink.js';
 import { updatePage } from '../client.js';
 
 /** Minimal supabase-js stand-in: records every write. */
@@ -137,5 +137,37 @@ describe('refreshPageVideo (the page video was replaced)', () => {
     await refreshPageVideo(c, page, { readDuration: async () => null });
     expect(c.calls).toContainEqual(['update', 'published_videos', { published: false }]);
     expect(c.calls).toContainEqual(['update', 'landing_pages', { source: { kind: 'link' } }]);
+  });
+});
+
+describe('linkExistingPage (a page made before Retarget was linked)', () => {
+  const page = { id: 'page12345', title: 'Promo', video_url: 'https://cdn.example.com/a.mp4', duration: 42, published: true, source: { kind: 'link' } };
+  const client = () => {
+    const calls = [];
+    return { calls, from: (table) => ({ update: (patch) => { calls.push(['update', table, patch]); return { eq: async () => ({ error: null }) }; } }) };
+  };
+  it('publishes the page video as a tracked record, remembers it on the page and publishes it with a published page', async () => {
+    const c = client(); const publish = vi.fn().mockResolvedValue('abcdefgh12');
+    const linked = await linkExistingPage(c, page, { publish });
+    expect(publish).toHaveBeenCalledWith(c, { videoUrl: page.video_url, title: 'Promo', duration: 42 });
+    expect(linked.source).toEqual({ kind: 'link', videoId: 'abcdefgh12' });
+    expect(c.calls).toContainEqual(['update', 'landing_pages', { source: { kind: 'link', videoId: 'abcdefgh12' } }]);
+    expect(c.calls).toContainEqual(['update', 'published_videos', { published: true }]);
+  });
+  it('reads the length from the video when the page has none saved', async () => {
+    const publish = vi.fn().mockResolvedValue('abcdefgh12');
+    await linkExistingPage(client(), { ...page, duration: null, published: false }, { publish, readDuration: async () => 17 });
+    expect(publish).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ duration: 17 }));
+  });
+  it('does nothing for a page that is already linked', async () => {
+    const publish = vi.fn(); const c = client();
+    const same = { ...page, source: { videoId: 'abcdefgh12' } };
+    expect(await linkExistingPage(c, same, { publish })).toBe(same);
+    expect(publish).not.toHaveBeenCalled();
+    expect(c.calls).toEqual([]);
+  });
+  it('says why when it cannot be done (a picture page, or the video could not be set up)', async () => {
+    await expect(linkExistingPage(client(), { ...page, video_url: 'https://cdn.example.com/a.png' })).rejects.toThrow(/picture/);
+    await expect(linkExistingPage(client(), page, { publish: async () => null })).rejects.toThrow(/could not be set up/);
   });
 });

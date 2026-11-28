@@ -25,6 +25,15 @@ async function openLanding(item: { url: string; type: string; prompt: string }) 
   await m.openLandingPageFor({ ...item, studio: 'smartvideo' })
 }
 
+/** Turn Retarget on for a finished video (publishes it as a tracked video, then opens its Retarget view in Analytics). */
+async function openRetarget(item: { url: string; prompt: string }) {
+  // @ts-expect-error plain JS module
+  const m = (await import('../../studio/retargetAction.js')) as { retargetFor: (i: unknown) => Promise<boolean> }
+  await m.retargetFor({ ...item, type: 'video', studio: 'smartvideo' })
+}
+
+const VIDEO_URL = /\.(mp4|webm|mov|m4v)(\?|#|$)/i;
+
 export default function GenerationsPanel({ jobs, loading, onRetry, onDelete, onUseAsInput }: GenerationsPanelProps) {
   const [filter, setFilter] = useState<FilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -195,6 +204,18 @@ export default function GenerationsPanel({ jobs, loading, onRetry, onDelete, onU
                           aria-label="Create landing page"
                         >
                           ▤
+                        </button>
+                      )}
+                      {(outputType === 'video' || VIDEO_URL.test(String(job.output))) && typeof job.output === 'string' && /^https:\/\//i.test(job.output) && (
+                        <button
+                          type="button"
+                          data-action="retarget"
+                          onClick={() => { void openRetarget({ url: String(job.output), prompt: String(job.input.prompt || '') }) }}
+                          className="generation-action-btn"
+                          title="Retarget: track viewers of this video and get follow-up suggestions"
+                          aria-label="Retarget"
+                        >
+                          ↻
                         </button>
                       )}
                     </>

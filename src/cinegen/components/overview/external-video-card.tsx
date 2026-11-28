@@ -54,22 +54,41 @@ export function ExternalVideoCard({ onAdded }: { onAdded?: () => void }) {
     finally { setBusy(false); }
   };
 
-  if (!open) return <div className="cg-analytics__empty" style={{ textAlign: 'left' }}><button type="button" className="cg-analytics__btn" onClick={() => setOpen(true)}>Add a video from elsewhere</button></div>;
+  if (!open) {
+    return (
+      <div className="cg-ext cg-ext--closed" data-testid="external-video-closed">
+        <p>Made a video somewhere else? Publish it here to get Analytics and Retarget for it too.</p>
+        <button type="button" className="cg-analytics__btn" onClick={() => setOpen(true)}>Add a video from elsewhere</button>
+      </div>
+    );
+  }
   return (
-    <section className="cg-analytics__empty" data-testid="external-video" style={{ textAlign: 'left' }}>
+    <section className="cg-ext" data-testid="external-video">
       <h3>Add a video from elsewhere</h3>
       <p>Upload a file (up to {MAX_UPLOAD_BYTES / 1024 / 1024} MB) or paste a link to a video file. It is published with Retarget turned on.</p>
-      <label>Title <input value={title} maxLength={200} onChange={(e) => setTitle(e.target.value)} aria-label="Title" /></label>
-      <label>Video file <input type="file" accept="video/mp4,video/webm" aria-label="Video file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></label>
-      {!file && <label>or link <input value={url} placeholder="https://example.com/video.mp4" onChange={(e) => setUrl(e.target.value)} aria-label="Video link" /></label>}
+      <label>Title
+        <input value={title} maxLength={200} placeholder="Spring promo" onChange={(e) => setTitle(e.target.value)} aria-label="Title" />
+      </label>
+      <div className="cg-ext__grid">
+        <label>Video file
+          <input type="file" accept="video/mp4,video/webm" aria-label="Video file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+        </label>
+        {!file && (
+          <label>or a link to a video file
+            <input value={url} placeholder="https://example.com/video.mp4" onChange={(e) => setUrl(e.target.value)} aria-label="Video link" />
+          </label>
+        )}
+      </div>
       <label>Sections, one per line (optional)
         <textarea rows={4} value={sectionText} placeholder={'0:00 Intro\n0:45 Pricing\n1:30 Book a call'} onChange={(e) => setSectionText(e.target.value)} aria-label="Sections" />
       </label>
-      <p className="leads-note">Sections let you tie parts of the video to products or services for Retarget. Without them Retarget has nothing to map.</p>
-      {error && <p role="alert">{error}</p>}
-      {done && <p role="status">Published with Retarget on: <a href={done} target="_blank" rel="noreferrer">{done}</a></p>}
-      <button type="button" className="cg-analytics__btn" disabled={busy || (!file && !url.trim())} onClick={() => void submit()}>{busy ? 'Working…' : 'Publish with Retarget'}</button>
-      <button type="button" className="cg-analytics__btn" onClick={() => setOpen(false)}>Close</button>
+      <p className="cg-ext__hint">Sections let you tie parts of the video to products or services for Retarget. Without them Retarget has nothing to map.</p>
+      {error && <p className="cg-ext__error" role="alert">{error}</p>}
+      {done && <p className="cg-ext__done" role="status">Published with Retarget on: <a href={done} target="_blank" rel="noreferrer">{done}</a></p>}
+      <div className="cg-ext__actions">
+        <button type="button" className="cg-analytics__btn" disabled={busy || (!file && !url.trim())} onClick={() => void submit()}>{busy ? 'Working…' : 'Publish with Retarget'}</button>
+        <button type="button" className="cg-ext__ghost" onClick={() => setOpen(false)}>Close</button>
+      </div>
     </section>
   );
 }
