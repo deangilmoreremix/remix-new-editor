@@ -4,11 +4,14 @@
 //   Link   their personal page: copy, open
 //   GIF    their thumbnail: Copy GIF (the clickable thumbnail, pastes into Gmail and Outlook on the web),
 //          Download GIF, Download Outlook still (Outlook on Windows shows only a GIF's first frame)
+//   Link also has the phone's Share sheet (only where navigator.share exists) and a QR code (SVG preview, PNG and SVG downloads)
 //   Embed  code for email platforms: an HTML5 video with their GIF as poster and fallback (embedSnippet)
 //
 // openShareModal({ name, link, thumbnailUrl, stillUrl, videoUrl, tab, actions: { download(kind) }, onClose })
 //   → { close }
 import { thumbnailHtml, embedSnippet } from '../../lib/outreach/email.js';
+import { qrSvg, qrPngBlob, downloadBlob } from '../../lib/outreach/qrPack.js';
+import { safeFileName } from '../../lib/outreach/zipStore.js';
 
 const el = (tag, cls = '', txt) => { const n = document.createElement(tag); if (cls) n.className = cls; if (txt !== undefined) n.textContent = txt; return n; };
 const LOOK = {
@@ -17,7 +20,7 @@ const LOOK = {
   selected: 'border border-primary/25 bg-primary/[0.08] text-white/90',
 };
 function btn(label, { primary = false, selected = false, attr = '' } = {}) {
-  const b = el('button', `inline-flex items-center justify-center gap-1.5 rounded-[10px] px-4 py-2 text-sm font-bold transition-colors disabled:opacity-40 ${LOOK[selected ? 'selected' : primary ? 'primary' : 'plain']}`, label);
+  const b = el('button', `inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition-colors disabled:opacity-40 ${LOOK[selected ? 'selected' : primary ? 'primary' : 'plain']}`, label);
   b.type = 'button';
   if (attr) b.setAttribute(attr, '');
   return b;
@@ -37,6 +40,44 @@ async function copyHtml(html, plain, b, done) {
     b.textContent = done;
   } catch { window.prompt('Copy this:', plain); }
   setTimeout(() => { b.textContent = was; }, 2200);
+}
+
+// The phone/desktop share sheet. Sends the link only (a text and a URL), never a file.
+async function nativeShare({ title, text, url }, b, link) {
+  const data = { title, text, url };
+  try {
+    if (navigator.canShare && !navigator.canShare(data)) throw new Error('not shareable');
+    await navigator.share(data);
+  } catch (e) {
+    if (e?.name === 'AbortError') return;
+    const note = b.closest('[data-share-modal]')?.querySelector('[data-share-note]');
+    if (note) note.textContent = 'Sharing did not work here, so the link was copied instead.';
+    try { await navigator.clipboard.writeText(link); } catch { window.prompt('Copy this:', link); }
+  }
+}
+
+function qrSection(link, name) {
+  const wrap = el('div', 'flex flex-col gap-2 border-t border-white/10 pt-3');
+  wrap.setAttribute('data-share-qr', '');
+  wrap.appendChild(el('h3', 'text-xs font-bold uppercase tracking-wide text-white/60', 'QR code'));
+  const note = (t) => el('p', 'text-[11px] text-white/45', t);
+  qrSvg(link).then((svg) => {
+    const prev = el('div', 'h-28 w-28 shrink-0 overflow-hidden rounded-2xl bg-white p-1 [&>svg]:h-full [&>svg]:w-full');
+    prev.setAttribute('data-share-qr-svg', ''); prev.innerHTML = svg;
+    const row = el('div', 'flex flex-wrap gap-2');
+    const file = safeFileName(`${name || 'prospect'}-qr`, 'qr');
+    const png = btn('Download PNG', { attr: 'data-share-qr-png' });
+    png.addEventListener('click', async () => { const b = await qrPngBlob(link); if (b) downloadBlob(b, `${file}.png`); });
+    const sv = btn('Download SVG', { attr: 'data-share-qr-svg-download' });
+    sv.addEventListener('click', () => downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), `${file}.svg`));
+    row.append(png, sv);
+    const side = el('div', 'flex min-w-0 flex-col gap-2');
+    side.append(row, note('The QR holds only their personal link. Print it or put it on a card.'));
+    const flex = el('div', 'flex flex-wrap items-center gap-3');
+    flex.append(prev, side);
+    wrap.appendChild(flex);
+  }).catch(() => { wrap.appendChild(note('A QR code needs a secure (https) link.')); });
+  return wrap;
 }
 
 export function openShareModal({ name = '', link, thumbnailUrl = '', stillUrl = '', videoUrl = '', tab = 'link', actions = {}, onClose = () => {} } = {}) {
@@ -73,7 +114,13 @@ export function openShareModal({ name = '', link, thumbnailUrl = '', stillUrl = 
       const open = btn('Open');
       open.addEventListener('click', () => window.open(link, '_blank', 'noopener'));
       row.append(copy, open);
-      body.append(field, row, el('p', 'text-[11px] text-white/45', 'Their personal page: your video with their greeting, their name and your booking button.'));
+      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+        const sh = btn('Share', { attr: 'data-share-native' });
+        sh.addEventListener('click', () => { nativeShare({ title: name ? `Video for ${name}` : 'Video', text: name ? `A video for ${name}` : 'A video for you', url: link }, sh, link); actions.sent?.(); });
+        row.appendChild(sh);
+      }
+      const msg = el('p', 'text-[11px] text-amber-300/80 empty:hidden'); msg.setAttribute('data-share-note', ''); msg.setAttribute('role', 'status');
+      body.append(field, row, msg, el('p', 'text-[11px] text-white/45', 'Their personal page: your video with their greeting, their name and your booking button.'), qrSection(link, name));
     } else if (current === 'gif') {
       if (!thumbnailUrl) {
         body.appendChild(el('p', 'text-sm text-white/60', 'No thumbnail yet. Make thumbnails on Generate & share (Design thumbnail).'));

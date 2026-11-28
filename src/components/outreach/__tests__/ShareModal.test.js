@@ -56,4 +56,55 @@ describe('share window (Link, GIF, Embed)', () => {
     openShareModal({ link, tab: 'gif' });
     expect(document.body.textContent).toContain('No thumbnail yet');
   });
+
+  describe('Share button and QR code', () => {
+    const setShare = (v) => Object.defineProperty(navigator, 'share', { configurable: true, writable: true, value: v });
+    const flush = () => new Promise((r) => setTimeout(r, 30));
+
+    it('Share is hidden without navigator.share', () => {
+      setShare(undefined);
+      openShareModal({ name: 'Mike', link });
+      expect($('[data-share-native]')).toBeNull();
+    });
+
+    it('Share calls navigator.share with the link', async () => {
+      const share = vi.fn(async () => {}); setShare(share);
+      openShareModal({ name: 'Mike', link });
+      $('[data-share-native]').click();
+      await flush();
+      expect(share).toHaveBeenCalledTimes(1);
+      expect(share.mock.calls[0][0].url).toBe(link);
+      expect(writes).toEqual([]);
+    });
+
+    it('closing the share sheet (AbortError) does nothing; other errors copy the link', async () => {
+      setShare(vi.fn(async () => { throw Object.assign(new Error('x'), { name: 'AbortError' }); }));
+      openShareModal({ name: 'Mike', link });
+      $('[data-share-native]').click();
+      await flush();
+      expect(writes).toEqual([]);
+      expect($('[data-share-note]').textContent).toBe('');
+      setShare(vi.fn(async () => { throw new Error('boom'); }));
+      document.body.innerHTML = '';
+      openShareModal({ name: 'Mike', link });
+      $('[data-share-native]').click();
+      await flush();
+      expect(writes).toEqual([link]);
+      expect($('[data-share-note]').textContent).toContain('copied');
+    });
+
+    it('QR: note for http links, SVG preview and downloads for https', async () => {
+      setShare(undefined);
+      openShareModal({ name: 'Mike', link: 'http://example.com/p/abc' });
+      await flush();
+      expect($('[data-share-qr]').textContent).toContain('A QR code needs a secure (https) link.');
+      expect($('[data-share-qr-svg]')).toBeNull();
+      document.body.innerHTML = '';
+      openShareModal({ name: 'Mike', link });
+      await flush();
+      expect($('[data-share-qr-svg] svg')).not.toBeNull();
+      expect($('[data-share-qr-png]').textContent).toBe('Download PNG');
+      expect($('[data-share-qr-svg-download]').textContent).toBe('Download SVG');
+    });
+  });
 });

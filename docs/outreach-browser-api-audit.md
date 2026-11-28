@@ -3,7 +3,7 @@
 Baseline: `develop` at the time of the audit, plus the Video Outreach redesign (PR 339).
 Method: read-only code audit of `src/components/OutreachStudio.js`, `src/components/outreach/*`, `src/lib/outreach/*`, `src/lib/recorder/*`, `src/lib/captionStudio/*`, `src/lib/editor/ml/*`, `src/pages/WatchPage.jsx`, `src/lib/push/*`, `netlify/functions/*push*`, `supabase/functions/outreach-alerts`. Nothing here was measured in a live browser; "present" means the code exists and has tests, not that it was exercised on every browser.
 
-Status key: **PRESENT** (exists, covered by tests or by reading the code), **PARTIAL** (exists, with the gap named), **ABSENT**, and in the last column who does the work: **this PR** / **next** / **blocked** (needs a model file, a new dependency licence check, or a backend change).
+Status key: **PRESENT** (exists, covered by tests or by reading the code), **PARTIAL** (exists, with the gap named), **ABSENT**, and in the last column who does the work: **added in this PR** / **next** / **blocked** (needs a model file, a new dependency licence check, or a backend change).
 
 ## 1. The 52 requirements
 
@@ -22,15 +22,15 @@ Status key: **PRESENT** (exists, covered by tests or by reading the code), **PAR
 | 11 | Existing recording modes preserved | PRESENT | `RecorderModal.jsx` `MODES`, `browserCapture.js`, full recorder | none | done |
 | 12 | Accessible responsive recorder | PARTIAL | tablist/aria in `RecorderModal.jsx` | No focus trap, many tooltip-only buttons | next |
 | 13 | Local Whisper with consent/progress/cancel | PARTIAL | `captionStudio/transcribeClient.js` `ensureModelConsent`; `makeCaptions` progress + Stop | Native `confirm`, no model picker, no clear-model | next |
-| 14 | Caption editing + SRT/VTT/TXT | PARTIAL | `renderCaptionsPanel`, `editActions.captionsFile`, `captionStudio` exporters | TXT not wired; no timing/split/merge | **this PR (TXT)** |
+| 14 | Caption editing + SRT/VTT/TXT | PARTIAL | `renderCaptionsPanel`, `editActions.captionsFile`, `captionStudio` exporters | TXT not wired; no timing/split/merge | **added in this PR** |
 | 15 | Burned-in subtitles | PRESENT | `editTools.js` `CAPTIONS`, `videoEdit.jsx` | Only via Apply edits | done |
 | 16 | Translated caption tracks | PRESENT | `translateCaptionsTo`, `editor/ml/localAI.js`, WatchPage language select | Consent UX unchecked | done |
-| 17 | Transcript search with seek | PARTIAL | WatchPage click-to-seek lines | No search box (studio or viewer) | **this PR** |
+| 17 | Transcript search with seek | PARTIAL | WatchPage click-to-seek lines | No search box (studio or viewer) | **added in this PR** |
 | 18 | Chapter suggestions + navigation | PRESENT | `editTools.js` `chaptersFromLines`, WatchPage `[data-chapters]` | Gap-based, not topic-based | done |
-| 19 | Local script improvement | ABSENT | Only paid `aiWriter.js` | Deterministic templates now; local model later | **this PR (templates)** |
-| 20 | Free email/page copy suggestions | PARTIAL | `DEFAULT_EMAIL`, `emailFor` | No free suggester | **this PR (templates)** |
+| 19 | Local script improvement | ABSENT | Only paid `aiWriter.js` | Deterministic templates now; local model later | **added in this PR** |
+| 20 | Free email/page copy suggestions | PARTIAL | `DEFAULT_EMAIL`, `emailFor` | No free suggester | **added in this PR** |
 | 21 | Teleprompter assistance | PRESENT | `recorder/teleprompter.js`, `voiceFollow.js` | No pace feedback | done |
-| 22 | Smart thumbnail selection | ABSENT | `thumbnail.js` `frameTimes` | No scoring | **this PR** |
+| 22 | Smart thumbnail selection | ABSENT | `thumbnail.js` `frameTimes` | No scoring | **added in this PR** |
 | 23 | GIF optimisation | PRESENT | `gifEncode.js`, `gif.worker.js`, `GIF_MAX_BYTES` | none | done |
 | 24 | Aspect-ratio export | PARTIAL | `ASPECTS`, `renderSegments` | No 4:5; no "export a copy" | next |
 | 25 | Background removal / alpha | PARTIAL | `mediaTools.js` `preparePicture`, `videoMatte.js` | WebM alpha partly checked | next |
@@ -38,17 +38,17 @@ Status key: **PRESENT** (exists, covered by tests or by reading the code), **PAR
 | 27 | Personalised page previews | PRESENT | `designPreview.js` `attachDesignPreview({page,tokens})` | First contact only | done |
 | 28 | Reusable brand overlays | PARTIAL | `editTools.js` overlays, stickers, brand kit | No saved presets | next |
 | 29 | Per-contact MP4/WebM | PRESENT | `contactVideo.js` | One contact at a time | done |
-| 30 | Personalised QR codes | ABSENT | `qrcode` 1.5.4 installed, unused | PNG/SVG + ZIP | **this PR** |
-| 31 | Web Share | ABSENT | none in Outreach | Button in `ShareModal.js` | **this PR** |
+| 30 | Personalised QR codes | ABSENT | `qrcode` 1.5.4 installed, unused | PNG/SVG + ZIP | **added in this PR** |
+| 31 | Web Share | ABSENT | none in Outreach | Button in `ShareModal.js` | **added in this PR** |
 | 32 | Clipboard helpers | PRESENT | `ShareModal.js` `copyText`/`copyHtml` | `window.prompt` fallback only | done |
-| 33 | Viewer chapters + transcript search | PARTIAL | WatchPage chapters, transcript | Search missing | **this PR** |
+| 33 | Viewer chapters + transcript search | PARTIAL | WatchPage chapters, transcript | Search missing | **added in this PR** |
 | 34 | CTA toolkit / A-B config | PARTIAL | `draft.cta`, WatchPage CTA | No variants/templates | next |
 | 35 | Landing personalisation preserved | PRESENT | `landingPage.js`, tests | none | done |
-| 36 | Share packs CSV/ZIP | PARTIAL | `email.js` `mailMergeCsv` (with `csvCell` formula guard) | No ZIP | **this PR** |
-| 37 | Contact CSV validation | PARTIAL | `draft.js` `parseCsv`, `makeContact`, `mergeContacts` | No email syntax check, silent dedupe | **this PR** |
-| 38 | Merge-field QA | PARTIAL | `fillTemplate`, `contactValues` | No `link`, no per-contact QA screen | **this PR** |
+| 36 | Share packs CSV/ZIP | PARTIAL | `email.js` `mailMergeCsv` (with `csvCell` formula guard) | No ZIP | **added in this PR** |
+| 37 | Contact CSV validation | PARTIAL | `draft.js` `parseCsv`, `makeContact`, `mergeContacts` | No email syntax check, silent dedupe | **added in this PR** |
+| 38 | Merge-field QA | PARTIAL | `fillTemplate`, `contactValues` | No `link`, no per-contact QA screen | **added in this PR** |
 | 39 | Campaign metrics | PARTIAL | `analyticsClient.js` milestones, `fetchVideoStats` | UI shows views/plays/clicks only; leads hidden | next |
-| 40 | Follow-up prioritisation | PARTIAL | alert trigger, `ProspectTable` filters | No ranking | **this PR** |
+| 40 | Follow-up prioritisation | PARTIAL | alert trigger, `ProspectTable` filters | No ranking | **added in this PR** |
 | 41 | Owner notifications | PRESENT | `liveAlerts.js`, `outreach-alerts`, `push-dispatch` | Push toggle not in studio | next |
 | 42 | Push API + VAPID | PRESENT | `push/pushClient.js`, `_shared/pushAdapter.js`, `public/sw.js` | none | done |
 | 43 | Offline drafts / upload recovery | PARTIAL | localStorage `outreach-draft-v1`, `recorder/fileStorage.js` | No IndexedDB draft, no upload retry | next |
@@ -56,7 +56,7 @@ Status key: **PRESENT** (exists, covered by tests or by reading the code), **PAR
 | 45 | Bulk ops progress/cancel/retry | PARTIAL | `generateCampaign` stages + Stop | No retry-failed, no failure list | next |
 | 46 | Privacy / consent | PARTIAL | voice consent, Whisper consent | No viewer-data notice | next |
 | 47 | Workers / worklets | PARTIAL | several workers | Silence/thumbnail scoring/CSV on main thread | next |
-| 48 | Capability dashboard | PARTIAL | `captionStudio/engines.js` `detectCapabilities` | No single view | **this PR** |
+| 48 | Capability dashboard | PARTIAL | `captionStudio/engines.js` `detectCapabilities` | No single view | **added in this PR** |
 | 49 | Model download approval + clear | PARTIAL | `editor/ml/localAIPanel.js` (timeline only) | Not in Outreach | next |
 | 50 | Performance presets | PARTIAL | `QUALITY`, `SILENCE` presets | No device presets | next |
 | 51 | Accessibility | PARTIAL | partial ARIA | No live region, no focus trap | next |
@@ -106,6 +106,21 @@ Record (camera, screen or both) -> silence cuts and trim -> local captions (Whis
 | 9-10 Real-time path | Browser support is partial (Chromium only for document PiP and insertable streams) | Teleprompter PiP, canvas effects | Assess, then add behind feature detection |
 | Closed-browser notifications | Needs the existing push backend; cannot be client-only | In-app alerts | Already built (42); expose the toggle inside the studio |
 
-## 6. This PR's scope
+## 6. What this PR added (checked)
 
-Pure, tested logic first, then thin UI: requirements 14 (TXT export), 17 and 33 (transcript search), 19 and 20 (deterministic script and copy suggestions), 22 (smart thumbnail frame ranking), 30 (QR codes), 31 (Web Share), 36 (share-pack ZIP), 37 and 38 (CSV validation and merge-field QA), 40 (follow-up ranking) and 48 (capability dashboard). Everything else is classified above as done, next or blocked.
+| # | Added | Where | Evidence |
+|---|---|---|---|
+| 14 | Plain-text (.txt) caption export, next to .srt/.vtt | `OutreachStudio.js` `captionsFile('txt')`, panel buttons | Browser: download `Q4-outreach.txt` |
+| 17 | Transcript search in the studio (hides non-matching lines, Enter jumps the preview) | `renderCaptionsPanel`, `outreach/transcriptSearch.js` | Browser: "look quick" -> 1 match; unit tests |
+| 33 | Transcript search for viewers on the public page | `WatchPage.jsx`, `styles/watch.css` | Browser (stubbed data): 1 match / No matches / Enter seeks; `<b>x</b>` renders as text |
+| 19, 20 | Free copy suggestions (headers, messages, buttons, email), script tightening and closing line helpers | `outreach/copySuggest.js`, "Free suggestions" in the editor | Unit tests; browser: applying a suggestion fills the header. **Deterministic wording only: no local language model was added.** |
+| 22 | "Suggest best moments" for thumbnails (sharpness, lighting, contrast; no face detection, no conversion claims) | `outreach/thumbnailPick.js`, `ThumbnailDesigner.js` | Unit tests; browser screenshot of three ranked moments |
+| 30 | Per-prospect QR codes (SVG and PNG, https links only) | `outreach/qrPack.js`, `ShareModal.js` | Unit tests; browser |
+| 31 | Web Share button (only where `navigator.share` exists; link only, never files) | `ShareModal.js` | Unit tests |
+| 36 | Share pack ZIP: links.csv (formula-safe), emails.txt, QR per prospect | `outreach/zipStore.js` (no new dependency), `qrPack.js`, Generate step | Browser: real download, `unzip -t` reports no errors |
+| 37 | List checks: duplicates, unusual emails (syntax only), website problems, missing details; reversible duplicate removal | `outreach/contactQa.js`, "Check your list" on the Prospects step | Unit tests; browser: remove duplicates, then Undo restores all 4 |
+| 38 | Merge-field QA for every prospect before generating | `contactQa.js` `mergeFieldReport`, "Check the personal fields" | Unit tests; browser |
+| 40 | Follow-up order with the reason for every point, "Mark followed up" | `outreach/followUp.js`, Generate step | Unit tests; browser (list shows once activity exists) |
+| 48 | Browser capability check (19 features), nothing requested | `outreach/capabilities.js`, "Browser check" tool in the editor | Unit tests; browser: 19 rows |
+
+Not done in this PR (still **next** or **blocked** above): VAD (3), eye contact (6), gestures (7), AudioWorklet processing (2), floating recording monitor (9), IndexedDB drafts and upload retry (43), bulk retry (45), push toggle inside the studio (41), model download UI in Outreach (13, 49), performance presets (50), viewer privacy notice (46), A/B CTA variants (34), aspect 4:5 and face-aware framing (5, 24), saved overlay presets (28), card themes (26), quartile metrics UI (39).

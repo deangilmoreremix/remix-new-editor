@@ -17,6 +17,11 @@ import { WRITER_LANGUAGES } from '../lib/outreach/aiWriter.js';
 import { renderProspectTable } from './outreach/ProspectTable.js';
 import { hasPaidAccess } from '../lib/clerkEntitlements.js';
 import { createTabGuard } from '../lib/outreach/tabGuard.js';
+import { validateContacts, dedupeContacts, restoreDuplicates, mergeFieldReport } from '../lib/outreach/contactQa.js';
+import { rankProspects } from '../lib/outreach/followUp.js';
+import { searchLines } from '../lib/outreach/transcriptSearch.js';
+import { suggestHeaders, suggestMessages, suggestCtas } from '../lib/outreach/copySuggest.js';
+import { detectCapabilities, summarizeCapabilities } from '../lib/outreach/capabilities.js';
 import { onOwnerNotification, isOutreachAlertFor } from '../lib/liveAlerts.js';
 import { createHostLine, liveCallSupported } from '../lib/outreach/liveCall.js';
 import { createCallWindow, showIncomingCall } from './outreach/LiveCallPanel.js';
@@ -159,6 +164,9 @@ export function OutreachStudio() {
   let recordingBlob = null;
   let busy = '';
   let notice = '';
+  let dedupeUndo = null; // { removed, count } from "Remove duplicates", so it can be put back
+  let captionQuery = '';
+  let suggestGoal = 'intro';
   // Like Sendspark, the studio opens on the Videos library; a draft in progress is one click away.
   let step = STEPS.length;
   // Change step. Each change is a history entry, so the browser's Back and Forward move between
@@ -166,7 +174,7 @@ export function OutreachStudio() {
   function goStep(n, msg = '', { push = true, animate = false } = {}) {
     const changed = n !== step;
     if (changed && step === 5) stopListeningLiveAlerts();
-    step = n; notice = msg;
+    step = n; notice = msg; if (n !== 4) dedupeUndo = null;
     if (changed && push) { try { globalThis.history.pushState({ ...(globalThis.history.state || {}), outreachStep: n }, '', location.href); } catch { /* sandboxed */ } }
     const motion = animate && changed && typeof document.startViewTransition === 'function' && container.isConnected
       && !globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -643,8 +651,8 @@ export function OutreachStudio() {
     captionsFile: async (fmt) => {
       const { captionsToSrt, captionsToVtt } = await import('../lib/editor/remotion/captions.js');
       const lines = outLines(draft.captions?.lines || []);
-      const text = fmt === 'vtt' ? captionsToVtt(lines) : captionsToSrt(lines);
-      const a = el('a'); a.href = URL.createObjectURL(new Blob([text], { type: fmt === 'vtt' ? 'text/vtt' : 'application/x-subrip' }));
+      const text = fmt === 'txt' ? (await import('../lib/outreach/transcript.js')).transcriptText(lines) : fmt === 'vtt' ? captionsToVtt(lines) : captionsToSrt(lines);
+      const a = el('a'); a.href = URL.createObjectURL(new Blob([text], { type: fmt === 'txt' ? 'text/plain' : fmt === 'vtt' ? 'text/vtt' : 'application/x-subrip' }));
       a.download = `${(draft.name || 'captions').replace(/[^\w-]+/g, '-')}.${fmt}`; a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 5000);
     },
@@ -685,10 +693,17 @@ export function OutreachStudio() {
       box.appendChild(make);
       return box;
     }
+    const find = el('input', 'w-full rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs text-white placeholder:text-white/35 outline-none focus:border-primary/60');
+    find.type = 'search'; find.placeholder = 'Search the transcript'; find.setAttribute('aria-label', 'Search the transcript'); find.value = captionQuery;
+    find.setAttribute('data-captions-search', '');
+    const found = el('p', 'text-[11px] text-white/50 empty:hidden');
+    found.setAttribute('aria-live', 'polite');
+    box.append(find, found);
     const list = el('div', 'max-h-40 overflow-y-auto rounded-lg bg-white/[0.03] p-2 text-xs leading-relaxed text-white/80');
     list.setAttribute('data-captions-list', '');
     c.lines.forEach((l, i) => {
       const row = el('div', 'flex gap-2');
+      row.setAttribute('data-caption-row', String(i));
       const inp = el('input', 'flex-1 bg-transparent text-white/85 outline-none focus:text-white');
       inp.value = l.text;
       inp.addEventListener('change', () => { c.lines[i] = { ...l, text: inp.value.trim() || l.text }; persist(); });
@@ -696,6 +711,30 @@ export function OutreachStudio() {
       list.appendChild(row);
     });
     box.appendChild(list);
+    // Search is local: it only hides the lines that do not match. Enter jumps the preview to the first match.
+    const applySearch = () => {
+      const hits = new Set(searchLines(c.lines, captionQuery, { limit: 400 }).map((m) => m.index));
+      const q = captionQuery.trim();
+      list.querySelectorAll('[data-caption-row]').forEach((r) => { r.hidden = !!q && !hits.has(Number(r.getAttribute('data-caption-row'))); });
+      found.textContent = q ? (hits.size ? `${hits.size} match${hits.size === 1 ? '' : 'es'}` : 'No matches') : '';
+    };
+    find.addEventListener('input', () => { captionQuery = find.value; applySearch(); });
+    find.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const first = searchLines(c.lines, captionQuery, { limit: 1 })[0];
+      const v = container.querySelector('[data-editor-video] video');
+      if (first && v) { v.currentTime = first.startMs / 1000; v.play?.().catch(() => {}); }
+    });
+    applySearch();
+    const dl = el('div', 'flex flex-wrap items-center gap-2 text-xs');
+    for (const [fmt, label] of [['srt', 'Download .srt'], ['vtt', 'Download .vtt'], ['txt', 'Download .txt']]) {
+      const b = button(label, { small: true });
+      b.setAttribute('data-captions-download', fmt);
+      b.addEventListener('click', () => editActions.captionsFile(fmt));
+      dl.appendChild(b);
+    }
+    box.appendChild(dl);
     const trRow = el('div', 'flex flex-wrap items-center gap-2 text-xs');
     const sel = el('select', 'rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1 text-white');
     for (const [code, label] of TRANSLATE_LANGS) { if (code === c.lang) continue; const o = el('option', 'bg-neutral-900', label); o.value = code; o.selected = code === captionLang; sel.appendChild(o); }
@@ -854,6 +893,7 @@ export function OutreachStudio() {
   // you made), the landing page template and what the page says; the video on the right; tools along the top.
   let editorTool = ''; // '' | 'captions' | 'script' | 'trim' | 'language'
   const ICONS = {
+    info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
     cc: '<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M10.5 10.2a2.3 2.3 0 1 0 0 3.6M16.5 10.2a2.3 2.3 0 1 0 0 3.6"/>',
     globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.7 5.6 3.7 9s-1.2 6.4-3.7 9c-2.5-2.6-3.7-5.6-3.7-9S9.5 5.6 12 3Z"/>',
     doc: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',
@@ -880,6 +920,180 @@ export function OutreachStudio() {
     return b;
   }
 
+  const card_ = (...a) => card(...a);
+
+  // Free suggestions (src/lib/outreach/copySuggest.js): fixed wording with your {{tokens}}; nothing is sent anywhere.
+  function renderSuggestions() {
+    const d = el('details', 'rounded-xl border border-white/10 px-4 py-3 text-sm');
+    d.setAttribute('data-editor-suggestions', '');
+    d.appendChild(el('summary', 'cursor-pointer text-xs font-semibold text-primary', 'Free suggestions'));
+    const body = el('div', 'mt-3 flex flex-col gap-3');
+    const group = (label, options, apply) => {
+      const g = el('div', 'flex flex-col gap-1.5');
+      g.appendChild(el('div', 'text-[11px] uppercase tracking-wide text-white/45', label));
+      options.forEach((text) => {
+        const b = el('button', 'rounded-xl border border-white/10 px-3 py-2 text-left text-xs text-white/80 hover:border-primary/40 hover:text-white', text);
+        b.type = 'button';
+        b.addEventListener('click', () => { apply(text); persist(); render(); });
+        g.appendChild(b);
+      });
+      return g;
+    };
+    const goal = el('select', 'self-start rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-white');
+    goal.setAttribute('aria-label', 'What the message is for');
+    [['intro', 'Introduction'], ['demo', 'Demo'], ['followup', 'Follow-up']].forEach(([v, l]) => { const o = el('option', 'bg-neutral-900', l); o.value = v; o.selected = v === suggestGoal; goal.appendChild(o); });
+    goal.addEventListener('change', () => { suggestGoal = goal.value; render(); });
+    body.append(
+      el('p', 'text-[11px] text-white/50', 'Ready-made wording with your {{tokens}}. Click one to use it; nothing is sent anywhere and no AI is used.'),
+      group('Header', suggestHeaders(), (t) => { draft.header = t; }),
+      goal,
+      group('Message', suggestMessages(suggestGoal), (t) => { draft.message = t; }),
+      group('Button', suggestCtas(), (t) => { draft.cta = { ...draft.cta, enabled: true, label: t }; }),
+    );
+    d.appendChild(body);
+    if (editorTool === 'suggestions') d.open = true;
+    return d;
+  }
+
+  // What this browser can do (src/lib/outreach/capabilities.js): feature detection only, nothing is asked or downloaded.
+  function renderChecks() {
+    const items = detectCapabilities();
+    const sum = summarizeCapabilities(items);
+    const box = el('div', 'flex flex-col gap-3 rounded-xl border border-white/10 p-4');
+    box.setAttribute('data-editor-checks', '');
+    box.appendChild(el('div', 'text-sm font-bold', 'What this browser can do'));
+    box.appendChild(el('p', 'text-xs text-white/55', `${sum.supported} ready, ${sum.permission} need your OK first, ${sum.unavailable} not available here. Nothing is requested by this check.`));
+    const LOOK = { supported: ['Ready', 'bg-emerald-400'], permission: ['Needs permission', 'bg-amber-400'], unavailable: ['Not available', 'bg-red-400'], unknown: ['Unknown', 'bg-white/40'] };
+    const groups = new Map();
+    items.forEach((i) => groups.set(i.group, [...(groups.get(i.group) || []), i]));
+    for (const [name, list] of groups) {
+      const g = el('div', 'flex flex-col gap-1.5');
+      g.appendChild(el('div', 'text-[11px] uppercase tracking-wide text-white/45', name));
+      list.forEach((i) => {
+        const row = el('div', 'flex items-start gap-2 text-xs');
+        row.setAttribute('data-capability', `${i.id}:${i.status}`);
+        row.append(el('span', `mt-1 h-2 w-2 shrink-0 rounded-full ${LOOK[i.status][1]}`), el('span', 'w-56 shrink-0 text-white/85', i.label), el('span', 'font-semibold text-white/70', LOOK[i.status][0]));
+        if (i.detail) row.appendChild(el('span', 'text-white/45', i.detail));
+        g.appendChild(row);
+      });
+      box.appendChild(g);
+    }
+    return box;
+  }
+
+  // The checks on the contact list (src/lib/outreach/contactQa.js). Email checks are syntax only.
+  function renderContactQa() {
+    const { issues, counts } = validateContacts(draft.contacts);
+    const warnings = issues.filter((i) => i.level === 'warning');
+    const card = card_('Check your list', 'Syntax and completeness checks, on your device. A well-formed email is not proof that mail gets through.', 3);
+    card.setAttribute('data-outreach-contact-qa', '');
+    const pills = el('div', 'flex flex-wrap gap-2 text-xs');
+    const pill = (n, label, bad) => { if (n) pills.appendChild(el('span', `rounded-full border px-3 py-1 ${bad ? 'border-amber-300/40 text-amber-200' : 'border-white/10 text-white/60'}`, `${n} ${label}`)); };
+    pill(counts.duplicate, `duplicate${counts.duplicate === 1 ? '' : 's'}`, true);
+    pill(counts['invalid-email'], 'with an unusual email', true);
+    pill(counts['invalid-website'], 'with a website that does not look right', true);
+    pill(counts['missing-first-name'], 'without a first name (fallback used)');
+    pill(counts['missing-company'], 'without a company (fallback used)');
+    pill(counts['missing-email'], 'without an email');
+    if (!pills.childElementCount) pills.appendChild(el('span', 'text-emerald-300', 'Everything looks good.'));
+    card.appendChild(pills);
+    if (warnings.length) {
+      const list = el('ul', 'flex max-h-40 flex-col gap-1 overflow-y-auto text-xs text-white/75');
+      warnings.slice(0, 20).forEach((i) => list.appendChild(el('li', '', `Row ${i.index + 1}, ${i.name}: ${i.message}`)));
+      if (warnings.length > 20) list.appendChild(el('li', 'text-white/45', `…and ${warnings.length - 20} more.`));
+      card.appendChild(list);
+    }
+    const actions = el('div', 'flex flex-wrap items-center gap-2');
+    if (counts.duplicate) {
+      const rm = button(`Remove ${counts.duplicate} duplicate${counts.duplicate === 1 ? '' : 's'}`, { small: true, primary: true });
+      rm.setAttribute('data-outreach-dedupe', '');
+      rm.addEventListener('click', () => {
+        const { kept, removed } = dedupeContacts(draft.contacts);
+        dedupeUndo = { removed, count: removed.length };
+        draft.contacts = kept; draft.campaign = null; persist(); render();
+      });
+      actions.appendChild(rm);
+    }
+    if (dedupeUndo) {
+      actions.appendChild(el('span', 'text-xs text-emerald-300', `Removed ${dedupeUndo.count} duplicate${dedupeUndo.count === 1 ? '' : 's'}.`));
+      const undo = button('Undo', { small: true });
+      undo.setAttribute('data-outreach-dedupe-undo', '');
+      undo.addEventListener('click', () => { draft.contacts = restoreDuplicates(draft.contacts, dedupeUndo.removed); dedupeUndo = null; draft.campaign = null; persist(); render(); });
+      actions.appendChild(undo);
+    }
+    if (actions.childElementCount) card.appendChild(actions);
+    return card;
+  }
+
+  // Before generating: every {{token}} you use, for every prospect, and where its value comes from.
+  function renderMergeQa() {
+    const templates = {
+      ...(draft.kind !== 'same' && draft.greeting ? { greeting: draft.greeting } : {}),
+      header: draft.header, message: draft.message, 'email subject': draft.email?.subject, 'email body': draft.email?.body, 'thumbnail text': draft.email?.thumbText,
+    };
+    const linkFor = (c) => draft.campaign?.links?.find((l) => l.contactId === c.id)?.link || (draft.campaign ? '' : '(made when you generate)');
+    const r = mergeFieldReport({ templates, contacts: draft.contacts, fallbacks: draft.fallbacks, linkFor });
+    const card = card_('Check the personal fields', 'Every {{token}} you use, filled in for each prospect. Fix gaps before you generate.', 2);
+    card.setAttribute('data-outreach-merge-qa', '');
+    const bad = Object.entries(r.missing);
+    const fb = Object.entries(r.usingFallback);
+    if (!r.tokens.length) card.appendChild(el('p', 'text-sm text-white/60', 'You are not using any {{tokens}}, so every prospect gets the same words.'));
+    else if (!bad.length && !fb.length) card.appendChild(el('p', 'text-sm text-emerald-300', 'Every prospect has a value for every field.'));
+    bad.forEach(([t, n]) => card.appendChild(el('p', 'text-sm text-amber-200', `{{${t}}} is empty for ${n} prospect${n === 1 ? '' : 's'} and has no fallback, so it will be left blank.`)));
+    fb.forEach(([t, n]) => card.appendChild(el('p', 'text-sm text-white/65', `{{${t}}} uses its fallback for ${n} prospect${n === 1 ? '' : 's'}.`)));
+    if (r.rows.length && r.tokens.length) {
+      const d = el('details', 'text-xs');
+      d.appendChild(el('summary', 'cursor-pointer font-semibold text-primary', `See each prospect${r.rows.length > 50 ? ' (first 50)' : ''}`));
+      const t = el('div', 'mt-2 flex max-h-64 flex-col gap-1 overflow-y-auto');
+      r.rows.slice(0, 50).forEach((row) => {
+        const line = el('div', 'flex flex-wrap items-center gap-1.5 border-b border-white/5 py-1.5');
+        line.appendChild(el('span', 'w-40 shrink-0 truncate font-semibold text-white/85', row.name));
+        row.fields.forEach((f) => line.appendChild(el('span', `rounded-full border px-2 py-0.5 ${f.source === 'missing' ? 'border-amber-300/40 text-amber-200' : f.source === 'fallback' ? 'border-white/15 text-white/55' : 'border-white/10 text-white/80'}`, f.source === 'missing' ? `${f.token}: (empty)` : `${f.token}: ${f.value.length > 28 ? `${f.value.slice(0, 27)}…` : f.value}`)));
+        t.appendChild(line);
+      });
+      d.appendChild(t);
+      card.appendChild(d);
+    }
+    return card;
+  }
+
+  // Who to follow up first, from what the pages really recorded (src/lib/outreach/followUp.js).
+  function renderFollowUp() {
+    const card = card_('Who to follow up first', 'Ranked by what was recorded: form, button click, finishing the video, how far they watched, plays. It shows facts, not intentions.', 3);
+    card.setAttribute('data-outreach-follow-up', '');
+    if (!linkStats.byContact) { card.appendChild(el('p', 'text-sm text-white/55', linkStats.loading ? 'Loading who watched…' : 'Activity appears here once prospects open their links.')); return card; }
+    const links = draft.campaign.links;
+    const ranked = rankProspects(links, linkStats.byContact, { followedUp: links.filter((l) => l.followedUpAt).map((l) => l.contactId) });
+    const list = el('div', 'flex flex-col divide-y divide-white/5');
+    ranked.slice(0, 15).forEach((r) => {
+      const row = el('div', 'flex flex-wrap items-center gap-3 py-2 text-sm');
+      row.setAttribute('data-follow-up-row', r.link.contactId);
+      row.append(el('span', 'w-10 shrink-0 text-right text-base font-extrabold tabular-nums', String(r.score)));
+      const who = el('div', 'min-w-0 flex-1');
+      who.append(el('div', `truncate font-semibold ${r.followedUp ? 'text-white/40 line-through' : ''}`, r.link.name || 'Prospect'), el('div', 'text-xs text-white/50', r.reasons.join(' · ')));
+      const done = button(r.followedUp ? 'Followed up' : 'Mark followed up', { small: true, selected: r.followedUp });
+      done.addEventListener('click', () => { const l = draft.campaign.links.find((x) => x.contactId === r.link.contactId); if (l) { l.followedUpAt = l.followedUpAt ? '' : new Date().toISOString(); persist(); render(); } });
+      row.append(who, done);
+      list.appendChild(row);
+    });
+    card.appendChild(list);
+    if (ranked.length > 15) card.appendChild(el('p', 'text-xs text-white/45', `Showing 15 of ${ranked.length}.`));
+    return card;
+  }
+
+  async function downloadSharePack() {
+    try {
+      setBusy('Making the share pack…');
+      const { buildSharePackZip, downloadBlob } = await import('../lib/outreach/qrPack.js');
+      const rows = draft.campaign.links.map((l) => { const e = emailOf(l); return { contact: contactOf(l), link: linkOf(l), subject: e.subject, text: e.text, thumbnailUrl: l.thumbnailUrl || '' }; });
+      const { zip, skipped } = await buildSharePackZip(rows);
+      downloadBlob(new Blob([zip], { type: 'application/zip' }), `${(draft.name || 'campaign').replace(/[^\w-]+/g, '-')}-share-pack.zip`);
+      busy = '';
+      notice = skipped.length ? `Share pack downloaded. ${skipped.length} prospect${skipped.length === 1 ? ' has' : 's have'} no QR code (${skipped[0].reason})` : 'Share pack downloaded: links, emails and a QR code for each prospect.';
+      render();
+    } catch (err) { fail(err); }
+  }
+
   function renderRecord() {
     // Like Sendspark's editor: it takes the whole window (own top bar, Share video and Close), not a card inside the page.
     const wrap = el('div', 'fixed inset-0 z-[900] flex flex-col overflow-hidden bg-app-bg text-white');
@@ -893,7 +1107,7 @@ export function OutreachStudio() {
     brandMark.append(logo, el('span', 'text-[15px] font-extrabold', 'SmartVideo'), el('span', 'text-white/25', '/'), el('span', 'min-w-0 truncate text-sm font-semibold text-white/70', draft.name || 'Untitled dynamic video'));
     bar.appendChild(brandMark);
     bar.appendChild(el('span', 'mx-2 h-6 w-px bg-white/10'));
-    const TOOL_LABELS = { captions: 'Captions', language: 'Language', script: 'Script', trim: 'Edit', thumbnail: 'Thumbnail', link: 'Copy link', preview: 'Preview' };
+    const TOOL_LABELS = { captions: 'Captions', language: 'Language', script: 'Script', trim: 'Edit', thumbnail: 'Thumbnail', link: 'Copy link', preview: 'Preview', checks: 'Browser check' };
     const tool = (key, k, tip, onClick, { active = false, disabled = false } = {}) => {
       const b = el('button', `inline-flex h-10 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors disabled:opacity-30 ${active ? 'border-primary/40 bg-primary/[0.1] text-white' : 'border-transparent text-white/70 hover:border-white/15 hover:text-white'}`);
       b.type = 'button'; b.innerHTML = `${icon(k)}<span>${TOOL_LABELS[key] || tip}</span>`; b.title = tip; b.setAttribute('aria-label', tip); b.disabled = disabled;
@@ -916,6 +1130,7 @@ export function OutreachStudio() {
       render();
     }, { disabled: !live });
     tool('preview', 'eye', 'Preview the prospect page', () => { goStep(3, ''); });
+    tool('checks', 'info', 'What this browser can do', flip('checks'), { active: editorTool === 'checks' });
     const share = button('Share video', { primary: true, small: true });
     share.classList.add('ml-2', 'rounded-full', 'px-4');
     share.setAttribute('data-editor-share', '');
@@ -981,6 +1196,7 @@ export function OutreachStudio() {
     cz.append(
       line('Header', draft.header, (v) => { draft.header = v; }, { ph: 'Hi {{firstname}}, I made this for you' }),
       line('Message', draft.message, (v) => { draft.message = v; }, { area: true, ph: 'A short note under the video' }),
+      renderSuggestions(),
     );
     const row = (k, name, help, sw, extra = null) => {
       const r = el('div', 'flex flex-col gap-3 border-t border-white/10 pt-4');
@@ -1084,6 +1300,7 @@ export function OutreachStudio() {
     if (editorTool === 'captions' && has) drawer.appendChild(renderCaptionsPanel());
     if (editorTool === 'trim' && has) drawer.appendChild(renderTools());
     if (editorTool === 'script') drawer.appendChild(renderScriptCard());
+    if (editorTool === 'checks') drawer.appendChild(renderChecks());
     if (editorTool === 'language') {
       const box = el('div', 'flex flex-wrap items-center gap-3 rounded-xl border border-white/10 p-4');
       box.setAttribute('data-editor-language', '');
@@ -2018,7 +2235,10 @@ export function OutreachStudio() {
       side.appendChild(foot);
     }
     grid.append(main, side);
-    return grid;
+    const page = el('div', 'flex flex-col gap-5');
+    page.appendChild(grid);
+    if (draft.contacts.length) page.appendChild(renderContactQa());
+    return page;
   }
 
   // ---- Step 5: Generate --------------------------------------------------
@@ -2330,10 +2550,15 @@ export function OutreachStudio() {
       shareAll.setAttribute('data-outreach-share-campaign', '');
       shareAll.disabled = !draft.campaign.links[0];
       shareAll.addEventListener('click', () => { if (draft.campaign.links[0]) openShare(draft.campaign.links[0]); });
-      actions.append(csv, open, engage, shareAll);
+      const pack = button('Download share pack (.zip)');
+      pack.setAttribute('data-outreach-share-pack', '');
+      pack.disabled = !!busy;
+      pack.addEventListener('click', downloadSharePack);
+      actions.append(csv, open, engage, shareAll, pack);
     }
     top.appendChild(actions);
     wrap.appendChild(top);
+    if (!draft.campaign && draft.contacts.length) wrap.appendChild(renderMergeQa());
     if (busy && progress) wrap.appendChild(renderProgress());
 
     if (draft.campaign) {
@@ -2370,6 +2595,7 @@ export function OutreachStudio() {
         },
       }));
       wrap.appendChild(list);
+      wrap.appendChild(renderFollowUp());
       wrap.appendChild(renderLandingCard());
       wrap.appendChild(renderEmailCard());
       wrap.appendChild(renderAlertsCard());

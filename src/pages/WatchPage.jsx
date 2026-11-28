@@ -16,6 +16,7 @@ import { createHeatmapCapture, singleLeadClipId } from '../lib/editor/publish/he
 import { createInteractivePlayer } from '../lib/editor/publish/interactivePlayer.js';
 import { fillTemplate, calendarEmbedUrl } from '../lib/outreach/draft.js';
 import { cleanTranscript, clock } from '../lib/outreach/transcript.js';
+import { searchLines, highlightPieces } from '../lib/outreach/transcriptSearch.js';
 import { captureEarlyPlay } from '../lib/editor/publish/earlyPlay.js';
 import { trackersFor, fireLeadTrackers } from '../lib/editor/publish/pixel.js';
 import { captureAttribution } from '../lib/editor/publish/attribution.js';
@@ -180,6 +181,10 @@ export async function mountWatchPage(container, ref, deps = {}) {
           <h2>Transcript</h2>
           ${transcriptLangs.length > 1 ? `<select data-transcript-lang aria-label="Transcript language">${transcriptLangs.map((c) => `<option value="${esc(c)}">${esc(LANG_NAMES[c] || c)}</option>`).join('')}</select>` : ''}
         </div>
+        <div class="watch-transcript-search">
+          <input type="search" class="watch-transcript-q" data-transcript-q placeholder="Search the transcript" aria-label="Search the transcript" autocomplete="off" enterkeyhint="search" />
+          <p class="watch-transcript-count" data-transcript-count role="status" aria-live="polite"></p>
+        </div>
         <ol class="watch-transcript-lines" data-transcript-lines></ol>
       </section>`
     : '';
@@ -300,23 +305,44 @@ export async function mountWatchPage(container, ref, deps = {}) {
   const start = () => { player.play(); };
   if (transcript) {
     const list = $('[data-transcript-lines]');
-    const draw = (code) => {
-      const lines = code === transcript.lang ? transcript.lines : transcript.translations[code] || transcript.lines;
-      list.replaceChildren(...lines.map((l) => {
+    let shown = -1;
+    let langCode = transcript.lang;
+    const qInput = $('[data-transcript-q]');
+    const countEl = $('[data-transcript-count]');
+    const draw = () => {
+      const all = langCode === transcript.lang ? transcript.lines : transcript.translations[langCode] || transcript.lines;
+      const q = qInput.value;
+      const found = q.trim() ? searchLines(all, q, { limit: all.length }) : null;
+      const rowsData = found ? found.map((m) => ({ line: all[m.index], ranges: m.ranges })) : all.map((line) => ({ line, ranges: null }));
+      countEl.textContent = found ? (found.length ? `${found.length} ${found.length === 1 ? 'match' : 'matches'}` : 'No matches') : '';
+      shown = -1; // rows are rebuilt, so the live current-line highlight is re-applied by mark()
+      list.replaceChildren(...rowsData.map(({ line: l, ranges }) => {
         const li = document.createElement('li');
         const b = document.createElement('button');
         b.type = 'button'; b.className = 'watch-transcript-line'; b.dataset.start = String(l.startMs); b.dataset.end = String(l.endMs);
         const t = document.createElement('span'); t.className = 'watch-transcript-time'; t.textContent = clock(l.startMs);
-        const w = document.createElement('span'); w.textContent = l.text;
+        const w = document.createElement('span');
+        if (ranges) {
+          for (const piece of highlightPieces(l.text, ranges)) {
+            if (piece.hit) { const m = document.createElement('mark'); m.textContent = piece.text; w.appendChild(m); }
+            else w.appendChild(document.createTextNode(piece.text));
+          }
+        } else w.textContent = l.text;
         b.append(t, w);
         b.addEventListener('click', () => { player.seek(l.startMs / 1000); player.play(); });
         li.appendChild(b);
         return li;
       }));
+      mark();
     };
-    draw(transcript.lang);
-    $('[data-transcript-lang]')?.addEventListener('change', (e) => draw(e.target.value));
-    let shown = -1;
+    $('[data-transcript-lang]')?.addEventListener('change', (e) => { langCode = e.target.value; draw(); });
+    qInput.addEventListener('input', draw);
+    qInput.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const first = list.querySelector('.watch-transcript-line');
+      if (first && qInput.value.trim()) { player.seek(Number(first.dataset.start) / 1000); player.play(); }
+    });
     const mark = () => {
       if (!list.isConnected) { clearInterval(follow); return; }
       const ms = player.time * 1000;
@@ -328,6 +354,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
       shown = i;
     };
     const follow = setInterval(mark, 250);
+    draw();
   }
   container.querySelectorAll('[data-chapter]').forEach((b) => b.addEventListener('click', () => { player.seek(chapters[Number(b.dataset.chapter)].startMs / 1000); player.play(); }));
   $('[data-bigplay]').addEventListener('click', start);

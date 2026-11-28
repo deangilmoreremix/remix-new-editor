@@ -8,6 +8,7 @@
 // colours, the play button, the duration badge). Settings are saved on the dynamic video (draft.email.thumb / thumbText);
 // "Make thumbnails" renders every prospect's picture (src/lib/outreach/thumbnail.js).
 import * as T from '../../lib/outreach/thumbnail.js';
+import { rankFrames, sampleTimes } from '../../lib/outreach/thumbnailPick.js';
 
 const el = (tag, cls = '', txt) => {
   const n = document.createElement(tag);
@@ -83,10 +84,64 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
   start.setAttribute('aria-label', 'Select preview: the moment from your video');
   start.setAttribute('data-thumb-start', '');
   const startLabel = el('span', 'w-12 text-right text-xs tabular-nums text-white/60');
-  start.addEventListener('input', () => { setThumb({ start: Number(start.value) }); startLabel.textContent = `${Number(start.value).toFixed(1)}s`; seekPreview(); });
+  const applyStart = () => { setThumb({ start: Number(start.value) }); startLabel.textContent = `${Number(start.value).toFixed(1)}s`; seekPreview(); };
+  start.addEventListener('input', applyStart);
   const startRow = el('div', 'flex items-center gap-3'); startRow.append(start, startLabel);
+  // Suggest best moments: samples 8 frames in the browser (no network), ranks them by sharpness, lighting and contrast.
+  const suggest = el('button', `${PLAIN} rounded-full !px-3 !py-1 !text-xs`, 'Suggest best moments');
+  suggest.type = 'button'; suggest.setAttribute('data-thumb-suggest', '');
+  const cancelSuggest = el('button', 'text-xs font-semibold text-white/70 hover:text-white hover:underline', 'Cancel');
+  cancelSuggest.type = 'button'; cancelSuggest.hidden = true; cancelSuggest.setAttribute('data-thumb-suggest-cancel', '');
+  const suggestStatus = el('span', 'text-[11px] text-white/60'); suggestStatus.setAttribute('data-thumb-suggest-status', '');
+  suggestStatus.setAttribute('role', 'status');
+  const suggestHead = el('div', 'flex flex-wrap items-center gap-2'); suggestHead.append(suggest, suggestStatus, cancelSuggest);
+  const suggestList = el('div', 'flex flex-wrap gap-2'); suggestList.setAttribute('data-thumb-suggestions', '');
+  const suggestNote = el('p', 'text-[11px] text-white/45', 'Ranked by sharpness, lighting and contrast.'); suggestNote.hidden = true;
   const scrub = el('div', 'flex flex-col gap-1');
-  scrub.append(el('span', 'text-[11px] text-white/50', 'Select preview'), startRow);
+  scrub.append(el('span', 'text-[11px] text-white/50', 'Select preview'), startRow, suggestHead, suggestList, suggestNote);
+  const mss = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
+  let suggestRun = null; // { aborted } while a run is going
+  const pickMoment = (time) => {
+    start.value = String(Math.max(0, Math.min(Number(start.max), Math.round(time * 10) / 10)));
+    applyStart();
+  };
+  const runSuggest = async () => {
+    if (suggestRun || !draft.video?.url) { if (!draft.video?.url) suggestStatus.textContent = 'Add your video first.'; return; }
+    const run = { aborted: false }; suggestRun = run;
+    suggest.disabled = true; cancelSuggest.hidden = false; suggestList.replaceChildren(); suggestNote.hidden = true;
+    const times = sampleTimes(draft.video.duration || video?.duration || 0, 8);
+    const frames = [];
+    try {
+      for (let i = 0; i < times.length; i += 1) {
+        if (run.aborted) break;
+        suggestStatus.textContent = `Looking at frame ${i + 1} of ${times.length}…`;
+        const [c] = await T.grabFrames(draft.video.url, [times[i]], { width: 160, height: 90 });
+        if (run.aborted) break;
+        const image = c.getContext('2d').getImageData(0, 0, 160, 90); // throws when the canvas is tainted (no CORS)
+        frames.push({ time: times[i], image });
+      }
+      if (run.aborted) { suggestStatus.textContent = 'Stopped.'; }
+      else {
+        suggestStatus.textContent = '';
+        rankFrames(frames).slice(0, 3).forEach((r) => {
+          const chip = el('button', `${PILL(false)} flex flex-col items-start gap-1 !p-1.5`);
+          chip.type = 'button'; chip.setAttribute('data-thumb-suggestion', String(r.time));
+          const pic = el('canvas', 'h-[45px] w-20 rounded bg-black'); pic.width = 160; pic.height = 90;
+          const f = frames.find((x) => x.time === r.time);
+          try { pic.getContext('2d')?.putImageData(f.image, 0, 0); } catch { /* no canvas here */ }
+          chip.append(pic, el('span', 'text-xs font-bold text-white', mss(r.time)), el('span', 'text-[10px] font-normal text-white/60', r.reasons.join(', ')));
+          chip.addEventListener('click', () => pickMoment(r.time));
+          suggestList.appendChild(chip);
+        });
+        suggestNote.hidden = !suggestList.childElementCount;
+      }
+    } catch (err) {
+      suggestStatus.textContent = run.aborted ? 'Stopped.' : 'This video cannot be analysed here. Pick a moment with the scrubber.';
+    }
+    suggest.disabled = false; cancelSuggest.hidden = true; suggestRun = null;
+  };
+  suggest.addEventListener('click', runSuggest);
+  cancelSuggest.addEventListener('click', () => { if (suggestRun) suggestRun.aborted = true; });
 
   const bgRow = row();
   const bgs = [['auto', 'As in the video'], ['video', 'Just my video'], ['image', 'An image']].map(([bg, label]) => {
@@ -334,7 +389,7 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
     const dur = video.duration || draft.video?.duration || 0;
     loopStart = s.type === 'gif' ? Math.max(0, Math.min(s.start, dur - T.GIF_SECONDS)) : Math.min(s.start, Math.max(0, dur - 0.05));
     try { video.currentTime = loopStart; } catch { /* not loaded yet */ }
-    if (s.type === 'gif') video.play().catch(() => {}); else video.pause();
+    if (s.type === 'gif') video.play()?.catch(() => {}); else video.pause();
   }
   if (draft.video?.url) {
     video = el('video'); video.muted = true; video.playsInline = true; video.preload = 'auto';
@@ -367,6 +422,7 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
   function close() {
     if (gone) return;
     gone = true;
+    if (suggestRun) suggestRun.aborted = true;
     document.removeEventListener('keydown', onKey, true);
     try { video?.pause(); video?.removeAttribute('src'); video?.load?.(); } catch { /* gone */ }
     overlay.remove();
