@@ -73,3 +73,15 @@ describe('merge-field report', () => {
   });
   it('fills the templates with the real values', () => { expect(r.rows[0].filled.header).toBe('Hi Mike, Acme'); });
 });
+
+describe('company alone is not an identity', () => {
+  it('does not treat two nameless contacts at one company as the same person', () => {
+    const list = [c({ id: 'a', company: 'Acme', jobTitle: 'CEO' }), c({ id: 'b', company: 'Acme', jobTitle: 'CTO' })];
+    expect(dedupeContacts(list).removed).toEqual([]);
+    expect(validateContacts(list).duplicateGroups).toEqual([]);
+  });
+  it('still treats the same name and company as one person', () => {
+    const list = [c({ id: 'a', firstName: 'Mike', company: 'Acme' }), c({ id: 'b', firstName: 'mike', company: 'ACME' })];
+    expect(dedupeContacts(list).removed.map((r) => r.contact.id)).toEqual(['b']);
+  });
+});

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { voiceFromCache, loadDraft, MAX_CONTACTS } from '../draft.js';
+import { voiceFromCache, loadDraft, speakRequest, MAX_CONTACTS } from '../draft.js';
 import { paidJobCount, clipKey, introSeconds } from '../lipsync.js';
 
 const draftWith = (over = {}) => ({ ...loadDraft({ getItem: () => null }), voiceCache: {}, ...over });
@@ -29,10 +29,12 @@ describe('reusing greetings that were already voiced', () => {
   });
   it('never reuses a temporary blob link, and a failed make stores nothing', async () => {
     const d = draftWith();
-    d.voiceCache = { [JSON.stringify({})]: { url: 'blob:x', duration: 1 } };
+    const key = JSON.stringify(speakRequest(d, 'Hi!')); // the real key, so the blob entry really is the one found
+    d.voiceCache = { [key]: { url: 'blob:x', duration: 1 } };
     const bad = vi.fn().mockRejectedValue(new Error('voice service down'));
     await expect(voiceFromCache(d, 'Hi!', bad)).rejects.toThrow('voice service down');
-    expect(Object.keys(d.voiceCache)).toHaveLength(1); // only the pre-existing junk entry
+    expect(bad).toHaveBeenCalledTimes(1); // the blob link was not reused
+    expect(Object.keys(d.voiceCache)).toEqual([key]); // nothing new stored
   });
   it('keeps the cache bounded', async () => {
     const d = draftWith();

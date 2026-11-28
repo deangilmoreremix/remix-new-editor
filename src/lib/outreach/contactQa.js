@@ -28,7 +28,8 @@ export function contactKey(c) {
   const email = String(c?.email || '').trim().toLowerCase();
   if (email) return `e:${email}`;
   const who = [c?.firstName, c?.lastName, c?.company].map((v) => String(v || '').trim().toLowerCase());
-  return who.some(Boolean) ? `n:${who.join('|')}` : '';
+  // A company alone does not say it is the same person (two people at Acme): a name is needed.
+  return who[0] || who[1] ? `n:${who.join('|')}` : '';
 }
 
 const nameOf = (c) => [c?.firstName, c?.lastName].filter(Boolean).join(' ') || c?.email || 'No name';

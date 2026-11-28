@@ -57,3 +57,29 @@ describe('jumping to a match in an edited video', () => {
     expect(firstPlayableMatch(src, 'zebra')).toBeNull();
   });
 });
+
+describe('matches on text with combining accents', () => {
+  it('highlights the right letters when the text is not precomposed', () => {
+    const text = 'Cafe\u0301 menus today';
+    const [m] = searchLines([{ startMs: 0, text }], 'menus');
+    const hit = highlightPieces(text, m.ranges).filter((p) => p.hit).map((p) => p.text);
+    expect(hit).toEqual(['menus']);
+  });
+  it('highlights an accented word whole', () => {
+    const text = 'Cafe\u0301 menus';
+    const [m] = searchLines([{ startMs: 0, text }], 'cafe');
+    expect(highlightPieces(text, m.ranges).filter((p) => p.hit).map((p) => p.text)).toEqual(['Cafe\u0301']);
+  });
+  it('still highlights precomposed accents and plain text', () => {
+    const [a] = searchLines([{ startMs: 0, text: 'Café menus' }], 'cafe');
+    expect(highlightPieces('Café menus', a.ranges).filter((p) => p.hit).map((p) => p.text)).toEqual(['Café']);
+  });
+});
+
+describe('many cut-out matches before a playable one', () => {
+  it('still reaches a playable match after more than 400 cut-out ones', () => {
+    const many = Array.from({ length: 450 }, (_, i) => ({ startMs: i * 1000, endMs: i * 1000 + 900, text: 'pricing' }));
+    const remap = (l) => (l.startMs < 440000 ? null : l);
+    expect(firstPlayableMatch(many, 'pricing', remap)).toMatchObject({ index: 440 });
+  });
+});

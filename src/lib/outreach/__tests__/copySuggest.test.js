@@ -46,3 +46,14 @@ describe('script tools', () => {
   });
   it('estimates speaking time at a normal pace', () => { expect(speakSeconds(Array(75).fill('word').join(' '))).toBe(30); });
 });
+
+describe('decimals and addresses inside sentences', () => {
+  it('keeps "1.5 hours" together', () => {
+    expect(tightenScript('We save 1.5 hours.').text).toBe('We save 1.5 hours.');
+    expect(shortOpening('We save 1.5 hours every week. Book a time.', 3)).not.toBe('We save 1.');
+  });
+  it('keeps a web address together and still drops whole sentences', () => {
+    const r = tightenScript('See example.com for the demo. It is quick. Reply any time. Talk soon.', { maxSeconds: 3 });
+    expect(r.text.startsWith('See example.com for the demo.')).toBe(true);
+  });
+});

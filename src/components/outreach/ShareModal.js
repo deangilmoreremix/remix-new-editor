@@ -52,8 +52,15 @@ async function nativeShare({ title, text, url }, b, link) {
   } catch (e) {
     if (e?.name === 'AbortError') return false; // closed the sheet: nothing was sent
     const note = b.closest('[data-share-modal]')?.querySelector('[data-share-note]');
-    if (note) note.textContent = 'Sharing did not work here, so the link was copied instead.';
-    try { await navigator.clipboard.writeText(link); return true; } catch { window.prompt('Copy this:', link); return false; } // the prompt only shows the link: nothing was copied or sent
+    try {
+      await navigator.clipboard.writeText(link);
+      if (note) note.textContent = 'Sharing did not work here, so the link was copied instead.';
+      return true;
+    } catch {
+      if (note) note.textContent = 'Sharing and copying did not work here. Copy the link from the box that opened.';
+      window.prompt('Copy this:', link);
+      return false; // the prompt only shows the link: nothing was copied or sent
+    }
   }
 }
 

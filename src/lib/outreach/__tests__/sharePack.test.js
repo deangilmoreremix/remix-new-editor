@@ -125,3 +125,33 @@ describe('share pack', () => {
     expect(count).toBe(3); expect(zip.length).toBeGreaterThan(100);
   });
 });
+
+describe('names that collide with names already handed out', () => {
+  const row = (firstName, n) => ({ contact: { firstName, email: `${n}@x.com` }, link: `https://smartvid.app/watch/${n}`, subject: 's', text: 't' });
+  it('gives "Alex", "Alex" and "Alex (2)" three different files, each named by its CSV row', async () => {
+    const { files } = await buildSharePack([row('Alex', 1), row('Alex', 2), row('Alex (2)', 3)], { png: async () => null });
+    const svgs = files.filter((f) => f.name.endsWith('.svg')).map((f) => f.name);
+    expect(new Set(svgs.map((n) => n.toLowerCase())).size).toBe(3);
+    const csv = files.find((f) => f.name === 'links.csv').data.split('\r\n');
+    expect(new Set(csv.slice(1, 4).map((l) => l.split(',').pop())).size).toBe(3);
+  });
+  it('a name cut in the middle of an emoji still matches the zip entry', async () => {
+    const { files } = await buildSharePack([row(`${'a'.repeat(59)}😀`, 1)], { png: async () => null });
+    const svg = files.find((f) => f.name.endsWith('.svg')).name;
+    expect(safeFileName(svg)).toBe(svg);
+    const csv = files.find((f) => f.name === 'links.csv').data.split('\r\n')[1];
+    expect(csv.endsWith(svg)).toBe(true);
+  });
+  it('the zip never repeats a name, even when a later file already has a numbered one', () => {
+    const zip = createZip([{ name: 'a.txt', data: 'x' }, { name: 'a.txt', data: 'y' }, { name: 'a (2).txt', data: 'z' }]);
+    const v = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
+    const names = [];
+    for (let at = 0; v.getUint32(at, true) === 0x04034b50;) { // each local header: sizes at 18, name length at 26, extra length at 28
+      const size = v.getUint32(at + 18, true); const n = v.getUint16(at + 26, true); const x = v.getUint16(at + 28, true);
+      names.push(new TextDecoder().decode(zip.subarray(at + 30, at + 30 + n)));
+      at += 30 + n + x + size;
+    }
+    expect(names).toHaveLength(3);
+    expect(new Set(names.map((n) => n.toLowerCase())).size).toBe(3);
+  });
+});

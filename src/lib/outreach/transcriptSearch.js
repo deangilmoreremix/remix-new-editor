@@ -3,7 +3,24 @@
 // Search inside a video's transcript (requirements 17 and 33). Runs locally on the lines already in the page.
 // A line is { startMs, endMs, text }. Every word you type must appear in the line (any order, any case).
 
-const norm = (s) => String(s || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '');
+const MARKS = /[̀-ͯ]/g;
+const norm = (s) => String(s || '').toLowerCase().normalize('NFKD').replace(MARKS, '');
+
+// The same folding, keeping where each folded character came from, so a match can be shown on the original text.
+function fold(s) {
+  let text = '';
+  const starts = [];
+  const ends = [];
+  let at = 0;
+  for (const ch of String(s || '')) {
+    const out = ch.toLowerCase().normalize('NFKD').replace(MARKS, '');
+    for (let i = 0; i < out.length; i += 1) { starts.push(at); ends.push(at + ch.length); }
+    if (!out.length && ends.length) ends[ends.length - 1] = at + ch.length; // an accent mark belongs to the letter before it
+    text += out;
+    at += ch.length;
+  }
+  return { text, starts, ends };
+}
 
 /** The words of a query (empty when there is nothing to search). */
 export const queryWords = (q) => norm(q).split(/[^\p{L}\p{N}']+/u).filter(Boolean);
@@ -18,12 +35,12 @@ export function searchLines(lines, query, { limit = 50 } = {}) {
   const out = [];
   (Array.isArray(lines) ? lines : []).forEach((l, index) => {
     const text = String(l?.text ?? '');
-    const hay = norm(text);
+    const { text: hay, starts, ends } = fold(text);
     if (!words.every((w) => hay.includes(w))) return;
     const ranges = [];
     for (const w of words) {
       let at = hay.indexOf(w);
-      while (at !== -1) { ranges.push([at, at + w.length]); at = hay.indexOf(w, at + w.length); }
+      while (at !== -1) { ranges.push([starts[at], ends[at + w.length - 1]]); at = hay.indexOf(w, at + w.length); }
     }
     ranges.sort((a, b) => a[0] - b[0]);
     const merged = [];
@@ -54,7 +71,7 @@ export function highlightPieces(text, ranges) {
  * @returns {{ index:number, startMs:number, text:string } | null}
  */
 export function firstPlayableMatch(lines, query, remap = (l) => l) {
-  for (const m of searchLines(lines, query, { limit: 400 })) {
+  for (const m of searchLines(lines, query, { limit: Infinity })) {
     const line = remap(lines[m.index]);
     if (line && Number.isFinite(line.startMs)) return { index: m.index, startMs: Math.max(0, line.startMs), text: m.text };
   }

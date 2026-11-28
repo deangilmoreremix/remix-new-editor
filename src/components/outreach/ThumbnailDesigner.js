@@ -109,7 +109,9 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
     if (suggestRun || !draft.video?.url) { if (!draft.video?.url) suggestStatus.textContent = 'Add your video first.'; return; }
     const run = { aborted: false }; suggestRun = run;
     suggest.disabled = true; cancelSuggest.hidden = false; suggestList.replaceChildren(); suggestNote.hidden = true;
-    const times = sampleTimes(draft.video.duration || video?.duration || 0, 8);
+    // Only moments the scrubber can really select (a GIF needs room after its start), so a suggestion and the saved start match.
+    const latest = Number(start.max);
+    const times = [...new Set(sampleTimes(draft.video.duration || video?.duration || 0, 8).map((t) => (Number.isFinite(latest) ? Math.round(Math.min(t, latest) * 10) / 10 : t)))];
     const frames = [];
     try {
       for (let i = 0; i < times.length; i += 1) {

@@ -39,14 +39,16 @@ const dosDate = (d) => (((Math.max(1980, d.getFullYear()) - 1980) << 9) | ((d.ge
 
 /** Make names unique inside the zip ("a.csv", "a (2).csv"). */
 function uniqueNames(files) {
-  const seen = new Map();
+  const seen = new Set();
   return files.map((f) => {
     const base = safeFileName(f.name);
-    const n = (seen.get(base.toLowerCase()) || 0) + 1;
-    seen.set(base.toLowerCase(), n);
-    if (n === 1) return base;
     const dot = base.lastIndexOf('.');
-    return dot > 0 ? `${base.slice(0, dot)} (${n})${base.slice(dot)}` : `${base} (${n})`;
+    // Every name handed out is reserved, so a file already called "a (2).txt" cannot be matched by a later "a (2).txt".
+    let n = 1;
+    let name = base;
+    while (seen.has(name.toLowerCase())) { n += 1; name = dot > 0 ? `${base.slice(0, dot)} (${n})${base.slice(dot)}` : `${base} (${n})`; }
+    seen.add(name.toLowerCase());
+    return name;
   });
 }
 

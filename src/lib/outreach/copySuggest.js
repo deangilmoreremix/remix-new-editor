@@ -51,7 +51,8 @@ const FILLERS = [
   /\bI hope (this finds you well|you are (doing )?well)[.!]?\s*/gi,
 ];
 const words = (t) => String(t || '').trim().split(/\s+/).filter(Boolean).length;
-const sentences = (t) => String(t || '').match(/[^.!?]+[.!?]*\s*/g)?.map((s) => s.trim()).filter(Boolean) || [];
+// A sentence ends at . ! or ? followed by a space or the end, so "1.5 hours" and "example.com" stay in one piece.
+const sentences = (t) => String(t || '').match(/.+?(?:[.!?]+(?=\s|$)|$)\s*/gs)?.map((s) => s.trim()).filter(Boolean) || [];
 const WPM = 150;
 
 /** Spoken length in seconds at a normal pace. */

@@ -65,7 +65,8 @@ export function downloadBlob(blob, name, doc = globalThis.document) {
 }
 
 // At most 60 characters, so "(99)" and "-qr.svg" still fit inside the 80-character file name limit.
-const who = (r) => safeFileName([r.contact?.firstName, r.contact?.lastName].filter(Boolean).join('-') || r.contact?.company || r.contact?.email || 'prospect', 'prospect').slice(0, 60).replace(/[.\s-]+$/g, '') || 'prospect';
+// Cut by whole characters (never half of an emoji), then clean again, so the name is exactly what the zip will keep.
+const who = (r) => safeFileName(Array.from(safeFileName([r.contact?.firstName, r.contact?.lastName].filter(Boolean).join('-') || r.contact?.company || r.contact?.email || 'prospect', 'prospect')).slice(0, 60).join(''), 'prospect');
 
 /**
  * Everything to send one prospect, as files for a zip:
@@ -81,13 +82,16 @@ export async function buildSharePack(rows, { png = (l) => qrPngBlob(l) } = {}) {
   const lines = [head.join(',')];
   const emails = [];
   // Names are compared ignoring upper and lower case, as most file systems do: "Alex-Lee" and "alex-lee" collide.
-  const used = new Map();
+  const used = new Set();
   // The same name twice must still give two different files, and the CSV must name the right one.
+  // Every name handed out is reserved, so "Alex", "Alex", "Alex (2)" still get three different files.
   const uniqueBase = (r) => {
     const b = who(r);
-    const n = (used.get(b.toLowerCase()) || 0) + 1;
-    used.set(b.toLowerCase(), n);
-    return n === 1 ? b : `${b} (${n})`;
+    let n = 1;
+    let name = b;
+    while (used.has(name.toLowerCase())) { n += 1; name = `${b} (${n})`; }
+    used.add(name.toLowerCase());
+    return name;
   };
   for (const r of rows || []) {
     const base = uniqueBase(r);

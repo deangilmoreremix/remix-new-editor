@@ -171,6 +171,7 @@ export function OutreachStudio() {
   let recordingBlob = null;
   let busy = '';
   let notice = '';
+  const contactSig = (list) => (list || []).map((c) => c.id).join('|');
   let dedupeUndo = null; // { removed, count } from "Remove duplicates", so it can be put back
   let captionQuery = '';
   let suggestGoal = 'intro';
@@ -946,7 +947,9 @@ export function OutreachStudio() {
   // What did not work in a generation, and a way to run it again. Nothing paid runs without the usual confirmation.
   function attentionList() {
     const out = [];
-    draft.contacts.forEach((c) => {
+    // A website capture error only matters while the campaign uses website backgrounds.
+    const usesSites = draft.background?.mode === 'website';
+    (usesSites ? draft.contacts : []).forEach((c) => {
       const k = c.website ? siteKey(c.website) : '';
       const e = k && draft.siteErrors?.[k];
       if (e) out.push({ name: [c.firstName, c.lastName].filter(Boolean).join(' ') || c.email || 'Prospect', reason: String(e) });
@@ -1070,6 +1073,8 @@ export function OutreachStudio() {
 
   // The checks on the contact list (src/lib/outreach/contactQa.js). Email checks are syntax only.
   function renderContactQa() {
+    // Undo only fits the list it was made for: once a contact is added or removed, the old positions mean nothing.
+    if (dedupeUndo && dedupeUndo.sig !== contactSig(draft.contacts)) dedupeUndo = null;
     const { issues, counts } = validateContacts(draft.contacts);
     const warnings = issues.filter((i) => i.level === 'warning');
     const card = card_('Check your list', 'Syntax and completeness checks, on your device. A well-formed email is not proof that mail gets through.', 3);
@@ -1096,7 +1101,7 @@ export function OutreachStudio() {
       rm.setAttribute('data-outreach-dedupe', '');
       rm.addEventListener('click', () => {
         const { kept, removed } = dedupeContacts(draft.contacts);
-        dedupeUndo = { removed, count: removed.length };
+        dedupeUndo = { removed, count: removed.length, sig: contactSig(kept) };
         draft.contacts = kept; draft.campaign = null; persist(); render();
       });
       actions.appendChild(rm);
