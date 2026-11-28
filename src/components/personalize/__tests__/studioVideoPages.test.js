@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const openVideoPages = vi.fn();
+const { openVideoPages } = vi.hoisted(() => ({ openVideoPages: vi.fn() }));
 vi.mock('../../VideoPagesButton.js', async (orig) => ({ ...(await orig()), openVideoPages }));
 import { mountPersonalizeTrigger } from '../personalizePopover.js';
 

@@ -21,6 +21,11 @@ interface Props {
   publishResults: PublishResult[]
   onRetry?: (platform: string, accountId?: string) => void | Promise<void>
   refreshKey: number
+  /** Server-side automatic jobs, shown on the same calendar (the browser copy of a job is never the source of truth). */
+  cloudPlans?: PlanItem[]
+  onMoveCloud?: (planId: string, to: number) => Promise<void>
+  /** The Automatic publishing section (key opt-in, schedule, history). */
+  autoPublish?: React.ReactNode
 }
 
 const BUCKETS: [ReturnType<typeof queueBucket>, string][] = [['drafts', 'Drafts'], ['scheduled', 'Scheduled'], ['inProgress', 'Publishing'], ['published', 'Published'], ['failed', 'Failed']]
@@ -28,7 +33,7 @@ const toLocalInput = (ts: number, tz: string) => { const p = zonedParts(ts, tz);
 const fromLocalInput = (v: string, tz: string) => { const m = v.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/); return m ? zonedToTimestamp(+m[1], +m[2], +m[3], +m[4], +m[5], tz) : null }
 const zones = (): string[] => { try { return (Intl as any).supportedValuesOf('timeZone') } catch { return [localTimeZone(), 'UTC'] } }
 
-export function PlanPanel({ stores, draftId, onRestore, schedule, onSchedule, scheduleError, autosave, publishResults, onRetry, refreshKey }: Props) {
+export function PlanPanel({ stores, draftId, onRestore, schedule, onSchedule, scheduleError, autosave, publishResults, onRetry, refreshKey, cloudPlans = [], onMoveCloud, autoPublish }: Props) {
   const caps = useCapabilities()
   const online = useOnline()
   const tz = schedule.timeZone
@@ -49,7 +54,7 @@ export function PlanPanel({ stores, draftId, onRestore, schedule, onSchedule, sc
   const reload = useCallback(async () => { if (stores) setDrafts(await stores.drafts.list()) }, [stores])
   useEffect(() => { void reload() }, [reload, refreshKey])
 
-  const plans: PlanItem[] = useMemo(() => drafts.map((d) => d.plan).filter((p) => (!pf || p.platforms.includes(pf)) && (!bucketFilter || queueBucket(p) === bucketFilter)), [drafts, pf, bucketFilter])
+  const plans: PlanItem[] = useMemo(() => [...drafts.map((d) => d.plan), ...cloudPlans].filter((p) => (!pf || p.platforms.includes(pf)) && (!bucketFilter || queueBucket(p) === bucketFilter)), [drafts, cloudPlans, pf, bucketFilter])
   const conflicts = useMemo(() => new Set(findConflicts(plans).flat()), [plans])
   const byDay = useMemo(() => plansByDay(plans, tz), [plans, tz])
   const days = useMemo(() => viewDays(view, anchor, tz), [view, anchor, tz])
@@ -65,6 +70,14 @@ export function PlanPanel({ stores, draftId, onRestore, schedule, onSchedule, sc
 
   const saveRec = async (rec: DraftRecord) => { const r = await stores?.drafts.save(rec); if (r && !r.ok) flash(r.message); await reload() }
   const onDropDay = async (key: string, id: string) => {
+    const cloud = cloudPlans.find((c) => c.id === id)
+    if (cloud) {
+      if (!['queued', 'failed'].includes(cloud.status)) return flash('A post that is publishing or published cannot be moved.')
+      const moved = rescheduleToDay(cloud, key, tz)
+      if (moved.scheduledAt === null || moved.scheduledAt < Date.now()) return flash('That day is in the past.')
+      try { await onMoveCloud?.(id, moved.scheduledAt); flash('Rescheduled.') } catch (e: any) { flash(e?.message || 'Could not reschedule.') }
+      return
+    }
     const rec = drafts.find((d) => d.id === id)
     if (!rec || rec.plan.status === 'published') return
     const plan = rescheduleToDay(rec.plan, key, tz)
@@ -88,7 +101,12 @@ export function PlanPanel({ stores, draftId, onRestore, schedule, onSchedule, sc
         </div>
         {schedule.at && <p className="mt-1 text-[11px] text-white/60">{formatInZone(schedule.at, tz)} {timeZoneLabel(schedule.at, tz)} · your device: {formatInZone(schedule.at, localTimeZone())} {timeZoneLabel(schedule.at, localTimeZone())}</p>}
         {scheduleError && <p role="alert" className="mt-1 text-[11px] text-red-300">{scheduleError}</p>}
-        <p className="mt-1 text-[10px] text-white/40">This is a reminder plan. MuAPI publishes when you press Publish; SmartVideo does not auto-post at the planned time, and this browser's timers aren't relied on for that.</p>
+        <p className="mt-1 text-[10px] text-white/40">Saving a draft only reminds you at this time. To have it published for you, use Automatic publishing below.</p>
+      </section>
+
+      <section aria-label="Automatic publishing">
+        <h4 className={h4}>Automatic publishing</h4>
+        {autoPublish}
       </section>
 
       <section aria-label="Drafts and autosave">
@@ -160,9 +178,9 @@ export function PlanPanel({ stores, draftId, onRestore, schedule, onSchedule, sc
                 className={`min-h-[56px] rounded-md border p-1 text-[10px] ${today ? 'border-[#d9ff00]/60' : 'border-white/10'} ${k.slice(0, 7) !== dayKey(anchor, tz).slice(0, 7) && view === 'month' ? 'opacity-40' : ''}`}>
                 <div className="text-white/50">{Number(k.slice(8))}</div>
                 {items.map((p) => (
-                  <div key={p.id} draggable={p.status !== 'published'} onDragStart={(e) => { e.dataTransfer.setData('text/plain', p.id); setDragging(p.id) }}
+                  <div key={p.id} draggable={['draft', 'queued', 'failed'].includes(p.status)} onDragStart={(e) => { e.dataTransfer.setData('text/plain', p.id); setDragging(p.id) }}
                     title={`${p.title} · ${formatInZone(p.scheduledAt as number, tz, { timeStyle: 'short' })}${conflicts.has(p.id) ? ' · conflicts with another post' : ''}`}
-                    className={`mt-0.5 truncate rounded px-1 py-0.5 ${conflicts.has(p.id) ? 'bg-red-500/30 text-red-100' : p.status === 'published' ? 'bg-emerald-500/20 text-emerald-100' : p.status === 'failed' ? 'bg-red-500/20 text-red-200' : 'bg-white/10 text-white/90'} ${p.status !== 'published' ? 'cursor-grab' : ''}`}>
+                    className={`mt-0.5 truncate rounded px-1 py-0.5 ${conflicts.has(p.id) ? 'bg-red-500/30 text-red-100' : p.status === 'published' ? 'bg-emerald-500/20 text-emerald-100' : p.status === 'failed' ? 'bg-red-500/20 text-red-200' : 'bg-white/10 text-white/90'} ${['draft', 'queued', 'failed'].includes(p.status) ? 'cursor-grab' : ''}`}>
                     {formatInZone(p.scheduledAt as number, tz, { hour: 'numeric', minute: '2-digit' })} {p.title}
                   </div>
                 ))}
@@ -177,7 +195,7 @@ export function PlanPanel({ stores, draftId, onRestore, schedule, onSchedule, sc
       <section aria-label="Publishing queue">
         <h4 className={h4}>Publishing queue</h4>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 text-center">
-          {BUCKETS.map(([k, l]) => <div key={k} className="rounded-lg border border-white/10 py-1.5"><div className="text-sm font-semibold text-white">{drafts.filter((d) => queueBucket(d.plan) === k).length}</div><div className="text-[10px] text-white/40">{l}</div></div>)}
+          {BUCKETS.map(([k, l]) => <div key={k} className="rounded-lg border border-white/10 py-1.5"><div className="text-sm font-semibold text-white">{[...drafts.map((d) => d.plan), ...cloudPlans].filter((pl) => queueBucket(pl) === k).length}</div><div className="text-[10px] text-white/40">{l}</div></div>)}
         </div>
         {failed.length > 0 && (
           <ul className="mt-2 space-y-1">

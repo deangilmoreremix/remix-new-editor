@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ensureProjectRow, linkVideoToProject, readInterestMap, isLinkableProjectId, linkedProjectId, enableRetargetForVideo, externalProjectId } from '@cinegen/lib/leads/project-link';
+import { ensureProjectRow, linkVideoToProject, readInterestMap, isLinkableProjectId, linkedProjectId, enableRetargetForVideo, externalProjectId, ensureLinkedRow } from '@cinegen/lib/leads/project-link';
 
 /** Minimal in-memory stand-in for the supabase-js query builder (transport only). */
 function fake(seed: Record<string, any>[] = [], videos: Record<string, any>[] = []) {
@@ -100,5 +100,28 @@ describe('Turn on Retarget for an existing published video', () => {
   it('never takes over an editor-made row', async () => {
     const c = fake([{ id: await externalProjectId('abcdefgh12'), settings: { source: 'cinegen' } }], [video]);
     await expect(enableRetargetForVideo(c, 'abcdefgh12')).rejects.toThrow(/another project/);
+  });
+});
+
+describe('ensureLinkedRow (publishing from the Share panel)', () => {
+  const input = () => ({ projectId: 'cloud_p1', timelineId: 'tl-1', title: 'Spring promo', built: { timelineSeconds: 20 } as { timelineSeconds: number; interestMap?: unknown }, aspect: '16:9' });
+  it('creates the timeline row and returns its id so the video can be linked at publish', async () => {
+    const c = fake();
+    const id = await ensureLinkedRow(c, input());
+    expect(id).toBe(await linkedProjectId('cloud_p1', 'tl-1'));
+    expect(c.tables.timeline_projects[0]).toMatchObject({ id, settings: { source: 'cinegen', cinegenProjectId: 'cloud_p1', timelineId: 'tl-1' } });
+  });
+  it('carries the owner\'s saved audience mapping into what is published', async () => {
+    const rowId = await linkedProjectId('cloud_p1', 'tl-1');
+    const map = [{ id: 's1', start: 0, end: 10, interest: { type: 'topic', label: 'Roofing' } }];
+    const c = fake([{ id: rowId, settings: { source: 'cinegen', interestMap: map } }]);
+    const i = input();
+    expect(await ensureLinkedRow(c, i)).toBe(rowId);
+    expect(i.built.interestMap).toEqual(map);
+  });
+  it('returns null (and the video still publishes) when the row cannot be written', async () => {
+    const rowId = await linkedProjectId('cloud_p1', 'tl-1');
+    const c = fake([{ id: rowId, settings: { source: 'external' } }]); // not ours to take over
+    expect(await ensureLinkedRow(c, input())).toBeNull();
   });
 });

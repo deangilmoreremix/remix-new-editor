@@ -7,6 +7,7 @@
  * src/lib/editor/publish/publishClient.js, so the public page stays light.
  */
 import { makeSlug } from '../editor/publish/publishClient.js';
+import { mirrorPublished, refreshPageVideo } from './retargetLink.js';
 import { sanitizeConfig, safeImageUrl } from './templates.js';
 
 export const PAGE_ID_RE = /^[A-Za-z0-9_-]{8,32}$/;
@@ -31,15 +32,17 @@ const PAGE_COLUMNS = 'id, title, video_url, poster_url, duration, source, config
 
 // ------------------------------------------------------------------ owner API
 
-export async function createPage(client, { title, videoUrl, posterUrl = null, duration = null, source = {}, config }) {
+export async function createPage(client, { title, videoUrl, posterUrl = null, duration = null, source = {}, config }, { linkVideo = true } = {}) {
   if (!/^https:\/\//i.test(String(videoUrl || ''))) throw new Error('The video needs a permanent https link before it can be published');
+  // Give the page's video analytics and Retarget (best effort; the page is created either way).
+  const videoId = linkVideo ? await (await import('./retargetLink.js')).publishPageVideo(client, { videoUrl, title, duration }) : null;
   const row = {
     id: makeSlug(10),
     title: String(title || 'Untitled page').slice(0, 200),
     video_url: videoUrl,
     poster_url: safeImageUrl(posterUrl) || null,
     duration: Number.isFinite(Number(duration)) ? Number(duration) : null,
-    source: source && typeof source === 'object' ? source : {},
+    source: { ...(source && typeof source === 'object' ? source : {}), ...(videoId ? { videoId } : {}) },
     config: sanitizeConfig(config),
     published: false,
   };
@@ -61,6 +64,10 @@ export async function updatePage(client, id, patch = {}) {
   if ('published' in patch) row.published = !!patch.published;
   const { data, error } = await client.from('landing_pages').update(row).eq('id', id).select(PAGE_COLUMNS).single();
   fail(error, 'Could not save the page');
+  // The page's video record follows the page: published and hidden with it, and refreshed when the page's video is replaced.
+  // Done here, not in the callers, so the editor's own Save / Publish buttons are covered too.
+  if ('published' in patch) await mirrorPublished(client, data, data.published);
+  if (row.video_url) await refreshPageVideo(client, data);
   return data;
 }
 
@@ -144,7 +151,7 @@ const anonHeaders = (key, extra = {}) => ({ apikey: key, Authorization: `Bearer 
 export async function fetchPublicPage(id, { url, key, fetchImpl = fetch } = env()) {
   if (!PAGE_ID_RE.test(String(id || ''))) return null;
   if (!url || !key) throw new Error('Page service is not configured');
-  const res = await fetchImpl(`${url}/rest/v1/landing_pages?id=eq.${encodeURIComponent(id)}&published=eq.true&select=id,title,video_url,poster_url,duration,config,updated_at`, {
+  const res = await fetchImpl(`${url}/rest/v1/landing_pages?id=eq.${encodeURIComponent(id)}&published=eq.true&select=id,title,video_url,poster_url,duration,source,config,updated_at`, {
     headers: anonHeaders(key, { Accept: 'application/json' }),
   });
   if (!res.ok) throw new Error(`Could not load the page (HTTP ${res.status})`);

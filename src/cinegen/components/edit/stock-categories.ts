@@ -172,3 +172,19 @@ export const FLUX_SIZE: Record<'16:9' | '9:16' | '1:1', { width: number; height:
   '9:16': { width: 576, height: 1024 },
   '1:1': { width: 1024, height: 1024 },
 };
+
+/** Image quality = length of the long side in px (flux-dev accepts 128-2048 in steps of 64). */
+export const IMAGE_QUALITIES = [{ id: 1024, label: 'Standard (1024 px)' }, { id: 1536, label: 'HD (1536 px)' }, { id: 2048, label: 'Max (2048 px)' }] as const;
+export const VIDEO_RESOLUTIONS = ['480p', '720p', '1080p'] as const;
+export const VIDEO_DURATIONS = [5, 8, 10] as const; // seedance-lite-t2v accepts 3-12 s
+
+export interface AiOptions { size: number; resolution: (typeof VIDEO_RESOLUTIONS)[number]; duration: number }
+export const DEFAULT_AI_OPTIONS: AiOptions = { size: 1024, resolution: '720p', duration: 5 };
+
+/** Pixel size for an aspect ratio with the long side at `long`, rounded to multiples of 64 and kept inside 128-2048. */
+export function fluxSize(aspect: '16:9' | '9:16' | '1:1', long: number): { width: number; height: number } {
+  const [w, h] = aspect.split(':').map(Number);
+  const snap = (v: number) => Math.min(2048, Math.max(128, Math.round(v / 64) * 64));
+  const L = snap(long);
+  return w >= h ? { width: L, height: snap((L * h) / w) } : { width: snap((L * w) / h), height: L };
+}

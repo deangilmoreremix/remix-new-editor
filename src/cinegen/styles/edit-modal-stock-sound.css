@@ -11,7 +11,7 @@
 .cg-stock__head .cg-label { flex: 1; }
 .cg-stock__cats { max-height: 130px; overflow-y: auto; padding-right: 4px; }
 .cg-stock__form { display: grid; gap: 18px; }
-.cg-stock__form--ai { grid-template-columns: 3fr 1fr; }
+.cg-stock__form--ai { grid-template-columns: 3fr 1fr 1fr; }
 .cg-stock__form--one { grid-template-columns: 1fr; }
 .cg-stock__form .cg-label { margin-bottom: 6px; }
 .cg-stock__prompt { resize: vertical; font-family: inherit; }

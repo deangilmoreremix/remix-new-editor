@@ -11,6 +11,8 @@ import { PlatformPreviews } from './PlatformPreviews'
 import { OptimizePanel } from './OptimizePanel'
 import { MediaTools } from './MediaTools'
 import { PlanPanel, type Schedule } from './PlanPanel'
+import { AutoPublishPanel, useCloudJobs, type PreparedSchedule } from './AutoPublishPanel'
+import { rescheduleJob } from '../../../../../lib/social/publishJobs.js'
 
 export interface SocialStudioPanelProps {
   asset: Asset
@@ -25,6 +27,10 @@ export interface SocialStudioPanelProps {
   onReplaceAsset?: (a: Asset) => void
   onRestoreDraft?: (snapshot: Record<string, any>) => void
   onRetry?: (platform: string, accountId?: string) => void | Promise<void>
+  /** MuAPI key from the API-keys settings (sent once to the server only if the owner turns on automatic publishing). */
+  apiKey?: string
+  /** Makes the media public and builds the exact MuAPI request per destination (same code path as Publish). */
+  onPrepareSchedule?: (scheduledAt: number) => Promise<PreparedSchedule>
   /** The modal's existing preview card. */
   children?: React.ReactNode
 }
@@ -52,6 +58,7 @@ export function SocialStudioPanel(p: SocialStudioPanelProps) {
   const [autosave, setAutosave] = useState<{ state: 'idle' | 'saving' | 'saved' | 'error'; message?: string; at?: number }>({ state: 'idle' })
   const [refreshKey, setRefreshKey] = useState(0)
   const meta = useMediaMeta(p.asset.url, p.asset.type)
+  const cloud = useCloudJobs(visited.has('plan'))
 
   const enabled = useMemo(() => p.destinations.filter((d) => d.enabled && d.accountId), [p.destinations])
   const platforms = useMemo(() => [...new Set(enabled.map((d) => d.platform))] as PlatformId[], [enabled])
@@ -126,6 +133,17 @@ export function SocialStudioPanel(p: SocialStudioPanelProps) {
   }
 
   const go = (t: Tab) => { setTab(t); setVisited((v) => new Set(v).add(t)) }
+  const JOB_STATUS: Record<string, PlanStatus> = { scheduled: 'queued', publishing: 'processing', posted: 'published', failed: 'failed' }
+  const cloudPlans: PlanItem[] = useMemo(() => cloud.jobs.filter((j) => j.status in JOB_STATUS && j.scheduled_for).map((j) => ({
+    id: `job:${j.id}`, title: j.caption?.slice(0, 40) || 'Scheduled post', platforms: j.platforms, scheduledAt: Date.parse(j.scheduled_for as string),
+    status: JOB_STATUS[j.status], caption: j.caption,
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  })), [cloud.jobs])
+  const moveCloud = async (planId: string, to: number) => {
+    // moving a waiting job keeps it scheduled; moving a failed one schedules it again at the new time
+    await rescheduleJob(planId.slice(4), new Date(to), schedule.timeZone)
+    await cloud.reload()
+  }
   const errorCount = findings.filter((f) => f.severity === 'error').length
 
   return (
@@ -153,7 +171,8 @@ export function SocialStudioPanel(p: SocialStudioPanelProps) {
         <MediaTools asset={p.asset} title={title} meta={meta} onReplaceAsset={p.onReplaceAsset} onUpdateThumbnail={p.onUpdateThumbnail} />
       </div>}
       {visited.has('plan') && <div role="tabpanel" id="studio-panel-plan" aria-labelledby="studio-tab-plan" hidden={tab !== 'plan'}>
-        <PlanPanel stores={stores} draftId={draftId} onRestore={restore} schedule={schedule} onSchedule={setSchedule} scheduleError={scheduleError} autosave={autosave} publishResults={p.publishResults} onRetry={p.onRetry} refreshKey={refreshKey} />
+        <PlanPanel stores={stores} draftId={draftId} onRestore={restore} schedule={schedule} onSchedule={setSchedule} scheduleError={scheduleError} autosave={autosave} publishResults={p.publishResults} onRetry={p.onRetry} refreshKey={refreshKey} cloudPlans={cloudPlans} onMoveCloud={moveCloud}
+          autoPublish={<AutoPublishPanel apiKey={p.apiKey ?? ''} scheduledAt={schedule.at} timeZone={schedule.timeZone} canPrepare={!!p.onPrepareSchedule && platforms.length > 0} onPrepare={(at) => p.onPrepareSchedule!(at)} jobs={cloud.jobs} jobsError={cloud.error} reload={cloud.reload} />} />
       </div>}
       <button type="button" className={`${btn} mt-3`} hidden={tab === 'preview'} onClick={() => go('preview')}>← Back to preview</button>
     </div>

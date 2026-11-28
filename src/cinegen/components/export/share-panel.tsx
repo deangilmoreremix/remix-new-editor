@@ -10,6 +10,7 @@ import { renderSharePanel } from '../../../lib/editor/publish/sharePanel.js';
 import * as pub from '../../../lib/editor/publish/publishClient.js';
 // @ts-expect-error plain JS
 import { supabase, uploadFileToStorage } from '../../../lib/hybrid-supabase.js';
+import { ensureLinkedRow } from '@cinegen/lib/leads/project-link';
 import '../../../../styles/personalize-ui.css';
 
 export { buildPublishState } from '@cinegen/lib/leads/publish-state';
@@ -42,9 +43,11 @@ export function SharePanel({ timeline, assets, overlays, projectKey }: { timelin
         const { timeline: tl, assets: as, overlays: ov } = latest.current;
         const state = buildPublishState(tl, as, ov, title);
         await pub.uploadLocalMedia(state, { getBlob: () => null, upload: uploadFileToStorage });
+        // Tie the video to its project row so Analytics / Retarget / Alerts find it (accounts only; best-effort).
+        const linked = await ensureLinkedRow(c, { projectId: projectKey, timelineId: tl.id, title, built: state, aspect: tl.aspect ?? null });
         const project = pub.preparePublishProject(state, { title });
         const id = videoId() || pub.makeSlug();
-        const info = await pub.publishVideo(c, { id, project });
+        const info = await pub.publishVideo(c, { id, project, projectId: linked });
         localStorage.setItem(KEY, JSON.stringify({ ...readIds(), [key]: id }));
         return { ...info, published: true };
       },

@@ -67,7 +67,7 @@ export const RETIRED_ROUTES = {
   assist: 'apps',
   community: 'explore',
   'pexels-media': 'library',
-  'video-pages': 'library',   // Video Pages is a modal now (Library > My Video Pages, the header button, or any studio's Create landing page)
+  'video-pages': 'library',   // Video Pages is a modal now (Library > My Video Pages, or any studio's inline Video Pages button)
 };
 
 const pageLoaders = {

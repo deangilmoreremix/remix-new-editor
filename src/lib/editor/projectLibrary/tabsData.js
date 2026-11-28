@@ -37,7 +37,12 @@ export function seedInterestMap(projectState, existing = []) {
   for (const t of tracks) for (const c of (t.items || t.clips || [])) {
     if (c && (c.type === 'click-to-call' || c.type === 'lead-form') && c.id != null) cta.push({ id: String(c.id), ...clipTimeRange(c, dur) });
   }
-  return projectSections({ timelineSeconds: dur, tracks }).slice(0, MAX_MAP_ENTRIES).map((s) => {
+  const fromTracks = projectSections({ timelineSeconds: dur, tracks });
+  // A video with no scenes to read (made elsewhere, one clip) keeps the sections the owner typed in.
+  if (!fromTracks.length && Array.isArray(existing) && existing.length) {
+    return existing.slice(0, MAX_MAP_ENTRIES).map((e) => ({ id: String(e.id), title: e.title, start: Number(e.start), end: Number(e.end), interest: e.interest || null, clipIds: [] }));
+  }
+  return fromTracks.slice(0, MAX_MAP_ENTRIES).map((s) => {
     const prev = saved.get(s.id);
     return {
       id: s.id, title: s.title, start: s.start, end: s.end,
@@ -72,6 +77,22 @@ export async function saveInterestMap(client, projectId, settings, entries) {
   const { error } = await client.from('timeline_projects').update({ settings: { ...(settings || {}), interestMap: map } }).eq('id', projectId);
   if (error) throw new Error(error.message || 'Could not save the interest map');
   return map;
+}
+
+/**
+ * Put the owner's saved mapping into the published copy itself. Viewer interest is scored from the published video's own
+ * `interestMap`, and a video made elsewhere has no editor to republish from, so the mapping is applied directly. Resolves to the
+ * updated project.
+ */
+export async function applyMappingToPublished(client, videoId, map) {
+  const { data, error } = await client.from('published_videos').select('project').eq('id', videoId).maybeSingle();
+  if (error) throw new Error(error.message || 'Could not read the published video');
+  if (!data?.project) throw new Error('The published video was not found');
+  const project = { ...data.project };
+  if (map.length) project.interestMap = map; else delete project.interestMap;
+  const res = await client.from('published_videos').update({ project }).eq('id', videoId);
+  if (res.error) throw new Error(res.error.message || 'Could not apply the mapping to the published video');
+  return project;
 }
 
 export async function loadFollowupComparison(client, original, followups, now = new Date()) {

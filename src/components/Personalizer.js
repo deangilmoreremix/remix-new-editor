@@ -347,7 +347,7 @@ function renderContainerElement(options) {
 
 export function Personalizer() {
   const container = document.createElement('div');
-  container.className = 'personalizer-studio w-full h-full flex flex-col bg-app-bg overflow-hidden';
+  container.className = 'personalizer-studio studio-short-scroll w-full h-full flex flex-col bg-app-bg overflow-hidden';
 
   // Top bar + drawer
   const chromeContainer = document.createElement('div');

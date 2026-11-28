@@ -479,7 +479,7 @@ const AGENT_STEPS = {
 export function DirectorPage() {
   const container = document.createElement('div');
   // flex column so the banner sits above the page and the main panels take the rest of the height
-  container.className = 'w-full h-full flex flex-col overflow-hidden bg-[#08090b]';
+  container.className = 'studio-short-scroll w-full h-full flex flex-col overflow-hidden bg-[#08090b]';
   mountStudioChrome(container, { currentRoute: 'director' });
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -528,10 +528,10 @@ export function DirectorPage() {
         </div>
 
         <!-- Main Content -->
-        <div class="flex-1 flex overflow-hidden">
+        <div class="studio-short-body flex-1 min-h-0 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
             <!-- Left: Agents Panel -->
-            <div class="w-72 border-r border-white/5 overflow-hidden bg-black/30 flex flex-col">
-                <div class="p-4 overflow-auto flex-1">
+            <div class="w-full md:w-72 shrink-0 md:min-h-0 border-b md:border-b-0 md:border-r border-white/5 overflow-hidden bg-black/30 flex flex-col">
+                <div class="p-4 overflow-auto flex-1 max-h-[50vh] md:max-h-none">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="font-bold text-white text-sm uppercase tracking-wider">AI AGENTS</h3>
                         <select id="category-filter" data-testid="category-filter" class="bg-white/5 text-xs text-secondary rounded px-2 py-1 border border-white/10">
@@ -573,7 +573,7 @@ export function DirectorPage() {
             </div>
 
             <!-- Center: Video + Chat -->
-            <div class="flex-1 flex flex-col overflow-hidden">
+            <div class="md:flex-1 min-w-0 md:min-h-0 flex flex-col md:overflow-y-auto">
                 <!-- Video Preview -->
                 <div class="p-4 border-b border-white/5">
                     <div class="bg-black rounded-2xl overflow-hidden">
@@ -608,7 +608,7 @@ export function DirectorPage() {
                 </div>
 
                 <!-- Chat Interface -->
-                <div class="flex-1 flex flex-col overflow-hidden p-4">
+                <div class="flex-1 flex flex-col shrink-0 p-4">
                     <h3 class="font-bold text-white mb-3 text-sm flex items-center gap-2">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -640,7 +640,7 @@ export function DirectorPage() {
             </div>
 
             <!-- Right: Tools Panel -->
-            <div class="w-80 border-l border-white/5 p-4 overflow-auto bg-black/30">
+            <div class="w-full md:w-80 shrink-0 md:min-h-0 border-t md:border-t-0 md:border-l border-white/5 p-4 md:overflow-auto bg-black/30">
                 <!-- Processing Status -->
                 <div id="processing-status" data-testid="processing-status" class="hidden mb-6">
                     <h4 class="font-bold text-white text-sm mb-3 flex items-center gap-2">

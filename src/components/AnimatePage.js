@@ -4,6 +4,7 @@
 
 import { createStudioHeader } from '../lib/thumbnails.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
+import { createStudioVideoPagesButton } from './studio/studioVideoPagesButton.js';
 import { listBrands, getBrand, saveAnimation, listAnimations, listCampaigns, listAssets, resolveBrandId } from '../lib/brandStore.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { showToast, createLoadingOverlay } from '../lib/loading.js';
@@ -517,6 +518,10 @@ export function AnimatePage() {
     }
   };
   controls.appendChild(generateBtn);
+  const pagesRow = document.createElement('div');
+  pagesRow.className = 'mt-2 flex';
+  pagesRow.appendChild(createStudioVideoPagesButton({ studioId: 'animate', getResult: () => state.result?.videoUrl || '', getAsset: () => ({ type: 'video' }) }));
+  controls.appendChild(pagesRow);
   root.appendChild(controls);
 
   // ---- Result ----
