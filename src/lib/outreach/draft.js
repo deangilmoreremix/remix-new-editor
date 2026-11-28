@@ -19,7 +19,7 @@
  * server.
  */
 
-import { cardDetails, cardKey, cardSideFor } from './profileCard.js';
+import { cardDetails, cardKey, cardSideFor, cardThemeId } from './profileCard.js';
 
 export const DRAFT_KEY = 'outreach-draft-v1';
 // Sendspark-style: record, the AI intro (voice + greeting), the page, prospects, then generate and
@@ -566,6 +566,8 @@ export function bubblePip(draft) {
 
 /** Which side of the frame a profile card goes, away from the bubble. */
 export const cardSide = (draft) => cardSideFor(bubbleOf(draft));
+/** The named look chosen for the profile card (the original look when none is chosen). */
+export const cardTheme = (draft) => cardThemeId(draft?.background?.cardTheme);
 export const usesBackground = (draft) => ['website', 'image', 'map', 'profile'].includes(draft.background?.mode);
 
 /** A contact's address as a cache key (lower-case, single spaces). '' when there is none. */
@@ -583,7 +585,7 @@ export function backgroundShotFor(draft, c) {
   if (mode === 'website') return (/^https:\/\//i.test(String(c.backgroundShot || '')) ? c.backgroundShot : '') || draft.siteShots?.[siteKey(c.website)] || '';
   if (mode === 'image') return c.backgroundImage || '';
   if (mode === 'map') return draft.mapShots?.[mapKey(c.address)] || '';
-  if (mode === 'profile') return draft.profileShots?.[cardKey(cardDetails(c, draft.fallbacks), cardSide(draft))] || '';
+  if (mode === 'profile') return draft.profileShots?.[cardKey(cardDetails(c, draft.fallbacks), cardSide(draft), cardTheme(draft))] || '';
   return '';
 }
 
@@ -592,7 +594,7 @@ export function fallbackShotFor(draft) {
   const mode = draft.background?.mode;
   if (mode === 'website') return draft.siteShots?.[siteKey(draft.background.fallbackSite)] || '';
   if (mode === 'image' || mode === 'map') return /^https:\/\//i.test(String(draft.background.image || '')) ? draft.background.image : '';
-  if (mode === 'profile') return draft.profileShots?.[cardKey(cardDetails({}, draft.fallbacks), cardSide(draft))] || '';
+  if (mode === 'profile') return draft.profileShots?.[cardKey(cardDetails({}, draft.fallbacks), cardSide(draft), cardTheme(draft))] || '';
   return '';
 }
 

@@ -26,6 +26,7 @@ import { withRetry } from '../lib/outreach/retry.js';
 import { onOwnerNotification, isOutreachAlertFor } from '../lib/liveAlerts.js';
 import { createHostLine, liveCallSupported } from '../lib/outreach/liveCall.js';
 import { summarizeCampaign, combineSummaries, QUARTILES } from '../lib/outreach/campaignStats.js';
+import { CARD_THEMES } from '../lib/outreach/profileCard.js';
 import { createCallWindow, showIncomingCall } from './outreach/LiveCallPanel.js';
 
 // Caption translation languages (src/lib/editor/ml/modelRegistry.js TRANSLATE_LANGUAGES).
@@ -38,7 +39,7 @@ import {
   SITE_ERROR, siteErrorFor, MISSING_MODES, onMissingOf, siteStatus, backgroundProblems,
   usesBackground, fallbackShotFor, backgroundShotFor, contactProfileFor, addressesToCapture, mapKey,
   saveToLibrary, listLibrary, libraryDraft, newDynamicVideo, cleanPage, DYNAMIC_KINDS, voiceFromCache,
-  BUBBLE_CORNERS, bubbleOf, cardSide,
+  BUBBLE_CORNERS, bubbleOf, cardSide, cardTheme,
 } from '../lib/outreach/draft.js';
 
 function el(tag, className, text) {
@@ -1812,6 +1813,15 @@ export function OutreachStudio() {
       const p = el('p', 'text-xs text-secondary', 'Your camera appears in a round bubble over a card with each contact\u2019s name, job title, company, their logo (or initials) and their LinkedIn address, from your prospect list. Cards are drawn when you generate the campaign. (LinkedIn pages themselves can\u2019t be captured: they need a login.)');
       p.setAttribute('data-bg-profile-note', '');
       bg.appendChild(p);
+      // Named looks for the card: changing it makes new cards (the old ones stay stored for the old look).
+      const looks = el('div', 'flex flex-wrap gap-2'); looks.setAttribute('data-bg-card-themes', '');
+      Object.entries(CARD_THEMES).forEach(([id, t]) => {
+        const b = el('button', `rounded-full border px-3 py-1.5 text-xs font-bold ${cardTheme(draft) === id ? 'border-primary bg-primary/10 text-primary' : 'border-white/10 text-white/70'}`, t.label);
+        b.type = 'button'; b.setAttribute('data-bg-card-theme', id); b.setAttribute('aria-pressed', String(cardTheme(draft) === id));
+        b.addEventListener('click', () => { draft.background = { ...draft.background, cardTheme: id }; draft.campaign = null; persist(); render(); });
+        looks.appendChild(b);
+      });
+      bg.appendChild(field('Card look', looks));
     }
     if (draft.background.mode === 'image' || draft.background.mode === 'map') {
       bg.appendChild(el('p', 'text-xs text-secondary', draft.background.mode === 'image'
@@ -2414,12 +2424,13 @@ export function OutreachStudio() {
   async function captureProfiles() {
     const { cardDetails, cardKey, renderProfileCard } = await import('../lib/outreach/profileCard.js');
     const side = cardSide(draft);
+    const theme = cardTheme(draft);
     const people = [...draft.contacts, {}];
     const todo = [];
     const seen = new Set();
     for (const c of people) {
       const d = cardDetails(c, draft.fallbacks);
-      const k = cardKey(d, side);
+      const k = cardKey(d, side, theme);
       if (seen.has(k) || draft.profileShots?.[k]) continue;
       seen.add(k); todo.push({ c, d, k });
     }
@@ -2428,7 +2439,7 @@ export function OutreachStudio() {
       setBusy(`Drawing profile cards: ${i + 1} of ${todo.length}…`);
       const { c, d, k } = todo[i];
       const logoUrl = c.website ? draft.siteLogos?.[siteKey(c.website)] || '' : '';
-      const blob = await renderProfileCard(d, { logoUrl, side });
+      const blob = await renderProfileCard(d, { logoUrl, side, theme });
       const url = await uploadWithRetry(new File([blob], 'profile-card.jpg', { type: 'image/jpeg' }));
       draft.profileShots = { ...(draft.profileShots || {}), [k]: url };
       persist();
