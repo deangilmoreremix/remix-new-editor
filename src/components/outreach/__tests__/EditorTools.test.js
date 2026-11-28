@@ -134,4 +134,38 @@ describe('Video Outreach editor tools', () => {
     $('[data-export-quality="small"]').click();
     expect(ex.edit().quality).toBe('small');
   });
+
+  describe('saved overlay presets', () => {
+    beforeEach(() => { localStorage.clear(); });
+    it('saves what is on the video, then adds it to another one, and deletes it', () => {
+      const first = mount('add');
+      expect($('[data-preset-save]').disabled).toBe(true); // nothing to save yet
+      $('[data-add-text]').click();
+      first.o.update(() => {});
+      document.body.replaceChildren(renderEditorTools(first.o));
+      expect($('[data-preset-save]').disabled).toBe(false);
+      const prompt = vi.spyOn(window, 'prompt').mockReturnValue('My intro kit');
+      $('[data-preset-save]').click();
+      expect(document.querySelector('[data-overlay-presets] [role="status"]').textContent).toContain('Saved “My intro kit”');
+      prompt.mockRestore();
+      // a different video
+      const second = mount('add');
+      expect(second.edit().overlays).toHaveLength(0);
+      expect($('[data-preset-use]').textContent).toContain('My intro kit');
+      $('[data-preset-use]').click();
+      expect(second.edit().overlays.map((x) => x.kind)).toEqual(['text']);
+      expect(second.edit().overlays[0].start).toBe(3); // where the preview is now
+      $('[data-preset-delete]').click();
+      expect(JSON.parse(localStorage.getItem('outreach-overlay-presets-v1'))).toEqual([]);
+    });
+    it('says why a preset could not be saved', () => {
+      const { o } = mount('add');
+      $('[data-add-text]').click();
+      document.body.replaceChildren(renderEditorTools(o));
+      const prompt = vi.spyOn(window, 'prompt').mockReturnValue('   ');
+      $('[data-preset-save]').click();
+      expect(document.querySelector('[data-overlay-presets] [role="status"]').textContent).toMatch(/name/);
+      prompt.mockRestore();
+    });
+  });
 });
