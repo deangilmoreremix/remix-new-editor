@@ -175,7 +175,10 @@ export function HeroSection() {
   `;
 
   // Animate studio thumbnails on scroll
+  // These timers can fire after the visitor has left the landing page (a signed-in visitor is sent on
+  // to the app): do nothing once the hero is no longer on the page.
   setTimeout(() => {
+    if (!section.isConnected || typeof IntersectionObserver === 'undefined') return;
     const thumbObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -192,16 +195,13 @@ export function HeroSection() {
 
   // Typewriter effect for headline
   setTimeout(() => {
-    const parts = [
-      document.getElementById('headline-part-1'),
-      document.getElementById('headline-part-2'),
-      document.getElementById('headline-part-3'),
-      document.getElementById('headline-part-4'),
-      document.getElementById('headline-part-5')
-    ];
+    if (!section.isConnected) return;
+    // Looked up inside this hero, not the whole page, so a missing part is skipped instead of throwing.
+    const parts = [1, 2, 3, 4, 5].map((n) => section.querySelector(`#headline-part-${n}`)).filter(Boolean);
     let delay = 0;
-    parts.forEach((part, index) => {
+    parts.forEach((part) => {
       setTimeout(() => {
+        if (!part.isConnected) return;
         part.style.opacity = '1';
         part.style.transform = 'translateY(0)';
         part.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
