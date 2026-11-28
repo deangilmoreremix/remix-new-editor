@@ -23,7 +23,7 @@ const round = (n) => Math.round(n * 1000) / 1000;
 const clamp = (v, lo, hi, d) => { const n = Number(v); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : d; };
 const uid = (p) => `${p}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
-export const ASPECTS = [['auto', 'Same as recording'], ['16:9', 'Landscape 16:9'], ['1:1', 'Square 1:1'], ['9:16', 'Vertical 9:16']];
+export const ASPECTS = [['auto', 'Same as recording'], ['16:9', 'Landscape 16:9'], ['1:1', 'Square 1:1'], ['4:5', 'Portrait 4:5'], ['9:16', 'Vertical 9:16']];
 export const CAPTION_STYLES = [['classic', 'Classic subtitles'], ['tiktok', 'Word highlight'], ['box', 'Boxed words'], ['karaoke', 'Karaoke'], ['minimal', 'Minimal']];
 export const TRANSITIONS = [['none', 'None'], ['fade', 'Fade'], ['slide', 'Slide'], ['wipeLeft', 'Wipe'], ['CrossZoom', 'Zoom'], ['dissolve', 'Dissolve']];
 export const QUALITY = [['small', 'Small file', 1_500_000], ['standard', 'Standard', 0], ['high', 'High quality', 8_000_000]];

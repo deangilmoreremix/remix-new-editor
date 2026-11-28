@@ -9,16 +9,19 @@
 import '../../styles/timeline-addons.css';
 import '../../styles/watch.css';
 import { fetchPublishedVideo, canonicalUrl, submitViewerLead, profileFromQuery, profileFromLink, personalLinkIdFromQuery, fetchPersonalization } from '../lib/editor/publish/publishClient.js';
-import { createAnalytics } from '../lib/editor/publish/analyticsClient.js';
+import { createAnalytics, consentMode } from '../lib/editor/publish/analyticsClient.js';
 import { projectSections, ctaLabels, isPricingLabel } from '../lib/editor/publish/sections.js';
 import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
 import { createHeatmapCapture, singleLeadClipId } from '../lib/editor/publish/heatmapCapture.js';
 import { createInteractivePlayer } from '../lib/editor/publish/interactivePlayer.js';
 import { fillTemplate, calendarEmbedUrl } from '../lib/outreach/draft.js';
 import { cleanTranscript, clock } from '../lib/outreach/transcript.js';
+import { searchLines, highlightPieces } from '../lib/outreach/transcriptSearch.js';
 import { captureEarlyPlay } from '../lib/editor/publish/earlyPlay.js';
+import { pickVariant } from '../lib/editor/addons/abTest.js';
 import { trackersFor, fireLeadTrackers } from '../lib/editor/publish/pixel.js';
 import { captureAttribution } from '../lib/editor/publish/attribution.js';
+import { browserStorage } from '../lib/outreach/safeStorage.js';
 
 const FPS = 30;
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -37,6 +40,7 @@ function message(container, title, text) {
  * @param {string|{business:string,slug:string}} ref  a video id (/watch/<id>) or a readable link (/v/<business>/<slug>)
  * @param {object} deps  (tests) { fetchVideo, createEngine, onLead, analytics, attribution }
  */
+
 async function startLiveCalls({ button, videoId, contactId, host, analytics, player, container }) {
   const { liveCallSupported, createGuestLine } = await import('../lib/outreach/liveCall.js');
   if (!liveCallSupported()) return;
@@ -140,19 +144,48 @@ export async function mountWatchPage(container, ref, deps = {}) {
   const linkValues = profileFromQuery()?.variables || {};
   const fill = (text) => fillTemplate(text, linkValues, landing?.fallbacks || {});
   const heading = landing?.header ? fill(landing.header) || title : title;
+  // Button text test: a second wording, chosen at random per viewer. Remembered in the browser only for the full tracking
+  // mode, so a returning viewer sees the same one; in the other modes nothing is stored (a new pick each visit).
+  const ctaLabelA = String(landing?.cta?.label || '');
+  const ctaLabelB = String(landing?.cta?.labelB || '');
+  const ctaShown = ctaLabelB && ctaLabelA ? (pickVariant(`cta:${video.id}`, { storage: consentMode() === 'full' ? browserStorage() : null }) === 'B' ? ctaLabelB : ctaLabelA) : ctaLabelA;
   const ctaHref = (() => { try { const u = new URL(String(landing?.cta?.url || '')); return u.protocol === 'https:' ? u.toString() : null; } catch { return null; } })();
   // The booking page itself, shown under the button, for known calendar hosts only.
   const calendarSrc = landing?.cta?.embed && ctaHref ? calendarEmbedUrl(ctaHref) : null;
   // "Talk live" (src/lib/outreach/liveCall.js): the button shows only while the sender is available.
   const liveOn = !!(landing?.live && !embed);
-  const landingBody = landing && !embed && (landing.message || (ctaHref && landing.cta?.label) || liveOn)
-    ? `<section class="watch-landing">
-        ${landing.message ? `<p class="watch-landing-msg">${esc(fill(landing.message))}</p>` : ''}
+  const hasActions = !!(landing && !embed && ((ctaHref && ctaShown) || liveOn));
+  // The row under the player: Talk live (while the sender is available) and the booking button.
+  const landingBody = hasActions
+    ? `<section class="watch-landing watch-actions" aria-label="Next step">
         ${liveOn ? `<button type="button" class="watch-live-btn" data-live-call hidden><span class="watch-live-dot" aria-hidden="true"></span><span data-live-label>Talk live now</span></button>` : ''}
-        ${ctaHref && landing.cta?.label ? `<a class="watch-landing-cta" data-landing-cta href="${esc(ctaHref)}" target="_blank" rel="noopener noreferrer">${esc(landing.cta.label)}</a>` : ''}
-        ${calendarSrc ? `<iframe class="watch-landing-calendar" data-landing-calendar src="${esc(calendarSrc)}" title="${esc(landing.cta.label || 'Book a time')}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>` : ''}
+        ${ctaHref && ctaShown ? `<a class="watch-landing-cta" data-landing-cta href="${esc(ctaHref)}" target="_blank" rel="noopener noreferrer">${esc(ctaShown)}</a>` : ''}
       </section>`
     : '';
+  // The booking page itself, right under the player, with a plain title.
+  const calendarBody = calendarSrc && !embed
+    ? `<section class="watch-calendar" aria-labelledby="watch-calendar-title">
+        <h2 id="watch-calendar-title">Pick a time that suits you</h2>
+        <iframe class="watch-landing-calendar" data-landing-calendar src="${esc(calendarSrc)}" title="${esc(ctaShown || 'Book a time')}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>
+      </section>`
+    : '';
+  // Who the page is from (sender details when the campaign carries them): brand row on top, credit in the footer.
+  const sender = landing?.sender && typeof landing.sender === 'object' ? landing.sender : {};
+  const brand = String(sender.company || sender.name || video.project.campaign?.name || '').trim().slice(0, 80);
+  const logoUrl = (() => { try { const u = new URL(String(sender.logo || '')); return u.protocol === 'https:' ? u.toString() : ''; } catch { return ''; } })();
+  // Plain words about what this page records, matching what the analytics client really does (analyticsClient.js).
+  const recordMode = consentMode();
+  const personalLink = Boolean(viewerProfile?.id); // a stored link (?p=) or one with a contact in the address (?c=)
+  const privacyNote = `<details class="watch-privacy" data-privacy>
+          <summary>What this page records</summary>
+          <p>${recordMode === 'off'
+    ? 'Tracking is off for this visit (your browser or this link asks for that), so nothing about your visit is recorded.'
+    : `The sender can see that this page was opened, whether the video was played and how far, and which buttons were clicked. ${personalLink ? ' Because this link was made for you, they can tell it was you.' : ''}${recordMode === 'anonymous' ? ' No tracking code is kept in your browser. A video with a sign-up form or a version test may still remember in your browser that you filled the form in or which version you saw.' : ' A random code is kept in your browser so a return visit is recognised; it is not your name or email.'} Nothing is recorded if your browser sends Do Not Track or Global Privacy Control.`}</p>
+        </details>`;
+  const brandRow = !embed && (brand || logoUrl)
+    ? `<div class="watch-brand">${logoUrl ? `<img class="watch-brand-logo" src="${esc(logoUrl)}" alt="" />` : brand ? `<span class="watch-brand-mark" aria-hidden="true">${esc(brand.charAt(0).toUpperCase())}</span>` : ''}${brand ? `<span class="watch-brand-name">${esc(brand)}</span>` : ''}</div>`
+    : '';
+  const intro = landing && !embed && landing.message ? `<p class="watch-landing-msg">${esc(fill(landing.message))}</p>` : '';
 
   // The transcript (Video Outreach captions), under the video: each line jumps the video to its moment, the line
   // being spoken is highlighted, and translations can be picked. Not in the embedded player.
@@ -165,6 +198,10 @@ export async function mountWatchPage(container, ref, deps = {}) {
           <h2>Transcript</h2>
           ${transcriptLangs.length > 1 ? `<select data-transcript-lang aria-label="Transcript language">${transcriptLangs.map((c) => `<option value="${esc(c)}">${esc(LANG_NAMES[c] || c)}</option>`).join('')}</select>` : ''}
         </div>
+        <div class="watch-transcript-search">
+          <input type="search" class="watch-transcript-q" data-transcript-q placeholder="Search the transcript" aria-label="Search the transcript" autocomplete="off" enterkeyhint="search" />
+          <p class="watch-transcript-count" data-transcript-count role="status" aria-live="polite"></p>
+        </div>
         <ol class="watch-transcript-lines" data-transcript-lines></ol>
       </section>`
     : '';
@@ -176,10 +213,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
     ? `<nav class="watch-chapters" data-chapters aria-label="Chapters"><h2>Chapters</h2><ol>${chapters.map((c, i) => `<li><button type="button" class="watch-chapter" data-chapter="${i}"><span class="watch-transcript-time">${esc(clock(c.startMs))}</span><span>${esc(c.title)}</span></button></li>`).join('')}</ol></nav>`
     : '';
 
-  container.innerHTML = `
-    <main class="watch">
-      ${embed ? '' : `<header class="watch-head"><h1>${esc(heading)}</h1></header>`}
-      <section class="watch-player" aria-label="${esc(title)}">
+  const playerBody = `<section class="watch-player" aria-label="${esc(title)}">
         <div class="watch-frame" data-frame>
           <div class="watch-stage" data-stage></div>
           <button type="button" class="watch-bigplay" data-bigplay aria-label="Play video"><span aria-hidden="true">▶</span></button>
@@ -192,10 +226,28 @@ export async function mountWatchPage(container, ref, deps = {}) {
           <span class="watch-time" data-dur>0:00</span>
           <button type="button" class="watch-btn" data-fs aria-label="Full screen">⛶</button>
         </div>
-      </section>
-      ${chaptersBody}
-      ${landingBody}
-      ${transcriptBody}
+      </section>`;
+  const sideBody = chaptersBody || transcriptBody ? `<aside class="watch-side">${chaptersBody}${transcriptBody}</aside>` : '';
+  container.innerHTML = embed
+    ? `<main class="watch">${playerBody}</main>`
+    : `<main class="watch">
+      <div class="watch-page">
+        <header class="watch-head">
+          ${brandRow}
+          <h1>${esc(heading)}</h1>
+          ${intro}
+        </header>
+        <div class="watch-layout${sideBody ? ' watch-layout--side' : ''}">
+          <div class="watch-main">
+            ${playerBody}
+            ${landingBody}
+            ${calendarBody}
+          </div>
+          ${sideBody}
+        </div>
+        ${brand ? `<footer class="watch-foot">Video message by <strong>${esc(brand)}</strong></footer>` : ''}
+        ${embed ? '' : privacyNote}
+      </div>
     </main>`;
   const $ = (s) => container.querySelector(s);
   const frame = $('[data-frame]');
@@ -271,23 +323,44 @@ export async function mountWatchPage(container, ref, deps = {}) {
   const start = () => { player.play(); };
   if (transcript) {
     const list = $('[data-transcript-lines]');
-    const draw = (code) => {
-      const lines = code === transcript.lang ? transcript.lines : transcript.translations[code] || transcript.lines;
-      list.replaceChildren(...lines.map((l) => {
+    let shown = -1;
+    let langCode = transcript.lang;
+    const qInput = $('[data-transcript-q]');
+    const countEl = $('[data-transcript-count]');
+    const draw = () => {
+      const all = langCode === transcript.lang ? transcript.lines : transcript.translations[langCode] || transcript.lines;
+      const q = qInput.value;
+      const found = q.trim() ? searchLines(all, q, { limit: all.length }) : null;
+      const rowsData = found ? found.map((m) => ({ line: all[m.index], ranges: m.ranges })) : all.map((line) => ({ line, ranges: null }));
+      countEl.textContent = found ? (found.length ? `${found.length} ${found.length === 1 ? 'match' : 'matches'}` : 'No matches') : '';
+      shown = -1; // rows are rebuilt, so the live current-line highlight is re-applied by mark()
+      list.replaceChildren(...rowsData.map(({ line: l, ranges }) => {
         const li = document.createElement('li');
         const b = document.createElement('button');
         b.type = 'button'; b.className = 'watch-transcript-line'; b.dataset.start = String(l.startMs); b.dataset.end = String(l.endMs);
         const t = document.createElement('span'); t.className = 'watch-transcript-time'; t.textContent = clock(l.startMs);
-        const w = document.createElement('span'); w.textContent = l.text;
+        const w = document.createElement('span');
+        if (ranges) {
+          for (const piece of highlightPieces(l.text, ranges)) {
+            if (piece.hit) { const m = document.createElement('mark'); m.textContent = piece.text; w.appendChild(m); }
+            else w.appendChild(document.createTextNode(piece.text));
+          }
+        } else w.textContent = l.text;
         b.append(t, w);
         b.addEventListener('click', () => { player.seek(l.startMs / 1000); player.play(); });
         li.appendChild(b);
         return li;
       }));
+      mark();
     };
-    draw(transcript.lang);
-    $('[data-transcript-lang]')?.addEventListener('change', (e) => draw(e.target.value));
-    let shown = -1;
+    $('[data-transcript-lang]')?.addEventListener('change', (e) => { langCode = e.target.value; draw(); });
+    qInput.addEventListener('input', draw);
+    qInput.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const first = list.querySelector('.watch-transcript-line');
+      if (first && qInput.value.trim()) { player.seek(Number(first.dataset.start) / 1000); player.play(); }
+    });
     const mark = () => {
       if (!list.isConnected) { clearInterval(follow); return; }
       const ms = player.time * 1000;
@@ -299,6 +372,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
       shown = i;
     };
     const follow = setInterval(mark, 250);
+    draw();
   }
   container.querySelectorAll('[data-chapter]').forEach((b) => b.addEventListener('click', () => { player.seek(chapters[Number(b.dataset.chapter)].startMs / 1000); player.play(); }));
   $('[data-bigplay]').addEventListener('click', start);
@@ -337,7 +411,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
   }, true);
   // The landing page's booking button (Video Outreach) counts as a CTA click.
   container.querySelector('[data-landing-cta]')?.addEventListener('click', () => {
-    analytics.track('cta_click', { t: player.time, props: { label: String(landing.cta.label).slice(0, 60) } });
+    analytics.track('cta_click', { t: player.time, props: { label: String(ctaShown).slice(0, 60) } });
   });
   // Talk live with the sender while they are available (WebRTC; signalling over Supabase Realtime).
   const liveBtn = container.querySelector('[data-live-call]');

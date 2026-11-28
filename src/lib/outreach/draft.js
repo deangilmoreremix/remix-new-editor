@@ -19,7 +19,7 @@
  * server.
  */
 
-import { cardDetails, cardKey, cardSideFor } from './profileCard.js';
+import { cardDetails, cardKey, cardSideFor, cardThemeId } from './profileCard.js';
 
 export const DRAFT_KEY = 'outreach-draft-v1';
 // Sendspark-style: record, the AI intro (voice + greeting), the page, prospects, then generate and
@@ -61,7 +61,7 @@ export function defaultDraft() {
     message: 'Excited to show how we can help {{company}}.',
     fallbacks: { firstname: 'there', company: 'your company' },
     // live: "Talk live" on the landing page (src/lib/outreach/liveCall.js) while you're available in the studio.
-    cta: { enabled: true, label: 'Schedule a demo', url: '', live: false },
+    cta: { enabled: true, label: 'Schedule a demo', url: '', live: false, abTest: false, labelB: '' },
     // Who sent it (Customize step): shown on the landing page and in the page's menu bar.
     sender: { name: '', title: '', company: '', logo: '', photo: '' },
     // The landing page of this dynamic video (like Sendspark, the page belongs to the video): null = the plain
@@ -135,6 +135,7 @@ export function loadDraft(storage = globalThis.localStorage) {
       profileShots: saved.profileShots && typeof saved.profileShots === 'object' ? saved.profileShots : {},
       siteLogos: saved.siteLogos && typeof saved.siteLogos === 'object' ? saved.siteLogos : {},
       lipsyncCache: saved.lipsyncCache && typeof saved.lipsyncCache === 'object' ? saved.lipsyncCache : {},
+      voiceCache: saved.voiceCache && typeof saved.voiceCache === 'object' ? saved.voiceCache : {},
       chapters: Array.isArray(saved.chapters) ? saved.chapters : [],
       email: { ...base.email, ...(saved.email || {}), thumb: { ...base.email.thumb, ...(saved.email?.thumb || {}) } },
       ...pageOf(saved),
@@ -142,6 +143,22 @@ export function loadDraft(storage = globalThis.localStorage) {
   } catch {
     return base;
   }
+}
+
+/**
+ * A greeting that was already voiced is reused, not paid for again. The key is the exact request sent to the voice
+ * service (voice, language, speed, text), so changing any of those makes a new greeting. Because the audio keeps
+ * the same URL, the lip-sync cache (keyed by that URL) also hits on the next run.
+ * `make(line)` generates and uploads one greeting -> { url, duration }; the caller saves the draft afterwards.
+ */
+export async function voiceFromCache(draft, line, make, { max = MAX_CONTACTS + 100 } = {}) { // room for every greeting of the largest campaign
+  const key = JSON.stringify(speakRequest(draft, line));
+  const hit = draft.voiceCache?.[key];
+  if (hit && typeof hit.url === 'string' && hit.url && !hit.url.startsWith('blob:')) return { url: hit.url, duration: hit.duration, reused: true };
+  const made = await make(line);
+  const entries = Object.entries(draft.voiceCache && typeof draft.voiceCache === 'object' ? draft.voiceCache : {}).slice(-(max - 1));
+  draft.voiceCache = { ...Object.fromEntries(entries), [key]: { url: made.url, duration: made.duration } };
+  return { ...made, reused: false };
 }
 
 /** The three kinds of dynamic video (Create Dynamic Videos), with the greeting each starts with. */
@@ -251,6 +268,12 @@ export function stepErrors(draft, step) {
       const label = String(draft.cta.label || '').trim();
       if (!label) errors.push('Give the button a label.');
       else if (label.length > CTA_LIMIT) errors.push(`The button label can be up to ${CTA_LIMIT} characters.`);
+      if (draft.cta.abTest) {
+        const b = String(draft.cta.labelB || '').trim();
+        if (!b) errors.push('Write the second button text, or turn the button test off.');
+        else if (b.length > CTA_LIMIT) errors.push(`The second button text can be up to ${CTA_LIMIT} characters.`);
+        else if (b.toLowerCase() === label.toLowerCase()) errors.push('The second button text is the same as the first, so there is nothing to compare.');
+      }
       if (!isHttpsUrl(draft.cta.url)) errors.push('The booking link must be an https:// address.');
       else if (draft.cta.embed && !calendarEmbedUrl(draft.cta.url)) errors.push('Only Calendly, Cal.com, Google Calendar appointment, HubSpot, SavvyCal and TidyCal booking pages can be shown on the page. Turn off "Show the calendar" or use one of those links.');
     }
@@ -543,6 +566,8 @@ export function bubblePip(draft) {
 
 /** Which side of the frame a profile card goes, away from the bubble. */
 export const cardSide = (draft) => cardSideFor(bubbleOf(draft));
+/** The named look chosen for the profile card (the original look when none is chosen). */
+export const cardTheme = (draft) => cardThemeId(draft?.background?.cardTheme);
 export const usesBackground = (draft) => ['website', 'image', 'map', 'profile'].includes(draft.background?.mode);
 
 /** A contact's address as a cache key (lower-case, single spaces). '' when there is none. */
@@ -560,7 +585,7 @@ export function backgroundShotFor(draft, c) {
   if (mode === 'website') return (/^https:\/\//i.test(String(c.backgroundShot || '')) ? c.backgroundShot : '') || draft.siteShots?.[siteKey(c.website)] || '';
   if (mode === 'image') return c.backgroundImage || '';
   if (mode === 'map') return draft.mapShots?.[mapKey(c.address)] || '';
-  if (mode === 'profile') return draft.profileShots?.[cardKey(cardDetails(c, draft.fallbacks), cardSide(draft))] || '';
+  if (mode === 'profile') return draft.profileShots?.[cardKey(cardDetails(c, draft.fallbacks), cardSide(draft), cardTheme(draft))] || '';
   return '';
 }
 
@@ -569,7 +594,7 @@ export function fallbackShotFor(draft) {
   const mode = draft.background?.mode;
   if (mode === 'website') return draft.siteShots?.[siteKey(draft.background.fallbackSite)] || '';
   if (mode === 'image' || mode === 'map') return /^https:\/\//i.test(String(draft.background.image || '')) ? draft.background.image : '';
-  if (mode === 'profile') return draft.profileShots?.[cardKey(cardDetails({}, draft.fallbacks), cardSide(draft))] || '';
+  if (mode === 'profile') return draft.profileShots?.[cardKey(cardDetails({}, draft.fallbacks), cardSide(draft), cardTheme(draft))] || '';
   return '';
 }
 
@@ -696,7 +721,7 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, ext
       message: String(draft.message || '').trim(),
       fallbacks: { ...draft.fallbacks },
       cta: draft.cta?.enabled
-        ? { label: String(draft.cta.label).trim(), url: draft.cta.url, ...(draft.cta.embed && calendarEmbedUrl(draft.cta.url) ? { embed: true } : {}) }
+        ? { label: String(draft.cta.label).trim(), url: draft.cta.url, ...(draft.cta.embed && calendarEmbedUrl(draft.cta.url) ? { embed: true } : {}), ...(draft.cta.abTest && String(draft.cta.labelB || '').trim() ? { labelB: String(draft.cta.labelB).trim() } : {}) }
         : null,
       // "Talk live with Sam now" on the page while Sam is available (just the first name is shown).
       ...(draft.cta?.live ? { live: { host: String(draft.sender?.name || '').trim().split(/\s+/)[0].slice(0, 40) } } : {}),

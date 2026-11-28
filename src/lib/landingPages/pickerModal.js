@@ -78,12 +78,12 @@ export function toPickerVideo(input) {
 // so the pieces that must always look right carry inline styles as well as classes.
 const CSS = {
   // Never filled, like the studios' prompt bar: outlined; the main action has a lime left edge (like Generate).
-  [BTN]: 'background:transparent;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.8);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer',
-  [BTN_PRIMARY]: 'background:transparent;border:1px solid rgba(255,255,255,.14);border-left:2px solid var(--lp-accent, #d9ff00);color:#fff;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer',
-  [`${INPUT} max-w-sm`]: 'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:10px;padding:9px 12px;font-size:13px;min-width:220px',
-  [INPUT]: 'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:10px;padding:9px 12px;font-size:13px;width:100%',
-  card: 'background:#141414;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px;text-align:left;color:#fff;cursor:pointer',
-  dialog: 'background:#0a0a0a;border:1px solid rgba(255,255,255,.12);border-radius:18px;color:#fff;overflow:hidden',
+  [BTN]: 'background:transparent;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.8);border-radius:999px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer',
+  [BTN_PRIMARY]: 'background:transparent;border:1px solid rgba(255,255,255,.14);border-left:2px solid var(--lp-accent, #d9ff00);color:#fff;border-radius:999px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer',
+  [`${INPUT} max-w-sm`]: 'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:999px;padding:10px 18px;font-size:13px;min-width:220px',
+  [INPUT]: 'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:14px;padding:9px 12px;font-size:13px;width:100%',
+  card: 'background:#141414;border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:14px;text-align:left;color:#fff;cursor:pointer',
+  dialog: 'background:#0b0c10;border:1px solid rgba(255,255,255,.12);border-radius:28px;box-shadow:0 30px 80px -20px rgba(0,0,0,.9);color:#fff;overflow:hidden',
 };
 
 function el(tag, className, text) {
@@ -121,7 +121,7 @@ export function openLandingPagePicker({ video = null, items = [], template = nul
   const overlay = el('div', 'fixed inset-0 flex items-center justify-center bg-black/80 backdrop-blur-xl p-2 md:p-6');
   overlay.style.zIndex = String(zIndex);
   overlay.dataset.landingPicker = '';
-  const dialog = el('div', 'w-full max-w-7xl h-full max-h-[94vh] flex flex-col rounded-2xl border border-white/10 bg-panel-bg overflow-hidden text-white');
+  const dialog = el('div', 'w-full max-w-7xl h-full max-h-[94vh] flex flex-col rounded-3xl border border-white/10 bg-panel-bg overflow-hidden text-white');
   dialog.style.cssText += CSS.dialog + ';width:100%;max-width:1280px;height:100%;max-height:94vh;display:flex;flex-direction:column';
   dialog.setAttribute('role', 'dialog');
   dialog.setAttribute('aria-modal', 'true');

@@ -185,3 +185,13 @@ describe('the Video Outreach edit recipe', () => {
     expect(newOverlay('lower')).toMatchObject({ width: 40, height: 17.8 });
   });
 });
+
+describe('portrait 4:5', () => {
+  it('is a valid shape that fills a 1080 x 1350 frame', async () => {
+    const { normalizeEdit: norm, resolveAspect: res } = await import('../editTools.js');
+    const { frameForAspect } = await import('../../editor/remotion/timelineToComposition.js');
+    expect(norm({ v: 2, look: { aspect: '4:5' } }).look.aspect).toBe('4:5');
+    expect(res('4:5', { width: 1920, height: 1080 })).toBe('4:5');
+    expect(frameForAspect('1080p', '4:5')).toEqual({ width: 1080, height: 1350 });
+  });
+});

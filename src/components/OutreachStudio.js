@@ -12,13 +12,24 @@ import { goTo } from '../lib/routeUrl.js';
 
 import { createEditorBanner, demoteBannerHeading } from '../lib/thumbnails.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { emailFor, mailtoUrl, mailMergeCsv, gmailUrl, outlookUrl, linkedinMessage } from '../lib/outreach/email.js';
+import { emailFor, mailtoUrl, mailMergeCsv, gmailUrl, outlookUrl, linkedinMessage, csvCell } from '../lib/outreach/email.js';
 import { WRITER_LANGUAGES } from '../lib/outreach/aiWriter.js';
 import { renderProspectTable } from './outreach/ProspectTable.js';
 import { hasPaidAccess } from '../lib/clerkEntitlements.js';
 import { createTabGuard } from '../lib/outreach/tabGuard.js';
+import { validateContacts, dedupeContacts, restoreDuplicates, mergeFieldReport } from '../lib/outreach/contactQa.js';
+import { rankProspects, carryFollowUps } from '../lib/outreach/followUp.js';
+import { searchLines, firstPlayableMatch } from '../lib/outreach/transcriptSearch.js';
+import { suggestHeaders, suggestMessages, suggestCtas } from '../lib/outreach/copySuggest.js';
+import { detectCapabilities, summarizeCapabilities } from '../lib/outreach/capabilities.js';
+import { withRetry } from '../lib/outreach/retry.js';
 import { onOwnerNotification, isOutreachAlertFor } from '../lib/liveAlerts.js';
 import { createHostLine, liveCallSupported } from '../lib/outreach/liveCall.js';
+import { summarizeCampaign, combineSummaries, QUARTILES } from '../lib/outreach/campaignStats.js';
+import { CARD_THEMES } from '../lib/outreach/profileCard.js';
+import { analyzeAudio, soundCheckFor } from '../lib/outreach/audioQuality.js';
+import { preflight, summarizePreflight, lookupFacts } from '../lib/outreach/preflight.js';
+import { chosenModel, chooseModel, modelStates, clearSpeechModel } from '../lib/outreach/modelManager.js';
 import { createCallWindow, showIncomingCall } from './outreach/LiveCallPanel.js';
 
 // Caption translation languages (src/lib/editor/ml/modelRegistry.js TRANSLATE_LANGUAGES).
@@ -30,8 +41,8 @@ import {
   buildCampaignProject, campaignLinks, siteKey, sitesToCapture, calendarEmbedUrl,
   SITE_ERROR, siteErrorFor, MISSING_MODES, onMissingOf, siteStatus, backgroundProblems,
   usesBackground, fallbackShotFor, backgroundShotFor, contactProfileFor, addressesToCapture, mapKey,
-  saveToLibrary, listLibrary, libraryDraft, newDynamicVideo, cleanPage, DYNAMIC_KINDS,
-  BUBBLE_CORNERS, bubbleOf, cardSide,
+  saveToLibrary, listLibrary, libraryDraft, newDynamicVideo, cleanPage, DYNAMIC_KINDS, voiceFromCache,
+  BUBBLE_CORNERS, bubbleOf, cardSide, cardTheme,
 } from '../lib/outreach/draft.js';
 
 function el(tag, className, text) {
@@ -51,7 +62,7 @@ const BTN_LOOK = {
 };
 function button(label, { primary = false, selected = false, small = false } = {}) {
   const b = el('button', [
-    'inline-flex items-center justify-center gap-2 rounded-[10px] font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed',
+    'inline-flex items-center justify-center gap-2 rounded-full font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed',
     small ? 'px-3 py-1.5 text-xs' : 'px-4 py-2.5 text-sm',
     BTN_LOOK[selected ? 'selected' : primary ? 'primary' : 'plain'],
   ].join(' '), label);
@@ -68,7 +79,7 @@ function field(labelText, input, hint) {
 }
 
 function textInput(value, placeholder = '') {
-  const i = el('input', 'w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:border-primary/60 outline-none');
+  const i = el('input', 'w-full rounded-full border border-white/10 bg-white/[0.04] px-5 py-3 text-sm text-white placeholder:text-white/35 focus:border-primary/60 outline-none');
   i.value = value ?? '';
   i.placeholder = placeholder;
   return i;
@@ -99,22 +110,33 @@ function variableChips(input, { onInsert, only } = {}) {
   return row;
 }
 
-function card(title, sub) {
-  const c = el('section', 'rounded-2xl border border-white/10 bg-panel-bg p-5 flex flex-col gap-4');
-  if (title) c.appendChild(el('h2', 'text-base font-extrabold text-white', title));
-  if (sub) c.appendChild(el('p', 'text-sm text-secondary -mt-3', sub));
+function card(title, sub, n) {
+  const c = el('section', 'rounded-3xl border border-white/10 bg-panel-bg p-6 flex flex-col gap-5 shadow-[0_24px_60px_-28px_rgba(0,0,0,0.9)]');
+  if (title) {
+    const h = el('h2', 'flex items-center gap-3 text-lg font-semibold text-white');
+    if (n) h.appendChild(el('span', 'grid h-7 w-7 shrink-0 place-items-center rounded-full border border-primary/40 bg-primary/10 text-xs font-bold text-primary', String(n)));
+    h.appendChild(el('span', '', title));
+    c.appendChild(h);
+  }
+  if (sub) c.appendChild(el('p', 'rounded-2xl bg-white/[0.04] px-4 py-2.5 text-sm text-white/60 -mt-2', sub));
   return c;
 }
 
 const fmtTime = (s) => `${Math.floor((s || 0) / 60)}:${String(Math.round(s || 0) % 60).padStart(2, '0')}`;
 const userId = () => globalThis.window?.Clerk?.user?.id || null;
 
-async function uploadToStorage(file) {
+// An upload that survives a dropped connection: up to 3 tries with a growing pause. A refusal (sign-in, a 4xx
+// other than 429) or a cancel is never retried. `onRetry` lets the studio say so.
+// Tradeoff: if a try reached storage but its reply was lost, the retry uploads to a new path and the first copy stays
+// unused (a little wasted storage, no lost data). Making it idempotent needs a stable path from the shared helper.
+async function uploadToStorage(file, { onRetry, signal } = {}) {
   const { uploadFileToStorage } = await import('../lib/hybrid-supabase.js');
-  const out = await uploadFileToStorage(file);
-  const url = typeof out === 'string' ? out : out?.url;
-  if (!url || url.startsWith('blob:')) throw new Error('Upload failed. Sign in and try again.');
-  return url;
+  return withRetry(async () => {
+    const out = await uploadFileToStorage(file);
+    const url = typeof out === 'string' ? out : out?.url;
+    if (!url || url.startsWith('blob:')) throw new Error('Upload failed. Sign in and try again.');
+    return url;
+  }, { onRetry, signal });
 }
 
 function videoDuration(url) {
@@ -154,6 +176,10 @@ export function OutreachStudio() {
   let recordingBlob = null;
   let busy = '';
   let notice = '';
+  const contactSig = (list) => (list || []).map((c) => c.id).join('|');
+  let dedupeUndo = null; // { removed, count } from "Remove duplicates", so it can be put back
+  let captionQuery = '';
+  let suggestGoal = 'intro';
   // Like Sendspark, the studio opens on the Videos library; a draft in progress is one click away.
   let step = STEPS.length;
   // Change step. Each change is a history entry, so the browser's Back and Forward move between
@@ -161,7 +187,7 @@ export function OutreachStudio() {
   function goStep(n, msg = '', { push = true, animate = false } = {}) {
     const changed = n !== step;
     if (changed && step === 5) stopListeningLiveAlerts();
-    step = n; notice = msg;
+    step = n; notice = msg; if (n !== 4) dedupeUndo = null;
     if (changed && push) { try { globalThis.history.pushState({ ...(globalThis.history.state || {}), outreachStep: n }, '', location.href); } catch { /* sandboxed */ } }
     const motion = animate && changed && typeof document.startViewTransition === 'function' && container.isConnected
       && !globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -185,9 +211,10 @@ export function OutreachStudio() {
   const stepper = el('div', 'flex flex-wrap gap-2 px-4 md:px-8 pt-5');
   const scroll = el('div', 'studio-short-body flex-1 overflow-y-auto');
   // Bottom padding keeps the footer buttons clear of the floating Ask SmartVideo button.
-  const inner = el('div', 'max-w-6xl mx-auto w-full px-4 md:px-8 pt-6 pb-28 flex flex-col gap-5');
+  const inner = el('div', 'max-w-[1400px] mx-auto w-full px-4 md:px-8 pt-5 pb-4 flex flex-col gap-5');
   scroll.appendChild(inner);
-  container.append(demoteBannerHeading(createEditorBanner('outreach', 'Video Outreach', 'Personalized videos for every prospect')), stepper, scroll);
+  const banner = demoteBannerHeading(createEditorBanner('outreach', 'Video Outreach', 'Personalized videos for every prospect'));
+  container.append(banner, stepper, scroll);
   // The step's content slides in when the step changes (View Transitions; see goStep).
   inner.style.viewTransitionName = 'outreach-step';
   ensureStepTransitionStyle();
@@ -199,14 +226,23 @@ export function OutreachStudio() {
     if (!guard.active()) return; // another tab is editing this campaign: don't overwrite its work
     draft.edit = { ...edit, before: null, after: null }; saveDraft(draft); if (draft.campaign) saveToLibrary(draft);
     guard.saved();
+    backupSoon();
+  };
+  // A second copy of the draft in this browser's IndexedDB (src/lib/outreach/draftBackup.js), local to this device.
+  let backupTimer = null;
+  let restoreOffer = null;
+  let restoreStillValid = null; // draftBackup's shouldOfferRestore, once loaded
+  const backupSoon = () => {
+    clearTimeout(backupTimer);
+    backupTimer = setTimeout(() => { import('../lib/outreach/draftBackup.js').then((m) => m.backupDraft(draft)).catch(() => {}); }, 1500);
   };
   // Load the draft another tab saved (without saving it back).
-  const reloadDraft = () => {
-    const fresh = loadDraft();
+  const adoptDraft = (fresh) => {
     for (const k of Object.keys(draft)) delete draft[k];
     Object.assign(draft, fresh);
     edit = startEdit(draft.edit); stopPreview(); pendingCsv = null; pendingLeads = null;
   };
+  const reloadDraft = () => adoptDraft(loadDraft());
   // One tab edits at a time (src/lib/outreach/tabGuard.js). The other shows a banner and follows the
   // editing tab's saves; "Edit here instead" takes over.
   let changedElsewhere = false;
@@ -218,7 +254,7 @@ export function OutreachStudio() {
     },
   });
   // Run when the studio is left (src/lib/router.js calls container.cleanup).
-  const cleanups = [() => guard.destroy()];
+  const cleanups = [() => guard.destroy(), () => clearTimeout(backupTimer), () => pushCardHandle?.destroy?.()];
   container.cleanup = () => { while (cleanups.length) { try { cleanups.pop()(); } catch { /* keep going */ } } };
 
   // "Talk live" (src/lib/outreach/liveCall.js): while "Available for live calls" is on, this tab answers
@@ -279,7 +315,7 @@ export function OutreachStudio() {
     try {
       recordingBlob = blob;
       const file = blob instanceof File ? blob : new File([blob], name, { type: blob.type || 'video/webm' });
-      const url = await uploadToStorage(file);
+      const url = await uploadWithRetry(file);
       const meta = await videoMeta(url);
       const seconds = duration || meta.duration;
       draft.video = { url, duration: Math.round(seconds), hasAudio, type };
@@ -464,6 +500,10 @@ export function OutreachStudio() {
       && !edit.overlays.some((o) => !tools.isPersonal(o)) && !edit.broll.some((o) => !tools.isPersonal(o));
   };
   const busyText = (t) => { busy = t; const b = container.querySelector('[data-outreach-busy]'); if (b) b.textContent = busy; };
+  const uploadWithRetry = (file) => uploadToStorage(file, {
+    signal: abort?.signal,
+    onRetry: ({ attempt, of }) => busyText(`The upload did not go through. Trying again (${attempt} of ${of})…`),
+  });
 
   // Apply edits: always from the original recording, so changing or removing a text later replaces it instead of
   // adding a second one. 1) the background (MediaPipe, kept for next time), 2) everything else on top, so text,
@@ -486,7 +526,7 @@ export function OutreachStudio() {
         busyText('Changing the background: loading MediaPipe…');
         const { backgroundVideo } = await import('../lib/outreach/mediaTools.js');
         const blob = await backgroundVideo(original.src, edit.background, { signal: abort.signal, onProgress: (p) => busyText(`Changing the background… ${Math.round(p * 100)}%`) });
-        const url = await uploadToStorage(new File([blob], 'background.webm', { type: 'video/webm' }));
+        const url = await uploadWithRetry(new File([blob], 'background.webm', { type: 'video/webm' }));
         draft.bgCache = { key: bgKey, url };
         persist();
       }
@@ -528,7 +568,7 @@ export function OutreachStudio() {
     const original = source();
     if (blob) {
       const name = `edited.${/webm/.test(blob.type) ? 'webm' : 'mp4'}`;
-      const url = await uploadToStorage(new File([blob], name, { type: blob.type || 'video/mp4' }));
+      const url = await uploadWithRetry(new File([blob], name, { type: blob.type || 'video/mp4' }));
       draft.video = { url, duration: Math.round(duration || original.duration), hasAudio: original.hasAudio, type: original.type, ...(size || {}) };
     } else {
       draft.video = { url: original.url, duration: original.duration, hasAudio: original.hasAudio, type: original.type, width: original.width, height: original.height };
@@ -594,7 +634,7 @@ export function OutreachStudio() {
   };
 
   async function uploadPicked(file) {
-    try { setBusy('Uploading…'); const url = await uploadToStorage(file); busy = ''; render(); return url; } catch (err) { fail(err); return null; }
+    try { setBusy('Uploading…'); const url = await uploadWithRetry(file); busy = ''; render(); return url; } catch (err) { fail(err); return null; }
   }
 
   const SILENCE = { light: { thresholdDb: -45, minSec: 1.5 }, normal: { thresholdDb: -40, minSec: 0.7 }, tight: { thresholdDb: -36, minSec: 0.4 } };
@@ -606,7 +646,7 @@ export function OutreachStudio() {
         setBusy(opts.removeBackground ? 'Removing the picture’s background (in your browser)…' : 'Preparing the picture…');
         const { preparePicture } = await import('../lib/outreach/mediaTools.js');
         const png = await preparePicture(file, { ...opts, onProgress: (p) => { if (p?.stage === 'background' && p.progress != null) busyText(`Removing the background… ${Math.round(p.progress * 100)}%`); } });
-        const url = await uploadToStorage(new File([png], `${(file.name || 'picture').replace(/\.[^.]+$/, '')}.png`, { type: 'image/png' }));
+        const url = await uploadWithRetry(new File([png], `${(file.name || 'picture').replace(/\.[^.]+$/, '')}.png`, { type: 'image/png' }));
         busy = ''; render();
         return url;
       } catch (err) { fail(err); return null; }
@@ -637,8 +677,8 @@ export function OutreachStudio() {
     captionsFile: async (fmt) => {
       const { captionsToSrt, captionsToVtt } = await import('../lib/editor/remotion/captions.js');
       const lines = outLines(draft.captions?.lines || []);
-      const text = fmt === 'vtt' ? captionsToVtt(lines) : captionsToSrt(lines);
-      const a = el('a'); a.href = URL.createObjectURL(new Blob([text], { type: fmt === 'vtt' ? 'text/vtt' : 'application/x-subrip' }));
+      const text = fmt === 'txt' ? (await import('../lib/outreach/transcript.js')).transcriptText(lines) : fmt === 'vtt' ? captionsToVtt(lines) : captionsToSrt(lines);
+      const a = el('a'); a.href = URL.createObjectURL(new Blob([text], { type: fmt === 'txt' ? 'text/plain' : fmt === 'vtt' ? 'text/vtt' : 'application/x-subrip' }));
       a.download = `${(draft.name || 'captions').replace(/[^\w-]+/g, '-')}.${fmt}`; a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 5000);
     },
@@ -665,6 +705,43 @@ export function OutreachStudio() {
 
   // ---- Captions: Whisper in the browser, free translations (src/lib/outreach/transcript.js) ----
   let captionLang = 'es';
+  // Which speech model to use, and what is stored on this device (with a way to remove it).
+  function renderModelPanel() {
+    const d = el('details', 'rounded-lg border border-white/10 bg-white/[0.02] p-3 text-xs');
+    d.setAttribute('data-outreach-models', '');
+    d.appendChild(el('summary', 'cursor-pointer font-bold text-white/80', 'Speech model on this device'));
+    const body = el('div', 'mt-2 flex flex-col gap-2');
+    const msg = el('p', 'text-[11px] text-white/55'); msg.setAttribute('role', 'status');
+    const paint = async () => {
+      const states = await modelStates().catch(() => []);
+      body.replaceChildren(el('p', 'text-white/55', 'Captions are made on your computer. The speech model downloads once, after you agree, and stays in this browser until you remove it.'));
+      states.forEach((m) => {
+        const row = el('div', 'flex flex-wrap items-center gap-2');
+        row.setAttribute('data-model-row', m.id);
+        const pick = el('input'); pick.type = 'radio'; pick.name = 'outreach-speech-model'; pick.checked = m.chosen; pick.setAttribute('aria-label', `Use ${m.label}`);
+        pick.addEventListener('change', () => { const kept = chooseModel(m.id); msg.textContent = kept ? `Using ${m.label}.` : `Using ${m.label} for now. This browser would not keep the choice for next time.`; });
+        const state = m.files ? `on this device (${m.files} file${m.files === 1 ? '' : 's'})` : m.agreed ? 'agreed, not downloaded yet' : 'not downloaded';
+        const label = el('label', 'flex flex-1 items-center gap-2'); label.append(pick, el('span', '', `${m.label}: ${state}`));
+        row.appendChild(label);
+        if (m.files || m.agreed) {
+          const rm = button('Remove', { small: true });
+          rm.setAttribute('data-model-clear', m.id);
+          rm.setAttribute('aria-label', `Remove ${m.label} from this device`);
+          rm.addEventListener('click', async () => {
+            try { const r = await clearSpeechModel(m.id); msg.textContent = `Removed ${m.label} (${r.removed} file${r.removed === 1 ? '' : 's'}). You will be asked before it downloads again.`; } catch (err) { msg.textContent = err?.message || 'Could not remove it.'; }
+            paint();
+          });
+          row.appendChild(rm);
+        }
+        body.appendChild(row);
+      });
+      body.appendChild(msg);
+    };
+    paint();
+    d.appendChild(body);
+    return d;
+  }
+
   function renderCaptionsPanel() {
     const box = el('div', 'flex flex-col gap-3 rounded-xl border border-white/10 p-4');
     box.setAttribute('data-outreach-captions', '');
@@ -676,13 +753,20 @@ export function OutreachStudio() {
       make.setAttribute('data-captions-make', '');
       make.disabled = !!busy;
       make.addEventListener('click', makeCaptions);
-      box.appendChild(make);
+      box.append(make, renderModelPanel());
       return box;
     }
+    const find = el('input', 'w-full rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs text-white placeholder:text-white/35 outline-none focus:border-primary/60');
+    find.type = 'search'; find.placeholder = 'Search the transcript'; find.setAttribute('aria-label', 'Search the transcript'); find.value = captionQuery;
+    find.setAttribute('data-captions-search', '');
+    const found = el('p', 'text-[11px] text-white/50 empty:hidden');
+    found.setAttribute('aria-live', 'polite');
+    box.append(find, found);
     const list = el('div', 'max-h-40 overflow-y-auto rounded-lg bg-white/[0.03] p-2 text-xs leading-relaxed text-white/80');
     list.setAttribute('data-captions-list', '');
     c.lines.forEach((l, i) => {
       const row = el('div', 'flex gap-2');
+      row.setAttribute('data-caption-row', String(i));
       const inp = el('input', 'flex-1 bg-transparent text-white/85 outline-none focus:text-white');
       inp.value = l.text;
       inp.addEventListener('change', () => { c.lines[i] = { ...l, text: inp.value.trim() || l.text }; persist(); });
@@ -690,6 +774,32 @@ export function OutreachStudio() {
       list.appendChild(row);
     });
     box.appendChild(list);
+    // Search is local: it only hides the lines that do not match. Enter jumps the preview to the first match.
+    const applySearch = () => {
+      const hits = new Set(searchLines(c.lines, captionQuery, { limit: 400 }).map((m) => m.index));
+      const q = captionQuery.trim();
+      list.querySelectorAll('[data-caption-row]').forEach((r) => { r.hidden = !!q && !hits.has(Number(r.getAttribute('data-caption-row'))); });
+      found.textContent = q ? (hits.size ? `${hits.size} match${hits.size === 1 ? '' : 'es'}` : 'No matches') : '';
+    };
+    find.addEventListener('input', () => { captionQuery = find.value; applySearch(); });
+    find.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      // The lines keep the original recording's times; the preview plays the edited video, so map the match onto it
+      // (and skip a match that was cut out).
+      const hit = firstPlayableMatch(c.lines, captionQuery, (l) => outLines([l])[0] || null);
+      const v = container.querySelector('[data-editor-video] video');
+      if (hit && v) { v.currentTime = hit.startMs / 1000; v.play?.().catch(() => {}); }
+    });
+    applySearch();
+    const dl = el('div', 'flex flex-wrap items-center gap-2 text-xs');
+    for (const [fmt, label] of [['srt', 'Download .srt'], ['vtt', 'Download .vtt'], ['txt', 'Download .txt']]) {
+      const b = button(label, { small: true });
+      b.setAttribute('data-captions-download', fmt);
+      b.addEventListener('click', () => editActions.captionsFile(fmt));
+      dl.appendChild(b);
+    }
+    box.appendChild(dl);
     const trRow = el('div', 'flex flex-wrap items-center gap-2 text-xs');
     const sel = el('select', 'rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1 text-white');
     for (const [code, label] of TRANSLATE_LANGS) { if (code === c.lang) continue; const o = el('option', 'bg-neutral-900', label); o.value = code; o.selected = code === captionLang; sel.appendChild(o); }
@@ -702,7 +812,7 @@ export function OutreachStudio() {
     trRow.append(el('span', 'text-secondary', 'Captions in other languages:'), sel, tr, el('span', 'text-white/50', langs.length ? `Added: ${langs.map((l) => TRANSLATE_LANGS.find(([x]) => x === l)?.[1] || l).join(', ')}` : ''));
     const redo = button('Make again', { small: true });
     redo.addEventListener('click', makeCaptions);
-    box.append(trRow, redo);
+    box.append(trRow, redo, renderModelPanel());
     return box;
   }
 
@@ -715,7 +825,7 @@ export function OutreachStudio() {
         import('../lib/outreach/transcript.js'),
       ]);
       const { captions } = await transcribeInBrowser(source().url, {
-        signal: abort.signal,
+        signal: abort.signal, model: chosenModel(),
         onProgress: (p) => { busy = p.stage === 'download' ? `Downloading the speech model… ${Math.round((p.progress || 0) * 100)}%` : 'Making captions…'; const b = container.querySelector('[data-outreach-busy]'); if (b) b.textContent = busy; },
       });
       draft.captions = { lang: 'en', lines: transcriptLines(captions), translations: {} };
@@ -848,6 +958,7 @@ export function OutreachStudio() {
   // you made), the landing page template and what the page says; the video on the right; tools along the top.
   let editorTool = ''; // '' | 'captions' | 'script' | 'trim' | 'language'
   const ICONS = {
+    info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
     cc: '<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M10.5 10.2a2.3 2.3 0 1 0 0 3.6M16.5 10.2a2.3 2.3 0 1 0 0 3.6"/>',
     globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.7 5.6 3.7 9s-1.2 6.4-3.7 9c-2.5-2.6-3.7-5.6-3.7-9S9.5 5.6 12 3Z"/>',
     doc: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',
@@ -866,25 +977,343 @@ export function OutreachStudio() {
   const icon = (k, size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[k]}</svg>`;
   // An on/off switch: outlined, the "on" side tinted lime (never filled).
   function toggle(on, onChange, { label, disabled = false } = {}) {
-    const b = el('button', `relative h-6 w-11 shrink-0 rounded-full border transition-colors disabled:opacity-35 ${on ? 'border-primary/50 bg-primary/[0.18]' : 'border-white/15 bg-white/[0.04]'}`);
+    const b = el('button', `relative h-6 w-11 shrink-0 rounded-full border transition-colors disabled:opacity-35 ${on ? 'border-primary/50 bg-primary/[0.18]' : 'border-transparent bg-white/[0.14]'}`);
     b.type = 'button'; b.setAttribute('role', 'switch'); b.setAttribute('aria-checked', String(on)); b.disabled = disabled;
     if (label) b.setAttribute('aria-label', label);
-    b.appendChild(el('span', `absolute top-0.5 h-[18px] w-[18px] rounded-full transition-all ${on ? 'left-[22px] bg-primary' : 'left-0.5 bg-white/50'}`));
+    b.appendChild(el('span', `absolute top-0.5 h-[18px] w-[18px] rounded-full transition-all ${on ? 'left-[22px] bg-primary' : 'left-0.5 bg-white/80'}`));
     b.addEventListener('click', () => onChange(!on));
     return b;
   }
 
+  const card_ = (...a) => card(...a);
+
+  // What did not work in a generation, and a way to run it again. Nothing paid runs without the usual confirmation.
+  function attentionList() {
+    const out = [];
+    // A website capture error only matters while the campaign uses website backgrounds.
+    const usesSites = draft.background?.mode === 'website';
+    (usesSites ? draft.contacts : []).forEach((c) => {
+      const k = c.website ? siteKey(c.website) : '';
+      const e = k && draft.siteErrors?.[k];
+      if (e) out.push({ name: [c.firstName, c.lastName].filter(Boolean).join(' ') || c.email || 'Prospect', reason: String(e) });
+    });
+    (draft.campaign?.links || []).forEach((l) => { if (l.lipsyncError) out.push({ name: l.name || 'Prospect', reason: String(l.lipsyncError) }); });
+    return out;
+  }
+  function renderAttention() {
+    const list = attentionList();
+    const card = card_('Needs attention', `${list.length} prospect${list.length === 1 ? '' : 's'} did not finish. Fix the cause if you can, then run it again.`);
+    card.setAttribute('data-outreach-attention', '');
+    const ul = el('ul', 'flex max-h-48 flex-col gap-1 overflow-y-auto text-sm');
+    list.slice(0, 30).forEach((f) => ul.appendChild(el('li', 'text-white/80', `${f.name}: ${f.reason}`)));
+    if (list.length > 30) ul.appendChild(el('li', 'text-white/45', `…and ${list.length - 30} more.`));
+    card.appendChild(ul);
+    const again = button('Try the failed ones again', { small: true, primary: true });
+    again.setAttribute('data-outreach-retry-failed', '');
+    again.disabled = !!busy;
+    again.addEventListener('click', () => generateCampaign());
+    card.append(again, el('p', 'text-[11px] text-white/45', 'Greetings, website pictures and lip-sync clips that already finished are reused; only what failed or changed is made again. You are still asked to confirm before any paid step runs.'));
+    return card;
+  }
+
+  // A backup of the draft kept in this browser (IndexedDB). Offered only when the normal copy is empty.
+  function renderRestoreOffer() {
+    const b = restoreOffer;
+    const bar = el('div', 'flex flex-wrap items-center gap-3 rounded-2xl border border-primary/25 bg-primary/[0.06] px-4 py-3 text-sm');
+    bar.setAttribute('data-outreach-restore', '');
+    bar.appendChild(el('span', 'flex-1 text-white/85', `We found a draft${b.draft?.name ? ` “${b.draft.name}”` : ''} backed up in this browser (${new Date(b.savedAt).toLocaleString()}). It is kept on this device only, not in your account.`));
+    const yes = button('Restore it', { small: true, primary: true });
+    yes.setAttribute('data-outreach-restore-yes', '');
+    // Straight into memory (shaped like any saved draft): this must work even when localStorage is full or blocked, which is when a backup is needed.
+    yes.addEventListener('click', async () => {
+      // The offer was made when the studio opened; check again now, so work added since is never replaced.
+      const m = await import('../lib/outreach/draftBackup.js');
+      if (!m.shouldOfferRestore(draft, b)) { restoreOffer = null; notice = 'Your draft already has work in it, so the backup was not restored.'; render(); return; }
+      adoptDraft(loadDraft({ getItem: () => JSON.stringify(b.draft) })); restoreOffer = null; persist(); notice = 'Draft restored.'; render();
+    });
+    const no = button('Not now', { small: true });
+    no.addEventListener('click', () => { restoreOffer = null; import('../lib/outreach/draftBackup.js').then((m) => m.clearBackup()).catch(() => {}); render(); });
+    bar.append(yes, no);
+    return bar;
+  }
+
+  // Browser notifications for real watch and click events: the existing push setup (src/lib/push), not a new one.
+  let pushCardHandle = null;
+  let pushHostLatest = null; // the host of the most recent render; older renders' async work is ignored
+  function renderPushCard() {
+    const card = card_('Get notified', 'A notification on this device when someone watches or clicks, even with this site closed.', 4);
+    card.setAttribute('data-outreach-push', '');
+    const host = el('div', 'sv-analytics sv-dark sv-editor');
+    card.appendChild(host);
+    pushHostLatest = host;
+    (async () => {
+      try {
+        await import('../../styles/smartvideo-analytics.css');
+        const [{ mountPushCard }, prefsApi, client] = await Promise.all([import('../lib/push/pushCard.js'), import('../lib/editor/projectLibrary/tabsData.js'), ownerClient()]);
+        let prefs = await prefsApi.loadPreferences(client);
+        // A newer render owns the visible card; a slow older one must not destroy its handle.
+        if (pushHostLatest !== host) return;
+        pushCardHandle?.destroy?.();
+        pushCardHandle = mountPushCard(host, { getClient: () => client, pushEnabled: prefs.push, onPushPref: async (v) => { prefs = await prefsApi.savePreferences(client, { ...prefs, push: v }); } });
+      } catch { host.replaceChildren(el('p', 'text-sm text-white/55', 'Sign in to turn on notifications.')); }
+    })();
+    return card;
+  }
+
+  // Free suggestions (src/lib/outreach/copySuggest.js): fixed wording with your {{tokens}}; nothing is sent anywhere.
+  function renderSuggestions() {
+    const d = el('details', 'rounded-xl border border-white/10 px-4 py-3 text-sm');
+    d.setAttribute('data-editor-suggestions', '');
+    d.appendChild(el('summary', 'cursor-pointer text-xs font-semibold text-primary', 'Free suggestions'));
+    const body = el('div', 'mt-3 flex flex-col gap-3');
+    const group = (label, options, apply) => {
+      const g = el('div', 'flex flex-col gap-1.5');
+      g.appendChild(el('div', 'text-[11px] uppercase tracking-wide text-white/45', label));
+      options.forEach((text) => {
+        const b = el('button', 'rounded-xl border border-white/10 px-3 py-2 text-left text-xs text-white/80 hover:border-primary/40 hover:text-white', text);
+        b.type = 'button';
+        b.addEventListener('click', () => { apply(text); persist(); render(); });
+        g.appendChild(b);
+      });
+      return g;
+    };
+    const goal = el('select', 'self-start rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-white');
+    goal.setAttribute('aria-label', 'What the message is for');
+    [['intro', 'Introduction'], ['demo', 'Demo'], ['followup', 'Follow-up']].forEach(([v, l]) => { const o = el('option', 'bg-neutral-900', l); o.value = v; o.selected = v === suggestGoal; goal.appendChild(o); });
+    goal.addEventListener('change', () => { suggestGoal = goal.value; render(); });
+    body.append(
+      el('p', 'text-[11px] text-white/50', 'Ready-made wording with your {{tokens}}. Click one to use it; nothing is sent anywhere and no AI is used.'),
+      group('Header', suggestHeaders(), (t) => { draft.header = t; }),
+      goal,
+      group('Message', suggestMessages(suggestGoal), (t) => { draft.message = t; }),
+      group('Button', suggestCtas(), (t) => { draft.cta = { ...draft.cta, enabled: true, label: t }; }),
+    );
+    d.appendChild(body);
+    if (editorTool === 'suggestions') d.open = true;
+    return d;
+  }
+
+  // What this browser can do (src/lib/outreach/capabilities.js): feature detection only, nothing is asked or downloaded.
+  // Before you record: one checklist. It never opens the camera or microphone and never asks for permission.
+  function renderPreflight() {
+    const box = el('div', 'flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.02] p-3');
+    box.setAttribute('data-outreach-preflight', '');
+    box.appendChild(el('div', 'text-sm font-bold', 'Before you record'));
+    const list = el('div', 'flex flex-col gap-1'); list.setAttribute('role', 'status');
+    const LOOK = { ok: ['Ready', 'bg-emerald-400'], warn: ['Check', 'bg-amber-400'], fail: ['Fix first', 'bg-red-400'] };
+    const paint = (items) => {
+      const sum = summarizePreflight(items);
+      list.replaceChildren(el('p', 'text-xs text-white/60', sum.ready ? (sum.warn ? `Ready to record, with ${sum.warn} thing${sum.warn === 1 ? '' : 's'} to look at.` : 'Ready to record.') : `Recording will not work yet: ${sum.fail} thing${sum.fail === 1 ? '' : 's'} to fix.`));
+      items.forEach((i) => {
+        const row = el('div', 'flex flex-wrap items-start gap-2 text-xs');
+        row.setAttribute('data-preflight', `${i.id}:${i.status}`);
+        row.append(el('span', `mt-1 h-2 w-2 shrink-0 rounded-full ${LOOK[i.status][1]}`), el('span', 'w-56 shrink-0 text-white/85', i.label), el('span', 'font-semibold text-white/70', LOOK[i.status][0]));
+        if (i.advice) row.appendChild(el('span', 'text-white/50', i.advice));
+        list.appendChild(row);
+      });
+    };
+    paint(preflight());
+    lookupFacts().then((facts) => paint(preflight(globalThis, facts))).catch(() => {});
+    box.appendChild(list);
+    return box;
+  }
+
+  // A sound check of the recording you have (measured in the browser; nothing is uploaded or sent).
+  let soundCheck = null; // { state:'idle'|'working'|'done'|'error', result?, message? }
+  function renderSoundCheck() {
+    const box = el('div', 'flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.02] p-3');
+    box.setAttribute('data-outreach-sound-check', '');
+    box.appendChild(el('div', 'text-sm font-bold', 'Sound check of your recording'));
+    const status = el('div', 'flex flex-col gap-1 text-xs'); status.setAttribute('role', 'status');
+    const has = !!draft.video?.url;
+    // A result belongs to the recording it was measured on: a different recording starts clean.
+    soundCheck = soundCheckFor(soundCheck, source()?.url);
+    const run = button(soundCheck?.state === 'working' ? 'Checking…' : soundCheck?.state === 'done' ? 'Check again' : 'Check the sound', { small: true });
+    run.setAttribute('data-sound-check-run', '');
+    run.disabled = !has || soundCheck?.state === 'working';
+    run.addEventListener('click', async () => {
+      const checked = source().url;
+      soundCheck = { state: 'working', url: checked }; render();
+      try {
+        const { decodeAudio } = await import('../lib/captionStudio/transcribeClient.js');
+        const samples = await decodeAudio(source().url);
+        const result = analyzeAudio(samples, 16000);
+        if (!soundCheckFor({ url: checked }, source()?.url)) return; // the recording changed while this was running: ignore the answer
+        soundCheck = result ? { state: 'done', url: checked, result } : { state: 'error', url: checked, message: 'There is no sound in this recording to check.' };
+      } catch (err) { if (!soundCheckFor({ url: checked }, source()?.url)) return; soundCheck = { state: 'error', url: checked, message: err?.message || 'The sound could not be read.' }; }
+      render();
+    });
+    if (!has) status.appendChild(el('p', 'text-white/50', 'Record or add a video first.'));
+    if (soundCheck?.state === 'error') status.appendChild(el('p', 'text-amber-300', soundCheck.message));
+    if (soundCheck?.state === 'done') {
+      const r = soundCheck.result;
+      const tone = r.level === 'good' ? 'text-emerald-300' : r.level === 'ok' ? 'text-amber-300' : 'text-red-300';
+      status.appendChild(el('p', `text-sm font-bold ${tone}`, `${r.score} out of 100 · ${r.level === 'good' ? 'Good' : r.level === 'ok' ? 'Could be better' : 'Needs work'}`));
+      r.notes.forEach((n) => status.appendChild(el('p', 'text-white/70', n)));
+      status.appendChild(el('p', 'text-[11px] text-white/45', `Voice about ${r.loudnessDb} dB, background about ${r.noiseFloorDb} dB, ${r.clippedPercent}% distorted. A guide only: it does not predict replies.`));
+    }
+    box.append(run, status);
+    return box;
+  }
+
+  function renderChecks() {
+    const items = detectCapabilities();
+    const sum = summarizeCapabilities(items);
+    const box = el('div', 'flex flex-col gap-3 rounded-xl border border-white/10 p-4');
+    box.setAttribute('data-editor-checks', '');
+    box.append(renderPreflight(), renderSoundCheck());
+    box.appendChild(el('div', 'text-sm font-bold', 'What this browser can do'));
+    box.appendChild(el('p', 'text-xs text-white/55', `${sum.supported} ready, ${sum.permission} need your OK first, ${sum.unavailable} not available here. Nothing is requested by this check.`));
+    const LOOK = { supported: ['Ready', 'bg-emerald-400'], permission: ['Needs permission', 'bg-amber-400'], unavailable: ['Not available', 'bg-red-400'], unknown: ['Unknown', 'bg-white/40'] };
+    const groups = new Map();
+    items.forEach((i) => groups.set(i.group, [...(groups.get(i.group) || []), i]));
+    for (const [name, list] of groups) {
+      const g = el('div', 'flex flex-col gap-1.5');
+      g.appendChild(el('div', 'text-[11px] uppercase tracking-wide text-white/45', name));
+      list.forEach((i) => {
+        const row = el('div', 'flex items-start gap-2 text-xs');
+        row.setAttribute('data-capability', `${i.id}:${i.status}`);
+        row.append(el('span', `mt-1 h-2 w-2 shrink-0 rounded-full ${LOOK[i.status][1]}`), el('span', 'w-56 shrink-0 text-white/85', i.label), el('span', 'font-semibold text-white/70', LOOK[i.status][0]));
+        if (i.detail) row.appendChild(el('span', 'text-white/45', i.detail));
+        g.appendChild(row);
+      });
+      box.appendChild(g);
+    }
+    return box;
+  }
+
+  // The checks on the contact list (src/lib/outreach/contactQa.js). Email checks are syntax only.
+  function renderContactQa() {
+    // Undo only fits the list it was made for: once a contact is added or removed, the old positions mean nothing.
+    if (dedupeUndo && dedupeUndo.sig !== contactSig(draft.contacts)) dedupeUndo = null;
+    const { issues, counts } = validateContacts(draft.contacts);
+    const warnings = issues.filter((i) => i.level === 'warning');
+    const card = card_('Check your list', 'Syntax and completeness checks, on your device. A well-formed email is not proof that mail gets through.', 3);
+    card.setAttribute('data-outreach-contact-qa', '');
+    const pills = el('div', 'flex flex-wrap gap-2 text-xs');
+    const pill = (n, label, bad) => { if (n) pills.appendChild(el('span', `rounded-full border px-3 py-1 ${bad ? 'border-amber-300/40 text-amber-200' : 'border-white/10 text-white/60'}`, `${n} ${label}`)); };
+    pill(counts.duplicate, `duplicate${counts.duplicate === 1 ? '' : 's'}`, true);
+    pill(counts['invalid-email'], 'with an unusual email', true);
+    pill(counts['invalid-website'], 'with a website that does not look right', true);
+    pill(counts['missing-first-name'], 'without a first name (fallback used)');
+    pill(counts['missing-company'], 'without a company (fallback used)');
+    pill(counts['missing-email'], 'without an email');
+    if (!pills.childElementCount) pills.appendChild(el('span', 'text-emerald-300', 'Everything looks good.'));
+    card.appendChild(pills);
+    if (warnings.length) {
+      const list = el('ul', 'flex max-h-40 flex-col gap-1 overflow-y-auto text-xs text-white/75');
+      warnings.slice(0, 20).forEach((i) => list.appendChild(el('li', '', `Row ${i.index + 1}, ${i.name}: ${i.message}`)));
+      if (warnings.length > 20) list.appendChild(el('li', 'text-white/45', `…and ${warnings.length - 20} more.`));
+      card.appendChild(list);
+    }
+    const actions = el('div', 'flex flex-wrap items-center gap-2');
+    if (counts.duplicate) {
+      const rm = button(`Remove ${counts.duplicate} duplicate${counts.duplicate === 1 ? '' : 's'}`, { small: true, primary: true });
+      rm.setAttribute('data-outreach-dedupe', '');
+      rm.addEventListener('click', () => {
+        const { kept, removed } = dedupeContacts(draft.contacts);
+        dedupeUndo = { removed, count: removed.length, sig: contactSig(kept) };
+        draft.contacts = kept; draft.campaign = null; persist(); render();
+      });
+      actions.appendChild(rm);
+    }
+    if (dedupeUndo) {
+      actions.appendChild(el('span', 'text-xs text-emerald-300', `Removed ${dedupeUndo.count} duplicate${dedupeUndo.count === 1 ? '' : 's'}.`));
+      const undo = button('Undo', { small: true });
+      undo.setAttribute('data-outreach-dedupe-undo', '');
+      undo.addEventListener('click', () => { draft.contacts = restoreDuplicates(draft.contacts, dedupeUndo.removed); dedupeUndo = null; draft.campaign = null; persist(); render(); });
+      actions.appendChild(undo);
+    }
+    if (actions.childElementCount) card.appendChild(actions);
+    return card;
+  }
+
+  // Before generating: every {{token}} you use, for every prospect, and where its value comes from.
+  function renderMergeQa() {
+    const templates = {
+      ...(draft.kind !== 'same' && draft.greeting ? { greeting: draft.greeting } : {}),
+      header: draft.header, message: draft.message, 'email subject': draft.email?.subject, 'email body': draft.email?.body, 'thumbnail text': draft.email?.thumbText,
+    };
+    const linkFor = (c) => draft.campaign?.links?.find((l) => l.contactId === c.id)?.link || (draft.campaign ? '' : '(made when you generate)');
+    const r = mergeFieldReport({ templates, contacts: draft.contacts, fallbacks: draft.fallbacks, linkFor });
+    const card = card_('Check the personal fields', 'Every {{token}} you use, filled in for each prospect. Fix gaps before you generate.', 2);
+    card.setAttribute('data-outreach-merge-qa', '');
+    const bad = Object.entries(r.missing);
+    const fb = Object.entries(r.usingFallback);
+    if (!r.tokens.length) card.appendChild(el('p', 'text-sm text-white/60', 'You are not using any {{tokens}}, so every prospect gets the same words.'));
+    else if (!bad.length && !fb.length) card.appendChild(el('p', 'text-sm text-emerald-300', 'Every prospect has a value for every field.'));
+    bad.forEach(([t, n]) => card.appendChild(el('p', 'text-sm text-amber-200', `{{${t}}} is empty for ${n} prospect${n === 1 ? '' : 's'} and has no fallback, so it will be left blank.`)));
+    fb.forEach(([t, n]) => card.appendChild(el('p', 'text-sm text-white/65', `{{${t}}} uses its fallback for ${n} prospect${n === 1 ? '' : 's'}.`)));
+    if (r.rows.length && r.tokens.length) {
+      const d = el('details', 'text-xs');
+      d.appendChild(el('summary', 'cursor-pointer font-semibold text-primary', `See each prospect${r.rows.length > 50 ? ' (first 50)' : ''}`));
+      const t = el('div', 'mt-2 flex max-h-64 flex-col gap-1 overflow-y-auto');
+      r.rows.slice(0, 50).forEach((row) => {
+        const line = el('div', 'flex flex-wrap items-center gap-1.5 border-b border-white/5 py-1.5');
+        line.appendChild(el('span', 'w-40 shrink-0 truncate font-semibold text-white/85', row.name));
+        row.fields.forEach((f) => line.appendChild(el('span', `rounded-full border px-2 py-0.5 ${f.source === 'missing' ? 'border-amber-300/40 text-amber-200' : f.source === 'fallback' ? 'border-white/15 text-white/55' : 'border-white/10 text-white/80'}`, f.source === 'missing' ? `${f.token}: (empty)` : `${f.token}: ${f.value.length > 28 ? `${f.value.slice(0, 27)}…` : f.value}`)));
+        t.appendChild(line);
+      });
+      d.appendChild(t);
+      card.appendChild(d);
+    }
+    return card;
+  }
+
+  // Who to follow up first, from what the pages really recorded (src/lib/outreach/followUp.js).
+  function renderFollowUp() {
+    const card = card_('Who to follow up first', 'Ranked by what was recorded: form, button click, finishing the video, how far they watched, plays. It shows facts, not intentions.', 3);
+    card.setAttribute('data-outreach-follow-up', '');
+    if (!linkStats.byContact) { card.appendChild(el('p', 'text-sm text-white/55', linkStats.loading ? 'Loading who watched…' : 'Activity appears here once prospects open their links.')); return card; }
+    const links = draft.campaign.links;
+    const ranked = rankProspects(links, linkStats.byContact, { followedUp: links.filter((l) => l.followedUpAt).map((l) => l.contactId) });
+    const list = el('div', 'flex flex-col divide-y divide-white/5');
+    ranked.slice(0, 15).forEach((r) => {
+      const row = el('div', 'flex flex-wrap items-center gap-3 py-2 text-sm');
+      row.setAttribute('data-follow-up-row', r.link.contactId);
+      row.append(el('span', 'w-10 shrink-0 text-right text-base font-extrabold tabular-nums', String(r.score)));
+      const who = el('div', 'min-w-0 flex-1');
+      who.append(el('div', `truncate font-semibold ${r.followedUp ? 'text-white/40 line-through' : ''}`, r.link.name || 'Prospect'), el('div', 'text-xs text-white/50', r.reasons.join(' · ')));
+      const done = button(r.followedUp ? 'Followed up' : 'Mark followed up', { small: true, selected: r.followedUp });
+      done.addEventListener('click', () => { const l = draft.campaign.links.find((x) => x.contactId === r.link.contactId); if (l) { l.followedUpAt = l.followedUpAt ? '' : new Date().toISOString(); persist(); render(); } });
+      row.append(who, done);
+      list.appendChild(row);
+    });
+    card.appendChild(list);
+    if (ranked.length > 15) card.appendChild(el('p', 'text-xs text-white/45', `Showing 15 of ${ranked.length}.`));
+    return card;
+  }
+
+  async function downloadSharePack() {
+    try {
+      setBusy('Making the share pack…');
+      const { buildSharePackZip, downloadBlob } = await import('../lib/outreach/qrPack.js');
+      const rows = draft.campaign.links.map((l) => { const e = emailOf(l); return { contact: contactOf(l), link: linkOf(l), subject: e.subject, text: e.text, thumbnailUrl: l.thumbnailUrl || '' }; });
+      const { zip, skipped } = await buildSharePackZip(rows);
+      downloadBlob(new Blob([zip], { type: 'application/zip' }), `${(draft.name || 'campaign').replace(/[^\w-]+/g, '-')}-share-pack.zip`);
+      busy = '';
+      notice = skipped.length ? `Share pack downloaded. ${skipped.length} prospect${skipped.length === 1 ? ' has' : 's have'} no QR code (${skipped[0].reason})` : 'Share pack downloaded: links, emails and a QR code for each prospect.';
+      render();
+    } catch (err) { fail(err); }
+  }
+
   function renderRecord() {
-    const wrap = el('div', 'flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-panel-bg');
+    // Like Sendspark's editor: it takes the whole window (own top bar, Share video and Close), not a card inside the page.
+    const wrap = el('div', 'fixed inset-0 z-[900] flex flex-col overflow-hidden bg-app-bg text-white');
+    let paintPage = () => {};
     wrap.setAttribute('data-outreach-editor', '');
 
     // ---- Tools along the top.
-    const bar = el('div', 'flex flex-wrap items-center gap-1.5 border-b border-white/10 px-4 py-3');
-    const title = el('div', 'mr-auto min-w-0 truncate text-sm font-bold text-white/80', draft.name || 'Untitled dynamic video');
-    bar.appendChild(title);
+    const bar = el('div', 'flex shrink-0 flex-wrap items-center gap-1.5 border-b border-white/10 bg-panel-bg px-5 py-3');
+    const brandMark = el('div', 'mr-auto flex min-w-0 items-center gap-3');
+    const logo = el('span', 'grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary text-black'); logo.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>';
+    brandMark.append(logo, el('span', 'text-[15px] font-extrabold', 'SmartVideo'), el('span', 'text-white/25', '/'), el('span', 'min-w-0 truncate text-sm font-semibold text-white/70', draft.name || 'Untitled dynamic video'));
+    bar.appendChild(brandMark);
+    bar.appendChild(el('span', 'mx-2 h-6 w-px bg-white/10'));
+    const TOOL_LABELS = { captions: 'Captions', language: 'Language', script: 'Script', trim: 'Edit', thumbnail: 'Thumbnail', link: 'Copy link', preview: 'Preview', checks: 'Browser check' };
     const tool = (key, k, tip, onClick, { active = false, disabled = false } = {}) => {
-      const b = el('button', `grid h-9 w-9 place-items-center rounded-[10px] border transition-colors disabled:opacity-30 ${active ? 'border-primary/40 bg-primary/[0.1] text-white' : 'border-transparent text-white/65 hover:border-white/15 hover:text-white'}`);
-      b.type = 'button'; b.innerHTML = icon(k); b.title = tip; b.setAttribute('aria-label', tip); b.disabled = disabled;
+      const b = el('button', `inline-flex h-10 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors disabled:opacity-30 ${active ? 'border-primary/40 bg-primary/[0.1] text-white' : 'border-transparent text-white/70 hover:border-white/15 hover:text-white'}`);
+      b.type = 'button'; b.innerHTML = `${icon(k)}<span>${TOOL_LABELS[key] || tip}</span>`; b.title = tip; b.setAttribute('aria-label', tip); b.disabled = disabled;
       b.setAttribute('data-editor-tool', key);
       if (active) b.setAttribute('aria-pressed', 'true');
       b.addEventListener('click', onClick);
@@ -904,31 +1333,34 @@ export function OutreachStudio() {
       render();
     }, { disabled: !live });
     tool('preview', 'eye', 'Preview the prospect page', () => { goStep(3, ''); });
+    tool('checks', 'info', 'What this browser can do', flip('checks'), { active: editorTool === 'checks' });
     const share = button('Share video', { primary: true, small: true });
+    share.classList.add('ml-2', 'rounded-full', 'px-4');
     share.setAttribute('data-editor-share', '');
     share.disabled = !has || !!busy;
     share.addEventListener('click', () => { goStep(draft.kind === 'same' ? 3 : 2, ''); });
     const close = button('Close', { small: true });
+    close.classList.add('rounded-full', 'px-4');
     close.setAttribute('data-editor-close', '');
     close.addEventListener('click', () => { goStep(STEPS.length, ''); });
     bar.append(share, close);
 
     // ---- Left: the video, the template and what the page says.
-    const body = el('div', 'grid lg:grid-cols-[380px_1fr]');
-    const side = el('div', 'flex flex-col gap-6 border-b border-white/10 p-5 lg:border-b-0 lg:border-r');
+    const body = el('div', 'grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-[380px_1fr] lg:overflow-hidden');
+    const side = el('div', 'flex flex-col gap-7 border-b border-white/10 p-6 lg:min-h-0 lg:overflow-y-auto lg:border-b-0 lg:border-r');
     const modes = el('div', 'grid grid-cols-3 gap-2');
     [['camera', 'user', 'Camera'], ['screen', 'screen', 'Screen'], ['both', 'both', 'Both']].forEach(([mode, k, label]) => {
-      const b = el('button', 'flex flex-col items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] py-4 text-xs font-bold text-white/80 hover:border-primary/40 hover:text-white disabled:opacity-40');
+      const b = el('button', 'flex flex-col items-center gap-2 rounded-2xl border border-transparent bg-white/[0.05] py-5 text-xs font-bold text-primary hover:border-primary/40 hover:bg-white/[0.08] disabled:opacity-40');
       b.type = 'button'; b.disabled = !!busy;
       b.setAttribute('data-editor-record', mode);
-      b.innerHTML = `<span class="text-primary">${icon(k, 20)}</span><span>${label}</span>`;
+      b.innerHTML = `<span>${icon(k, 22)}</span><span>${label}</span>`;
       b.addEventListener('click', () => openRecorder(mode));
       modes.appendChild(b);
     });
     const file = el('input'); file.type = 'file'; file.accept = 'video/*'; file.hidden = true;
     file.addEventListener('change', () => { const f = file.files?.[0]; if (f) addVideo(f, { type: 'upload', name: f.name }); file.value = ''; });
-    const drop = el('div', 'flex flex-wrap items-center justify-center gap-1 rounded-xl border border-dashed border-white/20 px-3 py-3 text-sm text-white/70');
-    const up = el('button', 'font-semibold text-primary hover:underline', 'Upload');
+    const drop = el('div', 'flex flex-wrap items-center justify-center gap-1 rounded-xl border border-dashed border-white/20 px-3 py-3.5 text-sm text-white/80');
+    const up = el('button', 'font-semibold text-primary underline-offset-2 hover:underline', 'Upload');
     up.type = 'button'; up.setAttribute('data-editor-upload', ''); up.addEventListener('click', () => file.click());
     const pick = el('button', 'font-semibold text-primary hover:underline', 'select a video you made');
     pick.type = 'button'; pick.setAttribute('data-editor-select', ''); pick.addEventListener('click', selectMadeVideo);
@@ -940,12 +1372,12 @@ export function OutreachStudio() {
 
     // Template: the landing page prospects open.
     const tpl = el('div', 'flex flex-col gap-2');
-    tpl.appendChild(el('div', 'text-[15px] font-bold', 'Template'));
-    const apply = el('button', 'flex items-center justify-between gap-2 rounded-xl border border-white/10 px-4 py-3 text-sm font-semibold text-white/85 hover:border-primary/40');
+    tpl.appendChild(el('div', 'text-base font-medium text-white', 'Template'));
+    const apply = el('button', 'flex items-center justify-between gap-2 rounded-xl border border-white/10 px-4 py-3.5 text-sm font-semibold text-primary hover:border-primary/40 hover:bg-white/[0.03]');
     apply.type = 'button'; apply.setAttribute('data-editor-template', '');
     if (draft.page && !designs.loaded) loadDesigns();
     const tplName = draft.page ? (designs.list.find((t) => t.id === draft.page.template)?.name || 'Your landing page') : '';
-    apply.innerHTML = `<span class="truncate">${draft.page ? '' : 'Apply template…'}</span><span class="text-primary">${icon('plus', 18)}</span>`;
+    apply.innerHTML = `<span class="flex-1 truncate text-center">${draft.page ? '' : 'Apply template…'}</span><span class="text-primary">${icon('plus', 18)}</span>`;
     if (draft.page) apply.firstChild.textContent = `Template: ${tplName}${draft.page.editor ? ' (edited)' : ''}`;
     apply.addEventListener('click', chooseLandingPage);
     tpl.appendChild(apply);
@@ -953,20 +1385,21 @@ export function OutreachStudio() {
 
     // Customize: what the page says, its button, calendar and transcript.
     const cz = el('div', 'flex flex-col gap-4');
-    cz.appendChild(el('div', 'text-[15px] font-bold', 'Customize'));
+    cz.appendChild(el('div', 'text-base font-medium text-white', 'Customize'));
     const UNDER = 'w-full border-0 border-b border-white/15 bg-transparent px-0 py-2 text-sm text-white placeholder:text-white/30 outline-none focus:border-primary/60';
     const line = (label, value, onInput, { area = false, ph = '' } = {}) => {
       const w = el('label', 'flex flex-col gap-1');
       w.appendChild(el('span', 'text-xs text-white/50', label));
       const i = el(area ? 'textarea' : 'input', `${UNDER} ${area ? 'min-h-[56px] resize-y' : ''}`);
       i.value = value || ''; i.placeholder = ph;
-      i.addEventListener('input', () => { onInput(i.value); persist(); });
+      i.addEventListener('input', () => { onInput(i.value); persist(); paintPage(); });
       w.appendChild(i);
       return w;
     };
     cz.append(
       line('Header', draft.header, (v) => { draft.header = v; }, { ph: 'Hi {{firstname}}, I made this for you' }),
       line('Message', draft.message, (v) => { draft.message = v; }, { area: true, ph: 'A short note under the video' }),
+      renderSuggestions(),
     );
     const row = (k, name, help, sw, extra = null) => {
       const r = el('div', 'flex flex-col gap-3 border-t border-white/10 pt-4');
@@ -981,7 +1414,16 @@ export function OutreachStudio() {
     };
     const setCta = (patch) => { draft.cta = { ...draft.cta, ...patch }; persist(); render(); };
     const ctaFields = draft.cta.enabled ? el('div', 'flex flex-col gap-3 pl-8') : null;
-    if (ctaFields) ctaFields.append(line('Button label', draft.cta.label, (v) => { draft.cta.label = v; }, { ph: 'Book a call' }), line('Link (https)', draft.cta.url, (v) => { draft.cta.url = v.trim(); }, { ph: 'https://cal.com/you/intro' }));
+    if (ctaFields) {
+      ctaFields.append(line('Button label', draft.cta.label, (v) => { draft.cta.label = v; }, { ph: 'Book a call' }), line('Link (https)', draft.cta.url, (v) => { draft.cta.url = v.trim(); }, { ph: 'https://cal.com/you/intro' }));
+      // Test two button texts: each viewer sees one at random; the page records which text was clicked.
+      const abRow = el('label', 'flex items-center gap-2 text-xs text-white/70');
+      const abBox = el('input'); abBox.type = 'checkbox'; abBox.checked = !!draft.cta.abTest; abBox.setAttribute('data-editor-cta-ab', '');
+      abBox.addEventListener('change', () => setCta({ abTest: abBox.checked }));
+      abRow.append(abBox, el('span', '', 'Test a second button text (each viewer sees one at random)'));
+      ctaFields.appendChild(abRow);
+      if (draft.cta.abTest) ctaFields.appendChild(line('Second button text', draft.cta.labelB || '', (v) => { draft.cta.labelB = v; }, { ph: 'Get my demo' }));
+    }
     const ctaSw = toggle(!!draft.cta.enabled, (on) => setCta({ enabled: on }), { label: 'Call-to-action' });
     ctaSw.setAttribute('data-editor-cta', '');
     const calSw = toggle(!!draft.cta.embed, (on) => setCta({ embed: on, enabled: on ? true : draft.cta.enabled }), { label: 'Calendar embed' });
@@ -1001,8 +1443,8 @@ export function OutreachStudio() {
     side.append(addBlock, tpl, cz);
 
     // ---- Right: the video, and the open tool under it.
-    const main = el('div', 'flex min-w-0 flex-col items-center gap-4 p-5 md:p-8');
-    const stage = el('div', 'grid aspect-video w-full max-w-3xl place-items-center overflow-hidden rounded-2xl border border-white/10 bg-black');
+    const main = el('div', 'flex min-w-0 flex-col items-center gap-4 bg-white/[0.02] p-5 md:p-10 lg:min-h-0 lg:overflow-y-auto [&>*]:shrink-0');
+    const stage = el('div', 'grid aspect-video w-full max-w-3xl place-items-center overflow-hidden rounded-2xl bg-white/[0.06]');
     stage.setAttribute('data-editor-video', '');
     const editing = editorTool === 'trim' && has;
     if (!editing && preview) stopPreview();
@@ -1016,7 +1458,40 @@ export function OutreachStudio() {
       ph.appendChild(el('span', 'text-sm', 'Record or upload your video'));
       stage.appendChild(ph);
     }
-    main.appendChild(stage);
+    // The page a prospect opens (header, video, message, button), like Sendspark's editor preview.
+    const pc = el('div', 'flex w-full max-w-3xl flex-col items-center gap-5 rounded-3xl border border-white/10 bg-panel-bg px-6 py-8 shadow-[0_24px_60px_-28px_rgba(0,0,0,0.9)]');
+    pc.setAttribute('data-editor-page-preview', '');
+    const pHead = el('h2', 'text-center text-2xl font-extrabold');
+    const pMsg = el('p', 'max-w-xl text-center text-sm text-white/70');
+    const pCta = el('span', 'inline-flex rounded-full bg-primary px-7 py-3 text-sm font-extrabold text-black');
+    paintPage = () => {
+      pHead.textContent = fillTemplate(draft.header, {}, draft.fallbacks) || 'Your header';
+      pMsg.textContent = fillTemplate(draft.message, {}, draft.fallbacks);
+      pMsg.hidden = !pMsg.textContent;
+      pCta.textContent = draft.cta?.label || 'Book a call';
+      pCta.hidden = !draft.cta?.enabled;
+    };
+    paintPage();
+    if (draft.page) {
+      // A landing page design is chosen: show that page (what each prospect gets), with your video above it.
+      main.appendChild(stage);
+      const lp = el('div', 'flex w-full max-w-3xl flex-col gap-3');
+      lp.setAttribute('data-editor-page-preview', 'design');
+      const lpHead = el('div', 'flex items-center justify-between gap-3');
+      const lpName = designs.list.find((t) => t.id === draft.page.template)?.name || 'Your landing page';
+      lpHead.append(el('div', 'text-sm font-semibold text-white/80', `Landing page: ${lpName}`));
+      const lpEdit = button('Edit page', { small: true });
+      lpEdit.addEventListener('click', openPageEditor);
+      lpHead.appendChild(lpEdit);
+      const lpHost = el('div', 'w-full overflow-hidden rounded-3xl border border-white/10 bg-panel-bg');
+      lpHost.style.minHeight = '240px';
+      pagePreview(lpHost);
+      lp.append(lpHead, lpHost);
+      main.appendChild(lp);
+    } else {
+      main.appendChild(pc);
+      pc.append(el('div', 'text-sm font-extrabold text-white/80', 'SmartVideo'), pHead, stage, pMsg, pCta);
+    }
     if (editing) {
       const ctl = el('div', 'flex items-center gap-2 text-xs text-white/60');
       ctl.setAttribute('data-edit-controls', '');
@@ -1037,6 +1512,7 @@ export function OutreachStudio() {
     if (editorTool === 'captions' && has) drawer.appendChild(renderCaptionsPanel());
     if (editorTool === 'trim' && has) drawer.appendChild(renderTools());
     if (editorTool === 'script') drawer.appendChild(renderScriptCard());
+    if (editorTool === 'checks') drawer.appendChild(renderChecks());
     if (editorTool === 'language') {
       const box = el('div', 'flex flex-wrap items-center gap-3 rounded-xl border border-white/10 p-4');
       box.setAttribute('data-editor-language', '');
@@ -1048,9 +1524,16 @@ export function OutreachStudio() {
       drawer.appendChild(box);
     }
     if (draft.video && !draft.video.hasAudio) drawer.appendChild(el('p', 'mt-3 text-xs text-amber-300', 'This video has no sound, so it cannot be used as your voice sample. You can still record a separate sample in the next step.'));
+    // An open tool goes above the preview, so it is seen at once without scrolling.
+    if (drawer.childElementCount) { drawer.classList.add('order-first'); drawer.setAttribute('data-editor-drawer', editorTool); }
     main.appendChild(drawer);
     body.append(side, main);
-    wrap.append(bar, body);
+    // What is missing or in progress, since the page footer sits behind the full-screen editor.
+    const errs = stepErrors(draft, 1);
+    const stMsg = busy || notice || errs[0] || '';
+    const st = el('p', `shrink-0 empty:hidden border-t border-white/10 bg-panel-bg px-5 py-2 text-sm ${busy ? 'text-primary' : notice && !errs.length ? 'text-emerald-300' : 'text-amber-300'}`, stMsg);
+    st.setAttribute('data-outreach-busy', ''); st.setAttribute('role', 'status'); st.setAttribute('aria-live', 'polite');
+    wrap.append(bar, body, st);
     return wrap;
   }
 
@@ -1104,7 +1587,7 @@ export function OutreachStudio() {
       const { extractVoiceSample } = await import('../lib/outreach/voiceSample.js');
       const { file } = await extractVoiceSample(blob);
       setBusy('Uploading your voice sample…');
-      const audioUrl = await uploadToStorage(file);
+      const audioUrl = await uploadWithRetry(file);
       setBusy('Cloning your voice (this can take a minute)…');
       const { cloneVoice } = await import('../lib/editor/agent/audioGen.js');
       const voiceId = draft.voice.cloneVoiceId || `voice_${Date.now().toString(36)}`;
@@ -1176,9 +1659,9 @@ export function OutreachStudio() {
     const grid = el('div', 'grid gap-5 lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)]');
     const left = el('div', 'flex min-w-0 flex-col gap-4');
     const sectionCard = (title, attr) => {
-      const c = el('div', 'flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-5');
+      const c = el('div', 'flex flex-col gap-3 rounded-3xl border border-white/10 bg-white/[0.02] p-6');
       c.setAttribute(attr, '');
-      c.appendChild(el('div', 'text-xs font-extrabold uppercase tracking-[0.14em] text-primary', title));
+      c.appendChild(el('div', 'text-lg font-semibold text-white', title));
       return c;
     };
 
@@ -1415,7 +1898,7 @@ export function OutreachStudio() {
     // Background: the recording as it is, or each contact's own website behind a round camera bubble.
     const bg = el('div', 'flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-5');
     bg.setAttribute('data-outreach-background-card', '');
-    bg.appendChild(el('div', 'text-xs font-extrabold uppercase tracking-[0.14em] text-primary', 'Background'));
+    bg.appendChild(el('div', 'text-lg font-semibold text-white', 'Background'));
     const bgModes = el('div', 'flex flex-wrap gap-2');
     for (const [mode, label] of [['website', 'Website'], ['profile', 'Profile card'], ['map', 'Maps'], ['image', 'Image'], ['recording', 'None']]) {
       const b = button(label, { selected: draft.background.mode === mode, small: true });
@@ -1439,6 +1922,15 @@ export function OutreachStudio() {
       const p = el('p', 'text-xs text-secondary', 'Your camera appears in a round bubble over a card with each contact\u2019s name, job title, company, their logo (or initials) and their LinkedIn address, from your prospect list. Cards are drawn when you generate the campaign. (LinkedIn pages themselves can\u2019t be captured: they need a login.)');
       p.setAttribute('data-bg-profile-note', '');
       bg.appendChild(p);
+      // Named looks for the card: changing it makes new cards (the old ones stay stored for the old look).
+      const looks = el('div', 'flex flex-wrap gap-2'); looks.setAttribute('data-bg-card-themes', '');
+      Object.entries(CARD_THEMES).forEach(([id, t]) => {
+        const b = el('button', `rounded-full border px-3 py-1.5 text-xs font-bold ${cardTheme(draft) === id ? 'border-primary bg-primary/10 text-primary' : 'border-white/10 text-white/70'}`, t.label);
+        b.type = 'button'; b.setAttribute('data-bg-card-theme', id); b.setAttribute('aria-pressed', String(cardTheme(draft) === id));
+        b.addEventListener('click', () => { draft.background = { ...draft.background, cardTheme: id }; draft.campaign = null; persist(); render(); });
+        looks.appendChild(b);
+      });
+      bg.appendChild(field('Card look', looks));
     }
     if (draft.background.mode === 'image' || draft.background.mode === 'map') {
       bg.appendChild(el('p', 'text-xs text-secondary', draft.background.mode === 'image'
@@ -1452,7 +1944,7 @@ export function OutreachStudio() {
         if (!file) return;
         try {
           setBusy('Uploading the image…');
-          const url = await uploadToStorage(file);
+          const url = await uploadWithRetry(file);
           draft.background = { ...draft.background, image: url }; draft.campaign = null; persist(); busy = ''; render();
         } catch (err) { fail(err); }
       });
@@ -1522,22 +2014,27 @@ export function OutreachStudio() {
     const ctaOn = el('input'); ctaOn.type = 'checkbox'; ctaOn.checked = !!draft.cta.enabled;
     const ctaLabel = textInput(draft.cta.label, 'Schedule a demo');
     const ctaUrl = textInput(draft.cta.url, 'https://cal.com/you/intro');
+    const abOn = el('input'); abOn.type = 'checkbox'; abOn.checked = !!draft.cta.abTest; abOn.setAttribute('data-outreach-cta-ab', '');
+    const ctaLabelB = textInput(draft.cta.labelB || '', 'Get my demo'); ctaLabelB.setAttribute('data-outreach-cta-label-b', ''); ctaLabelB.hidden = !draft.cta.abTest;
     const calOn = el('input'); calOn.type = 'checkbox'; calOn.checked = !!draft.cta.embed; calOn.setAttribute('data-outreach-calendar', '');
     const liveOn = el('input'); liveOn.type = 'checkbox'; liveOn.checked = !!draft.cta.live; liveOn.setAttribute('data-outreach-live', '');
     const sync = () => {
       draft.header = header.value; draft.message = message.value; draft.fallbacks.company = company.value;
-      draft.cta = { ...draft.cta, enabled: ctaOn.checked, label: ctaLabel.value, url: ctaUrl.value.trim(), embed: calOn.checked, live: liveOn.checked };
+      draft.cta = { ...draft.cta, enabled: ctaOn.checked, label: ctaLabel.value, url: ctaUrl.value.trim(), embed: calOn.checked, live: liveOn.checked, abTest: abOn.checked, labelB: ctaLabelB.value };
+      ctaLabelB.hidden = !abOn.checked;
       persist(); updatePreview();
     };
-    [header, message, company, ctaLabel, ctaUrl].forEach((i) => i.addEventListener('input', sync));
+    [header, message, company, ctaLabel, ctaUrl, ctaLabelB].forEach((i) => i.addEventListener('input', sync));
+    abOn.addEventListener('change', sync);
     ctaOn.addEventListener('change', sync);
     calOn.addEventListener('change', sync);
     liveOn.addEventListener('change', sync);
+    const abRow = el('label', 'flex items-center gap-3 text-sm'); abRow.append(abOn, el('span', '', 'Test a second button text: each viewer sees one at random, and the page records which text was clicked'));
     const ctaRow = el('label', 'flex items-center gap-3 text-sm font-bold'); ctaRow.append(ctaOn, el('span', '', 'Call-to-action button'));
     const calRow = el('label', 'flex items-center gap-3 text-sm'); calRow.append(calOn, el('span', '', 'Plain video page only: show the calendar under the video so contacts can book without leaving the page'));
     const liveRow = el('label', 'flex items-center gap-3 text-sm'); liveRow.append(liveOn, el('span', '', 'Let prospects call me live: a \u201cTalk live\u201d button shows on their page (plain video page) whenever you switch on \u201cAvailable for live calls\u201d here'));
     main.append(field('Header', header, draft.page ? 'For the plain video page. Your landing page keeps its own words; change them with Edit page.' : ''), variableChips(header), field('Message', message), variableChips(message), field('If the company is missing, say', company), ctaRow,
-      field('Button label', ctaLabel), field('Booking link', ctaUrl, 'Your Cal.com, Calendly or other booking page (https).'), calRow, liveRow);
+      field('Button label', ctaLabel), abRow, ctaLabelB, field('Booking link', ctaUrl, 'Your Cal.com, Calendly or other booking page (https).'), calRow, liveRow);
 
 
     // Video background: on the AI intro step for AI voices; here for Same audio (which has no AI intro step).
@@ -1720,7 +2217,7 @@ export function OutreachStudio() {
       if (!(await gate('screenshots for your prospects'))) return;
       setBusy(`Uploading the screenshot for ${c.firstName || c.email || 'this prospect'}…`);
       try {
-        const url = await uploadToStorage(file);
+        const url = await uploadWithRetry(file);
         draft.contacts = draft.contacts.map((x) => (x.id === c.id ? { ...x, backgroundShot: url } : x));
         draft.campaign = null; busy = ''; notice = ''; persist();
       } catch (err) { busy = ''; notice = err.message; }
@@ -1787,7 +2284,7 @@ export function OutreachStudio() {
       share = await bc.startTabShare(captureTab);
       const { shots, failed } = await bc.captureInTab({
         tab: captureTab, share, urls, signal: abort.signal,
-        upload: (blob, i) => uploadToStorage(new File([blob], `prospect-page-${i + 1}.jpg`, { type: 'image/jpeg' })),
+        upload: (blob, i) => uploadWithRetry(new File([blob], `prospect-page-${i + 1}.jpg`, { type: 'image/jpeg' })),
         onShot: (url, imageUrl) => {
           draft.siteShots = { ...draft.siteShots, [url]: imageUrl };
           if (draft.siteErrors?.[url]) { const { [url]: _gone, ...rest } = draft.siteErrors; draft.siteErrors = rest; }
@@ -1837,7 +2334,7 @@ export function OutreachStudio() {
 
   function renderContacts() {
     const grid = el('div', 'grid gap-5 lg:grid-cols-[1fr_380px]');
-    const main = card('Add contacts', 'Upload a CSV, or add people one at a time. Each contact gets their own link.');
+    const main = card('Add contacts', 'Upload a CSV, or add people one at a time. Each contact gets their own link.', 1);
     const nameInput = textInput(draft.name, 'Campaign name, e.g. Cold outreach November');
     nameInput.addEventListener('input', () => { draft.name = nameInput.value; persist(); });
     main.appendChild(field('Campaign name', nameInput));
@@ -1919,10 +2416,19 @@ export function OutreachStudio() {
     main.appendChild(field('Or add one', one));
 
     // The list.
-    const side = card(`Contacts (${draft.contacts.length})`, draft.contacts.length ? 'Contacts without a first name hear the fallback greeting.' : 'No contacts yet.');
+    const side = card(`Prospects (${draft.contacts.length})`, draft.contacts.length ? 'Contacts without a first name hear the fallback greeting.' : 'No contacts yet.', 2);
+    let searchBox = null;
+    if (draft.contacts.length > 1) {
+      searchBox = el('input', 'w-full rounded-full border border-white/10 bg-white/[0.04] px-5 py-2.5 text-sm text-white placeholder:text-white/35 outline-none focus:border-primary/60');
+      searchBox.type = 'search'; searchBox.placeholder = 'Search prospect by name, email or company'; searchBox.setAttribute('aria-label', 'Search prospects');
+      searchBox.setAttribute('data-outreach-contact-search', '');
+      side.appendChild(searchBox);
+    }
     const list = el('div', 'flex flex-col divide-y divide-white/5 max-h-[460px] overflow-y-auto');
-    draft.contacts.forEach((c) => {
-      const row = el('div', `flex ${draft.background.mode === 'website' ? 'items-start' : 'items-center'} gap-3 py-2 text-sm`);
+    draft.contacts.forEach((c, idx) => {
+      const row = el('div', `flex ${draft.background.mode === 'website' ? 'items-start' : 'items-center'} gap-3 py-2.5 text-sm`);
+      row.setAttribute('data-contact-row', [c.firstName, c.lastName, c.email, c.company].filter(Boolean).join(' ').toLowerCase());
+      row.appendChild(el('span', 'w-6 shrink-0 text-xs tabular-nums text-white/40', String(idx + 1).padStart(2, '0')));
       const who = el('div', 'min-w-0 flex-1');
       who.append(el('div', 'truncate font-semibold', [c.firstName, c.lastName].filter(Boolean).join(' ') || '(no name)'),
         el('div', 'truncate text-xs text-white/50', [c.email, c.company].filter(Boolean).join(' · ')));
@@ -1933,15 +2439,32 @@ export function OutreachStudio() {
       row.append(who, rm);
       list.appendChild(row);
     });
+    searchBox?.addEventListener('input', () => {
+      const q = searchBox.value.trim().toLowerCase();
+      list.querySelectorAll('[data-contact-row]').forEach((r) => { r.hidden = !!q && !r.getAttribute('data-contact-row').includes(q); });
+    });
     side.appendChild(list);
     if (draft.background.mode === 'website' && draft.contacts.length) side.appendChild(renderSiteCheck());
     if (draft.contacts.length) {
+      const foot = el('div', 'flex flex-wrap items-center gap-2 border-t border-white/10 pt-4');
+      const more = button('Add more contacts', { small: true });
+      more.setAttribute('data-outreach-add-more', '');
+      more.addEventListener('click', () => file.click());
+      const dl = button('Download .CSV', { small: true });
+      dl.setAttribute('data-outreach-contacts-csv', '');
+      dl.addEventListener('click', () => {
+        downloadText(`${(draft.name || 'contacts').replace(/[^\w-]+/g, '_')}-contacts.csv`, [CONTACT_FIELDS.map(([f]) => f).join(','), ...draft.contacts.map((c) => CONTACT_FIELDS.map(([f]) => csvCell(c[f])).join(','))].join('\n'));
+      });
       const clear = button('Remove all', { small: true });
       clear.addEventListener('click', () => { if (window.confirm('Remove every contact from this campaign?')) { draft.contacts = []; draft.campaign = null; persist(); render(); } });
-      side.appendChild(clear);
+      foot.append(more, dl, clear);
+      side.appendChild(foot);
     }
     grid.append(main, side);
-    return grid;
+    const page = el('div', 'flex flex-col gap-5');
+    page.appendChild(grid);
+    if (draft.contacts.length) page.appendChild(renderContactQa());
+    return page;
   }
 
   // ---- Step 5: Generate --------------------------------------------------
@@ -2010,12 +2533,13 @@ export function OutreachStudio() {
   async function captureProfiles() {
     const { cardDetails, cardKey, renderProfileCard } = await import('../lib/outreach/profileCard.js');
     const side = cardSide(draft);
+    const theme = cardTheme(draft);
     const people = [...draft.contacts, {}];
     const todo = [];
     const seen = new Set();
     for (const c of people) {
       const d = cardDetails(c, draft.fallbacks);
-      const k = cardKey(d, side);
+      const k = cardKey(d, side, theme);
       if (seen.has(k) || draft.profileShots?.[k]) continue;
       seen.add(k); todo.push({ c, d, k });
     }
@@ -2024,8 +2548,8 @@ export function OutreachStudio() {
       setBusy(`Drawing profile cards: ${i + 1} of ${todo.length}…`);
       const { c, d, k } = todo[i];
       const logoUrl = c.website ? draft.siteLogos?.[siteKey(c.website)] || '' : '';
-      const blob = await renderProfileCard(d, { logoUrl, side });
-      const url = await uploadToStorage(new File([blob], 'profile-card.jpg', { type: 'image/jpeg' }));
+      const blob = await renderProfileCard(d, { logoUrl, side, theme });
+      const url = await uploadWithRetry(new File([blob], 'profile-card.jpg', { type: 'image/jpeg' }));
       draft.profileShots = { ...(draft.profileShots || {}), [k]: url };
       persist();
     }
@@ -2077,10 +2601,16 @@ export function OutreachStudio() {
           contacts: draft.contacts.map((c) => contactProfile(c)),
           signal: abort.signal,
           onProgress: ({ done, total, name }) => { progress = { total, done, phase: 'Voicing' }; onStage('voice', total ? done / total : 1); setBusy(`Voicing greetings: ${done} of ${total} (${name})…`); },
+          // A greeting voiced in an earlier run is reused (same voice, language and words), so a retry only
+          // pays for what is new or failed, and the lip-sync cache (keyed by the audio's URL) still hits.
           generate: async (line) => {
-            const remote = await audio.generateAudio('tts', speakRequest(draft, line), { signal: abort.signal });
-            const url = await audio.persistAudio(remote, { upload: uploadToStorage, name: 'greeting' });
-            return { url, duration: (await audio.probeDuration(url)) || 2 };
+            const out = await voiceFromCache(draft, line, async () => {
+              const remote = await audio.generateAudio('tts', speakRequest(draft, line), { signal: abort.signal });
+              const url = await audio.persistAudio(remote, { upload: uploadToStorage, name: 'greeting' });
+              return { url, duration: (await audio.probeDuration(url)) || 2 };
+            });
+            persist();
+            return { url: out.url, duration: out.duration };
           },
         }));
       }
@@ -2140,14 +2670,15 @@ export function OutreachStudio() {
       // A landing page chosen earlier keeps showing the campaign; its contact links are rebuilt.
       const page = draft.campaign?.id === id ? draft.campaign.page : null;
       const { landingLink } = await import('../lib/outreach/landingPage.js');
+      const rebuilt = campaignLinks(draft, url, personalLink, variants).map((l) => ({
+        ...l,
+        ...(lipsync?.clips?.[l.contactId] ? { lipsynced: true } : {}),
+        ...(lipsync?.errors?.[l.contactId] ? { lipsyncError: lipsync.errors[l.contactId] } : {}),
+        ...(page ? { pageLink: landingLink(page.url, l.link, draft.contacts.find((c) => c.id === l.contactId) || {}) } : {}),
+      }));
       draft.campaign = {
         id, url, publishedAt: new Date().toISOString(), ...(page ? { page } : {}),
-        links: campaignLinks(draft, url, personalLink, variants).map((l) => ({
-          ...l,
-          ...(lipsync?.clips?.[l.contactId] ? { lipsynced: true } : {}),
-          ...(lipsync?.errors?.[l.contactId] ? { lipsyncError: lipsync.errors[l.contactId] } : {}),
-          ...(page ? { pageLink: landingLink(page.url, l.link, draft.contacts.find((c) => c.id === l.contactId) || {}) } : {}),
-        })),
+        links: carryFollowUps(draft.campaign?.links, rebuilt), // "followed up" marks survive a retry
       };
       persist();
       campaigns.loaded = false; // refresh the Campaigns list next time it opens
@@ -2199,10 +2730,10 @@ export function OutreachStudio() {
 
   function renderGenerate() {
     const wrap = el('div', 'flex flex-col gap-5');
-    const top = card(draft.campaign ? 'Your campaign is live' : 'Generate the campaign',
+    const top = card(draft.campaign ? 'Your campaign is live' : 'Generate videos',
       draft.campaign
         ? 'Send each contact their own link. It opens your video with their greeting and your booking button.'
-        : 'Each contact’s greeting is voiced, the video is published, and every contact gets a personal link.');
+        : 'Each contact’s greeting is voiced, the video is published, and every contact gets a personal link.', 1);
     const facts = el('div', 'grid grid-cols-2 md:grid-cols-4 gap-3');
     const personal = draft.kind !== 'same' && tokensIn(draft.greeting).length > 0;
     const named = draft.contacts.filter((c) => c.firstName).length;
@@ -2217,6 +2748,7 @@ export function OutreachStudio() {
       facts.appendChild(f);
     }
     top.appendChild(facts);
+    top.appendChild(el('p', 'text-xs text-white/50', 'What your prospects\u2019 pages record: that the page was opened, how far the video was watched and which buttons were clicked, tied to the personal link you send. Nothing is recorded for viewers whose browser sends Do Not Track or Global Privacy Control.'));
     if (personal) {
       const syncRow = el('label', 'flex items-start gap-3 text-sm');
       const syncOn = el('input'); syncOn.type = 'checkbox'; syncOn.checked = !!draft.voice.lipsync; syncOn.className = 'mt-1';
@@ -2246,16 +2778,30 @@ export function OutreachStudio() {
       });
       const open = button('Open landing page');
       open.addEventListener('click', () => window.open(draft.campaign.links[0] ? linkOf(draft.campaign.links[0]) : draft.campaign.url, '_blank', 'noopener'));
-      actions.append(csv, open);
+      const engage = button('See engagement');
+      engage.setAttribute('data-outreach-see-engagement', '');
+      engage.addEventListener('click', () => container.querySelector('[data-outreach-prospects]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      const shareAll = button('Share campaign', { primary: true });
+      shareAll.setAttribute('data-outreach-share-campaign', '');
+      shareAll.disabled = !draft.campaign.links[0];
+      shareAll.addEventListener('click', () => { if (draft.campaign.links[0]) openShare(draft.campaign.links[0]); });
+      const pack = button('Download share pack (.zip)');
+      pack.setAttribute('data-outreach-share-pack', '');
+      pack.disabled = !!busy;
+      pack.addEventListener('click', downloadSharePack);
+      actions.append(csv, open, engage, shareAll, pack);
     }
     top.appendChild(actions);
     wrap.appendChild(top);
+    if (attentionList().length) wrap.appendChild(renderAttention());
+    if (!draft.campaign && draft.contacts.length) wrap.appendChild(renderMergeQa());
     if (busy && progress) wrap.appendChild(renderProgress());
 
     if (draft.campaign) {
       if (linkStats.id !== draft.campaign.id && !linkStats.loading) setTimeout(loadLinkStats, 0);
       // The prospect table (src/components/outreach/ProspectTable.js), like Sendspark's dynamic-video prospect list.
-      const list = card('Prospects', 'Each prospect\u2019s own video, thumbnail and page. Share or send it from their row; you\u2019ll see who watched and how much.');
+      const list = card('Generated videos', 'Each prospect\u2019s own video, thumbnail and page. Share or send it from their row; you\u2019ll see who watched and how much.', 2);
+      list.setAttribute('data-outreach-prospects', '');
       const contactOfLink = (l) => draft.contacts.find((c) => c.id === l.contactId) || {};
       const links = draft.campaign.links.map((l) => ({ ...l, heard: l.voiced ? fillTemplate(draft.greeting, contactValues(contactOfLink(l)), draft.fallbacks).trim() : '' }));
       list.appendChild(renderProspectTable({
@@ -2285,6 +2831,8 @@ export function OutreachStudio() {
         },
       }));
       wrap.appendChild(list);
+      wrap.appendChild(renderFollowUp());
+      wrap.appendChild(renderPushCard());
       wrap.appendChild(renderLandingCard());
       wrap.appendChild(renderEmailCard());
       wrap.appendChild(renderAlertsCard());
@@ -2379,10 +2927,20 @@ export function OutreachStudio() {
   // Live page previews; dropped whenever the step is drawn again.
   const previewHandles = [];
   const dropPreviewHandles = () => previewHandles.splice(0).forEach((h) => h.destroy());
+  // Your own video (and the first prospect's name) in the page, so a design is judged with the real thing in it.
+  const previewWith = () => {
+    const url = String(draft.video?.url || '');
+    const first = draft.contacts[0];
+    const poster = draft.campaign?.links?.find((l) => l.thumbnailUrl && !/\.gif(\?|$)/i.test(l.thumbnailUrl))?.thumbnailUrl || null;
+    return {
+      ...(/^https:\/\//i.test(url) ? { page: { title: draft.name || '', video_url: url, poster_url: poster } } : {}),
+      ...(first ? { tokens: { ...(first.firstName ? { firstname: first.firstName } : {}), ...(first.company ? { company: first.company } : {}) } } : {}),
+    };
+  };
   const pagePreview = (host, width) => {
     const data = pageEditorData();
     if (!data) return;
-    import('../lib/landingPages/designPreview.js').then((m) => { previewHandles.push(m.attachDesignPreview(host, data)); if (width) host.style.width = width; });
+    import('../lib/landingPages/designPreview.js').then((m) => { previewHandles.push(m.attachDesignPreview(host, data, previewWith())); if (width) host.style.width = width; });
   };
   const PLAIN_CARD = { id: '', name: 'Plain video page', description: 'Just the personal video, header, message and your booking button.', theme: { bg: '#111318', accent: '#d9ff00' }, layout: 'minimal' };
 
@@ -2404,6 +2962,7 @@ export function OutreachStudio() {
       subtitle: 'The page belongs to this video. After choosing, click Edit page to change its words, pictures and sections; your recording plays in it, and each prospect sees their own video.',
       groups: [['No landing page', [PLAIN_CARD]], ['Your landing pages', designs.list]],
       selected: page?.template || '',
+      preview: previewWith(),
       onPick: (id) => {
         if (id === (page?.template || '')) return;
         if (page?.editor && !window.confirm('Replace your edited page? Your changes to it will be lost.')) return;
@@ -2604,8 +3163,8 @@ export function OutreachStudio() {
           // A GIF also gets its first frame as a still, for Outlook on Windows (which shows only that frame).
           const set = await T.renderThumbnailSet({ frames, siteUrl: site, logoUrl: logo, text, settings, seconds: duration, signal });
           const stamp = `${Date.now()}-${made.size}`;
-          const mainUrl = await uploadToStorage(new File([set.main], `thumb-${stamp}.${still ? 'jpg' : 'gif'}`, { type: set.main.type }));
-          const stillUrl = set.still ? await uploadToStorage(new File([set.still], `thumb-${stamp}-still.jpg`, { type: 'image/jpeg' })) : mainUrl;
+          const mainUrl = await uploadWithRetry(new File([set.main], `thumb-${stamp}.${still ? 'jpg' : 'gif'}`, { type: set.main.type }));
+          const stillUrl = set.still ? await uploadWithRetry(new File([set.still], `thumb-${stamp}-still.jpg`, { type: 'image/jpeg' })) : mainUrl;
           made.set(key, { mainUrl, stillUrl });
         }
         links[i] = { ...links[i], thumbnailUrl: made.get(key).mainUrl, stillUrl: made.get(key).stillUrl };
@@ -2983,14 +3542,7 @@ export function OutreachStudio() {
     }
   }
 
-  const summarize = (rows) => {
-    const list = Array.isArray(rows) ? rows : [];
-    return {
-      watched: list.filter((r) => r.contactId && r.plays > 0).length,
-      views: list.reduce((n, r) => n + r.views, 0),
-      clicks: list.reduce((n, r) => n + r.ctaClicks, 0),
-    };
-  };
+  const summarize = (rows) => summarizeCampaign(rows);
 
   // "+ New dynamic video": a fresh campaign that keeps your voice, details and button.
   function startNew({ from = draft, keepVideo = false } = {}) {
@@ -3008,24 +3560,53 @@ export function OutreachStudio() {
   }
 
   // The Videos home: your dynamic videos as cards (like Sendspark's library), then the results table.
+  let librarySort = 'new';
+  let libraryQuery = '';
   function renderLibrary() {
-    const lib = listLibrary();
+    const statsFor = (id) => summarize(campaigns.stats[id]);
+    const lib = [...listLibrary()].sort((a, b) => (librarySort === 'name' ? String(a.name).localeCompare(String(b.name)) : librarySort === 'watched' ? statsFor(b.id).watched - statsFor(a.id).watched : new Date(b.savedAt) - new Date(a.savedAt)));
     const box = el('div', 'flex flex-col gap-4');
     box.setAttribute('data-outreach-library', '');
+    // Work added since the offer was made takes the offer away (the backup is never allowed to replace it).
+    if (restoreOffer && restoreStillValid && !restoreStillValid(draft, restoreOffer)) restoreOffer = null;
+    if (restoreOffer) box.appendChild(renderRestoreOffer());
     // Like Sendspark's Dynamic Videos page: who you are, what it does, and Create Dynamic Video.
-    const head = el('div', 'flex flex-wrap items-center gap-4 border-b border-white/10 pb-5');
+    const head = el('div', 'flex flex-wrap items-center gap-5 border-b border-white/10 pb-6 pt-4');
     const me = globalThis.window?.Clerk?.user || null;
-    const face = el('div', 'grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-primary/10 text-lg font-black text-primary');
+    const face = el('div', 'grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-primary/10 text-lg font-black text-primary');
     if (me?.imageUrl && /^https:\/\//.test(me.imageUrl)) { const im = el('img', 'h-full w-full object-cover'); im.src = me.imageUrl; im.alt = ''; face.appendChild(im); }
     else face.textContent = (me?.firstName || 'S').slice(0, 1).toUpperCase();
     const title = el('div', 'min-w-0 flex-1');
-    title.append(el('h2', 'text-2xl font-black', 'Dynamic Videos'), el('p', 'text-sm text-secondary', 'Scale yourself: record once, and each prospect gets their own intro, page, thumbnail and link.'));
+    title.append(el('h2', 'text-[26px] font-extrabold leading-tight', 'Dynamic Videos'), el('p', 'text-sm text-white/50', 'Scale yourself: record once, and each prospect gets their own intro, page, thumbnail and link.'));
     const fresh = button('Create Dynamic Video', { primary: true });
     fresh.setAttribute('data-outreach-new', '');
     fresh.disabled = !!busy;
+    fresh.classList.add('rounded-full');
     fresh.addEventListener('click', () => openCreateDynamic());
     head.append(face, title, fresh);
     box.appendChild(head);
+    let filterRow = null;
+    if (lib.length) {
+      // Search and sort your campaigns (like Sendspark's filter row).
+      filterRow = el('div', 'flex flex-wrap items-center justify-end gap-2');
+      filterRow.setAttribute('data-library-filters', '');
+      const q = el('input', 'min-w-[220px] flex-1 rounded-full border border-white/10 bg-white/[0.04] px-5 py-2 text-sm text-white placeholder:text-white/35 outline-none focus:border-primary/60 sm:flex-none');
+      q.type = 'search'; q.placeholder = 'Search your videos'; q.setAttribute('aria-label', 'Search your videos'); q.value = libraryQuery;
+      const sort = el('select', 'rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-white outline-none focus:border-primary/60');
+      sort.setAttribute('aria-label', 'Sort');
+      [['new', 'Newest first'], ['name', 'Name A to Z'], ['watched', 'Most watched']].forEach(([v, l]) => { const o = el('option', 'bg-neutral-900', l); o.value = v; o.selected = v === librarySort; sort.appendChild(o); });
+      sort.addEventListener('change', () => { librarySort = sort.value; render(); });
+      const clearF = button('Clear filters', { small: true });
+      clearF.addEventListener('click', () => { librarySort = 'new'; libraryQuery = ''; render(); });
+      const applyQuery = () => {
+        const t = q.value.trim().toLowerCase();
+        box.querySelectorAll('[data-library-item]').forEach((c) => { c.hidden = !!t && !String(c.getAttribute('data-library-name') || '').includes(t); });
+      };
+      q.addEventListener('input', () => { libraryQuery = q.value; applyQuery(); });
+      setTimeout(applyQuery, 0);
+      filterRow.append(q, sort, clearF);
+      box.appendChild(filterRow);
+    }
 
     const grid = el('div', 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3');
     // The one being set up (not generated yet).
@@ -3043,6 +3624,7 @@ export function OutreachStudio() {
     lib.forEach((e) => {
       const c = el('div', 'flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-panel-bg');
       c.setAttribute('data-library-item', e.id);
+      c.setAttribute('data-library-name', String(e.name || '').toLowerCase());
       const media = el('div', 'relative aspect-video bg-black');
       if (e.thumbnailUrl) { const im = el('img', 'h-full w-full object-cover'); im.src = e.thumbnailUrl; im.alt = ''; media.appendChild(im); } else if (e.video) { const v = el('video', 'h-full w-full object-cover'); v.src = `${e.video}#t=1`; v.muted = true; v.preload = 'metadata'; media.appendChild(v); }
       if (draft.campaign?.id === e.id) media.appendChild(el('span', 'absolute bottom-2 right-2 rounded-full border border-primary/40 bg-black/70 px-2 py-0.5 text-[10px] font-bold text-primary', 'Open now'));
@@ -3076,6 +3658,30 @@ export function OutreachStudio() {
     return box;
   }
 
+  // How far prospects watched (from the viewing sessions the page recorded): how many reached each quarter, and leads.
+  function renderReach(t) {
+    const card2 = el('div', 'rounded-2xl border border-white/10 bg-panel-bg p-4 flex flex-col gap-3');
+    card2.setAttribute('data-outreach-reach', '');
+    card2.appendChild(el('div', 'text-sm font-bold', 'How far prospects watched'));
+    if (!t.opened && !t.watched) { card2.appendChild(el('p', 'text-xs text-white/55', 'Appears once prospects open their links.')); return card2; }
+    if (!t.hasProgress) { card2.appendChild(el('p', 'text-xs text-white/55', 'How far each prospect watched is not available for this account yet.')); }
+    else {
+      const base = Math.max(1, t.watched);
+      QUARTILES.forEach((q) => {
+        const n = t.reach[q];
+        const row2 = el('div', 'flex items-center gap-3 text-xs');
+        const bar = el('div', 'h-2 flex-1 overflow-hidden rounded-full bg-white/10');
+        const fill = el('div', 'h-full bg-primary'); fill.style.width = `${Math.min(100, Math.round((n / base) * 100))}%`;
+        bar.appendChild(fill);
+        row2.append(el('span', 'w-24 text-white/70', q === 100 ? 'Watched to the end' : `Reached ${q}%`), bar, el('span', 'w-8 text-right font-bold', String(n)));
+        card2.appendChild(row2);
+      });
+      card2.appendChild(el('p', 'text-[11px] text-white/45', `Average ${t.avgProgress}% of the video among ${t.watched} prospect${t.watched === 1 ? '' : 's'} who pressed play.`));
+    }
+    card2.appendChild(el('p', 'text-xs text-white/70', `${t.opened} opened their link \u00b7 ${t.leads} form lead${t.leads === 1 ? '' : 's'} \u00b7 ${t.clicks} button click${t.clicks === 1 ? '' : 's'}`));
+    return card2;
+  }
+
   function renderCampaigns() {
     if (!campaigns.loaded && !campaigns.loading && !campaigns.error) setTimeout(loadCampaigns, 0);
     const wrap = el('div', 'flex flex-col gap-5');
@@ -3093,6 +3699,7 @@ export function OutreachStudio() {
       totals.appendChild(f);
     }
     wrap.appendChild(totals);
+    wrap.appendChild(renderReach(combineSummaries(all.map((x) => x.s))));
 
     const table = card('Results');
     const head = el('div', 'flex flex-wrap gap-2 -mt-2');
@@ -3186,11 +3793,16 @@ export function OutreachStudio() {
 
   function render() {
     dropPreviewHandles();
+    pushCardHandle?.destroy?.(); pushCardHandle = null;
     syncHostLine();
     renderStepper();
+    // Like Sendspark, the editor and the videos page have no hero banner: the page itself is the header.
+    banner.hidden = true;
+    stepper.classList.add('pt-4');
     inner.replaceChildren();
     const elsewhere = !guard.active();
-    stepper.inert = elsewhere;
+    stepper.inert = elsewhere || step === 1;
+    let tabBar = null;
     if (elsewhere || changedElsewhere) {
       const bar = el('div', 'sticky top-0 z-20 flex flex-wrap items-center gap-3 rounded-xl border border-amber-300/40 bg-[#2a2410] px-4 py-3 text-sm shadow-lg');
       bar.setAttribute('data-outreach-other-tab', elsewhere ? 'blocked' : 'changed');
@@ -3203,7 +3815,7 @@ export function OutreachStudio() {
       bar.append(el('span', 'flex-1 text-amber-100', elsewhere
         ? 'This campaign is open in another tab. You can look here; changes are made in the other tab.'
         : 'This campaign was changed in another tab.'), btn);
-      inner.appendChild(bar);
+      tabBar = bar;
     }
     if (!paid()) {
       // Preview: everything can be seen; recording, generating and sharing ask for the upgrade.
@@ -3216,14 +3828,21 @@ export function OutreachStudio() {
       inner.appendChild(bar);
     }
     const view = VIEWS[step]();
-    if (elsewhere) view.inert = true; // read-only while another tab edits
+    // The full-screen editor covers the page, so the other-tab banner (and its button) goes inside it, above the locked content.
+    const fullscreen = view.hasAttribute('data-outreach-editor');
+    if (elsewhere) { if (fullscreen) [...view.children].forEach((c) => { c.inert = true; }); else view.inert = true; } // read-only while another tab edits
+    if (tabBar) {
+      if (fullscreen) { tabBar.classList.remove('sticky', 'top-0', 'z-20', 'rounded-xl'); tabBar.classList.add('shrink-0', 'rounded-none', 'border-x-0', 'border-t-0'); view.prepend(tabBar); }
+      else inner.insertBefore(tabBar, inner.firstChild);
+    }
     inner.appendChild(view);
 
-    const footer = el('div', 'flex flex-wrap items-center gap-3');
+    // Pinned to the bottom of the view: Back / Continue and what is missing stay visible however long the step is.
+    const footer = el('div', 'sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center gap-3 border-t border-white/10 bg-app-bg/90 px-4 py-3 backdrop-blur md:-mx-8 md:px-8');
     const errors = step <= SETUP_STEPS + 1 ? stepErrors(draft, step) : [];
     const msg = busy || notice || errors[0] || '';
     const status = el('p', `flex-1 text-sm ${busy ? 'text-primary' : notice && !errors.length ? 'text-emerald-300' : 'text-amber-300'}`, msg);
-    status.setAttribute('data-outreach-busy', '');
+    status.setAttribute('data-outreach-busy', ''); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
     // Buttons sit on the left so the floating Ask SmartVideo button (bottom right) never covers them.
     if (step > 1 && step < STEPS.length) {
       const back = button('Back'); back.disabled = !!busy;
@@ -3247,6 +3866,7 @@ export function OutreachStudio() {
     }
     footer.appendChild(status);
     if (elsewhere) footer.inert = true;
+    footer.hidden = step === 1;
     inner.appendChild(footer);
   }
 
@@ -3390,9 +4010,9 @@ export function OutreachStudio() {
   // then a new dynamic video starts on the Record step.
   function openCreateDynamic(prefill = {}) {
     const inProgress = !draft.campaign && (draft.video || draft.contacts.length);
-    const overlay = el('div', 'fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4');
+    const overlay = el('div', 'fixed inset-0 z-[1000] flex justify-center overflow-y-auto bg-black/70 p-4');
     overlay.setAttribute('data-outreach-create', '');
-    const box = el('div', 'flex w-full max-w-3xl flex-col gap-5 rounded-2xl border border-white/10 bg-[#0b0c10] p-6 text-white shadow-2xl');
+    const box = el('div', 'my-auto flex w-full max-w-2xl flex-col gap-5 rounded-3xl border border-white/10 bg-[#0b0c10] p-7 text-white shadow-2xl');
     box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Create Dynamic Videos');
     const head = el('div', 'flex items-center justify-between');
     const x = el('button', 'rounded-lg px-2 py-1 text-xl leading-none text-white/60 hover:text-white', '\u00d7');
@@ -3447,6 +4067,11 @@ export function OutreachStudio() {
     name.focus();
   }
 
+  import('../lib/outreach/draftBackup.js').then(async (m) => {
+    const b = await m.loadBackup();
+    restoreStillValid = m.shouldOfferRestore;
+    if (m.shouldOfferRestore(draft, b)) { restoreOffer = b; if (container.isConnected && step === STEPS.length) render(); }
+  }).catch(() => {});
   render();
   // Back and Forward move between the studio's steps (each step change is a history entry).
   try { globalThis.history.replaceState({ ...(globalThis.history.state || {}), outreachStep: step }, '', location.href); } catch { /* sandboxed */ }

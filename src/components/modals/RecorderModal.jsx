@@ -4,6 +4,7 @@ import { keepAwake } from '../../lib/recorder/wakeLock.js';
 import { mediaPermissions, permissionMessage, watchMediaPermissions } from '../../lib/recorder/permissions.js';
 import { COLORS as DRAW_COLORS, pointOnPicture } from '../../lib/recorder/annotate.js';
 import { createTeleprompterClock, loadTeleprompter, readingPosition, saveTeleprompter, scriptLines, teleprompterSettings } from '../../lib/recorder/teleprompter.js';
+import { openMonitorWindow, monitorSupported } from '../../lib/recorder/monitorWindow.js';
 import { createLevelMeter, levelHint, loadAudioSettings, mixAudioTracks, recordMicTest, saveAudioSettings } from '../../lib/recorder/audio.js';
 import { createCountdown } from '../../lib/recorder/countdown.js';
 
@@ -375,6 +376,7 @@ export class RecorderModal extends BaseModal {
         ${sw('noiseSuppression', 'Noise suppression', 'Removes steady background noise like fans, hum and keyboard clicks.')}
         ${sw('echoCancellation', 'Echo cancellation', 'Stops sound from your speakers coming back through the microphone. Leave on unless you use headphones and want the most natural sound.')}
         ${sw('autoGainControl', 'Automatic volume', 'Evens out loud and quiet speech. Turn off if your volume pumps up and down.')}
+        ${sw('voiceLeveler', 'Even out my voice', 'Turns room hiss down between sentences, lifts a quiet voice and stops loud moments from distorting, as you record. If your browser cannot do this, the take is recorded as usual.')}
         ${this.usesScreen() ? sw('systemAudio', 'Include computer sound', 'Records the sound of the tab or screen you share, mixed with your voice. In the share picker, tick "Share tab audio" or "Share system audio".') : ''}
         <div style="display:flex;flex-direction:column;gap:6px;">
           <button type="button" class="preview-toggle" data-action="mic-test" ${this.micTesting ? 'disabled' : ''} style="align-self:flex-start;">${icon('audio', 14)} ${this.micTesting ? 'Recording… speak now' : 'Test my microphone'}</button>
@@ -428,6 +430,7 @@ export class RecorderModal extends BaseModal {
           </div>
           <div class="rec-bar-right">
             <span class="rec-keys">Space pause · Esc stop</span>
+            ${monitorSupported() ? `<button type="button" class="rec-btn" data-action="monitor" data-tooltip="A small window that stays on top of other windows, with the time, your sound level, Pause and Stop">${this.monitorWin ? 'Close floating controls' : 'Float controls'}</button>` : ''}
             <button type="button" class="rec-btn danger" data-action="delete-take" data-tooltip="Stop and throw this take away">${icon('trash')} Delete</button>
           </div>
         </div>`;
@@ -533,6 +536,7 @@ export class RecorderModal extends BaseModal {
   // Delete: stop and throw the take away. Restart: the same, then record again.
   async discardTake({ restart = false } = {}) {
     if (!this.session) return;
+    this.closeMonitorWindow(); // its Stop would have nothing left to stop
     clearInterval(this.recordingInterval);
     const session = this.session;
     this.session = null;
@@ -589,6 +593,7 @@ export class RecorderModal extends BaseModal {
   async openPrompterWindow() {
     const api = globalThis.window?.documentPictureInPicture;
     if (!api || this.pipWin) return;
+    this.closeMonitorWindow(); // one floating window per tab
     try {
       const w = await api.requestWindow({ width: 520, height: 240 });
       w.document.title = 'Teleprompter';
@@ -779,6 +784,7 @@ export class RecorderModal extends BaseModal {
     on('[data-action="pause"]', 'click', () => this.pauseRecording());
     on('[data-action="resume"]', 'click', () => this.resumeRecording());
     on('[data-action="stop"]', 'click', () => this.stopRecording());
+    on('[data-action="monitor"]', 'click', () => this.toggleMonitorWindow());
     on('[data-action="discard"]', 'click', () => this.discardRecording());
     on('[data-action="save"]', 'click', () => this.saveRecording());
     on('[data-action="use-recording"]', 'click', () => this.useRecording());
@@ -910,6 +916,7 @@ export class RecorderModal extends BaseModal {
   // Before recording it listens to its own microphone stream (with the chosen device and switches);
   // while recording it listens to the take's own sound.
   paintMeter(level, peak, clipped = false) {
+    if (this.monitor) this.paintMonitor(level, clipped);
     this.overlay?.querySelectorAll('[data-mic-level]').forEach((el) => {
       el.style.width = `${Math.round(level * 100)}%`;
       el.style.background = clipped ? '#ef4444' : level > 0.85 ? '#f5a524' : '#2fb344';
@@ -1145,8 +1152,24 @@ export class RecorderModal extends BaseModal {
     this.releaseMeter();
     if (this.micTestUrl) { URL.revokeObjectURL(this.micTestUrl); this.micTestUrl = null; }
     try {
-      const sources = await this.buildSources();
+      let sources = await this.buildSources();
+      // Register what was acquired first, so closing the window during any later step can still release the camera and microphone.
       this.liveStreams = sources.map(s => s.stream);
+      this.levelerStops?.forEach((f) => f()); this.levelerStops = [];
+      if (this.audio.voiceLeveler && sources.some((s) => s.stream?.getAudioTracks?.().length)) {
+        try {
+          const { levelSources } = await import('../../lib/recorder/levelStream.js');
+          const leveled = await levelSources(sources);
+          if (this.destroyed) { leveled.stops.forEach((f) => f()); this.stopAllStreams(); return; }
+          sources = leveled.sources; this.levelerStops = leveled.stops;
+          this.liveStreams = sources.map(s => s.stream);
+          if (leveled.failed) this.notice = 'Even out my voice is not available in this browser, so this take uses your normal sound.';
+        } catch {
+          // The optional module would not load: carry on with the normal sound rather than lose the take.
+          this.notice = 'Even out my voice is not available right now, so this take uses your normal sound.';
+        }
+      }
+      if (this.destroyed) { this.stopAllStreams(); return; }
       this.hasAudio = sources.some(s => s.stream.getAudioTracks().length > 0);
       if (this.micEnabled && !this.hasAudio) this.notice = 'Microphone was unavailable, so this take has no sound.';
       this.liveCam = sources.find(s => s.prefix === 'webcam')?.stream || null;
@@ -1168,9 +1191,11 @@ export class RecorderModal extends BaseModal {
       }
 
       const { startSession } = await import('../../lib/recorder/session.js');
+      if (this.destroyed) { this.stopAllStreams(); return; }
       this.session = await startSession(sources);
       // Like Recorder: when any track ends (e.g. the browser's "Stop sharing" button), stop everything.
-      for (const s of this.liveStreams) for (const t of s.getTracks()) t.addEventListener('ended', () => { if (this.isRecording) this.stopRecording(); }, { once: true });
+      // A leveled stream has a processed track, so also watch the original microphone: if it is unplugged, the take stops instead of recording silence.
+      for (const s of this.liveStreams) for (const t of [...s.getTracks(), ...(s.sourceTracks || [])]) t.addEventListener('ended', () => { if (this.isRecording) this.stopRecording(); }, { once: true });
 
       this.isRecording = true;
       this.isPaused = false;
@@ -1189,6 +1214,7 @@ export class RecorderModal extends BaseModal {
         if (!this.isPaused) {
           this.recordingTime++;
           this.overlay?.querySelectorAll('.rec-time').forEach((el) => { el.textContent = this.formatTime(this.recordingTime); });
+          this.paintMonitor();
         }
       }, 1000);
       this.rerender();
@@ -1215,6 +1241,29 @@ export class RecorderModal extends BaseModal {
     }
   }
 
+  // The floating recording controls (src/lib/recorder/monitorWindow.js). One floating window per tab, so opening these
+  // closes the floating script, and the other way round.
+  async toggleMonitorWindow() {
+    if (this.monitorWin) { this.closeMonitorWindow(); this.rerender(); return; }
+    if (this.pipWin) this.closePrompterWindow();
+    const opened = await openMonitorWindow({ onStop: () => this.stopRecording(), onPause: () => this.pauseRecording(), onResume: () => this.resumeRecording() });
+    if (!opened) return;
+    this.monitorWin = opened.win; this.monitor = opened.monitor;
+    opened.win.addEventListener('pagehide', () => { this.monitorWin = null; this.monitor = null; if (!this.destroyed) this.rerender(); });
+    this.paintMonitor();
+    this.rerender();
+  }
+
+  closeMonitorWindow() {
+    try { this.monitorWin?.close(); } catch { /* gone */ }
+    this.monitorWin = null; this.monitor = null;
+  }
+
+  paintMonitor(level = this.lastLevel || 0, clipped = this.lastClipped || false) {
+    this.lastLevel = level; this.lastClipped = clipped;
+    this.monitor?.update({ seconds: this.recordingTime || 0, level, clipped, paused: !!this.isPaused });
+  }
+
   pauseRecording() {
     if (!this.session || this.isPaused) return;
     this.session.pause();
@@ -1223,6 +1272,7 @@ export class RecorderModal extends BaseModal {
     this.activeSince = null;
     this.prompterClock.pause();
     this.prompterRunning = false;
+    this.paintMonitor();
     this.rerender();
   }
 
@@ -1233,12 +1283,14 @@ export class RecorderModal extends BaseModal {
     this.activeSince = performance.now();
     this.prompterClock.start();
     this.prompterRunning = true;
+    this.paintMonitor();
     this.rerender();
   }
 
   async stopRecording() {
     if (!this.session || this.stopping) return;
     this.stopping = true;
+    this.closeMonitorWindow();
     this.stopFollowing();
     if (this.spotlightOn()) this.spotlights[this.spotlights.length - 1].end = this.takeSeconds();
     this.takeLength = this.takeSeconds();
@@ -1317,6 +1369,8 @@ export class RecorderModal extends BaseModal {
 
   stopAllStreams() {
     this.liveCam = null;
+    this.levelerStops?.forEach((f) => f());
+    this.levelerStops = [];
     this.annotator?.stop();
     this.annotator = null;
     [...(this.liveStreams || []), ...(this.extraStreams || []), this.webcamStream].forEach((s) => {
@@ -1334,6 +1388,7 @@ export class RecorderModal extends BaseModal {
   // screen capture, otherwise the browser's recording indicators stay on.
   destroy() {
     this.destroyed = true;
+    this.closeMonitorWindow();
     this.counting?.cancel();
     clearInterval(this.recordingInterval);
     this.releaseWake?.();

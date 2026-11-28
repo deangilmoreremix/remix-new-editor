@@ -19,7 +19,7 @@ const el = (tag, cls = '', text = '') => {
  * { id, name, description, theme?, layout? }). Clicking a card selects it and calls onPick(id).
  * An item with `editorData` gets a live preview of the real page. Returns { node, select(id), destroy() }.
  */
-export function templateCards({ groups = [], selected = '', onPick = () => {}, deps = {} } = {}) {
+export function templateCards({ groups = [], selected = '', onPick = () => {}, deps = {}, preview = null } = {}) {
   const node = el('div', 'flex flex-col gap-4');
   const cards = new Map();
   const previews = [];
@@ -37,7 +37,7 @@ export function templateCards({ groups = [], selected = '', onPick = () => {}, d
     grp.appendChild(el('div', 'text-xs font-bold text-secondary', label));
     const row = el('div', 'grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4');
     for (const t of list) {
-      const b = el('button', 'text-left rounded-xl border border-white/10 bg-panel-bg overflow-hidden hover:border-primary/60 transition-colors');
+      const b = el('button', 'text-left rounded-2xl border border-white/10 bg-panel-bg overflow-hidden hover:border-primary/60 transition-colors');
       b.type = 'button';
       b.title = t.description || '';
       b.setAttribute('data-template-card', t.id);
@@ -47,7 +47,7 @@ export function templateCards({ groups = [], selected = '', onPick = () => {}, d
         sw = el('div');
         sw.style.margin = '8px 8px 0';
         sw.setAttribute('aria-label', `Preview of ${t.name}`);
-        previews.push(attachDesignPreview(sw, t.editorData, { deps }));
+        previews.push(attachDesignPreview(sw, t.editorData, { deps, ...(preview || {}) }));
       } else if (t.id) {
         // Every other design: a real picture of it (public/landing-previews, made by scripts/generate-landing-design-previews.mjs).
         // If it cannot load, the page's SHAPE (a wireframe) tinted with its colours stands in, so a card is never blank.
@@ -87,31 +87,31 @@ export function templateCards({ groups = [], selected = '', onPick = () => {}, d
  * The chooser as a modal: pick a card, then "Use this page" calls onPick(id). Esc, the close
  * button or a click outside closes it without picking. Returns { close }.
  */
-export function openTemplateChooser({ title = 'Choose a landing page', subtitle = '', groups = [], selected = '', onPick = () => {}, confirmLabel = 'Use this page', deps = {} } = {}) {
+export function openTemplateChooser({ title = 'Choose a landing page', subtitle = '', groups = [], selected = '', onPick = () => {}, confirmLabel = 'Use this page', deps = {}, preview = null } = {}) {
   const opener = document.activeElement;
   let pick = selected;
   const overlay = el('div', 'fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4');
   overlay.setAttribute('data-template-chooser', '');
-  const box = el('div', 'flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0b0c10] text-white shadow-2xl');
+  const box = el('div', 'flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0b0c10] text-white shadow-2xl');
   box.setAttribute('role', 'dialog');
   box.setAttribute('aria-modal', 'true');
   box.setAttribute('aria-label', title);
-  const head = el('div', 'flex items-start justify-between gap-3 border-b border-white/10 p-4');
+  const head = el('div', 'flex items-start justify-between gap-3 px-6 pb-3 pt-5');
   const words = el('div', 'flex flex-col gap-1');
   words.appendChild(el('h2', 'text-lg font-extrabold', title));
   if (subtitle) words.appendChild(el('p', 'text-xs text-secondary', subtitle));
   const x = el('button', 'rounded-lg px-2 py-1 text-xl leading-none text-white/70 hover:text-white', '×');
   x.type = 'button'; x.setAttribute('aria-label', 'Close');
   head.append(words, x);
-  const body = el('div', 'overflow-y-auto p-4');
-  const foot = el('div', 'flex items-center justify-end gap-2 border-t border-white/10 p-3');
-  const cancel = el('button', 'rounded-[10px] border border-white/[0.08] bg-transparent px-4 py-2 text-sm font-bold text-white/70 hover:bg-white/[0.06] hover:text-white', 'Cancel');
+  const body = el('div', 'overflow-y-auto px-6 py-3');
+  const foot = el('div', 'flex items-center justify-end gap-2 border-t border-white/10 px-6 py-4');
+  const cancel = el('button', 'rounded-full border border-white/[0.08] bg-transparent px-4 py-2 text-sm font-bold text-white/70 hover:bg-white/[0.06] hover:text-white', 'Cancel');
   cancel.type = 'button';
   // Outlined with a lime left edge, like Generate in the studios' prompt bar (never filled).
-  const ok = el('button', 'rounded-[10px] border border-white/[0.12] border-l-2 border-l-primary bg-transparent px-5 py-2 text-sm font-bold text-white/90 hover:bg-white/[0.06] hover:text-white disabled:opacity-40', confirmLabel);
+  const ok = el('button', 'rounded-full border border-white/[0.12] border-l-2 border-l-primary bg-transparent px-5 py-2 text-sm font-bold text-white/90 hover:bg-white/[0.06] hover:text-white disabled:opacity-40', confirmLabel);
   ok.type = 'button'; ok.setAttribute('data-template-confirm', '');
   ok.disabled = !groups.some(([, l]) => l?.some((t) => t.id === pick));
-  const cards = templateCards({ groups, selected, deps, onPick: (id) => { pick = id; ok.disabled = false; } });
+  const cards = templateCards({ groups, selected, deps, preview, onPick: (id) => { pick = id; ok.disabled = false; } });
   body.appendChild(cards.node);
   foot.append(cancel, ok);
   box.append(head, body, foot);

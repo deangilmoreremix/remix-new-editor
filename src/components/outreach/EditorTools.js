@@ -18,6 +18,8 @@
 //                              captionsFile('srt'|'vtt'), makeChapters(), mediaDuration(file) → seconds }
 //   cutPanel                 the Cut tab's element (trim, cuts, before/after), built by the studio
 //   sender                   { name, title } from the Page step, for the name strap
+import { PERF_PRESETS, recommendPreset, chosenPreset, choosePreset } from '../../lib/outreach/perfPresets.js';
+import { listPresets, savePreset, deletePreset, applyPreset } from '../../lib/outreach/overlayPresets.js';
 import { ASPECTS, CAPTION_STYLES, TRANSITIONS, QUALITY, STICKERS, newOverlay, newBroll, isPersonal, placeItem, overlapsOf } from '../../lib/outreach/editTools.js';
 
 const el = (tag, cls = '', txt) => { const n = document.createElement(tag); if (cls) n.className = cls; if (txt !== undefined) n.textContent = txt; return n; };
@@ -289,8 +291,50 @@ function add(body, o) {
     b.addEventListener('click', () => push(newOverlay('sticker', { ...at(), src: s.src, name: s.name, end: Math.min(o.seconds, o.now() + 3) })));
     stickers.appendChild(b);
   });
-  body.append(stickers, note('Write {{firstname}} or {{company}} in a text and each prospect sees their own: those texts are added to every prospect’s video, not burned in.'));
+  body.append(stickers, presetsRow(o, push), note('Write {{firstname}} or {{company}} in a text and each prospect sees their own: those texts are added to every prospect’s video, not burned in.'));
   o.edit.overlays.forEach((item, i) => body.appendChild(overlayCard(item, i, o)));
+}
+
+// Saved kits of text and graphics (kept in this browser only): save what is on the video, add it to another one.
+function presetsRow(o, push) {
+  const wrap = el('div', 'flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.02] p-3');
+  wrap.setAttribute('data-overlay-presets', '');
+  const msg = el('p', 'text-[11px] text-white/55'); msg.setAttribute('role', 'status');
+  const head = el('div', 'flex flex-wrap items-center gap-2');
+  head.appendChild(el('span', 'text-xs font-bold text-white/70', 'Saved presets'));
+  const save = btn('Save these as a preset', { attr: 'data-preset-save' });
+  save.disabled = !o.edit.overlays.length;
+  save.addEventListener('click', () => {
+    const name = window.prompt('Name this preset (kept in this browser only):', 'My intro kit');
+    if (name == null) return;
+    const r = savePreset(name, o.edit.overlays);
+    msg.textContent = r.ok ? `Saved “${r.preset.name}”.${r.skipped ? ` ${r.skipped} item${r.skipped === 1 ? ' was' : 's were'} left out (still uploading or not reusable).` : ''}` : r.reason;
+    if (r.ok) o.update(() => {});
+  });
+  head.appendChild(save);
+  wrap.appendChild(head);
+  const list = listPresets();
+  if (!list.length) wrap.appendChild(el('p', 'text-[11px] text-white/45', 'Nothing saved yet. Add text and graphics, then save them to use again on your next video.'));
+  list.forEach((p) => {
+    const row = el('div', 'flex items-center gap-2 text-xs');
+    row.setAttribute('data-preset', p.id);
+    const use = btn(`Add “${p.name}” (${p.items.length})`, { attr: 'data-preset-use' });
+    use.addEventListener('click', () => {
+      const items = applyPreset(p, { at: o.now(), seconds: o.seconds });
+      if (!items.length) { msg.textContent = 'Nothing from this preset fits before the end of the video.'; return; }
+      o.update((e) => { items.forEach((it) => e.overlays.push(it)); });
+    });
+    const del = btn('Delete', { attr: 'data-preset-delete' });
+    del.setAttribute('aria-label', `Delete the preset ${p.name}`);
+    del.addEventListener('click', () => {
+      if (!deletePreset(p.id)) { msg.textContent = `Could not delete “${p.name}”: this browser would not save the change. Try again.`; return; }
+      msg.textContent = `Deleted “${p.name}”.`; o.update(() => {});
+    });
+    row.append(use, del);
+    wrap.appendChild(row);
+  });
+  wrap.appendChild(msg);
+  return wrap;
 }
 
 function overlayCard(item, i, o) {
@@ -400,8 +444,29 @@ function chapters(body, o) {
   });
 }
 
+// A suggestion for this device, from what the browser says about itself. Choosing sets the file size, and the number of
+// frames "Suggest best moments" looks at; it is remembered in this browser only.
+function devicePresets(o) {
+  const wrap = el('div', 'flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.02] p-3');
+  wrap.setAttribute('data-device-presets', '');
+  const rec = recommendPreset();
+  const now = chosenPreset();
+  wrap.appendChild(el('p', 'text-xs text-white/70', `Suggested for this device: ${PERF_PRESETS[rec.id].label}. ${rec.reason}`));
+  const row = el('div', 'flex flex-wrap gap-2');
+  Object.entries(PERF_PRESETS).forEach(([id, p]) => {
+    const b = btn(p.label, { selected: now === id, attr: 'data-device-preset' });
+    b.dataset.devicePreset = id; b.setAttribute('aria-pressed', String(now === id)); b.title = p.about;
+    b.addEventListener('click', () => { choosePreset(id); o.update((e) => { e.quality = p.quality; }); });
+    row.appendChild(b);
+  });
+  wrap.appendChild(row);
+  wrap.appendChild(el('p', 'text-[11px] text-white/45', PERF_PRESETS[now].about));
+  return wrap;
+}
+
 function exportTab(body, o) {
   body.append(
+    devicePresets(o),
     choices('File size', QUALITY.map(([k, n]) => [k, n]), o.edit.quality, (k) => o.update((e) => { e.quality = k; }), 'data-export-quality'),
     note('Small file and High quality re-encode the result with FFmpeg in your browser (H.264 MP4); Standard keeps the render as it is.'),
   );

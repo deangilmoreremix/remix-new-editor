@@ -134,4 +134,72 @@ describe('Video Outreach editor tools', () => {
     $('[data-export-quality="small"]').click();
     expect(ex.edit().quality).toBe('small');
   });
+
+  describe('saved overlay presets', () => {
+    beforeEach(() => { localStorage.clear(); });
+    it('saves what is on the video, then adds it to another one, and deletes it', () => {
+      const first = mount('add');
+      expect($('[data-preset-save]').disabled).toBe(true); // nothing to save yet
+      $('[data-add-text]').click();
+      first.o.update(() => {});
+      document.body.replaceChildren(renderEditorTools(first.o));
+      expect($('[data-preset-save]').disabled).toBe(false);
+      const prompt = vi.spyOn(window, 'prompt').mockReturnValue('My intro kit');
+      $('[data-preset-save]').click();
+      expect(document.querySelector('[data-overlay-presets] [role="status"]').textContent).toContain('Saved “My intro kit”');
+      prompt.mockRestore();
+      // a different video
+      const second = mount('add');
+      expect(second.edit().overlays).toHaveLength(0);
+      expect($('[data-preset-use]').textContent).toContain('My intro kit');
+      $('[data-preset-use]').click();
+      expect(second.edit().overlays.map((x) => x.kind)).toEqual(['text']);
+      expect(second.edit().overlays[0].start).toBe(3); // where the preview is now
+      $('[data-preset-delete]').click();
+      expect(JSON.parse(localStorage.getItem('outreach-overlay-presets-v1'))).toEqual([]);
+    });
+    it('does not claim a preset was deleted when the browser would not save the change', () => {
+      const { o } = mount('add');
+      $('[data-add-text]').click();
+      document.body.replaceChildren(renderEditorTools(o));
+      const prompt = vi.spyOn(window, 'prompt').mockReturnValue('Kit');
+      $('[data-preset-save]').click();
+      prompt.mockRestore();
+      document.body.replaceChildren(renderEditorTools(o));
+      const set = vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => { throw new Error('full'); });
+      try {
+        $('[data-preset-delete]').click();
+        expect(document.querySelector('[data-overlay-presets] [role="status"]').textContent).toMatch(/Could not delete/);
+        expect(document.querySelector('[data-preset-use]')).not.toBeNull(); // still there, so it can be tried again
+      } finally { set.mockRestore(); }
+    });
+    it('says why a preset could not be saved', () => {
+      const { o } = mount('add');
+      $('[data-add-text]').click();
+      document.body.replaceChildren(renderEditorTools(o));
+      const prompt = vi.spyOn(window, 'prompt').mockReturnValue('   ');
+      $('[data-preset-save]').click();
+      expect(document.querySelector('[data-overlay-presets] [role="status"]').textContent).toMatch(/name/);
+      prompt.mockRestore();
+    });
+  });
+
+  describe('device presets and shapes', () => {
+    beforeEach(() => { localStorage.clear(); });
+    it('offers 4:5 as a shape', () => {
+      const { edit } = mount('look');
+      expect([...document.querySelectorAll('[data-look-aspect]')].map((b) => b.dataset.lookAspect)).toContain('4:5');
+      $('[data-look-aspect="4:5"]').click();
+      expect(edit().look.aspect).toBe('4:5');
+    });
+    it('a device preset sets the file size and is remembered', () => {
+      const { edit } = mount('export');
+      expect($('[data-device-presets]').textContent).toMatch(/Suggested for this device/);
+      $('[data-device-preset="light"]').click();
+      expect(edit().quality).toBe('small');
+      expect(localStorage.getItem('outreach-perf-preset')).toBe('light');
+      $('[data-device-preset="best"]').click();
+      expect(edit().quality).toBe('high');
+    });
+  });
 });

@@ -5,6 +5,7 @@ vi.mock('../../../lib/outreach/thumbnail.js', async (orig) => {
   return { ...real, drawThumbnail: vi.fn(), grabFrames: vi.fn(async () => [{}]), renderThumbnail: vi.fn(async () => new Blob(['x'], { type: 'image/gif' })) };
 });
 import * as T from '../../../lib/outreach/thumbnail.js';
+import { sampleTimes } from '../../../lib/outreach/thumbnailPick.js';
 import { openThumbnailDesigner } from '../ThumbnailDesigner.js';
 
 const $ = (s) => document.querySelector(s);
@@ -104,5 +105,110 @@ describe('thumbnail designer', () => {
     expect(draft.email.thumb).toMatchObject({ textColor: '#ffcc00', bannerColor: '#112233', duration: { show: false } });
     const last = T.drawThumbnail.mock.calls.at(-1)[1];
     expect(last).toMatchObject({ textColor: '#ffcc00', bannerColor: '#112233', seconds: 26.5 });
+  });
+
+  it('keeps keyboard focus inside the designer and gives it back when it closes', () => {
+    const opener = document.createElement('button'); document.body.appendChild(opener); opener.focus();
+    openThumbnailDesigner({ draft: draftOf() });
+    const dialog = $('[role="dialog"]');
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    const e = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true });
+    dialog.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])').focus();
+    document.dispatchEvent(e);
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(document.querySelector('[data-thumb-designer]')).toBeNull();
+    expect(document.activeElement).toBe(opener);
+  });
+
+  describe('Suggest best moments', () => {
+    const fake = (kind) => {
+      const w = 160; const h = 90; const data = new Uint8ClampedArray(w * h * 4);
+      for (let p = 0; p < w * h; p += 1) {
+        const v = kind === 'sharp' ? ((p + Math.floor(p / w)) % 2 ? 230 : 20) : 120;
+        data.set([v, v, v, 255], p * 4);
+      }
+      return { getContext: () => ({ getImageData: () => ({ data, width: w, height: h }) }) };
+    };
+    const withVideo = () => { const d = draftOf(); d.video = { url: 'v.mp4', duration: 20 }; return d; };
+
+    it('shows the top 3 in score order and a chip sets the start', async () => {
+      // 8 frames: the 2nd, 5th and 7th are sharp (equal scores, so earliest first); the rest flat.
+      const kinds = ['flat', 'sharp', 'flat', 'flat', 'sharp', 'flat', 'sharp', 'flat'];
+      let n = 0;
+      T.grabFrames.mockImplementation(async () => [fake(kinds[n++])]);
+      const draft = withVideo();
+      openThumbnailDesigner({ draft });
+      $('[data-thumb-suggest]').click();
+      expect($('[data-thumb-suggest]').disabled).toBe(true);
+      await vi.waitFor(() => expect(document.querySelectorAll('[data-thumb-suggestion]').length).toBe(3));
+      const times = sampleTimes(20, 8);
+      const chips = [...document.querySelectorAll('[data-thumb-suggestion]')];
+      expect(chips.map((c) => c.dataset.thumbSuggestion)).toEqual([times[1], times[4], times[6]].map(String));
+      expect(chips[0].textContent).toMatch(/0:\d\d/);
+      expect(chips[0].textContent).toContain('sharp');
+      expect(document.body.textContent).toContain('Ranked by sharpness, lighting and contrast');
+      expect($('[data-thumb-suggest]').disabled).toBe(false);
+      chips[1].click();
+      expect(draft.email.thumb.start).toBe(times[4]);
+      expect(Number($('[data-thumb-start]').value)).toBe(times[4]);
+    });
+
+    it('only suggests moments the scrubber can select, so the shown time is the saved start', async () => {
+      const kinds = ['flat', 'flat', 'flat', 'flat', 'flat', 'sharp', 'sharp', 'sharp'];
+      let n = 0;
+      T.grabFrames.mockImplementation(async () => [fake(kinds[n++])]);
+      const draft = withVideo(); draft.video.duration = 20.06; // GIF maximum start is 17.06
+      openThumbnailDesigner({ draft });
+      $('[data-thumb-suggest]').click();
+      await vi.waitFor(() => expect(document.querySelectorAll('[data-thumb-suggestion]').length).toBeGreaterThan(0));
+      const max = Number($('[data-thumb-start]').max);
+      const chips = [...document.querySelectorAll('[data-thumb-suggestion]')];
+      chips.forEach((c) => expect(Number(c.dataset.thumbSuggestion)).toBeLessThanOrEqual(max));
+      chips.forEach((c) => { c.click(); expect(draft.email.thumb.start).toBe(Number(c.dataset.thumbSuggestion)); });
+    });
+
+    it('clears suggestions when the thumbnail type changes the allowed range', async () => {
+      T.grabFrames.mockImplementation(async () => [fake('sharp')]);
+      const draft = withVideo();
+      openThumbnailDesigner({ draft });
+      $('[data-thumb-suggest]').click();
+      await vi.waitFor(() => expect(document.querySelectorAll('[data-thumb-suggestion]').length).toBe(3));
+      $('[data-thumb-type="static"]').click();
+      expect(document.querySelectorAll('[data-thumb-suggestion]').length).toBe(0);
+    });
+
+    it('a failure while setting up a run never leaves Suggest disabled', async () => {
+      const draft = withVideo();
+      openThumbnailDesigner({ draft });
+      Object.defineProperty(draft.video, 'duration', { get() { throw new Error('setup failed'); } });
+      $('[data-thumb-suggest]').click();
+      await vi.waitFor(() => expect($('[data-thumb-suggest-status]').textContent).toMatch(/cannot be analysed/));
+      expect($('[data-thumb-suggest]').disabled).toBe(false);
+      expect($('[data-thumb-suggest-cancel]').hidden).toBe(true);
+    });
+
+    it('says so when the video cannot be read (tainted canvas)', async () => {
+      T.grabFrames.mockImplementation(async () => [{ getContext: () => ({ getImageData: () => { throw new Error('tainted canvas'); } }) }]);
+      openThumbnailDesigner({ draft: withVideo() });
+      $('[data-thumb-suggest]').click();
+      await vi.waitFor(() => expect($('[data-thumb-suggest-status]').textContent).toBe('This video cannot be analysed here. Pick a moment with the scrubber.'));
+      expect(document.querySelectorAll('[data-thumb-suggestion]').length).toBe(0);
+      expect($('[data-thumb-suggest]').disabled).toBe(false);
+    });
+
+    it('shows progress, and Cancel stops the run', async () => {
+      let release; let calls = 0;
+      T.grabFrames.mockImplementation(() => { calls += 1; return new Promise((r) => { release = () => r([fake('sharp')]); }); });
+      openThumbnailDesigner({ draft: withVideo() });
+      $('[data-thumb-suggest]').click();
+      await vi.waitFor(() => expect($('[data-thumb-suggest-status]').textContent).toBe('Looking at frame 1 of 8…'));
+      $('[data-thumb-suggest-cancel]').click();
+      release();
+      await vi.waitFor(() => expect($('[data-thumb-suggest-status]').textContent).toBe('Stopped.'));
+      expect(calls).toBe(1);
+      expect(document.querySelectorAll('[data-thumb-suggestion]').length).toBe(0);
+      expect($('[data-thumb-suggest]').disabled).toBe(false);
+    });
   });
 });

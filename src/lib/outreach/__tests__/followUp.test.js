@@ -1,0 +1,70 @@
+import { describe, it, expect } from 'vitest';
+import { scoreProspect, rankProspects, carryFollowUps, WEIGHTS } from '../followUp.js';
+
+const NOW = Date.parse('2026-11-28T12:00:00Z');
+
+describe('follow-up score', () => {
+  it('scores only what was recorded, with a reason for every point', () => {
+    const { score, reasons } = scoreProspect({ ctaClicks: 1, completes: 1, plays: 2 }, { now: NOW });
+    expect(score).toBe(WEIGHTS.cta + WEIGHTS.complete + WEIGHTS.play);
+    expect(reasons).toEqual(['Clicked the button', 'Watched to the end', 'Played the video']);
+  });
+  it('gives nothing for no activity', () => {
+    expect(scoreProspect(undefined)).toEqual({ score: 0, reasons: ['No activity recorded yet'] });
+    expect(scoreProspect({ views: 0, plays: 0 }).score).toBe(0);
+  });
+  it('counts 75% progress only when they did not finish, and recent activity only when there is activity', () => {
+    expect(scoreProspect({ progress: 80, plays: 1 }, { now: NOW }).score).toBe(WEIGHTS.progress75 + WEIGHTS.play);
+    expect(scoreProspect({ progress: 80, completes: 1, plays: 1 }, { now: NOW }).score).toBe(WEIGHTS.complete + WEIGHTS.play);
+    expect(scoreProspect({ lastAt: '2026-11-28T11:00:00Z' }, { now: NOW }).score).toBe(0);
+    expect(scoreProspect({ plays: 1, lastAt: '2026-11-28T11:00:00Z' }, { now: NOW }).reasons).toContain('Active in the last day');
+    expect(scoreProspect({ plays: 1, lastAt: '2026-11-20T11:00:00Z' }, { now: NOW }).reasons).not.toContain('Active in the last day');
+  });
+  it('a form lead outranks a click which outranks watching', () => {
+    expect(scoreProspect({ leads: 1 }).score).toBeGreaterThan(scoreProspect({ ctaClicks: 1 }).score);
+    expect(scoreProspect({ ctaClicks: 1 }).score).toBeGreaterThan(scoreProspect({ completes: 1, plays: 1 }).score);
+  });
+});
+
+describe('follow-up order', () => {
+  const links = [{ contactId: 'a' }, { contactId: 'b' }, { contactId: 'c' }, { contactId: 'd' }];
+  const stats = { a: { plays: 1 }, b: { ctaClicks: 1 }, c: {}, d: { plays: 1, lastAt: '2026-11-28T11:00:00Z' } };
+  it('ranks by score, then recency, then the original order', () => {
+    expect(rankProspects(links, stats, { now: NOW }).map((r) => r.link.contactId)).toEqual(['b', 'd', 'a', 'c']);
+  });
+  it('sinks prospects you already followed up within their score', () => {
+    expect(rankProspects(links, stats, { now: NOW, followedUp: ['b'] }).map((r) => r.link.contactId)).toEqual(['d', 'a', 'c', 'b']);
+  });
+  it('copes with no stats yet', () => {
+    expect(rankProspects(links, null).map((r) => r.link.contactId)).toEqual(['a', 'b', 'c', 'd']);
+  });
+});
+
+describe('the activity time from fetchVideoStats', () => {
+  it('reads lastSeen, the field the stats client really returns', () => {
+    const recent = scoreProspect({ plays: 1, lastSeen: '2026-11-28T11:00:00Z' }, { now: NOW });
+    expect(recent.reasons).toContain('Active in the last day');
+    expect(recent.score).toBe(WEIGHTS.play + WEIGHTS.recent);
+  });
+  it('uses it as the tie-breaker when ranking', () => {
+    const links = [{ contactId: 'old' }, { contactId: 'new' }];
+    const stats = { old: { plays: 1, lastSeen: '2026-11-20T00:00:00Z' }, new: { plays: 1, lastSeen: '2026-11-27T00:00:00Z' } };
+    expect(rankProspects(links, stats, { now: NOW }).map((r) => r.link.contactId)).toEqual(['new', 'old']);
+  });
+});
+
+describe('keeping follow-up marks when links are rebuilt', () => {
+  it('carries each prospect\'s mark over by contact id', () => {
+    const before = [{ contactId: 'a', followedUpAt: '2026-11-28T09:00:00Z' }, { contactId: 'b' }, { contactId: 'gone', followedUpAt: 'x' }];
+    const after = [{ contactId: 'a', link: 'new-a' }, { contactId: 'b', link: 'new-b' }, { contactId: 'c', link: 'new-c' }];
+    const out = carryFollowUps(before, after);
+    expect(out[0]).toEqual({ contactId: 'a', link: 'new-a', followedUpAt: '2026-11-28T09:00:00Z' });
+    expect(out[1]).toEqual({ contactId: 'b', link: 'new-b' });
+    expect(out[2]).toEqual({ contactId: 'c', link: 'new-c' });
+    expect(out).toHaveLength(3);
+  });
+  it('copes with no previous links', () => {
+    expect(carryFollowUps(undefined, [{ contactId: 'a' }])).toEqual([{ contactId: 'a' }]);
+    expect(carryFollowUps([{ contactId: 'a', followedUpAt: 'x' }], undefined)).toEqual([]);
+  });
+});
