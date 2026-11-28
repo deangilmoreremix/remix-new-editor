@@ -1,6 +1,6 @@
 'use client'
 
-import { TranscriptToolsPanel } from './SmartTools'
+import { ProtectedZonesEditor, TranscriptToolsPanel } from './SmartTools'
 import { VideoCheckPanel } from './SmartTools'
 import { SavedStylesBar } from './SavedStylesBar'
 import { PLAYBACK_RATES } from '../preview/playbackRate'
@@ -1087,6 +1087,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
           <CaptionsPanel inputProps={inputProps} />
           <VideoCheckPanel advanced />
           <TranscriptToolsPanel />
+          <ProtectedZonesEditor />
           <CutoutPanel inputProps={inputProps} />
           <div style={labelStyle}>Layers</div>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onReorderEnd}>

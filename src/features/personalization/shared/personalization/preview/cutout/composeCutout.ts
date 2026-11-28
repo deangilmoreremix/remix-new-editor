@@ -72,6 +72,13 @@ export async function prepareBackground(scratch: Scratch, cutout: CutoutSettings
   if (bg.kind === 'color') {
     ctx.fillStyle = bg.color
     ctx.fillRect(0, 0, w, h)
+  } else if (bg.kind === 'gradient') {
+    const a = (bg.angle * Math.PI) / 180
+    const cx = w / 2, cy = h / 2, len = Math.abs(w * Math.cos(a)) / 2 + Math.abs(h * Math.sin(a)) / 2
+    const g = ctx.createLinearGradient(cx - Math.cos(a) * len, cy - Math.sin(a) * len, cx + Math.cos(a) * len, cy + Math.sin(a) * len)
+    g.addColorStop(0, bg.from); g.addColorStop(1, bg.to)
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, w, h)
   } else if (bg.kind === 'image' && assets.image) {
     const r = coverRect(assets.image.naturalWidth, assets.image.naturalHeight, w, h)
     ctx.drawImage(assets.image, r.x, r.y, r.w, r.h)
@@ -146,6 +153,12 @@ export function paintCutout({ target, scratch, width, height, cutout, mask }: Pa
   ctx.translate(p.x * width, p.y * height)
   ctx.rotate((p.rotation * Math.PI) / 180)
   ctx.scale(p.scale, p.scale)
+  const shadow = cutout.edge.shadow ?? 0
+  if (shadow > 0) {
+    ctx.shadowColor = `rgba(0,0,0,${(0.55 * shadow).toFixed(2)})`
+    ctx.shadowBlur = (40 * shadow * width) / 1080
+    ctx.shadowOffsetY = (14 * shadow * height) / 1080
+  }
   ctx.drawImage(scratch.fg, -width / 2, -height / 2, width, height)
   ctx.restore()
 }

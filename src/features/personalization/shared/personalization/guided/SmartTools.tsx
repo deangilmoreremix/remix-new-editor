@@ -14,7 +14,7 @@ import { setVideoAnalysis, useLastAnalysis, useVideoAnalysis, type VideoAnalysis
 import { ASPECTS, planCrops, zoneCenter, type CropAspect } from '../intelligence/smartCrop'
 import { checkTextFit, findUnresolvedTokens, isPromotionalClaim, tightenOffer } from '../intelligence/textIntel'
 import { extractKeywords } from '../intelligence/transcriptIntel'
-import { buildScript, ctaIdeas, describeVideo, type Tone } from '../intelligence/scriptIntel'
+import { buildScript, ctaIdeas, describeVideo, type Facts, type Tone } from '../intelligence/scriptIntel'
 import { checkLocalAvailability, translateOnDevice } from '../intelligence/localAvailability'
 import { buildPreflight, type CheckStatus } from '../intelligence/preflight'
 import { PLATFORM_ZONES, platformsOverlapping } from '../intelligence/safeZones'
@@ -33,6 +33,10 @@ import { blobToFile, fileToFileList } from '../preview/imageUpscale'
 import { seekPreviewTo } from '../preview/PreviewControls'
 import { SocialPublishContext } from '../../../components/SocialPublishProvider'
 import { useContext } from 'react'
+import { VOICE_CLARITY, clampVoiceParams, encodeWav, renderVoiceClarity, MAX_PROCESS_SECONDS, type VoiceParams } from '../intelligence/audioProcess'
+import { builtInAIStatus, generateCopyOnDevice, type BuiltInStatus, type CopyKind } from '../intelligence/builtInAI'
+import { coverMapBox, detectFaceBoxes, nativeFaceDetectorAvailable, unionFaceZone, type Box } from '../intelligence/faceZones'
+import { MAX_AUDIO_TRACKS, newAudioTrack } from '../preview/audioMix'
 import { AUTO_SUBJECT_ZONE_ID } from '../preview/placement/subjectDetect'
 import type { PreviewInputProps } from '../preview/types'
 import type { LayoutQualityState } from './useLayoutQuality'
@@ -371,6 +375,8 @@ export function VideoCheckPanel({ advanced = false }: { advanced?: boolean }): R
               <div style={{ ...hintStyle, margin: 0 }}>Scene starts: {a.scenes.map((s) => clock(s.start)).join(', ')}{a.audio?.silences.length ? ` · Pauses: ${a.audio.silences.map((s) => `${clock(s.startMs / 1000)}–${clock(s.endMs / 1000)}`).join(', ')}` : ''}</div>
             </div>
           )}
+          <VoiceClarityControls url={url} advanced={advanced} />
+          <FaceZoneControl url={url} />
           {note && <p data-testid="video-note" style={{ ...hintStyle, margin: 0, color: C.text }}>{note}</p>}
         </div>
       )}
@@ -483,6 +489,7 @@ export function FreeContentPanel({ onPick }: { onPick: (field: Field, value: str
             {translateNote && <div style={{ ...hintStyle, color: C.danger }}>{translateNote}</div>}
             {shareNote && <div data-testid="fc-share-note" style={hintStyle}>{shareNote}</div>}
           </div>
+          <OnDeviceAI facts={facts} onPick={pick} />
           {keywords.length > 0 && <div data-testid="fc-keywords" style={hintStyle}>Keywords from your details: {keywords.join(', ')}</div>}
           {(fitWarnings.length > 0 || tokens.length > 0) && (
             <ul data-testid="fc-warnings" style={{ margin: 0, paddingLeft: 16, ...hintStyle, color: '#fcd34d' }}>
@@ -663,6 +670,178 @@ export function TranscriptToolsPanel(): React.JSX.Element | null {
           : <span style={{ ...hintStyle, color: C.text }}>These titles are automatic. Copy them anyway? <button type="button" data-testid="copy-chapters-yes" onClick={() => void copyChapters()} style={{ ...small, minHeight: 26 }}>Yes, copy</button></span>}
       </div>}
       {note && <p style={{ ...hintStyle, margin: '6px 0 0', color: C.text }}>{note}</p>}
+    </div>
+  )
+}
+
+
+// ───────────────────────── Voice clarity (D5) ─────────────────────────
+
+const sliderRow = (label: string, id: string, value: number, min: number, max: number, step: number, on: (v: number) => void, unit = '') => (
+  <label key={id} style={{ ...hintStyle, display: 'flex', gap: 8, alignItems: 'center', margin: 0 }}>
+    <span style={{ minWidth: 118 }}>{label}</span>
+    <input type="range" aria-label={label} data-testid={id} min={min} max={max} step={step} value={value} onChange={(e) => on(Number(e.target.value))} style={{ flex: 1, accentColor: C.cyan }} />
+    <span style={{ minWidth: 48 }}>{value}{unit}</span>
+  </label>
+)
+
+/** Speech-focused EQ, compression and level matching, rendered on this device into a new audio track. Not AI noise removal. */
+export function VoiceClarityControls({ url, advanced }: { url: string; advanced: boolean }): React.JSX.Element {
+  const { previewSettings, updatePreviewComposition } = useDemoPersonalize()
+  const settingsRef = useRef(previewSettings); settingsRef.current = previewSettings
+  const job = useJob()
+  const [params, setParams] = useState<VoiceParams>(VOICE_CLARITY)
+  const [applied, setApplied] = useState<{ trackId: string; wasMuted: boolean; href: string } | null>(null)
+  const [note, setNote] = useState<string | null>(null)
+  const set = (patch: Partial<VoiceParams>) => setParams((p) => ({ ...p, ...patch }))
+  const apply = () => job.run(async (signal, progress) => {
+    setNote(null)
+    if ((settingsRef.current.audioTracks ?? []).length >= MAX_AUDIO_TRACKS) throw new Error('The audio mix is full. Remove a track first.')
+    progress(0, 2, 'Reading the sound…')
+    const dec = await decodeMediaAudio(url, { signal, maxSeconds: MAX_PROCESS_SECONDS + 1 })
+    if (!dec) throw new Error('The sound in this video could not be read, so it cannot be improved.')
+    progress(1, 2, 'Improving the voice…')
+    const r = await renderVoiceClarity(dec, clampVoiceParams(params), signal)
+    if (signal.aborted) return
+    const href = URL.createObjectURL(encodeWav(r.samples, r.sampleRate))
+    const track = newAudioTrack({ url: href, name: 'Clearer voice', kind: 'voiceover', volume: 1 })
+    const cur = settingsRef.current
+    updatePreviewComposition({ audioTracks: [...(cur.audioTracks ?? []), track], videoMuted: true })
+    setApplied({ trackId: track.id, wasMuted: cur.videoMuted === true, href })
+    setNote(`Added a “Clearer voice” track (${r.gainDb >= 0 ? '+' : ''}${r.gainDb} dB level match) and muted the original sound in the mix. The original is untouched; Undo restores it.`)
+  })
+  const undo = () => {
+    if (!applied) return
+    const cur = settingsRef.current
+    updatePreviewComposition({ audioTracks: (cur.audioTracks ?? []).filter((t) => t.id !== applied.trackId), videoMuted: applied.wasMuted || undefined })
+    URL.revokeObjectURL(applied.href); setApplied(null); setNote('Original sound restored.')
+  }
+  return (
+    <div data-testid="voice-clarity" style={{ display: 'grid', gap: 6 }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <button type="button" data-testid="voice-apply" disabled={job.busy || !!applied} onClick={() => void apply()} style={small}>Voice clarity</button>
+        {applied && <button type="button" data-testid="voice-undo" onClick={undo} style={small}>Undo</button>}
+        <span style={{ ...hintStyle, margin: 0 }}>Cleaner speech: low-rumble cut, presence boost, even levels. Not AI noise removal.</span>
+      </div>
+      {advanced && (
+        <div data-testid="voice-advanced" style={{ display: 'grid', gap: 4 }}>
+          {sliderRow('Low cut', 'voice-highpass', params.highpassHz, 20, 300, 5, (v) => set({ highpassHz: v }), ' Hz')}
+          {sliderRow('Presence', 'voice-presence', params.presenceDb, -6, 8, 0.5, (v) => set({ presenceDb: v }), ' dB')}
+          {sliderRow('Presence centre', 'voice-presence-hz', params.presenceHz, 1000, 6000, 100, (v) => set({ presenceHz: v }), ' Hz')}
+          {sliderRow('Compressor threshold', 'voice-threshold', params.thresholdDb, -50, 0, 1, (v) => set({ thresholdDb: v }), ' dB')}
+          {sliderRow('Compressor ratio', 'voice-ratio', params.ratio, 1, 12, 0.5, (v) => set({ ratio: v }), ':1')}
+          {sliderRow('Target loudness', 'voice-lufs', params.targetLufs, -24, -10, 1, (v) => set({ targetLufs: v }), ' LUFS')}
+        </div>
+      )}
+      <JobStatus job={job} />
+      {note && <p data-testid="voice-note" style={{ ...hintStyle, margin: 0, color: C.text }}>{note}</p>}
+    </div>
+  )
+}
+
+// ───────────────────────── Face-aware zone (A1) ─────────────────────────
+
+/** Protects faces where the browser has a native face detector. Positions only: nobody is identified. */
+export function FaceZoneControl({ url }: { url: string }): React.JSX.Element {
+  const { previewSettings, setPreviewProtectedZones } = useDemoPersonalize()
+  const job = useJob()
+  const [note, setNote] = useState<string | null>(null)
+  const supported = nativeFaceDetectorAvailable()
+  const zones = previewSettings?.protectedZones ?? []
+  const find = () => job.run(async (signal, progress) => {
+    setNote(null)
+    const probe = await probeVideo(url)
+    if (!probe) throw new Error('This browser cannot read this video.')
+    const boxes: Box[] = []
+    const N = 6
+    for (let i = 0; i < N; i++) {
+      if (signal.aborted) return
+      const f = await grabFramePixels(url, (probe.duration * (i + 0.5)) / N, { maxSize: 480, signal })
+      const c = document.createElement('canvas'); c.width = f.width; c.height = f.height
+      c.getContext('2d')!.putImageData(new ImageData(new Uint8ClampedArray(f.data), f.width, f.height), 0, 0)
+      for (const b of await detectFaceBoxes(c, f.width, f.height)) boxes.push(coverMapBox(b, f.width, f.height, previewSettings.width, previewSettings.height))
+      progress(i + 1, N, `Looking at frame ${i + 1} of ${N}…`)
+    }
+    const zone = unionFaceZone(boxes)
+    const others = (previewSettings.protectedZones ?? []).filter((z) => z.id !== 'auto-faces')
+    if (!zone) { setPreviewProtectedZones(others); setNote('No faces were found in the sampled frames, so nothing is protected. You can mark the subject by hand instead.'); return }
+    setPreviewProtectedZones([...others, { id: 'auto-faces', label: 'Faces found (estimate)', source: 'user', ...zone }])
+    setNote(`Protected the area where faces appear (${boxes.length} found across ${N} frames). Overlays now keep clear of it. Check the layout preview: it is an estimate from sampled frames.`)
+  })
+  return (
+    <div data-testid="face-zone" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      <button type="button" data-testid="find-faces" disabled={!supported || job.busy} title={supported ? '' : 'This browser has no built-in face detector'} onClick={() => void find()} style={{ ...small, opacity: supported ? 1 : 0.5 }}>Keep faces clear</button>
+      {zones.some((z) => z.id === 'auto-faces') && <button type="button" data-testid="clear-faces" onClick={() => setPreviewProtectedZones(zones.filter((z) => z.id !== 'auto-faces'))} style={small}>Clear faces</button>}
+      {!supported && <span style={{ ...hintStyle, margin: 0 }}>Needs a browser with a built-in face detector. Here, use “Find the subject for me” in the layout check (finds people, not faces).</span>}
+      <JobStatus job={job} />
+      {note && <span data-testid="face-note" style={{ ...hintStyle, margin: 0, color: C.text }}>{note}</span>}
+    </div>
+  )
+}
+
+// ───────────────────────── Protected zones editor (A3) ─────────────────────────
+
+/** Advanced: adjust or add the zones overlays must keep clear of. Locked or hand-placed layers are never moved by it. */
+export function ProtectedZonesEditor(): React.JSX.Element {
+  const { previewSettings, setPreviewProtectedZones } = useDemoPersonalize()
+  const zones = previewSettings?.protectedZones ?? []
+  const upd = (id: string, patch: Partial<Box>) => setPreviewProtectedZones(zones.map((z) => (z.id === id ? { ...z, ...patch } : z)))
+  const add = () => setPreviewProtectedZones([...zones, { id: `manual-${Date.now().toString(36)}`, label: 'Keep clear', source: 'user', x: 0.35, y: 0.35, w: 0.3, h: 0.3 }])
+  return (
+    <div data-testid="zones-editor" style={{ ...panelStyle, marginTop: 12 }}>
+      <h3 style={h3}>Protected zones</h3>
+      <p style={{ ...hintStyle, margin: '0 0 6px' }}>Areas that logos, text and captions keep clear of. Moving a zone re-runs the layout check; layers you placed by hand or locked stay where they are.</p>
+      {zones.length === 0 && <p data-testid="zones-empty" style={hintStyle}>No zones yet.</p>}
+      {zones.map((z) => (
+        <div key={z.id} data-testid="zone-row" style={{ display: 'grid', gap: 3, marginBottom: 8 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <strong style={{ fontSize: 11, color: C.text, flex: 1 }}>{z.label}</strong>
+            <button type="button" data-testid="zone-remove" onClick={() => setPreviewProtectedZones(zones.filter((x) => x.id !== z.id))} style={{ ...small, minHeight: 24, fontSize: 10 }}>Remove</button>
+          </div>
+          {(['x', 'y', 'w', 'h'] as const).map((k) => sliderRow({ x: 'Left', y: 'Top', w: 'Width', h: 'Height' }[k], `zone-${k}`, Math.round(z[k] * 100) / 100, 0, 1, 0.01, (v) => upd(z.id, { [k]: v })))}
+        </div>
+      ))}
+      <button type="button" data-testid="zone-add" onClick={add} style={small}>Add a zone to keep clear</button>
+    </div>
+  )
+}
+
+// ───────────────────────── Built-in browser AI (C1) ─────────────────────────
+
+/** Uses the browser's own on-device language model when it has one. Asks before any download; checks output against your facts. */
+export function OnDeviceAI({ facts, onPick }: { facts: Facts; onPick: (field: Field, value: string, layer: Layer) => void }): React.JSX.Element {
+  const [status, setStatus] = useState<BuiltInStatus | null>(null)
+  const [ask, setAsk] = useState<CopyKind | null>(null)
+  const [out, setOut] = useState<{ kind: CopyKind; lines: string[]; rejected: number } | null>(null)
+  const job = useJob()
+  useEffect(() => { let live = true; void builtInAIStatus().then((s) => { if (live) setStatus(s) }); return () => { live = false } }, [])
+  const run = (kind: CopyKind) => {
+    setAsk(null); setOut(null)
+    void job.run(async (signal, progress) => {
+      progress(0, 1, status === 'available' ? 'Writing…' : 'Your browser is preparing its model…')
+      const r = await generateCopyOnDevice(kind, facts, { signal, onProgress: (p) => progress(p, 1, 'Your browser is downloading its model…') })
+      if (!signal.aborted) { setOut({ kind, ...r }); setStatus('available') }
+    })
+  }
+  const start = (kind: CopyKind) => (status === 'available' ? run(kind) : setAsk(kind))
+  if (status === null) return <></>
+  if (status === 'unsupported' || status === 'unavailable') return <div data-testid="ondevice-ai" style={hintStyle}>This browser has no built-in on-device AI, so the template suggestions above are used. Nothing is sent to a paid AI service.</div>
+  const map: Record<CopyKind, [Field, Layer]> = { headline: ['ctaHeadline', 'headline'], tagline: ['brandDescription', 'tagline'], cta: ['callToAction', 'cta'] }
+  return (
+    <div data-testid="ondevice-ai" style={{ display: 'grid', gap: 6 }}>
+      <div style={{ ...hintStyle, margin: 0 }}>Built-in browser AI (runs on this device):</div>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {(['headline', 'tagline', 'cta'] as CopyKind[]).map((k) => <button key={k} type="button" data-testid={`ai-${k}`} disabled={job.busy} onClick={() => start(k)} style={small}>Write {k === 'cta' ? 'calls to action' : `${k}s`}</button>)}
+      </div>
+      {ask && <div data-testid="ai-consent" style={{ ...hintStyle, color: C.text }}>Your browser may need to download its own language model first (a large one-time download, often 2 GB or more, handled and stored by the browser). Nothing leaves this device. Continue?{' '}
+        <button type="button" data-testid="ai-consent-yes" onClick={() => run(ask)} style={{ ...small, minHeight: 26 }}>Continue</button>{' '}<button type="button" onClick={() => setAsk(null)} style={{ ...small, minHeight: 26 }}>Not now</button></div>}
+      <JobStatus job={job} />
+      {out && <div data-testid="ai-results" style={{ display: 'grid', gap: 4 }}>
+        {out.lines.length === 0 && <span style={hintStyle}>Nothing usable came back: every line added a number or claim that is not in your details.</span>}
+        {out.lines.map((l) => <button key={l} type="button" data-testid="ai-line" onClick={() => onPick(map[out.kind][0], l, map[out.kind][1])} style={{ ...small, textAlign: 'left', justifyContent: 'flex-start' }}>{l}</button>)}
+        {out.rejected > 0 && <span style={hintStyle}>{out.rejected} suggestion{out.rejected === 1 ? ' was' : 's were'} dropped for adding figures or claims that are not in your details.</span>}
+        <span style={hintStyle}>Review before using. Written by the browser's AI; nothing is applied until you click.</span>
+      </div>}
     </div>
   )
 }

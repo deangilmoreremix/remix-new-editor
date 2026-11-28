@@ -106,7 +106,7 @@ export function CutoutPanel({ inputProps }: { inputProps: PreviewInputProps }): 
               <div>
                 <Tip id="cutoutBackground" side="top"><div style={labelStyle}>Background</div></Tip>
                 <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                  {([['none', 'None'], ['color', 'Color'], ['blur', 'Blur'], ['image', 'Image'], ['video', 'Video']] as const).map(([kind, label]) => (
+                  {([['none', 'None'], ['color', 'Color'], ['gradient', 'Gradient'], ['blur', 'Blur'], ['image', 'Image'], ['video', 'Video']] as const).map(([kind, label]) => (
                     <button
                       key={kind}
                       type="button"
@@ -115,6 +115,7 @@ export function CutoutPanel({ inputProps }: { inputProps: PreviewInputProps }): 
                       onClick={() => {
                         if (kind === 'none') setBackground({ kind: 'none' })
                         else if (kind === 'color') setBackground({ kind: 'color', color: bg.kind === 'color' ? bg.color : brand.primary })
+                        else if (kind === 'gradient') setBackground({ kind: 'gradient', from: brand.primary, to: brand.accent, angle: 90 })
                         else if (kind === 'blur') setBackground({ kind: 'blur', amount: 24 })
                         else { setPickKind(kind); fileRef.current?.click() }
                       }}
@@ -137,6 +138,13 @@ export function CutoutPanel({ inputProps }: { inputProps: PreviewInputProps }): 
                     <ColorField id="cutout-bg-color" label="Background color" ariaLabel="Background color" tipId="cutoutColor" value={bg.color} onChange={(hex) => setBackground({ kind: 'color', color: hex })} brand={brand} posterUrl={inputProps.posterUrl} />
                   </div>
                 )}
+                {bg.kind === 'gradient' && (
+                  <div data-testid="cutout-gradient" style={{ marginTop: 6, display: 'grid', gap: 6 }}>
+                    <ColorField id="cutout-grad-from" label="From" ariaLabel="Gradient start color" tipId="cutoutColor" value={bg.from} onChange={(hex) => setBackground({ ...bg, from: hex })} brand={brand} posterUrl={inputProps.posterUrl} />
+                    <ColorField id="cutout-grad-to" label="To" ariaLabel="Gradient end color" tipId="cutoutColor" value={bg.to} onChange={(hex) => setBackground({ ...bg, to: hex })} brand={brand} posterUrl={inputProps.posterUrl} />
+                    {slider('cutout-grad-angle', 'Angle', bg.angle, 0, 360, 1, (v) => setBackground({ ...bg, angle: v }))}
+                  </div>
+                )}
                 {bg.kind === 'blur' && slider('cutout-bg-blur', 'Blur amount', bg.amount, 4, 60, 1, (v) => setBackground({ kind: 'blur', amount: v }))}
               </div>
 
@@ -156,6 +164,7 @@ export function CutoutPanel({ inputProps }: { inputProps: PreviewInputProps }): 
               <div>
                 <Tip id="cutoutEdge" side="top"><div style={labelStyle}>Edge</div></Tip>
                 {slider('cutout-feather', 'Soften', cutout.edge.feather, 0, 1, 0.01, (v) => set({ edge: { ...cutout.edge, feather: v } }))}
+                {slider('cutout-shadow', 'Soft shadow', cutout.edge.shadow ?? 0, 0, 1, 0.01, (v) => set({ edge: { ...cutout.edge, shadow: v || undefined } }))}
                 {slider('cutout-shift', 'Edge (shrink / grow)', cutout.edge.shift, -1, 1, 0.01, (v) => set({ edge: { ...cutout.edge, shift: v } }))}
               </div>
 

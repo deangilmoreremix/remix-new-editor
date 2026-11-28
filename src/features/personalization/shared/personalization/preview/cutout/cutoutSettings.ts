@@ -6,6 +6,8 @@
 export type CutoutBackground =
   | { kind: 'none' }
   | { kind: 'color'; color: string }
+  /** A two-colour linear gradient; `angle` in degrees (0 = left to right, 90 = top to bottom). */
+  | { kind: 'gradient'; from: string; to: string; angle: number }
   | { kind: 'image'; url: string }
   | { kind: 'video'; url: string }
   /** The original footage, blurred, behind the presenter. */
@@ -26,6 +28,8 @@ export interface CutoutEdge {
   feather: number
   /** -1 (grow the presenter) .. 1 (shrink it). Trims halos or recovers hair. */
   shift: number
+  /** Soft drop shadow under the presenter, 0 (none, the default) .. 1 (strong). */
+  shadow?: number
 }
 
 export interface CutoutSettings {
@@ -71,6 +75,8 @@ function normalizeBackground(raw: unknown): CutoutBackground {
       return { kind: 'none' }
     case 'color':
       return { kind: 'color', color: str(raw.color) ?? '#101827' }
+    case 'gradient':
+      return { kind: 'gradient', from: str(raw.from) ?? '#101827', to: str(raw.to) ?? '#2563eb', angle: num(raw.angle, 90, 0, 360) }
     case 'image': {
       const url = str(raw.url)
       return url ? { kind: 'image', url } : { ...DEFAULT_CUTOUT.background }
@@ -103,6 +109,7 @@ export function normalizeCutout(raw: unknown): CutoutSettings | undefined {
     edge: {
       feather: num(edge.feather, DEFAULT_CUTOUT.edge.feather, 0, 1),
       shift: num(edge.shift, 0, -1, 1),
+      ...(num(edge.shadow, 0, 0, 1) > 0 ? { shadow: num(edge.shadow, 0, 0, 1) } : {}),
     },
   }
 }
