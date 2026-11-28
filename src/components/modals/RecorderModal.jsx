@@ -376,6 +376,7 @@ export class RecorderModal extends BaseModal {
         ${sw('noiseSuppression', 'Noise suppression', 'Removes steady background noise like fans, hum and keyboard clicks.')}
         ${sw('echoCancellation', 'Echo cancellation', 'Stops sound from your speakers coming back through the microphone. Leave on unless you use headphones and want the most natural sound.')}
         ${sw('autoGainControl', 'Automatic volume', 'Evens out loud and quiet speech. Turn off if your volume pumps up and down.')}
+        ${sw('voiceLeveler', 'Even out my voice', 'Turns room hiss down between sentences, lifts a quiet voice and stops loud moments from distorting, as you record. If your browser cannot do this, the take is recorded as usual.')}
         ${this.usesScreen() ? sw('systemAudio', 'Include computer sound', 'Records the sound of the tab or screen you share, mixed with your voice. In the share picker, tick "Share tab audio" or "Share system audio".') : ''}
         <div style="display:flex;flex-direction:column;gap:6px;">
           <button type="button" class="preview-toggle" data-action="mic-test" ${this.micTesting ? 'disabled' : ''} style="align-self:flex-start;">${icon('audio', 14)} ${this.micTesting ? 'Recording… speak now' : 'Test my microphone'}</button>
@@ -1150,7 +1151,14 @@ export class RecorderModal extends BaseModal {
     this.releaseMeter();
     if (this.micTestUrl) { URL.revokeObjectURL(this.micTestUrl); this.micTestUrl = null; }
     try {
-      const sources = await this.buildSources();
+      let sources = await this.buildSources();
+      this.levelerStops?.forEach((f) => f()); this.levelerStops = [];
+      if (this.audio.voiceLeveler && sources.some((s) => s.stream?.getAudioTracks?.().length)) {
+        const { levelSources } = await import('../../lib/recorder/levelStream.js');
+        const leveled = await levelSources(sources);
+        sources = leveled.sources; this.levelerStops = leveled.stops;
+        if (leveled.failed) this.notice = 'Even out my voice is not available in this browser, so this take uses your normal sound.';
+      }
       this.liveStreams = sources.map(s => s.stream);
       this.hasAudio = sources.some(s => s.stream.getAudioTracks().length > 0);
       if (this.micEnabled && !this.hasAudio) this.notice = 'Microphone was unavailable, so this take has no sound.';
@@ -1343,6 +1351,8 @@ export class RecorderModal extends BaseModal {
 
   stopAllStreams() {
     this.liveCam = null;
+    this.levelerStops?.forEach((f) => f());
+    this.levelerStops = [];
     this.annotator?.stop();
     this.annotator = null;
     [...(this.liveStreams || []), ...(this.extraStreams || []), this.webcamStream].forEach((s) => {

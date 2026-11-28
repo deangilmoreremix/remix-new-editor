@@ -6,6 +6,7 @@ export const AUDIO_DEFAULTS = Object.freeze({
   echoCancellation: true,   // stops speaker sound coming back through the mic
   autoGainControl: true,    // evens out loud and quiet speech
   systemAudio: false,       // screen recordings: include the sound of the shared tab or screen
+  voiceLeveler: false,      // gate, level and limit the voice while recording (an AudioWorklet; the take is recorded as usual if it cannot run)
 });
 
 const KEY = 'recorder-audio-settings';

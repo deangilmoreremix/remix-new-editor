@@ -9,6 +9,9 @@ vi.mock('../../lib/recorder/composeBoth.jsx', () => ({ composeBoth: (...a) => co
 // Trimming re-muxes with Mediabunny (needs real media); faked here, run for real in the browser check.
 const trimTake = vi.fn(async (blob, { start, end }) => new Blob([`trimmed ${start}-${end}`], { type: blob.type }));
 vi.mock('../../lib/recorder/convert.js', () => ({ trimTake: (...a) => trimTake(...a) }));
+// The voice leveler needs a real AudioWorklet; its own tests fake the audio graph (levelStream.test.js).
+const levelSources = vi.fn(async (sources) => ({ sources, stops: [], leveled: 0, failed: false }));
+vi.mock('../../lib/recorder/levelStream.js', () => ({ levelSources: (...a) => levelSources(...a) }));
 const { RecorderModal } = await import('./RecorderModal.jsx');
 
 let requests;
@@ -451,5 +454,50 @@ describe('floating recording controls', () => {
     expect(modal.monitorWin).toBe(controls);
     modal.destroy();
     delete window.documentPictureInPicture;
+  });
+});
+
+describe('Even out my voice', () => {
+  beforeEach(() => { levelSources.mockClear(); localStorage.removeItem('recorder-audio-settings'); });
+
+  test('is a switch in the settings, off by default, and a take does not touch the leveler while it is off', async () => {
+    const { modal } = makeModal('camera');
+    modal.showSettings = true;
+    expect(modal.renderBody()).toContain('data-audio-setting="voiceLeveler"');
+    expect(modal.audio.voiceLeveler).toBe(false);
+    await modal.startRecording();
+    expect(levelSources).not.toHaveBeenCalled();
+    await modal.stopRecording();
+  });
+
+  test('when on, the microphone goes through the leveler and the leveler is stopped with the take', async () => {
+    const stop = vi.fn();
+    levelSources.mockImplementationOnce(async (sources) => ({ sources, stops: [stop], leveled: 1, failed: false }));
+    const { modal } = makeModal('camera');
+    modal.audio = { ...modal.audio, voiceLeveler: true };
+    await modal.startRecording();
+    expect(levelSources).toHaveBeenCalledTimes(1);
+    expect(modal.notice).toBe('');
+    await modal.stopRecording();
+    expect(stop).toHaveBeenCalledTimes(1);
+  });
+
+  test('when it cannot run, the take still records and says so', async () => {
+    levelSources.mockImplementationOnce(async (sources) => ({ sources, stops: [], leveled: 0, failed: true }));
+    const { modal } = makeModal('camera');
+    modal.audio = { ...modal.audio, voiceLeveler: true };
+    await modal.startRecording();
+    expect(modal.isRecording).toBe(true);
+    expect(modal.notice).toMatch(/not available in this browser/);
+    await modal.stopRecording();
+  });
+
+  test('with the microphone off there is nothing to level', async () => {
+    const { modal } = makeModal('screen');
+    modal.audio = { ...modal.audio, voiceLeveler: true };
+    modal.micEnabled = false;
+    await modal.startRecording();
+    expect(levelSources).not.toHaveBeenCalled();
+    await modal.stopRecording();
   });
 });
