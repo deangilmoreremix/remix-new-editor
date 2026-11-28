@@ -30,6 +30,7 @@ export const OVERLAY_KINDS: Array<{ kind: OverlayKind; label: string; blurb: str
   { kind: 'addon-skip', label: 'Skip', blurb: 'Jump over this section during playback. Works on the published link.' },
   { kind: 'addon-loop', label: 'Loop', blurb: 'Repeat this section a set number of times, or forever. Works on the published link.' },
   { kind: 'addon-hotspot', label: 'Hotspot', blurb: 'A clickable area on the video: open a link, call a number or jump to another point. Works on the published link.' },
+  { kind: 'addon-path-choice', label: 'Choose your path', blurb: 'Pause and let the viewer pick a route through the video (2-4 choices). Works on the published link.' },
   { kind: 'overlay-studio-design', label: 'Studio Design', blurb: 'A Personalization Studio design (headline, logo reveal, call to action...) filled with each contact\'s details.' },
 ];
 

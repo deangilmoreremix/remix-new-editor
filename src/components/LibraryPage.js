@@ -20,7 +20,7 @@ const MUAPI_STUDIOS = [
 
 export function LibraryPage() {
   const container = document.createElement('div');
-  container.className = 'w-full h-full flex flex-col bg-app-bg overflow-hidden';
+  container.className = 'studio-short-scroll w-full h-full flex flex-col bg-app-bg overflow-hidden';
   mountStudioChrome(container, { currentRoute: 'library' });
 
   let activeFilter = 'all';
@@ -85,7 +85,7 @@ export function LibraryPage() {
   container.appendChild(topBar);
 
   const gridArea = document.createElement('div');
-  gridArea.className = 'flex-1 overflow-y-auto px-4 md:px-8 pb-8';
+  gridArea.className = 'studio-short-body flex-1 overflow-y-auto px-4 md:px-8 pb-8';
   container.appendChild(gridArea);
 
   async function loadHistory() {

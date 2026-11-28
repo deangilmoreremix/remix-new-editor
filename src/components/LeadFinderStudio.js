@@ -86,7 +86,7 @@ function renderLeadRow(lead) {
 export function LeadFinderStudio() {
   installPersonalizationApiAuth();
 
-  const container = el('div', 'w-full h-full flex flex-col overflow-hidden bg-app-bg text-white');
+  const container = el('div', 'w-full h-full flex flex-col overflow-y-auto bg-app-bg text-white');
   mountStudioChrome(container, { currentRoute: 'leadfinder' });
 
   const scroll = el('div', 'flex-1 overflow-y-auto');
